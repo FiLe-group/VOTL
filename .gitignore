@@ -24,7 +24,6 @@ hs_err_pid*
 
 # Ignore Gradle project-specific cache directory
 .gradle
-gradle/
 
 # Ignore Gradle build output directory
 build
@@ -42,3 +41,6 @@ test
 .settings/org.eclipse.buildship.core.prefs
 app/.classpath
 app/.settings/org.eclipse.buildship.core.prefs
+
+# Include wrapper files
+!gradle/wrapper/*

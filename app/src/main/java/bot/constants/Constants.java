@@ -1,5 +1,6 @@
 package bot.constants;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -8,8 +9,14 @@ public final class Constants {
 		throw new IllegalStateException("Utility class");
 	}
 
-	private static final String DEV_HOME = System.getProperty("user.dir");
-	private static final Path DATA_PATH = Paths.get(DEV_HOME, (DEV_HOME.contains("app") ? "" : "/app"), "/src/main/resources");
+	private static final String DEV_PATH = System.getProperty("user.dir");
+	private static final Path DATA_PATH = (
+		Paths.get(
+			DEV_PATH,
+			Files.isDirectory(Paths.get(DEV_PATH + "/app/")) ? "/app/src/main/resources" : "",
+			Files.isDirectory(Paths.get(DEV_PATH + "/src/")) ? "/src/main/resources" : ""
+		)
+	);
 	public static final String CONFIG_FILE = DATA_PATH + "/config.json";
 	public static final String DATABASE_FILE = DATA_PATH + "/server.db";
 	public static final String LANG_PATH = DATA_PATH + "/lang/";
