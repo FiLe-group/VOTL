@@ -83,7 +83,7 @@ public class App {
 		// Define a command client
 		CommandClient commandClient = new CommandClientBuilder()
 			.setStatus(OnlineStatus.IDLE)
-			.setActivity(Activity.competing("Loading..."))
+			.setActivity(Activity.watching("Loading..."))
 			.setPrefix(fileManager.getString("config", "default-prefix"))
 			.setOwnerId(fileManager.getString("config", "owner-id"))
 			.setServerInvite(Links.DISCORD)
@@ -93,7 +93,7 @@ public class App {
 
 				// owner
 				new EvalCmd(this, catOwner),
-				new ShutdownCmd(catOwner),
+				new ShutdownCmd(this, catOwner),
 				// other
 				new PingCmd(catOther)
 			)
@@ -114,7 +114,6 @@ public class App {
 					GatewayIntent.GUILD_EMOJIS,
 					GatewayIntent.DIRECT_MESSAGES
 				)
-				.setStatus(OnlineStatus.ONLINE)
 				.setMemberCachePolicy(policy)
 				.setChunkingFilter(ChunkingFilter.ALL)
 				.enableCache(CacheFlag.VOICE_STATE, CacheFlag.MEMBER_OVERRIDES, CacheFlag.ONLINE_STATUS)
@@ -157,7 +156,7 @@ public class App {
     }
 
     public String getPrefix() {
-        return "]";
+        return fileManager.getString("config", "default-prefix");
     }
 
     public String getMsg(String id, String path, String user, String target) {
@@ -201,5 +200,7 @@ public class App {
 	public static void main(String[] args) {
 		instance = new App();
 		instance.logger.info("Success start");
+		instance.jda.getPresence().setStatus(OnlineStatus.ONLINE);
+		instance.jda.getPresence().setActivity(Activity.watching(instance.getPrefix() + "help"));
 	}
 }
