@@ -7,9 +7,11 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 import bot.App;
 import net.dv8tion.jda.api.entities.Activity;
 
-@CommandInfo(
+@CommandInfo
+(
     name = "Shutdown",
-    description = "Safely shuts down the bot."
+    description = "Safely shuts down the bot.",
+    requirements = {"Be the bot owner"}
 )
 public class ShutdownCmd extends Command {
 
@@ -17,7 +19,7 @@ public class ShutdownCmd extends Command {
 
     public ShutdownCmd(App bot, Category cat) {
         this.name = "shutdown";
-        this.help = "safely shuts down the bot";
+        this.help = "безопасно выключает бота";
         this.guildOnly = false;
         this.ownerCommand = true;
         this.category = cat;

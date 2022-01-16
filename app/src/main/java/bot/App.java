@@ -82,8 +82,6 @@ public class App {
 
 		// Define a command client
 		CommandClient commandClient = new CommandClientBuilder()
-			.setStatus(OnlineStatus.IDLE)
-			.setActivity(Activity.watching("Loading..."))
 			.setPrefix(fileManager.getString("config", "default-prefix"))
 			.setOwnerId(fileManager.getString("config", "owner-id"))
 			.setServerInvite(Links.DISCORD)
@@ -119,6 +117,8 @@ public class App {
 				.enableCache(CacheFlag.VOICE_STATE, CacheFlag.MEMBER_OVERRIDES, CacheFlag.ONLINE_STATUS)
 				.setAutoReconnect(true)
 				.addEventListeners(commandClient, waiter)
+				.setStatus(OnlineStatus.IDLE)
+				.setActivity(Activity.watching("Loading..."))
 				.build();
 		} catch (LoginException e) {
 			e.printStackTrace();

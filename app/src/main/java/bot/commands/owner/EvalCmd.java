@@ -17,7 +17,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.TextChannel;
 
-@CommandInfo(
+@CommandInfo
+(
 	name = "Eval",
 	usage = "Eval <java code>",
 	description = "Evaluates givven code.",

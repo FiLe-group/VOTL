@@ -6,7 +6,8 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
-@CommandInfo(
+@CommandInfo
+(
     name = {"Ping", "Pong"},
     description = "Checks the bot's latency."
 )
@@ -16,7 +17,7 @@ public class PingCmd extends Command {
         this.name = "ping";
         this.aliases = new String[]{"pong"};
         this.category = cat;
-        this.help = "checks the bot's latency";
+        this.help = "проверить задержку бота";
         this.guildOnly = false;
     }
 
