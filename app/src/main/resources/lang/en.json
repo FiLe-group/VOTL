@@ -1,72 +1,97 @@
 {
-    "embed": {
-        "footer": "Requested by {user}"
-    },
-    "errors": {
-        "missing_perms": {
-            "self": "I lack the permission `{permission}` for this.",
-            "self_channel": "I lack the permission `{permission}` in the channel {channel} to do this.",
-            "other": "You lack the permission `{permission}` for this command.",
-            "other_channel": "You lack the permission `{permission}` in the channel {channel} to do this command."
-        },
-        "request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and thet I have sufficient permissions!",
-        "title": "Error",
-        "unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to `{owner}`!"
-    },
-    "misc": {
-        "and": "and",
-        "info": "Hey there {user}!\nMy prefix on this discord server is `{prefix}`\nRun `{prefix}help` for a list of commands.",
-        "language": "English (en)",
-        "unknown_user": "Unknown"
-    },
-    "bot": {
-        "owner": {
-            "eval": {
-                "description": "Evaluates code using Groovy",
-                "no_args": "You didn't provided code to evaluate.\nUsage: `{prefix}eval <code>`",
-                "time": "Evaluated in {time}ms",
-                "input": "Input:",
-                "output": "Output:"
-            },
-            "shutdown": {
-                "description": "Safely shuts down the bot"
-            }
-        },
-        "voice": {
+	"embed": {
+		"footer": "Requested by {user}"
+	},
+	"errors": {
+		"missing_perms": {
+			"self": "I lack the permission `{permission}` for this.",
+			"self_channel": "I lack the permission `{permission}` in the channel {channel} to do this.",
+			"other": "You lack the permission `{permission}` for this command.",
+			"other_channel": "You lack the permission `{permission}` in the channel {channel} to do this command."
+		},
+		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and thet I have sufficient permissions!",
+		"title": "Error",
+		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to `{owner}`!"
+	},
+	"misc": {
+		"and": "and",
+		"info": "Hey there {user}!\nMy prefix on this discord server is `{prefix}`\nRun `{prefix}help` for a list of commands.",
+		"language": "English (en)",
+		"unknown_user": "Unknown"
+	},
+	"bot": {
+		"owner": {
+			"eval": {
+				"description": "Evaluates code using Groovy",
+				"no_args": "You didn't provided code to evaluate.\nUsage: `{prefix}eval <code>`",
+				"time": "Evaluated in {time}ms",
+				"input": "Input:",
+				"output": "Output:"
+			},
+			"shutdown": {
+				"description": "Safely shuts down the bot"
+			}
+		},
+		"voice": {
 
-        },
-        "other": {
-            "ping": {
-                "description": "Check the bot's latency",
-                "loading": "{EMOTE_TYPING} Ping: ...",
-                "info": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms",
-                "info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest}"
-            }
-        },
-        "help": {
-            "description": "List all available commadns the bot has.\nYou can add the name of a command after it, to recieve some additional info about that specified command.",
-            "command_info": {
-                "aliases": "Aliases",
-                "docs": "Docs",
-                "no_command": "The provided command (`{command}`) doesn't exist!\nMake sure you typed it correctly.\n\nCategory names need to be prefixed with `cat:` (e.g. `{prefix}help cat:voice`)!",
-                "title": "Command help: {command}",
-                "usage_title": "Usage options",
-                "usage_value": "```\n{command}\n```\n`[]` = Optional\n`<>` = Required"
-            },
-            "command_menu": {
-                "categories": {
-                    "voice": "Voice",
-                    "owner": "Owner",
-                    "other": "Other",
-                    "title": "Categories"
-                },
-                "description": {
-                    "command_value": "To get more info about a specific command run `{prefix}help [command]`.\nYou can also run `{prefix}help cat:[category]` to show the commands of a specific category.",
-                    "nav_title": "Navigation",
-                    "nav_value": "Click the buttons for the following actions:\n\nPrevious page\nNext page\nCancel menu",
-                    "support": "If you need help with the bot, contact the owner `{owner}` for support"
-                }
-            }
-        }
-    }
+		},
+		"other": {
+			"ping": {
+				"description": "Check the bot's latency",
+				"loading": "{EMOTE_TYPING} Ping: ...",
+				"info": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms",
+				"info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest}"
+			},
+			"about": {
+				"description": "Get basic information about the bot",
+				"dm_failure": "I can't send you a DM {user}!",
+				"dm_success": "Check your DMs {user}!",
+				"embed": {
+					"about_title": "About {name}!",
+					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nOwner and developer - **{owner}**({owner_id}).",
+					"bot_info": {
+						"title": "Bot info",
+						"bot_version": "Bot version: `VOTL v{bot_version}`",
+						"library": "Library: [`JDA {jda_version}`]({jda_github}) and [`JDA-Chewtils {chewtils_version}`]({chewtils_github})"
+					},
+					"commands_title": "Commands:",
+					"commands_value": "Use `{prefix}help` in any chat to get list of commands.",
+					"links": {
+						"title": "Links",
+						"discord": "[`Discord (Support)`]({guild_invite})",
+						"github": "[`Github`]({github_url})",
+						"unionteams_title": "UnionTeam's project",
+						"unionteams_website": "[`Website`]({unionteams})",
+						"rotr": "[`Discord - Rise of the Republic`]({rotr_invite})",
+						"ww2": "[`Discord - World War II`]({ww2_invite})"
+					}
+				}
+			}
+		},
+		"help": {
+			"description": "List all available commadns the bot has.\nYou can add the name of a command after it, to recieve some additional info about that specified command.",
+			"command_info": {
+				"aliases": "Aliases",
+				"docs": "Docs",
+				"no_command": "The provided command (`{command}`) doesn't exist!\nMake sure you typed it correctly.\n\nCategory names need to be prefixed with `cat:` (e.g. `{prefix}help cat:voice`)!",
+				"title": "Command help: {command}",
+				"usage_title": "Usage options",
+				"usage_value": "```\n{command}\n```\n`[]` = Optional\n`<>` = Required"
+			},
+			"command_menu": {
+				"categories": {
+					"voice": "Voice",
+					"owner": "Owner",
+					"other": "Other",
+					"title": "Categories"
+				},
+				"description": {
+					"command_value": "To get more info about a specific command run `{prefix}help [command]`.\nYou can also run `{prefix}help cat:[category]` to show the commands of a specific category.",
+					"nav_title": "Navigation",
+					"nav_value": "Click the buttons for the following actions:\n\nPrevious page\nNext page\nCancel menu",
+					"support": "If you need help with the bot, contact the owner `{owner}` for support"
+				}
+			}
+		}
+	}
 }

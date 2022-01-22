@@ -14,11 +14,11 @@ import javax.security.auth.login.LoginException;
 
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
-import com.jagrosh.jdautilities.command.Command.Category;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import org.slf4j.LoggerFactory;
 
+import bot.utils.HelpWrapper;
 import bot.utils.file.FileManager;
 import bot.utils.file.lang.LangUtil;
 import bot.utils.message.*;
@@ -42,6 +42,8 @@ public class App {
 
 	private static App instance;
 
+	public final String version = (App.class.getPackage().getImplementationVersion() == null) ? "DEVELOPMENT" : App.class.getPackage().getImplementationVersion();
+
 	public final JDA jda;
 	public final EventWaiter waiter;
 
@@ -54,23 +56,20 @@ public class App {
 	private EmbedUtil embedUtil;
 	private LangUtil langUtil;
 
-	private Category catOwner = new Category("Разработка");
-	//private Category voice = new Category("Голосовые");
-	private Category catOther = new Category("Прочие");
-
 	public App() {
 
 		JDA setJda = null;
 
-		fileManager.addFile("config", Constants.CONFIG_FILE, Constants.CONFIG_FILE)
+		fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "/config.json")
+			.addFile("database", "/server.db", Constants.DATA_PATH + "/server.db")
 			.addLang("en");
 
 		Connection setConnection = null;
 		try {
-			setConnection = DriverManager.getConnection("jdbc:sqlite:" + Constants.DATABASE_FILE);
+			setConnection = DriverManager.getConnection("jdbc:sqlite:" + fileManager.getFiles().get("database"));
 			setConnection.setAutoCommit(true);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.warn("Connection error to sqlite database", e);
 		}
 		this.connection = setConnection;
 
@@ -80,20 +79,24 @@ public class App {
 		embedUtil 	= new EmbedUtil(this);
 		langUtil 	= new LangUtil(this);
 
+		HelpWrapper helpWrapper = new HelpWrapper(this);
+
 		// Define a command client
 		CommandClient commandClient = new CommandClientBuilder()
 			.setPrefix(fileManager.getString("config", "default-prefix"))
-			.setOwnerId(fileManager.getString("config", "owner-id"))
+			.setOwnerId(Constants.OWNER_ID)
 			.setServerInvite(Links.DISCORD)
 			.setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
+			.setHelpConsumer(helpWrapper::helpConsumer)
 			.addCommands(
 				// voice
 
 				// owner
-				new EvalCmd(this, catOwner),
-				new ShutdownCmd(this, catOwner),
+				new EvalCmd(this),
+				new ShutdownCmd(this),
 				// other
-				new PingCmd(catOther)
+				new PingCmd(this),
+				new AboutCmd(this, "Bot for private usage", new String[]{"Creating", "Информация"})
 			)
 			.build();
 
@@ -121,7 +124,7 @@ public class App {
 				.setActivity(Activity.watching("Loading..."))
 				.build();
 		} catch (LoginException e) {
-			e.printStackTrace();
+			logger.error("Build failed", e);
 		}
 
 		this.jda = setJda;
@@ -132,69 +135,78 @@ public class App {
 	}
 
 	public FileManager getFileManager() {
-        return fileManager;
-    }
-    
-    public Connection getConnection() {
-        return connection;
-    }
+		return fileManager;
+	}
+	
+	public Connection getConnection() {
+		return connection;
+	}
 
-    public Random getRandom() {
-        return random;
-    }
+	public Random getRandom() {
+		return random;
+	}
 
-    public MessageUtil getMessageUtil() {
-        return messageUtil;
-    }
+	public MessageUtil getMessageUtil() {
+		return messageUtil;
+	}
 
-    public EmbedUtil getEmbedUtil() {
-        return embedUtil;
-    }
+	public EmbedUtil getEmbedUtil() {
+		return embedUtil;
+	}
 
-    public String getLanguage() {
-        return "en";
-    }
+	public String getLanguage() {
+		// Per server setup to be done
+		return "en";
+	}
 
-    public String getPrefix() {
-        return fileManager.getString("config", "default-prefix");
-    }
+	public String getPrefix() {
+		// Per server setup to be done
+		return fileManager.getString("config", "default-prefix");
+	}
 
-    public String getMsg(String id, String path, String user, String target) {
-        target = target == null ? "null" : target;
-        
-        return getMsg(id, path, user, Collections.singletonList(target));
-    }
+	public String getMsg(String id, String path, String user, String target) {
+		target = target == null ? "null" : target;
+		
+		return getMsg(id, path, user, Collections.singletonList(target));
+	}
 
-    public String getMsg(String id, String path, String user, List<String> targets) {
-        String targetReplacement = targets.isEmpty() ? "null" : getMessageUtil().getFormattedMembers(id, targets.toArray(new String[0]));
+	public String getMsg(String id, String path, String user, List<String> targets) {
+		String targetReplacement = targets.isEmpty() ? "null" : getMessageUtil().getFormattedMembers(id, targets.toArray(new String[0]));
 
-        return getMsg(id, path, user)
-            .replace("{target}", targetReplacement)
-            .replace("{targets}", targetReplacement);
-    }
+		return getMsg(id, path, user)
+			.replace("{target}", targetReplacement)
+			.replace("{targets}", targetReplacement);
+	}
 
-    public String getMsg(String id, String path, String user) {
-        return getMsg(id, path, user, true);
-    }
+	public String getMsg(String id, String path, String user) {
+		return getMsg(id, path, user, true);
+	}
 
-    public String getMsg(String id, String path, String user, boolean format) {
-        if (format)
-            user = getMessageUtil().getFormattedMembers(id, user);
+	public String getMsg(String id, String path, String user, boolean format) {
+		if (format)
+			user = getMessageUtil().getFormattedMembers(id, user);
 
-        return getMsg(id, path).replace("{user}", user);
-    }
+		return getMsg(id, path).replace("{user}", user);
+	}
 
-    public String getMsg(String id, String path) {
-        return setPlaceholders(langUtil.getString(getLanguage(), path))
-            .replace("{prefix}", getPrefix());
-    }
+	public String getMsg(String id, String path) {
+		return setPlaceholders(langUtil.getString(getLanguage(), path))
+			.replace("{prefix}", getPrefix());
+	}
 
-    private String setPlaceholders(String msg) {
-        return Emotes.getWithEmotes(msg)
-            .replace("{guild_invite}", Links.DISCORD)
-            .replace("{github_url}", Links.GITHUB)
-            .replace("{owner}", Constants.OWNER);
-    }
+	private String setPlaceholders(String msg) {
+		return Emotes.getWithEmotes(msg)
+			.replace("{name}", "Voice of the Republic")
+			.replace("{guild_invite}", Links.DISCORD)
+			.replace("{github_url}", Links.GITHUB)
+			.replace("{unionteams}", Links.UNIONTEAMS)
+			.replace("{rotr_invite}", Links.ROTR_INVITE)
+			.replace("{ww2_invite}", Links.WW2_INVITE)
+			.replace("{owner}", fileManager.getString("config", "owner"))
+			.replace("{owner_id}", Constants.OWNER_ID)
+			.replace("{bot_invite}", fileManager.getString("config", "bot-invite"))
+			.replace("{bot_version}", version);
+	}
 
 
 	public static void main(String[] args) {

@@ -10,10 +10,13 @@ plugins {
     id 'java'
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    // ShadowJar
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-def version = '0.0.1'
+apply from: 'version.gradle'
+
+def version = loadVersion().getVersion()
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -32,7 +35,9 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.3.0-alpha12'
 
     // Chewtils extentions
-    implementation 'pw.chew:jda-chewtils:2.0-SNAPSHOT'
+    implementation 'pw.chew:jda-chewtils-command:2.0-SNAPSHOT'
+    implementation 'pw.chew:jda-chewtils-commons:2.0-SNAPSHOT'
+    implementation 'pw.chew:jda-chewtils-doc:2.0-SNAPSHOT'
 
     // Tools
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
@@ -45,16 +50,17 @@ dependencies {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Gradle Quickstart',
+        attributes 'Implementation-Title': 'Gradle start script',
                    'Implementation-Version': version,
+                   'Implementation-Vendor': 'FiLe group',
                    'Main-Class': 'bot.App'
     }
 }
 
 shadowJar {
     archiveBaseName.set('VOTL')
-    archiveClassifier.set('all')
     archiveVersion.set(version)
+    archiveClassifier.set('')
 }
 
 application {

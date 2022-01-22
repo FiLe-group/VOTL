@@ -1,9 +1,6 @@
 # Compiled class file
 *.class
 
-# Log file
-*.log
-
 # BlueJ files
 *.ctxt
 
@@ -28,8 +25,10 @@ hs_err_pid*
 # Ignore Gradle build output directory
 build
 
-# Ignore config
+# Ignore config and temporary data
 config.json
+/data/
+/logs/
 
 # VSCode files
 .vscode/

@@ -4,6 +4,7 @@ import bot.App;
 
 import java.awt.Color;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
@@ -20,22 +21,23 @@ import net.dv8tion.jda.api.entities.TextChannel;
 @CommandInfo
 (
 	name = "Eval",
-	usage = "Eval <java code>",
+	usage = "{prefix}eval {java code}",
 	description = "Evaluates givven code.",
 	requirements = {"Be the bot owner"}
 )
 public class EvalCmd extends Command {
 
 	private final App bot;
+
+	protected Permission[] botPerms;
 	
-	public EvalCmd(App bot, Category cat) {
+	public EvalCmd(App bot) {
 		this.name = "eval";
-		this.help = "выполняет указанный код (язык Groovy)";
+		this.help = "evaluates givven code (Groovy lang)";
 		this.guildOnly = false;
 		this.ownerCommand = true;
-		this.category = cat;
-		this.botPermissions = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
-		this.botMissingPermMessage = "%s, мне нужно разрешение `%s` в %s чтобы выполнить это!";
+		this.category = new Category("owner");
+		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
 		this.bot = bot;
 	}
 
@@ -44,8 +46,16 @@ public class EvalCmd extends Command {
 		if (event.getMessage().getGuild().getSelfMember().hasPermission(event.getTextChannel(), Permission.MESSAGE_MANAGE))
 			event.getMessage().delete().queue();
 
+		for (Permission perm : botPerms) {
+			if (!event.getSelfMember().hasPermission(event.getTextChannel(), perm)) {
+				bot.getEmbedUtil().sendPermError(event.getTextChannel(), event.getMember(), perm, true);
+				return;
+			}
+		}
+
 		if (event.getArgs().length() == 0) {
-			bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), bot.getMsg(event.getGuild().getId(), "bot.owner.eval.no_args"));
+			bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "bot.owner.eval.no_args");
+			event.getMessage().reply("Available variables:\nbot; jda; guild; channel; message").queue(success -> success.delete().queueAfter(5, TimeUnit.SECONDS));
 			return;
 		}
 
@@ -93,7 +103,7 @@ public class EvalCmd extends Command {
 			overflow = newMsg.substring(1999);
 			newMsg = newMsg.substring(0, 1999);
 		}
-
+		
 		EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
 			.setColor(success ? Color.GREEN : Color.RED)
 			.addField(bot.getMsg(tc.getGuild().getId(), "bot.owner.eval.input"), String.format(
