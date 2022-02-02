@@ -7,7 +7,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.Command.Category;
 
 import bot.App;
-
 import net.dv8tion.jda.api.entities.User;
 
 public class HelpWrapper {
@@ -22,19 +21,20 @@ public class HelpWrapper {
 	}
 
 	public void helpConsumer(CommandEvent event) {
+		String guildID = (event.getEvent().isFromGuild() ? event.getGuild().getId() : "0");
 		
 		String text = getString(event);
 
-		if(bot.getMessageUtil().hasArgs("dm", event.getArgs())){
+		if (bot.getMessageUtil().hasArgs("dm", event.getArgs())){
 			String mention = event.getMember().getAsMention();
 			event.getMember().getUser().openPrivateChannel()
 					.flatMap(channel -> channel.sendMessage(text))
 					.queue(
 							message -> event.getTextChannel().sendMessage(
-									bot.getMsg(event.getGuild().getId(), "bot.other.about.dm_success", mention)
+									bot.getMsg(guildID, "bot.other.about.dm_success", mention)
 							).queue(), 
 							error -> event.getTextChannel().sendMessage(
-									bot.getMsg(event.getGuild().getId(), "bot.other.about.dm_failure", mention)
+									bot.getMsg(guildID, "bot.other.about.dm_failure", mention)
 							).queue()
 					);
 			return;
@@ -47,7 +47,7 @@ public class HelpWrapper {
 			}
 		} */
 
-		event.getTextChannel().sendMessage(text).queue();
+		event.reply(text);
 	}
 
 	public void commandHelpConsumer(CommandEvent event) {
@@ -55,10 +55,11 @@ public class HelpWrapper {
 	}
 
 	private String getString(CommandEvent event) {
-		String prefix = bot.getPrefix();
+		String guildID = (event.getEvent().isFromGuild() ? event.getGuild().getId() : "0");
+		String prefix = bot.getPrefix(guildID);
 		String ownerID = event.getClient().getOwnerId();
 		String serverInvite = event.getClient().getServerInvite();
-
+		
 		StringBuilder builder = new StringBuilder("**"+event.getSelfUser().getName()+"** commands:\n");
 		Category category = null;
 		for (Command command : event.getClient().getCommands()) {

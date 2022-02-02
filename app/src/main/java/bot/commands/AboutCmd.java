@@ -29,7 +29,7 @@ public class AboutCmd extends Command {
 		this.name = "about";
 		this.aliases = new String[]{"info"};
 		this.help = "gets information about the bot";
-		this.guildOnly = false;
+		//this.guildOnly = false;
 		this.category = new Category("other");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
 		this.bot = bot;
@@ -67,47 +67,48 @@ public class AboutCmd extends Command {
 
 	private MessageEmbed getEmbed(Member member) {
 		Guild guild = member.getGuild();
+		String guildID = guild.getId();
 		EmbedBuilder builder = bot.getEmbedUtil().getEmbed(member);
 
 		builder.setAuthor(guild.getJDA().getSelfUser().getName(), guild.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.setThumbnail(guild.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.addField(
-				bot.getMsg(guild.getId(), "bot.other.about.embed.about_title"),
-				bot.getMsg(guild.getId(), "bot.other.about.embed.about_value"),
+				bot.getMsg(guildID, "bot.other.about.embed.about_title"),
+				bot.getMsg(guildID, "bot.other.about.embed.about_value"),
 				false
 			)
 			.addField(
-				bot.getMsg(guild.getId(), "bot.other.about.embed.commands_title"),
-				bot.getMsg(guild.getId(), "bot.other.about.embed.commands_value"),
+				bot.getMsg(guildID, "bot.other.about.embed.commands_title"),
+				bot.getMsg(guildID, "bot.other.about.embed.commands_value"),
 				false
 			)
 			.addField(
-				bot.getMsg(guild.getId(), "bot.other.about.embed.bot_info.title"),
+				bot.getMsg(guildID, "bot.other.about.embed.bot_info.title"),
 				String.join(
 					"\n",
-					bot.getMsg(guild.getId(), "bot.other.about.embed.bot_info.bot_version"),
-					bot.getMsg(guild.getId(), "bot.other.about.embed.bot_info.library")
+					bot.getMsg(guildID, "bot.other.about.embed.bot_info.bot_version"),
+					bot.getMsg(guildID, "bot.other.about.embed.bot_info.library")
 						.replace("{jda_version}", JDAInfo.VERSION_MAJOR+"."+JDAInfo.VERSION_MINOR+"."+JDAInfo.VERSION_REVISION+"-"+JDAInfo.VERSION_CLASSIFIER)
 						.replace("{chewtils_version}", JDAUtilitiesInfo.VERSION_MAJOR+"."+JDAUtilitiesInfo.VERSION_MINOR)
 				),
 				false
 			)
 			.addField(
-				bot.getMsg(guild.getId(), "bot.other.about.embed.links.title"),
+				bot.getMsg(guildID, "bot.other.about.embed.links.title"),
 				String.join(
 					"\n",
-					bot.getMsg(guild.getId(), "bot.other.about.embed.links.discord"),
-					bot.getMsg(guild.getId(), "bot.other.about.embed.links.github")
+					bot.getMsg(guildID, "bot.other.about.embed.links.discord"),
+					bot.getMsg(guildID, "bot.other.about.embed.links.github")
 				),
 				true
 			)
 			.addField(
-				bot.getMsg(guild.getId(), "bot.other.about.embed.links.unionteams_title"),
+				bot.getMsg(guildID, "bot.other.about.embed.links.unionteams_title"),
 				String.join(
 					"\n",
-					bot.getMsg(guild.getId(), "bot.other.about.embed.links.unionteams_website"),
-					bot.getMsg(guild.getId(), "bot.other.about.embed.links.rotr"),
-					bot.getMsg(guild.getId(), "bot.other.about.embed.links.ww2")
+					bot.getMsg(guildID, "bot.other.about.embed.links.unionteams_website"),
+					bot.getMsg(guildID, "bot.other.about.embed.links.rotr"),
+					bot.getMsg(guildID, "bot.other.about.embed.links.ww2")
 				),
 				true
 			);

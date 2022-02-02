@@ -3,9 +3,6 @@
  */
 package bot;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -18,6 +15,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import org.slf4j.LoggerFactory;
 
+import bot.utils.DBUtil;
 import bot.utils.HelpWrapper;
 import bot.utils.file.FileManager;
 import bot.utils.file.lang.LangUtil;
@@ -25,7 +23,7 @@ import bot.utils.message.*;
 import bot.commands.*;
 import bot.commands.owner.*;
 import bot.constants.*;
-
+import bot.listeners.GuildListener;
 import ch.qos.logback.classic.Logger;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -48,13 +46,17 @@ public class App {
 	public final EventWaiter waiter;
 
 	private final FileManager fileManager = new FileManager(this);
-	private Connection connection;
 
 	private final Random random = new Random();
 
+	private final GuildListener guildListener;
+	
+	private DBUtil dbUtil;
 	private MessageUtil messageUtil;
 	private EmbedUtil embedUtil;
 	private LangUtil langUtil;
+
+	public String defaultPrefix;
 
 	public App() {
 
@@ -64,17 +66,13 @@ public class App {
 			.addFile("database", "/server.db", Constants.DATA_PATH + "/server.db")
 			.addLang("en");
 
-		Connection setConnection = null;
-		try {
-			setConnection = DriverManager.getConnection("jdbc:sqlite:" + fileManager.getFiles().get("database"));
-			setConnection.setAutoCommit(true);
-		} catch (SQLException e) {
-			logger.warn("Connection error to sqlite database", e);
-		}
-		this.connection = setConnection;
-
+		defaultPrefix = fileManager.getString("config", "default-prefix");
+		
 		// Define for default
-		waiter 		= new EventWaiter();
+		waiter 			= new EventWaiter();
+		guildListener 	= new GuildListener(this);
+
+		dbUtil		= new DBUtil(this, "database");
 		messageUtil = new MessageUtil(this);
 		embedUtil 	= new EmbedUtil(this);
 		langUtil 	= new LangUtil(this);
@@ -83,7 +81,13 @@ public class App {
 
 		// Define a command client
 		CommandClient commandClient = new CommandClientBuilder()
-			.setPrefix(fileManager.getString("config", "default-prefix"))
+			.setPrefix(defaultPrefix)
+			.setPrefixFunction(event -> {
+				if (!event.isFromGuild()) {
+					return defaultPrefix;
+				}
+				return getPrefix(event.getGuild().getId());
+			})
 			.setOwnerId(Constants.OWNER_ID)
 			.setServerInvite(Links.DISCORD)
 			.setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
@@ -119,7 +123,7 @@ public class App {
 				.setChunkingFilter(ChunkingFilter.ALL)
 				.enableCache(CacheFlag.VOICE_STATE, CacheFlag.MEMBER_OVERRIDES, CacheFlag.ONLINE_STATUS)
 				.setAutoReconnect(true)
-				.addEventListeners(commandClient, waiter)
+				.addEventListeners(commandClient, waiter, guildListener)
 				.setStatus(OnlineStatus.IDLE)
 				.setActivity(Activity.watching("Loading..."))
 				.build();
@@ -137,13 +141,13 @@ public class App {
 	public FileManager getFileManager() {
 		return fileManager;
 	}
-	
-	public Connection getConnection() {
-		return connection;
-	}
 
 	public Random getRandom() {
 		return random;
+	}
+
+	public DBUtil getDBUtil() {
+		return dbUtil;
 	}
 
 	public MessageUtil getMessageUtil() {
@@ -154,14 +158,22 @@ public class App {
 		return embedUtil;
 	}
 
-	public String getLanguage() {
-		// Per server setup to be done
-		return "en";
+	public String getLanguage(String id) {
+		String res = dbUtil.guildGetLanguage(id);
+		return (res == null ? "en" : res);
 	}
 
-	public String getPrefix() {
-		// Per server setup to be done
-		return fileManager.getString("config", "default-prefix");
+	public String getPrefix(String id) {
+		String res = dbUtil.guildGetPrefix(id);
+		return (res == null ? defaultPrefix : res);
+	}
+
+	public void setLanguage(String id, String value) {
+		dbUtil.guildSetLanguage(id, value);
+	}
+
+	public void setPrefix(String id, String value) {
+		dbUtil.guildSetPrefix(id, value);
 	}
 
 	public String getMsg(String id, String path, String user, String target) {
@@ -190,8 +202,8 @@ public class App {
 	}
 
 	public String getMsg(String id, String path) {
-		return setPlaceholders(langUtil.getString(getLanguage(), path))
-			.replace("{prefix}", getPrefix());
+		return setPlaceholders(langUtil.getString(getLanguage(id), path))
+			.replace("{prefix}", getPrefix(id));
 	}
 
 	private String setPlaceholders(String msg) {
@@ -213,6 +225,6 @@ public class App {
 		instance = new App();
 		instance.logger.info("Success start");
 		instance.jda.getPresence().setStatus(OnlineStatus.ONLINE);
-		instance.jda.getPresence().setActivity(Activity.watching(instance.getPrefix() + "help"));
+		instance.jda.getPresence().setActivity(Activity.watching(instance.defaultPrefix + "help"));
 	}
 }

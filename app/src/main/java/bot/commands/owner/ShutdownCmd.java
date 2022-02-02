@@ -5,6 +5,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 
 @CommandInfo
@@ -21,7 +22,7 @@ public class ShutdownCmd extends Command {
 	public ShutdownCmd(App bot) {
 		this.name = "shutdown";
 		this.help = "safely shuts down the bot";
-		this.guildOnly = false;
+		//this.guildOnly = false;
 		this.ownerCommand = true;
 		this.category = new Category("owner");
 		this.bot = bot;
@@ -30,8 +31,9 @@ public class ShutdownCmd extends Command {
 	@Override
 	protected void execute(CommandEvent event) {
 		event.reactWarning();
-		bot.getLogger().info("Shutting down, by '" + event.getAuthor().getName() + "'");
+		event.getJDA().getPresence().setStatus(OnlineStatus.IDLE);
 		event.getJDA().getPresence().setActivity(Activity.competing("Shutting down..."));
+		bot.getLogger().info("Shutting down, by '" + event.getAuthor().getName() + "'");
 		event.getJDA().shutdown();
 	}
 }

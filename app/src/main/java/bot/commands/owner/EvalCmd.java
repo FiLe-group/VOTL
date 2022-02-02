@@ -34,7 +34,7 @@ public class EvalCmd extends Command {
 	public EvalCmd(App bot) {
 		this.name = "eval";
 		this.help = "evaluates givven code (Groovy lang)";
-		this.guildOnly = false;
+		//this.guildOnly = false;
 		this.ownerCommand = true;
 		this.category = new Category("owner");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
