@@ -164,14 +164,14 @@ public class DBUtil {
 		delete("voiceChannel", "channelID", channelID);
 	}
 
-	public boolean isVoiceChannelUser(String userID) {
+	public boolean isVoiceChannel(String userID) {
 		if (select("voiceChannel", "userID", "userID", userID) != null) {
 			return true;
 		}
 		return false;
 	}
 
-	public boolean isVoiceChannel(String channelID) {
+	public boolean isVoiceChannelExists(String channelID) {
 		if (select("voiceChannel", "channelID", "channelID", channelID) != null) {
 			return true;
 		}

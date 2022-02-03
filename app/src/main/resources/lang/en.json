@@ -33,7 +33,15 @@
 			}
 		},
 		"voice": {
-
+			"listener": {
+				"cooldown": "Creating voice channels too quickly, wait a bit!",
+				"default_name": "{user}'s channel"
+			},
+			"setup": {
+				"category": "Voice Channels",
+				"channel": "★ Join to create",
+				"done": "Successfully created channel {channel}. Setup done!"
+			}
 		},
 		"other": {
 			"ping": {

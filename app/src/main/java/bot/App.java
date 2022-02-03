@@ -22,8 +22,10 @@ import bot.utils.file.lang.LangUtil;
 import bot.utils.message.*;
 import bot.commands.*;
 import bot.commands.owner.*;
+import bot.commands.voice.SetupVoiceCmd;
 import bot.constants.*;
 import bot.listeners.GuildListener;
+import bot.listeners.VoiceListener;
 import ch.qos.logback.classic.Logger;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -45,11 +47,12 @@ public class App {
 	public final JDA jda;
 	public final EventWaiter waiter;
 
-	private final FileManager fileManager = new FileManager(this);
+	private final FileManager fileManager = new FileManager();
 
 	private final Random random = new Random();
 
 	private final GuildListener guildListener;
+	private final VoiceListener voiceListener;
 	
 	private DBUtil dbUtil;
 	private MessageUtil messageUtil;
@@ -71,8 +74,9 @@ public class App {
 		// Define for default
 		waiter 			= new EventWaiter();
 		guildListener 	= new GuildListener(this);
+		voiceListener	= new VoiceListener(this);
 
-		dbUtil		= new DBUtil(this, "database");
+		dbUtil		= new DBUtil(getFileManager().getFiles().get("database"));
 		messageUtil = new MessageUtil(this);
 		embedUtil 	= new EmbedUtil(this);
 		langUtil 	= new LangUtil(this);
@@ -94,7 +98,7 @@ public class App {
 			.setHelpConsumer(helpWrapper::helpConsumer)
 			.addCommands(
 				// voice
-
+				new SetupVoiceCmd(this),
 				// owner
 				new EvalCmd(this),
 				new ShutdownCmd(this),
@@ -123,7 +127,7 @@ public class App {
 				.setChunkingFilter(ChunkingFilter.ALL)
 				.enableCache(CacheFlag.VOICE_STATE, CacheFlag.MEMBER_OVERRIDES, CacheFlag.ONLINE_STATUS)
 				.setAutoReconnect(true)
-				.addEventListeners(commandClient, waiter, guildListener)
+				.addEventListeners(commandClient, waiter, guildListener, voiceListener)
 				.setStatus(OnlineStatus.IDLE)
 				.setActivity(Activity.watching("Loading..."))
 				.build();
