@@ -1,5 +1,6 @@
 package bot.utils;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -7,17 +8,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import bot.App;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
 
 public class DBUtil {
 	
-	private final App bot;
+	private final Logger logger = (Logger) LoggerFactory.getLogger(DBUtil.class);
 
 	private String url;
 
-	public DBUtil(App bot, String location) {
-		this.bot = bot;
-		this.url = "jdbc:sqlite:" + bot.getFileManager().getFiles().get(location);
+	public DBUtil(File location) {
+		this.url = "jdbc:sqlite:" + location;
 	}
 
 	private Connection connect() {
@@ -25,7 +27,7 @@ public class DBUtil {
 		try {
 			conn = DriverManager.getConnection(url);
 		} catch (SQLException ex) {
-			bot.getLogger().error("DB: Connection error to database", ex);
+			logger.error("DB: Connection error to database", ex);
 			return null;
 		}
 		return conn;
@@ -96,12 +98,12 @@ public class DBUtil {
 		return String.valueOf(obj);
 	}
 
-	public Integer guildVoiceGetChannel(String guildID) {
+	public String guildVoiceGetChannel(String guildID) {
 		Object obj = select("guildVoice", "channelID", "guildID", guildID);
 		if (obj == null) {
 			return null;
 		}
-		return Integer.parseInt(String.valueOf(obj));
+		return String.valueOf(obj);
 	}
 
 	public String guildVoiceGetName(String guildID) {
@@ -158,8 +160,22 @@ public class DBUtil {
 		insert("voiceChannel", new String[]{"userID", "channelID"}, new Object[]{userID, channelID});
 	}
 
-	public void channelRemove(String userID, String channelID) {
-		delete("voiceChannel", "userID", userID);
+	public void channelRemove(String channelID) {
+		delete("voiceChannel", "channelID", channelID);
+	}
+
+	public boolean isVoiceChannelUser(String userID) {
+		if (select("voiceChannel", "userID", "userID", userID) != null) {
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isVoiceChannel(String channelID) {
+		if (select("voiceChannel", "channelID", "channelID", channelID) != null) {
+			return true;
+		}
+		return false;
 	}
 
 	public void channelSetUser(String userID, String channelID) {
@@ -168,6 +184,14 @@ public class DBUtil {
 
 	public String channelGetChannel(String userID) {
 		Object obj = select("voiceChannel", "channelID", "userID", userID);
+		if (obj == null) {
+			return null;
+		}
+		return String.valueOf(obj);
+	}
+
+	public String channelGetUser(String channelID) {
+		Object obj = select("voiceChannel", "userID", "channelID", channelID);
 		if (obj == null) {
 			return null;
 		}
@@ -191,7 +215,7 @@ public class DBUtil {
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
-			bot.getLogger().warn("DB: Error at INSERT\nrequest: {}", sql, ex);
+			logger.warn("DB: Error at INSERT\nrequest: {}", sql, ex);
 		}
 	}
 
@@ -209,7 +233,7 @@ public class DBUtil {
 				result = rs.getObject(selectKey);
 			}
 		} catch (SQLException ex) {
-			bot.getLogger().warn("DB: Error at SELECT\nrequest: {}", sql, ex);
+			logger.warn("DB: Error at SELECT\nrequest: {}", sql, ex);
 		}
 		return result;
 	}
@@ -239,7 +263,7 @@ public class DBUtil {
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
-			bot.getLogger().warn("DB: Error at UPDATE\nrequest: {}", sql, ex);
+			logger.warn("DB: Error at UPDATE\nrequest: {}", sql, ex);
 		}
 	}
 
@@ -253,7 +277,7 @@ public class DBUtil {
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
-			bot.getLogger().warn("DB: Error at UPDATE\nrequest: {}", sql, ex);
+			logger.warn("DB: Error at UPDATE\nrequest: {}", sql, ex);
 		}
 	}
 }

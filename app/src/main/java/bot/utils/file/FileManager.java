@@ -18,6 +18,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 import bot.App;
@@ -31,12 +32,12 @@ class KeyIsNull extends Exception {
 
 public class FileManager {
 	
-	private final Logger logger;
+	private final Logger logger = (Logger) LoggerFactory.getLogger(FileManager.class);
+	
 	private Map<String, File> files;
 	private List<String> languages;
 
-	public FileManager(App bot) {
-		this.logger = bot.getLogger();
+	public FileManager() {
 	}
 
 	public FileManager addFile(String name, String internal, String external){

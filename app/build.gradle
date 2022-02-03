@@ -48,6 +48,10 @@ dependencies {
 
 }
 
+sourceSets {
+    libsDirName = 'lib'
+}
+
 jar {
     manifest {
         attributes 'Implementation-Title': 'Gradle start script',
