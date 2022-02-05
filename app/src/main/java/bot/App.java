@@ -98,7 +98,15 @@ public class App {
 			.setHelpConsumer(helpWrapper::helpConsumer)
 			.addCommands(
 				// voice
-				new SetupVoiceCmd(this),
+				new SetupCmd(this),
+				new SetLimitCmd(this),
+				new NameCmd(this),
+				new LimitCmd(this),
+				new ClaimCmd(this),
+				new LockCmd(this),
+				new UnlockCmd(this),
+				new PermitCmd(this),
+				new RejectCmd(this),
 				// owner
 				new EvalCmd(this),
 				new ShutdownCmd(this),

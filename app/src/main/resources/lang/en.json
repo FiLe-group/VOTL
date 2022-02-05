@@ -43,6 +43,63 @@
 				"category": "Voice Channels",
 				"channel": "★ Join to create",
 				"done": "Successfully created channel {channel}! Setup done."
+			},
+			"setlimit": {
+				"description": "Sets default user limit for server's voice channels",
+				"no_args": "You didn't provided limit.\nUsage: `{prefix}setlimit <Integer from 0 to 99>`",
+				"not_integer": "Provided value is not an Integer.",
+				"not_range": "Provided integer must be in range from 0 to 99.",
+				"done": "Successfully changed default voice channel limit to {value}!"
+			},
+			"name": {
+				"description": "Sets name for your channel",
+				"no_args": "You didn't provided name.\nUsage: `{prefix}name <String from 1 to 100 symbols>`",
+				"not_range": "Channel name must be in range from 1 to 100 symbols.",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully changed your's channel name to {value}!"
+			},
+			"limit": {
+				"description": "Sets limit for your channel",
+				"no_args": "You didn't provided limit.\nUsage: `{prefix}limit <Integer from 0 to 99>`",
+				"not_integer": "Provided value is not an Integer.",
+				"not_range": "Provided integer must be in range from 0 to 99.",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully changed your's channel limit to {value}!"
+			},
+			"claim": {
+				"description": "Claim ownership of channel once owner has left",
+				"not_in_voice": "You are not connected to any voice channel",
+				"not_custom": "You can't own this voice channel",
+				"has_owner": "The owner of this channel is in this voice channel",
+				"done": "You are now owner of this voice channel {channel}!"
+			},
+			"lock": {
+				"description": "Locks your channel for everyone (ex. allowed users)",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully locked your channel!"
+			},
+			"unlock": {
+				"description": "Unlocks your channel for everyone (ex. disallowed users)",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully unlocked your channel!"
+			},
+			"permit": {
+				"description": "Gives the user permission to join your channel",
+				"no_args": "You didn't provided users.\nUsage: `{prefix}permit <user/-s by ID or mention>`",
+				"not_self": "You can't add yourself.",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully permited {targets} to connect to your channel!"
+				
+			},
+			"reject": {
+				"description": "Withdraw the user permission to join your channel",
+				"no_args": "You didn't provided users.\nUsage: `{prefix}reject <user/-s by ID or mention>`",
+				"not_self": "You can't add yourself.",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully rejected {targets} from connecting to your channel!"
+			},
+			"reset": {
+				"description": "Resets user voice settings to default values"
 			}
 		},
 		"other": {
