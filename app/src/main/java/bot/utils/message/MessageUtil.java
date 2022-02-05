@@ -176,7 +176,7 @@ public class MessageUtil {
 	}
 
 	public String getBotGame(long members) {
-		String game = "Rise of the Lord | %s Members";
+		String game = "Voice of the Lord | %s Members";
 		return String.format(game, formatNumber(members));
 	}
 

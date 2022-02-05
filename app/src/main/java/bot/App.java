@@ -22,7 +22,7 @@ import bot.utils.file.lang.LangUtil;
 import bot.utils.message.*;
 import bot.commands.*;
 import bot.commands.owner.*;
-import bot.commands.voice.SetupVoiceCmd;
+import bot.commands.voice.*;
 import bot.constants.*;
 import bot.listeners.GuildListener;
 import bot.listeners.VoiceListener;
@@ -104,7 +104,7 @@ public class App {
 				new ShutdownCmd(this),
 				// other
 				new PingCmd(this),
-				new AboutCmd(this, "Bot for private usage", new String[]{"Creating", "Информация"})
+				new AboutCmd(this)
 			)
 			.build();
 
@@ -212,7 +212,7 @@ public class App {
 
 	private String setPlaceholders(String msg) {
 		return Emotes.getWithEmotes(msg)
-			.replace("{name}", "Voice of the Republic")
+			.replace("{name}", "Voice of the Lord")
 			.replace("{guild_invite}", Links.DISCORD)
 			.replace("{github_url}", Links.GITHUB)
 			.replace("{unionteams}", Links.UNIONTEAMS)

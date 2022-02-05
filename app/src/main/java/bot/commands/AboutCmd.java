@@ -26,7 +26,7 @@ public class AboutCmd extends Command {
 
 	protected Permission[] botPerms;
 
-	public AboutCmd(App bot, String description, String[] features) {
+	public AboutCmd(App bot) {
 		this.name = "about";
 		this.aliases = new String[]{"info"};
 		this.help = "gets information about the bot";

@@ -9,6 +9,7 @@
 			"other": "You lack the permission `{permission}` for this command.",
 			"other_channel": "You lack the permission `{permission}` in the channel {channel} to do this command."
 		},
+		"voice_not_setup": "Guild was not setup-ed! Check `{prefix}help` for setup command",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and thet I have sufficient permissions!",
 		"title": "Error",
 		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to `{owner}`!"
@@ -29,7 +30,7 @@
 				"output": "Output:"
 			},
 			"shutdown": {
-				"description": "Safely shuts down the bot"
+				"description": "Safely shuts down the bot."
 			}
 		},
 		"voice": {
@@ -38,9 +39,10 @@
 				"default_name": "{user}'s channel"
 			},
 			"setup": {
+				"description": "Setup bot for using in this server",
 				"category": "Voice Channels",
 				"channel": "★ Join to create",
-				"done": "Successfully created channel {channel}. Setup done!"
+				"done": "Successfully created channel {channel}! Setup done."
 			}
 		},
 		"other": {
