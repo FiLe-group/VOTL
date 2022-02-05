@@ -21,25 +21,26 @@ public class VoiceListener extends ListenerAdapter {
 	@Override
 	public void onGuildVoiceJoin(GuildVoiceJoinEvent event) {
 		String guildID = event.getGuild().getId();
+		String userID = event.getMember().getId();
 		String voiceID = bot.getDBUtil().guildVoiceGetChannel(guildID);
 		
 		if (voiceID != null && voiceID.equals(event.getChannelJoined().getId())) {
-			if (bot.getDBUtil().isVoiceChannel(event.getMember().getId())) {
+			if (bot.getDBUtil().isVoiceChannel(userID)) {
 				event.getMember().getUser().openPrivateChannel()
-					.queue(channel -> channel.sendMessage(bot.getMsg(event.getGuild().getId(), "bot.voice.listener.cooldown")).queue());
+					.queue(channel -> channel.sendMessage(bot.getMsg(guildID, "bot.voice.listener.cooldown")).queue());
 				return;
 			}
 			String CategoryID = bot.getDBUtil().guildVoiceGetCategory(guildID);
 			if (CategoryID == null) return;
-			String channelName = bot.getDBUtil().userGetName(guildID);
-			Integer channelLimit = bot.getDBUtil().userGetLimit(guildID);
+			String channelName = bot.getDBUtil().userGetName(userID);
+			Integer channelLimit = bot.getDBUtil().userGetLimit(userID);
 			String defaultChannelName = bot.getDBUtil().guildVoiceGetName(guildID);
 			Integer defaultChannelLimit = bot.getDBUtil().guildVoiceGetLimit(guildID);
 			String name = null;
 			Integer limit = null;
 			if (channelName == null) {
 				if (defaultChannelName == null) {
-					name = bot.getMsg(event.getGuild().getId(), "bot.voice.listener.default_name", event.getMember().getUser().getName(), false);
+					name = bot.getMsg(guildID, "bot.voice.listener.default_name", event.getMember().getUser().getName(), false);
 				} else {
 					name = defaultChannelName;
 				}
@@ -61,7 +62,7 @@ public class VoiceListener extends ListenerAdapter {
 				.addMemberPermissionOverride(event.getMember().getIdLong(), EnumSet.of(Permission.MANAGE_CHANNEL), null)
 				.queue(
 					channel -> {
-						bot.getDBUtil().channelAdd(event.getMember().getId(), channel.getId());
+						bot.getDBUtil().channelAdd(userID, channel.getId());
 						event.getGuild().moveVoiceMember(event.getMember(), channel).queueAfter(500, TimeUnit.MICROSECONDS);
 					}
 				);

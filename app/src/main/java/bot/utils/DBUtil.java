@@ -6,7 +6,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 
 import org.slf4j.LoggerFactory;
 
@@ -131,6 +130,13 @@ public class DBUtil {
 		delete("userSettings", "userID", userID);
 	}
 
+	public boolean isUser(String userID) {
+		if (select("userSettings", "userID", "userID", userID) != null) {
+			return true;
+		}
+		return false;
+	}
+
 	public void userSetName(String userID, String channelName) {
 		update("userSettings", "channelName", channelName, "userID", userID);
 	}
@@ -205,9 +211,9 @@ public class DBUtil {
 	}
 	
 	private void insert(String table, String[] insertKeys, Object[] insertValuesObj) {
-		String[] insertValues = Arrays.stream(insertValuesObj).toArray(String[]::new);
-		for (int i = 0; i<insertValues.length; i++) {
-			insertValues[i] = "'"+insertValues[i]+"'";
+		String[] insertValues = new String[insertValuesObj.length];
+		for (int i = 0; i<insertValuesObj.length; i++) {
+			insertValues[i] = "'"+String.valueOf(insertValuesObj[i])+"'";
 		}
 
 		String sql = "INSERT INTO "+table+" ("+String.join(", ", insertKeys)+") VALUES ("+String.join(", ", insertValues)+")";
@@ -244,9 +250,9 @@ public class DBUtil {
 	}
 
 	private void update(String table, String[] updateKeys, Object[] updateValuesObj, String condKey, Object condValueObj) {
-		String[] updateValues = Arrays.stream(updateValuesObj).toArray(String[]::new);
-		for (int i = 0; i<updateValues.length; i++) {
-			updateValues[i] = "'"+updateValues[i]+"'";
+		String[] updateValues = new String[updateValuesObj.length];
+		for (int i = 0; i<updateValuesObj.length; i++) {
+			updateValues[i] = "'"+String.valueOf(updateValuesObj[i])+"'";
 		}
 		String condValue = String.valueOf(condValueObj);
 		condValue = "'"+condValue+"'"; 

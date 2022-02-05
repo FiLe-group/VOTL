@@ -6,6 +6,7 @@ import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.constants.Links;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.Permission;
@@ -89,7 +90,9 @@ public class AboutCmd extends Command {
 					bot.getMsg(guildID, "bot.other.about.embed.bot_info.bot_version"),
 					bot.getMsg(guildID, "bot.other.about.embed.bot_info.library")
 						.replace("{jda_version}", JDAInfo.VERSION_MAJOR+"."+JDAInfo.VERSION_MINOR+"."+JDAInfo.VERSION_REVISION+"-"+JDAInfo.VERSION_CLASSIFIER)
+						.replace("{jda_github}", JDAInfo.GITHUB)
 						.replace("{chewtils_version}", JDAUtilitiesInfo.VERSION_MAJOR+"."+JDAUtilitiesInfo.VERSION_MINOR)
+						.replace("{chewtils_github}", Links.CHEWTILS_GITHUB)
 				),
 				false
 			)

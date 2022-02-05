@@ -17,17 +17,16 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 	usage = "{prefix}setup",
 	requirements = "Have 'Manage server' permission"
 )
-public class SetupVoiceCmd extends Command {
+public class SetupCmd extends Command {
 	
 	private final App bot;
 
 	protected Permission[] botPerms;
 	protected Permission[] userPerms;
 
-	public SetupVoiceCmd(App bot) {
+	public SetupCmd(App bot) {
 		this.name = "setup";
 		this.help = "Setup bot for using in this server";
-		//this.guildOnly = false;
 		this.category = new Category("voice");
 		this.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS};

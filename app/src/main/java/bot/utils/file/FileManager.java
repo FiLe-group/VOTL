@@ -114,15 +114,15 @@ public class FileManager {
 				if (path.contains(".") && !key.equals(path.substring(path.lastIndexOf(".")+1, path.length())))
 					jsonObject = (JSONObject) jsonObject.get(key);
 				else {
-					res = jsonObject.get(key);
-					if (res.equals(null))
+					try {
+						res = jsonObject.get(key);
+					} catch (NullPointerException ex) {
+						logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
+						return "";
+					}
+					if (res == null)
 						throw new KeyIsNull();
 				}
-			}
-			
-			if (res.equals(null)) {
-				logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
-				return "";
 			}
 			
 			return res.toString();
