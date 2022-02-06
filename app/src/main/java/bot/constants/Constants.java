@@ -1,5 +1,6 @@
 package bot.constants;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -8,8 +9,10 @@ public final class Constants {
 		throw new IllegalStateException("Utility class");
 	}
 
-	public static final Path DATA_PATH = Paths.get("./data");
-	public static final String LANG_DIR = "/lang/";
+	public static final String SEPAR = File.separator;
+
+	public static final Path DATA_PATH = Paths.get("." + SEPAR + "data");
+	public static final String LANG_DIR = SEPAR + "lang" + SEPAR;
 
 	public static final String SUCCESS = "\u2611";
 	public static final String WARNING = "\u26A0";

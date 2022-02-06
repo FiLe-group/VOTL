@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -69,7 +70,8 @@ public class FileManager {
 			files = new HashMap<>();
 
 		File file = new File(external);
-		String[] split = external.split("/");
+		// 
+		String[] split = external.contains("/") ? external.split(File.separator) : external.split(Pattern.quote(File.separator));
 
 		try {
 			if (!file.exists()) {
@@ -80,7 +82,7 @@ public class FileManager {
 					}
 				}
 				if (file.createNewFile()) {
-					if (export(App.class.getResourceAsStream(internal), external)) {
+					if (export(App.class.getResourceAsStream(internal.replace(File.separator, "/")), external)) {
 						logger.info("Successfully created {}!", name);
 						files.put(name, file);
 					} else {
@@ -89,7 +91,6 @@ public class FileManager {
 				}
 			} else {
 				logger.info("Successfully loaded {}!", name);
-
 				files.put(name, file);
 			}
 		} catch (IOException ex) {
@@ -118,7 +119,7 @@ public class FileManager {
 						res = jsonObject.get(key);
 					} catch (NullPointerException ex) {
 						logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
-						return "";
+						throw new KeyIsNull();
 					}
 					if (res == null)
 						throw new KeyIsNull();
@@ -130,7 +131,7 @@ public class FileManager {
 		} catch (KeyIsNull ex) {
 			return "";
 		} catch (IOException | ParseException ex) {
-			logger.warn("Couldn't process file {}.json", path, name, ex);
+			logger.warn("Couldn't process file {}.json", name, ex);
 			return "";
 		}
 	}
@@ -203,7 +204,7 @@ public class FileManager {
 		boolean success = true;
 		try {
 			Files.copy(inputStream, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
-		} catch(IOException ex){
+		} catch (IOException | NullPointerException ex){
 			success = false;
 		}
 

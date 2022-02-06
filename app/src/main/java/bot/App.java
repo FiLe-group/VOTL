@@ -65,8 +65,8 @@ public class App {
 
 		JDA setJda = null;
 
-		fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "/config.json")
-			.addFile("database", "/server.db", Constants.DATA_PATH + "/server.db")
+		fileManager.addFile("config", Constants.SEPAR + "config.json", Constants.DATA_PATH + Constants.SEPAR + "config.json")
+			.addFile("database", Constants.SEPAR + "server.db", Constants.DATA_PATH + Constants.SEPAR + "server.db")
 			.addLang("en");
 
 		defaultPrefix = fileManager.getString("config", "default-prefix");
@@ -141,6 +141,7 @@ public class App {
 				.build();
 		} catch (LoginException e) {
 			logger.error("Build failed", e);
+			System.exit(0);
 		}
 
 		this.jda = setJda;
