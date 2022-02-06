@@ -32,3 +32,30 @@ jobs:
       uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
       with:
         arguments: build
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Package
+        path: build/lib
+    - name: SSH Remote Commands
+      # You may pin to the exact commit or the version.
+      # uses: appleboy/ssh-action@1d1b21ca96111b1eb4c03c21c14ebb971d2200f6
+      uses: appleboy/ssh-action@v0.1.4
+      with:
+        # ssh host
+        host: ${{ secrets.HOST }}
+        # ssh port
+        port: ${{ secrets.PORT }}
+        # ssh username
+        username: ${{ secrets.USERNAME }}
+        # ssh password
+        # password: ${{ secrets.PASSWORD }}
+        # timeout for ssh to host
+        timeout: 20s
+        # timeout for ssh command
+        command_timeout: 10m
+        # content of ssh private key. ex raw content of ~/.ssh/id_rsa
+        key: ${{ secrets.KEY }}
+        # execute commands
+        script: whoiam
+        # stop script after first failure
+        # script_stop: # optional
