@@ -10,15 +10,21 @@ name: Java CI with Gradle
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
   build:
-
+    name: Build and Release
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+    - name: Get App Version
+      id: get_version
+      run: |
+        echo "::set-env name=APP_VERSION::$(./gradlew getReleaseVersion --console=plain -q --warning-mode=none)"
     - name: Set up JDK 11
       uses: actions/setup-java@v2
       with:
@@ -32,3 +38,25 @@ jobs:
       uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
       with:
         arguments: build
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Package
+        path: |
+          ./app/build/lib/VOTL-*
+    - name: Create Release
+      # You may pin to the exact commit or the version.
+      # uses: ncipollo/release-action@40bb172bd05f266cf9ba4ff965cb61e9ee5f6d01
+      uses: ncipollo/release-action@v1.9.0
+      with:
+        # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
+        artifact: ./app/build/lib/VOTL-*.jar
+        # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
+        # artifacts: # optional, default is  
+        # Optionally marks this release as prerelease. Set to true to enable.
+        # prerelease: # optional, default is 
+        # Indicates if existing release artifacts should be replaced. Defaults to true.
+        # replacesArtifacts: # optional, default is true
+        # An optional tag for the release. If this is omitted the git ref will be used (if it is a tag).
+        tag: ${{ env.APP_VERSION }}
+        # The Github token.
+        token: ${{ secrets.GITHUB_TOKEN }}
