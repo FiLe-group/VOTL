@@ -92,6 +92,6 @@ task preReleaseVersion(group: 'versioning', description: 'Make the version a pre
 
 task getReleaseVersion(group: 'versioning', description: 'Return release version') {
     doFirst {
-        println loadVersion().getVersion()
+        println 'v' + loadVersion().getVersion()
     }
 }
