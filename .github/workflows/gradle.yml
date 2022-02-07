@@ -23,8 +23,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Get App Version
       id: get_version
-      run: |
-        echo "::set-env name=APP_VERSION::$(./gradlew getReleaseVersion --console=plain -q --warning-mode=none)"
+      run: echo ::set-output name=version::$(./gradlew getReleaseVersion --console=plain -q --warning-mode=none)
+    - name: Show extracted App Version
+      run: echo ${{ steps.get_version.outputs.version }}
     - name: Set up JDK 11
       uses: actions/setup-java@v2
       with:
@@ -57,6 +58,6 @@ jobs:
         # Indicates if existing release artifacts should be replaced. Defaults to true.
         # replacesArtifacts: # optional, default is true
         # An optional tag for the release. If this is omitted the git ref will be used (if it is a tag).
-        tag: ${{ env.APP_VERSION }}
+        tag: ${{ steps.get_version.outputs.version }}
         # The Github token.
         token: ${{ secrets.GITHUB_TOKEN }}
