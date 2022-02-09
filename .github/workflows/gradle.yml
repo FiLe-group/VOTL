@@ -48,14 +48,14 @@ jobs:
       # uses: ncipollo/release-action@40bb172bd05f266cf9ba4ff965cb61e9ee5f6d01
       uses: ncipollo/release-action@v1.9.0
       with:
+        allowUpdates: true
         # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
         artifacts: ./app/build/lib/VOTL-*.jar
-        # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
-        # artifacts: # optional, default is  
+        artifactContentType: "raw"
         # Optionally marks this release as prerelease. Set to true to enable.
         # prerelease: # optional, default is 
         # Indicates if existing release artifacts should be replaced. Defaults to true.
-        # replacesArtifacts: # optional, default is true
+        replacesArtifacts: true
         # An optional tag for the release. If this is omitted the git ref will be used (if it is a tag).
         tag: ${{ steps.get_version.outputs.version }}
         # The Github token.
