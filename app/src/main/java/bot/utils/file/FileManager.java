@@ -26,8 +26,8 @@ import bot.App;
 import bot.constants.Constants;
 
 class KeyIsNull extends Exception {
-	public KeyIsNull() {
-		super();
+	public KeyIsNull(String str) {
+		super(str);
 	}
 }
 
@@ -119,20 +119,22 @@ public class FileManager {
 						res = jsonObject.get(key);
 					} catch (NullPointerException ex) {
 						logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
-						throw new KeyIsNull();
+						throw new KeyIsNull("ERROR at file manager");
 					}
-					if (res == null)
-						throw new KeyIsNull();
+					if (res == null) {
+						throw new KeyIsNull("");
+					}
+						
 				}
 			}
 			
 			return res.toString();
 		
 		} catch (KeyIsNull ex) {
-			return "";
+			return ex.getMessage();
 		} catch (IOException | ParseException ex) {
 			logger.warn("Couldn't process file {}.json", name, ex);
-			return "";
+			return "ERROR at processing file";
 		}
 	}
 	

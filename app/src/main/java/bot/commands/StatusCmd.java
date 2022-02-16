@@ -47,10 +47,8 @@ public class StatusCmd extends Command {
 						).queue()
 					);
 				return;
-			} else {
-				if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms)) {
-					return;
-				}
+			} else if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms)) {
+				return;
 			}
 		}
 

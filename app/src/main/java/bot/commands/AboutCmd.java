@@ -53,10 +53,8 @@ public class AboutCmd extends Command {
 						).queue()
 					);
 				return;
-			} else {
-				if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms)) {
-					return;
-				}
+			} else if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms)) {
+				return;
 			}
 		}
 
@@ -64,8 +62,14 @@ public class AboutCmd extends Command {
 	}
 
 	private MessageEmbed getAboutEmbed(CommandEvent event) {
-		String guildID = (event.getEvent().isFromGuild() ? event.getGuild().getId() : "0");
-		EmbedBuilder builder = bot.getEmbedUtil().getEmbed();
+		String guildID = "0";
+		EmbedBuilder builder = null;
+		if (event.getEvent().isFromGuild()) {
+			guildID = event.getGuild().getId();
+			builder = bot.getEmbedUtil().getEmbed(event.getMember());
+		} else {
+			builder = bot.getEmbedUtil().getEmbed();
+		}
 
 		builder.setAuthor(event.getJDA().getSelfUser().getName(), event.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.setThumbnail(event.getJDA().getSelfUser().getEffectiveAvatarUrl())
