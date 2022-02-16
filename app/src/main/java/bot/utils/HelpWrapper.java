@@ -7,13 +7,14 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.Command.Category;
 
 import bot.App;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
 
 public class HelpWrapper {
 
 	private final App bot;
 
-	//protected Permission[] botPerms;
+	protected Permission[] botPerms;
 
 	public HelpWrapper(App bot) {
 		this.bot = bot;
@@ -25,7 +26,12 @@ public class HelpWrapper {
 		String text = getString(event);
 
 		if (event.getEvent().isFromGuild()) {
-			if (bot.getMessageUtil().hasArgs("dm", event.getArgs())) {
+			if (!event.getSelfMember().hasPermission(event.getGuildChannel(), Permission.MESSAGE_SEND)) {
+				event.getMember().getUser().openPrivateChannel()
+					.flatMap(channel -> channel.sendMessage(text))
+					.queue();
+				return;
+			} else if (bot.getMessageUtil().hasArgs("dm", event.getArgs())) {
 				String mention = event.getMember().getAsMention();
 				event.getMember().getUser().openPrivateChannel()
 					.flatMap(channel -> channel.sendMessage(text))
@@ -38,10 +44,6 @@ public class HelpWrapper {
 						)
 					);
 				return;
-			/* } else {
-				if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms)) {
-					return;
-				} */
 			}
 		}
 

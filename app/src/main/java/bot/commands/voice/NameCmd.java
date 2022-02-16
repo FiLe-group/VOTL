@@ -30,12 +30,8 @@ public class NameCmd extends Command {
 
 	@Override
 	protected void execute(CommandEvent event) {
-		for (Permission perm : botPerms) {
-			if (!event.getSelfMember().hasPermission(event.getTextChannel(), perm)) {
-				bot.getEmbedUtil().sendPermError(event.getTextChannel(), event.getMember(), perm, true);
-				return;
-			}
-		}
+		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms))
+			return;
 
 		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");

@@ -102,6 +102,12 @@ public class EmbedUtil {
 	}
 
 	public void sendPermError(TextChannel tc, Member member, TextChannel channel, Permission perm, boolean self) {
+		if (perm.equals(Permission.MESSAGE_SEND)) {
+			member.getUser().openPrivateChannel()
+				.flatMap(ch -> ch.sendMessage(bot.getMsg(member.getGuild().getId(), "errors.no_send_perm")))
+				.queue();
+			return;
+		}
 		if (perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
 			if (channel == null) {
 				tc.sendMessage(

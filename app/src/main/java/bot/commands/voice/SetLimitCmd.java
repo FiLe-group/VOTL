@@ -31,19 +31,9 @@ public class SetLimitCmd extends Command {
 
 	@Override
 	protected void execute(CommandEvent event) {
-		for (Permission perm : userPerms) {
-			if (!event.getMember().hasPermission(perm)) {
-				bot.getEmbedUtil().sendPermError(event.getTextChannel(), event.getMember(), perm, false);
-				return;
-			}
-		}
-
-		for (Permission perm : botPerms) {
-			if (!event.getSelfMember().hasPermission(event.getTextChannel(), perm)) {
-				bot.getEmbedUtil().sendPermError(event.getTextChannel(), event.getMember(), perm, true);
-				return;
-			}
-		}
+		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms) || 
+				bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms))
+			return;
 
 		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");

@@ -9,6 +9,7 @@
 			"other": "You lack the permission `{permission}` for this command.",
 			"other_channel": "You lack the permission `{permission}` in the channel {channel} to do this command."
 		},
+		"no_send_perm": "I have no permission to send messages to your channel! Pls fix!",
 		"voice_not_setup": "Guild was not setup-ed! Check `{prefix}help` for setup command",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and thet I have sufficient permissions!",
 		"title": "Error",

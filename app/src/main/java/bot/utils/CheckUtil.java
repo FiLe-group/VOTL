@@ -23,6 +23,10 @@ public class CheckUtil {
 	public boolean lacksPermissions(TextChannel tc, Member member, Permission[] permissions) {
 		return lacksPermissions(tc, member, false, null, permissions);
 	}
+
+	public boolean lacksPermissions(TextChannel tc, Member member, boolean isSelf, Permission[] permissions) {
+		return lacksPermissions(tc, member, isSelf, null, permissions);
+	}
 	
 	public boolean lacksPermissions(TextChannel tc, Member member, boolean isSelf, TextChannel channel, Permission[] permissions) {
 		Guild guild = tc.getGuild();

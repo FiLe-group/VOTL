@@ -46,12 +46,8 @@ public class EvalCmd extends Command {
 		if (event.getSelfMember().hasPermission(event.getTextChannel(), Permission.MESSAGE_MANAGE))
 			event.getMessage().delete().queue();
 
-		for (Permission perm : botPerms) {
-			if (!event.getSelfMember().hasPermission(event.getTextChannel(), perm)) {
-				bot.getEmbedUtil().sendPermError(event.getTextChannel(), event.getMember(), perm, true);
-				return;
-			}
-		}
+		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms))
+			return;
 
 		if (event.getArgs().length() == 0) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "bot.owner.eval.no_args");
