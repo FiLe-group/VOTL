@@ -2,7 +2,7 @@
 <configuration>
 	<property name="DEV_HOME" value="./logs"/>
 
-	<timestamp key="TIME" datePattern="yyyy-MM-dd_HH-mm" />
+	<timestamp key="TIME" datePattern="yyyy-MM-dd" />
 
 	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
