@@ -15,6 +15,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import org.slf4j.LoggerFactory;
 
+import bot.utils.CheckUtil;
 import bot.utils.DBUtil;
 import bot.utils.HelpWrapper;
 import bot.utils.file.FileManager;
@@ -58,6 +59,7 @@ public class App {
 	private MessageUtil messageUtil;
 	private EmbedUtil embedUtil;
 	private LangUtil langUtil;
+	private CheckUtil checkUtil;
 
 	public String defaultPrefix;
 
@@ -80,6 +82,7 @@ public class App {
 		messageUtil = new MessageUtil(this);
 		embedUtil 	= new EmbedUtil(this);
 		langUtil 	= new LangUtil(this);
+		checkUtil	= new CheckUtil(this);
 
 		HelpWrapper helpWrapper = new HelpWrapper(this);
 
@@ -112,7 +115,8 @@ public class App {
 				new ShutdownCmd(this),
 				// other
 				new PingCmd(this),
-				new AboutCmd(this)
+				new AboutCmd(this),
+				new StatusCmd(this)
 			)
 			.build();
 
@@ -169,6 +173,10 @@ public class App {
 
 	public EmbedUtil getEmbedUtil() {
 		return embedUtil;
+	}
+
+	public CheckUtil getCheckUtil() {
+		return checkUtil;
 	}
 
 	public String getLanguage(String id) {

@@ -45,7 +45,7 @@ public class PermitCmd extends Command {
 		}
 
 		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
-			bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "errors.voice_not_setup");
+			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
 			return;
 		}
 
@@ -54,11 +54,11 @@ public class PermitCmd extends Command {
 
 			List<Member> members = event.getMessage().getMentionedMembers(event.getGuild());
 			if (members.isEmpty()) {
-				bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "bot.voice.permit.no_args");
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.permit.no_args");
 				return;
 			}
 			if (members.contains(event.getMember())) {
-				bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "bot.voice.permit.not_self");
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.permit.not_self");
 				return;
 			}
 

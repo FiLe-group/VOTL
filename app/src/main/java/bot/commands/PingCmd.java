@@ -22,17 +22,19 @@ public class PingCmd extends Command {
 		this.name = "ping";
 		this.aliases = new String[]{"pong"};
 		this.help = "checks the bot's latency";
-		//this.guildOnly = false;
+		this.guildOnly = false;
 		this.category = new Category("other");
 		this.bot = bot;
 	}
 
 	@Override
 	protected void execute(CommandEvent event) {
-		event.reply(bot.getMsg(event.getGuild().getId(), "bot.other.ping.loading"), m -> {
+		String guildID = (event.getEvent().isFromGuild() ? event.getGuild().getId() : "0");
+
+		event.reply(bot.getMsg(guildID, "bot.other.ping.loading"), m -> {
 			long ping = event.getMessage().getTimeCreated().until(m.getTimeCreated(), ChronoUnit.MILLIS);
 			m.editMessage(
-				bot.getMsg(event.getGuild().getId(), "bot.other.ping.info")
+				bot.getMsg(guildID, "bot.other.ping.info")
 					.replace("{ping}", ping+"")
 					.replace("{websocket}", event.getJDA().getGatewayPing()+"")
 			).queue();

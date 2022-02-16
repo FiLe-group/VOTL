@@ -46,24 +46,24 @@ public class SetLimitCmd extends Command {
 		}
 
 		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
-			bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "errors.voice_not_setup");
+			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
 			return;
 		}
 
 		String args = event.getArgs();
 		if (args.length() == 0) {
-			bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "bot.voice.setlimit.no_args");
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.no_args");
 			return;
 		}
 		Integer limit = null;
 		try {
 			limit = Integer.parseInt(args);
 		} catch (NumberFormatException ex) {
-			bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "bot.voice.setlimit.not_integer");
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.not_integer");
 			return;
 		}
 		if (limit == null || limit<0 || limit>99) {
-			bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "bot.voice.setlimit.not_range");
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.not_range");
 			return;
 		}
 

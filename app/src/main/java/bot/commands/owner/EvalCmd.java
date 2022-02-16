@@ -43,7 +43,7 @@ public class EvalCmd extends Command {
 
 	@Override
 	protected void execute(CommandEvent event) {
-		if (event.getMessage().getGuild().getSelfMember().hasPermission(event.getTextChannel(), Permission.MESSAGE_MANAGE))
+		if (event.getSelfMember().hasPermission(event.getTextChannel(), Permission.MESSAGE_MANAGE))
 			event.getMessage().delete().queue();
 
 		for (Permission perm : botPerms) {
@@ -54,8 +54,8 @@ public class EvalCmd extends Command {
 		}
 
 		if (event.getArgs().length() == 0) {
-			bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "bot.owner.eval.no_args");
-			event.getMessage().reply("Available variables:\nbot; jda; guild; channel; message").queue(success -> success.delete().queueAfter(5, TimeUnit.SECONDS));
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.owner.eval.no_args");
+			event.reply("Available variables:\nbot; jda; guild; channel; message", success -> success.delete().queueAfter(5, TimeUnit.SECONDS));
 			return;
 		}
 

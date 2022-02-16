@@ -22,7 +22,7 @@ public class ShutdownCmd extends Command {
 	public ShutdownCmd(App bot) {
 		this.name = "shutdown";
 		this.help = "safely shuts down the bot";
-		//this.guildOnly = false;
+		this.guildOnly = false;
 		this.ownerCommand = true;
 		this.category = new Category("owner");
 		this.bot = bot;

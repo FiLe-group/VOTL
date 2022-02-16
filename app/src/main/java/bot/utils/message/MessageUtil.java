@@ -175,11 +175,6 @@ public class MessageUtil {
 		return msg;
 	}
 
-	public String getBotGame(long members) {
-		String game = "Voice of the Lord | %s Members";
-		return String.format(game, formatNumber(members));
-	}
-
 	public String getFormattedMembers(String id, String... members) {
 		if (members.length == 1)
 			return "**" + escapeAll(members[0]) + "**";

@@ -111,8 +111,7 @@
 			},
 			"about": {
 				"description": "Get basic information about the bot",
-				"dm_failure": "I can't send you a DM {user}!",
-				"dm_success": "Check your DMs {user}!",
+				
 				"embed": {
 					"about_title": "About {name}!",
 					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nOwner and developer - **{owner}**({owner_id}).",
@@ -132,6 +131,24 @@
 						"rotr": "[`Discord - Rise of the Republic`]({rotr_invite})",
 						"ww2": "[`Discord - World War II`]({ww2_invite})"
 					}
+				}
+			},
+			"status": {
+				"description": "",
+				"embed": {
+					"stats_title": "Stats",
+					"stats" : {
+						"guilds": "{value} Guilds",
+						"shard": "Shard {this}/{all}"
+					},
+					"shard_title": "This shard",
+					"shard": {
+						"users": "{value} Users",
+						"guilds": "{value} Guilds",
+						"text_channels": "{value} Text Channels",
+						"voice_channels": "{value} Voice Channels"
+					},
+					"last_restart": "Last restart"
 				}
 			}
 		},
@@ -159,6 +176,8 @@
 					"support": "If you need help with the bot, contact the owner `{owner}` for support"
 				}
 			}
-		}
+		},
+		"dm_failure": "I can't send you a DM {user}!",
+		"dm_success": "Check your DMs {user}!"
 	}
 }

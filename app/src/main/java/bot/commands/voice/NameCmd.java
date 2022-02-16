@@ -38,14 +38,14 @@ public class NameCmd extends Command {
 		}
 
 		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
-			bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "errors.voice_not_setup");
+			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
 			return;
 		}
 
 		if (bot.getDBUtil().isVoiceChannel(event.getMember().getId())) {
 			String name = event.getArgs();
 			if (name.length() == 0) {
-				bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "bot.voice.name.no_args");
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.name.no_args");
 				return;
 			}
 
@@ -57,7 +57,7 @@ public class NameCmd extends Command {
 					}
 				);
 			} catch (IllegalArgumentException ex) {
-				bot.getEmbedUtil().sendError(event.getTextChannel(), event.getMember(), "bot.voice.name.not_range");
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.name.not_range");
 				return;
 			}
 			if (!bot.getDBUtil().isUser(event.getMember().getId())) {

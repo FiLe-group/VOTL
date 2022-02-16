@@ -21,31 +21,29 @@ public class HelpWrapper {
 	}
 
 	public void helpConsumer(CommandEvent event) {
-		String guildID = (event.getEvent().isFromGuild() ? event.getGuild().getId() : "0");
 		
 		String text = getString(event);
 
-		if (bot.getMessageUtil().hasArgs("dm", event.getArgs())){
-			String mention = event.getMember().getAsMention();
-			event.getMember().getUser().openPrivateChannel()
+		if (event.getEvent().isFromGuild()) {
+			if (bot.getMessageUtil().hasArgs("dm", event.getArgs())) {
+				String mention = event.getMember().getAsMention();
+				event.getMember().getUser().openPrivateChannel()
 					.flatMap(channel -> channel.sendMessage(text))
 					.queue(
-							message -> event.getTextChannel().sendMessage(
-									bot.getMsg(guildID, "bot.other.about.dm_success", mention)
-							).queue(), 
-							error -> event.getTextChannel().sendMessage(
-									bot.getMsg(guildID, "bot.other.about.dm_failure", mention)
-							).queue()
+						message -> event.reply(
+							bot.getMsg(event.getGuild().getId(), "bot.dm_success", mention)
+						), 
+						error -> event.reply(
+							bot.getMsg(event.getGuild().getId(), "bot.dm_failure", mention)
+						)
 					);
-			return;
-		}
-
-		/* for (Permission perm : botPerms) {
-			if (!event.getSelfMember().hasPermission(event.getTextChannel(), perm)) {
-				bot.getEmbedUtil().sendPermError(event.getTextChannel(), event.getMember(), perm, true);
 				return;
+			/* } else {
+				if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms)) {
+					return;
+				} */
 			}
-		} */
+		}
 
 		event.reply(text);
 	}

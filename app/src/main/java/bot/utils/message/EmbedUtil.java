@@ -8,6 +8,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import bot.App;
 
 public class EmbedUtil {
@@ -19,7 +21,7 @@ public class EmbedUtil {
 	}
 
 	public EmbedBuilder getEmbed() {
-		return new EmbedBuilder().setColor(0x8025272b).setTimestamp(ZonedDateTime.now());
+		return new EmbedBuilder().setColor(0x8010112e).setTimestamp(ZonedDateTime.now());
 	}
 
 	public EmbedBuilder getEmbed(Member member) {
@@ -29,8 +31,19 @@ public class EmbedUtil {
 		);
 	}
 
+	public EmbedBuilder getEmbed(User user) {
+		return getEmbed().setFooter(
+			bot.getMsg("0", "embed.footer", user.getAsTag(), false),
+			user.getEffectiveAvatarUrl()
+		);
+	} 
+
 	public EmbedBuilder getErrorEmbed(Member member) {
 		return (member == null ? getEmbed() : getEmbed(member)).setColor(0xFF0000);
+	}
+
+	public EmbedBuilder getErrorEmbed(User user) {
+		return (user == null ? getEmbed() : getEmbed(user)).setColor(0xFF0000);
 	}
 
 	public MessageEmbed getPermErrorEmbed(Member member, Guild guild, TextChannel channel, Permission perm, boolean self) {
@@ -59,18 +72,18 @@ public class EmbedUtil {
 		return embed.setDescription(msg).build();
 	}
 
-	public void sendError(TextChannel tc, Member member, String path) {
-		sendError(tc, member, path, null);
+	public void sendError(MessageReceivedEvent event, String path) {
+		sendError(event, path, null);
 	}
 
-	public void sendError(TextChannel tc, Member member, String path, String reason) {
+	public void sendError(MessageReceivedEvent event, String path, String reason) {
 		
-		Guild guild = tc.getGuild();
+		String guildID = (event.isFromGuild() ? event.getGuild().getId() : "0");
 
-		EmbedBuilder embed = getErrorEmbed(member);
+		EmbedBuilder embed = getErrorEmbed(event.getAuthor());
 		String msg;
 		
-		msg = member == null ? bot.getMsg(guild.getId(), path) : bot.getMsg(guild.getId(), path, member.getEffectiveName());
+		msg = (event.getMember() == null ? bot.getMsg(guildID, path) : bot.getMsg(guildID, path, event.getMember().getEffectiveName()));
 
 		embed.setDescription(msg);
 
@@ -81,7 +94,7 @@ public class EmbedUtil {
 				false
 			);
 
-		tc.sendMessageEmbeds(embed.build()).queue();
+		event.getChannel().sendMessageEmbeds(embed.build()).queue();
 	}
 
 	public void sendPermError(TextChannel tc, Member member, Permission perm, boolean self) {

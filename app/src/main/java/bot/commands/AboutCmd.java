@@ -10,8 +10,6 @@ import bot.constants.Links;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 @CommandInfo
@@ -30,7 +28,7 @@ public class AboutCmd extends Command {
 		this.name = "about";
 		this.aliases = new String[]{"info"};
 		this.help = "gets information about the bot";
-		//this.guildOnly = false;
+		this.guildOnly = false;
 		this.category = new Category("other");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
 		this.bot = bot;
@@ -39,40 +37,38 @@ public class AboutCmd extends Command {
 	@Override
 	protected void execute(CommandEvent event) {
 		
-		MessageEmbed embed = getEmbed(event.getMember());
+		MessageEmbed embed = getAboutEmbed(event);
 
-		if(bot.getMessageUtil().hasArgs("dm", event.getArgs())){
-			String mention = event.getMember().getAsMention();
-			event.getMember().getUser().openPrivateChannel()
+		if (event.getEvent().isFromGuild()) {
+			if (bot.getMessageUtil().hasArgs("dm", event.getArgs())) {
+				String mention = event.getMember().getAsMention();
+				event.getMember().getUser().openPrivateChannel()
 					.flatMap(channel -> channel.sendMessageEmbeds(embed))
 					.queue(
-							message -> event.getTextChannel().sendMessage(
-									bot.getMsg(event.getGuild().getId(), "bot.other.about.dm_success", mention)
-							).queue(), 
-							error -> event.getTextChannel().sendMessage(
-									bot.getMsg(event.getGuild().getId(), "bot.other.about.dm_failure", mention)
-							).queue()
+						message -> event.getChannel().sendMessage(
+							bot.getMsg(event.getGuild().getId(), "bot.dm_success", mention)
+						).queue(), 
+						error -> event.getChannel().sendMessage(
+							bot.getMsg(event.getGuild().getId(), "bot.dm_failure", mention)
+						).queue()
 					);
-			return;
-		}
-
-		for (Permission perm : botPerms) {
-			if (!event.getSelfMember().hasPermission(event.getTextChannel(), perm)) {
-				bot.getEmbedUtil().sendPermError(event.getTextChannel(), event.getMember(), perm, true);
 				return;
+			} else {
+				if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms)) {
+					return;
+				}
 			}
 		}
 
-		event.getTextChannel().sendMessageEmbeds(embed).queue();
+		event.reply(embed);
 	}
 
-	private MessageEmbed getEmbed(Member member) {
-		Guild guild = member.getGuild();
-		String guildID = guild.getId();
-		EmbedBuilder builder = bot.getEmbedUtil().getEmbed(member);
+	private MessageEmbed getAboutEmbed(CommandEvent event) {
+		String guildID = (event.getEvent().isFromGuild() ? event.getGuild().getId() : "0");
+		EmbedBuilder builder = bot.getEmbedUtil().getEmbed();
 
-		builder.setAuthor(guild.getJDA().getSelfUser().getName(), guild.getJDA().getSelfUser().getEffectiveAvatarUrl())
-			.setThumbnail(guild.getJDA().getSelfUser().getEffectiveAvatarUrl())
+		builder.setAuthor(event.getJDA().getSelfUser().getName(), event.getJDA().getSelfUser().getEffectiveAvatarUrl())
+			.setThumbnail(event.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.addField(
 				bot.getMsg(guildID, "bot.other.about.embed.about_title"),
 				bot.getMsg(guildID, "bot.other.about.embed.about_value"),
