@@ -6,6 +6,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 
 @CommandInfo(
@@ -33,7 +34,7 @@ public class NameCmd extends Command {
 		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms))
 			return;
 
-		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+		if (!bot.getDBUtil().isGuildVoice(event.getGuild().getId())) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
 			return;
 		}
@@ -49,7 +50,10 @@ public class NameCmd extends Command {
 			try {
 				vc.getManager().setName(name).queue(
 					channel -> {
-						event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.name.done").replace("{value}", name));
+						MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+							.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.name.done").replace("{value}", name))
+							.build();
+						event.reply(embed);
 					}
 				);
 			} catch (IllegalArgumentException ex) {

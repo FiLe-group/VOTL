@@ -8,6 +8,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 @CommandInfo
@@ -61,7 +62,10 @@ public class SetupCmd extends Command {
 								.queue(
 									channel -> {
 										bot.getDBUtil().guildVoiceSetup(event.getGuild().getId(), category.getId(), channel.getId());
-										event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.setup.done").replace("{channel}", channel.getAsMention()));
+										MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+											.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
+											.build();
+										event.reply(embed);
 									}
 								);
 						} catch (InsufficientPermissionException ex) {

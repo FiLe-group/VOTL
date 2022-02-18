@@ -6,6 +6,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 
 @CommandInfo(
@@ -33,7 +34,7 @@ public class LimitCmd extends Command {
 		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms))
 			return;
 
-		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+		if (!bot.getDBUtil().isGuildVoice(event.getGuild().getId())) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
 			return;
 		}
@@ -57,7 +58,10 @@ public class LimitCmd extends Command {
 			try {
 				vc.getManager().setUserLimit(limit).queue(
 					channel -> {
-						event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.limit.done").replace("{value}", limit.toString()));
+						MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+							.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.limit.done").replace("{value}", limit.toString()))
+							.build();
+						event.reply(embed);
 					}
 				);
 			} catch (IllegalArgumentException ex) {

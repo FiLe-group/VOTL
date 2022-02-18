@@ -22,6 +22,7 @@ import bot.utils.file.FileManager;
 import bot.utils.file.lang.LangUtil;
 import bot.utils.message.*;
 import bot.commands.*;
+import bot.commands.guild.PrefixCmd;
 import bot.commands.owner.*;
 import bot.commands.voice.*;
 import bot.constants.*;
@@ -88,7 +89,7 @@ public class App {
 
 		// Define a command client
 		CommandClient commandClient = new CommandClientBuilder()
-			.setPrefix(defaultPrefix)
+			.setPrefix(null)
 			.setPrefixFunction(event -> {
 				if (!event.isFromGuild()) {
 					return defaultPrefix;
@@ -99,6 +100,8 @@ public class App {
 			.setServerInvite(Links.DISCORD)
 			.setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
 			.setHelpConsumer(helpWrapper::helpConsumer)
+			.setStatus(OnlineStatus.ONLINE)
+			.setActivity(Activity.watching(instance.defaultPrefix + "help"))
 			.addCommands(
 				// voice
 				new SetupCmd(this),
@@ -110,6 +113,8 @@ public class App {
 				new UnlockCmd(this),
 				new PermitCmd(this),
 				new RejectCmd(this),
+				// guild
+				new PrefixCmd(this),
 				// owner
 				new EvalCmd(this),
 				new ShutdownCmd(this),
@@ -140,8 +145,6 @@ public class App {
 				.enableCache(CacheFlag.VOICE_STATE, CacheFlag.MEMBER_OVERRIDES, CacheFlag.ONLINE_STATUS)
 				.setAutoReconnect(true)
 				.addEventListeners(commandClient, waiter, guildListener, voiceListener)
-				.setStatus(OnlineStatus.IDLE)
-				.setActivity(Activity.watching("Loading..."))
 				.build();
 		} catch (LoginException e) {
 			logger.error("Build failed", e);

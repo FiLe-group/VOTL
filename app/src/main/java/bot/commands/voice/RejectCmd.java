@@ -12,6 +12,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 import bot.App;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
@@ -40,7 +41,7 @@ public class RejectCmd extends Command {
 		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms))
 			return;
 
-		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+		if (!bot.getDBUtil().isGuildVoice(event.getGuild().getId())) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
 			return;
 		}
@@ -69,9 +70,12 @@ public class RejectCmd extends Command {
 					event.getGuild().kickVoiceMember(member).queue();
 				}
 			}
-			event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.reject.done", "",
-				members.stream().map(object -> Objects.toString(object.getEffectiveName(), null)).collect(Collectors.toList())
-				));
+			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+				.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.reject.done", "",
+					members.stream().map(object -> Objects.toString(object.getEffectiveName(), null)).collect(Collectors.toList())
+				))
+				.build();
+			event.reply(embed);
 		} else {
 			event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.reject.no_channel"));
 		}

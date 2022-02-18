@@ -10,7 +10,8 @@
 			"other_channel": "You lack the permission `{permission}` in the channel {channel} to do this command."
 		},
 		"no_send_perm": "I have no permission to send messages to your channel! Pls fix!",
-		"voice_not_setup": "Guild was not setup-ed! Check `{prefix}help` for setup command",
+		"guild_not_setup": "Guild was not setup-ed! Check `{prefix}help` for setup command",
+		"voice_not_setup": "Voice channel was not setup-ed! Check `{prefix}help` for setup command",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and thet I have sufficient permissions!",
 		"title": "Error",
 		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to `{owner}`!"
@@ -32,6 +33,14 @@
 			},
 			"shutdown": {
 				"description": "Safely shuts down the bot."
+			}
+		},
+		"guild": {
+			"prefix": {
+				"description": "Set new prefix for guild",
+				"no_args": "You didn't provided new prefix.\nUsage: `{prefix}prefix <new prefix, max 4 char>`",
+				"no_range": "Prefix must be max 4 characters long.",
+				"done": "Successfully changed prefix to `{prefix}`!"
 			}
 		},
 		"voice": {

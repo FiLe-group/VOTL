@@ -6,6 +6,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
@@ -34,7 +35,7 @@ public class UnlockCmd extends Command {
 		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms))
 			return;
 
-		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+		if (!bot.getDBUtil().isGuildVoice(event.getGuild().getId())) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
 			return;
 		}
@@ -47,7 +48,11 @@ public class UnlockCmd extends Command {
 				bot.getEmbedUtil().sendPermError(event.getTextChannel(), event.getMember(), Permission.MANAGE_PERMISSIONS, true);
 				return;
 			}
-			event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.unlock.done"));
+
+			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+				.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.unlock.done"))
+				.build();
+			event.reply(embed);
 		} else {
 			event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.unlock.no_channel"));
 		}

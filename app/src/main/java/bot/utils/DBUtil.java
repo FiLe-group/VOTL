@@ -51,6 +51,13 @@ public class DBUtil {
 		return false;
 	}
 
+	public boolean isGuildVoice(String guildID) {
+		if (select("guildVoice", "guildID", "guildID", guildID) != null) {
+			return true;
+		}
+		return false;
+	}
+
 	// Guild
 	public void guildSetLanguage(String guildID, String language) {
 		update("guild", "language", language, "guildID", guildID);

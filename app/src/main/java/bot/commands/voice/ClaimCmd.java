@@ -10,6 +10,7 @@ import bot.App;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.AudioChannel;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
@@ -38,7 +39,7 @@ public class ClaimCmd extends Command {
 		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms))
 			return;
 
-		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+		if (!bot.getDBUtil().isGuildVoice(event.getGuild().getId())) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
 			return;
 		}
@@ -62,7 +63,11 @@ public class ClaimCmd extends Command {
 					return;
 				}
 				bot.getDBUtil().channelSetUser(event.getMember().getId(), vc.getId());
-				event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.claim.done").replace("{channel}", vc.getAsMention()));
+				
+				MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+					.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
+					.build();
+				event.reply(embed);
 			} else {
 				event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.claim.not_custom"));
 			}
