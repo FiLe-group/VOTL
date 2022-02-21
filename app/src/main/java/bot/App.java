@@ -22,7 +22,7 @@ import bot.utils.file.FileManager;
 import bot.utils.file.lang.LangUtil;
 import bot.utils.message.*;
 import bot.commands.*;
-import bot.commands.guild.PrefixCmd;
+import bot.commands.guild.*;
 import bot.commands.owner.*;
 import bot.commands.voice.*;
 import bot.constants.*;
@@ -33,6 +33,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -101,7 +102,7 @@ public class App {
 			.setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
 			.setHelpConsumer(helpWrapper::helpConsumer)
 			.setStatus(OnlineStatus.ONLINE)
-			.setActivity(Activity.watching(instance.defaultPrefix + "help"))
+			.setActivity(Activity.watching(defaultPrefix + "help"))
 			.addCommands(
 				// voice
 				new SetupCmd(this),
@@ -130,26 +131,46 @@ public class App {
 		policy = policy.and(MemberCachePolicy.ONLINE);
 		policy = policy.or(MemberCachePolicy.OWNER);
 
-		try {
-			setJda = JDABuilder.createDefault(fileManager.getString("config", "bot-token"))
-				.setEnabledIntents(
-					GatewayIntent.GUILD_PRESENCES,
-					GatewayIntent.GUILD_MEMBERS,
-					GatewayIntent.GUILD_MESSAGES,
-					GatewayIntent.GUILD_VOICE_STATES,
-					GatewayIntent.GUILD_EMOJIS,
-					GatewayIntent.DIRECT_MESSAGES
-				)
-				.setMemberCachePolicy(policy)
-				.setChunkingFilter(ChunkingFilter.ALL)
-				.enableCache(CacheFlag.VOICE_STATE, CacheFlag.MEMBER_OVERRIDES, CacheFlag.ONLINE_STATUS)
-				.setAutoReconnect(true)
-				.addEventListeners(commandClient, waiter, guildListener, voiceListener)
-				.build();
-		} catch (LoginException e) {
-			logger.error("Build failed", e);
-			System.exit(0);
+		Integer retries = 4; // how many times will it try to build
+		Integer cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
+		while (true) {
+			try {
+				setJda = JDABuilder.createDefault(fileManager.getString("config", "bot-token"))
+					.setEnabledIntents(
+						GatewayIntent.GUILD_PRESENCES,
+						GatewayIntent.GUILD_MEMBERS,
+						GatewayIntent.GUILD_MESSAGES,
+						GatewayIntent.GUILD_VOICE_STATES,
+						GatewayIntent.GUILD_EMOJIS,
+						GatewayIntent.DIRECT_MESSAGES
+					)
+					.setMemberCachePolicy(policy)
+					.setChunkingFilter(ChunkingFilter.ALL)
+					.enableCache(CacheFlag.VOICE_STATE, CacheFlag.MEMBER_OVERRIDES, CacheFlag.ONLINE_STATUS)
+					.setAutoReconnect(true)
+					.addEventListeners(commandClient, waiter, guildListener, voiceListener)
+					.build();
+				break;
+			} catch (LoginException ex) {
+				logger.error("Build failed", ex);
+				System.exit(0);
+			} catch (ErrorResponseException ex) { // Tries to reconnect to DNS x times with some delay, else exits
+				if (retries > 0) {
+					retries--;
+					logger.info("Retrying connecting in "+cooldown+" seconds..."+retries+" more attempts");
+					try {
+						Thread.sleep(cooldown*1000);
+					} catch (InterruptedException e) {
+						logger.error("Thread sleep interupted", e);
+					}
+					cooldown*=2;
+				} else {
+					logger.error("No network connection or couldn't connect to DNS", ex);
+					System.exit(0);
+				}
+			}
 		}
+		
 
 		this.jda = setJda;
 	}
