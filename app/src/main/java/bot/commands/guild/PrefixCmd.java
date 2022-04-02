@@ -24,7 +24,7 @@ public class PrefixCmd extends Command {
 
 	public PrefixCmd(App bot) {
 		this.name = "prefix";
-		this.help = "Set new prefix for guild";
+		this.help = "bot.guild.prefix.description";
 		this.category = new Category("guild");
 		this.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_CHANNEL};
@@ -43,13 +43,13 @@ public class PrefixCmd extends Command {
 		}
 
 		String args = event.getArgs();
-		if (args.length() == 0) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.guild.prefix.no_args");
+		if (args.isEmpty()) {
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.guild.prefix.invalid_args");
 			return;
 		} else if (args.length() > 4 || args.contains(" ")) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.guild.prefix.no_range");
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.guild.prefix.invalid_range");
 			return;
-		} 
+		}
 
 		String prefix = args.toLowerCase();
 

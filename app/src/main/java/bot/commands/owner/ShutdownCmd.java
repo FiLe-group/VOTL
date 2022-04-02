@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.entities.Activity;
 	name = "Shutdown",
 	usage = "{prefix}shutdown",
 	description = "Safely shuts down the bot.",
-	requirements = {"Be the bot owner"}
+	requirements = {"Be the bot owner", "Prepare for the consequences"}
 )
 public class ShutdownCmd extends Command {
 
@@ -21,7 +21,7 @@ public class ShutdownCmd extends Command {
 
 	public ShutdownCmd(App bot) {
 		this.name = "shutdown";
-		this.help = "safely shuts down the bot";
+		this.help = "bot.owner.shutdown.description";
 		this.guildOnly = false;
 		this.ownerCommand = true;
 		this.category = new Category("owner");

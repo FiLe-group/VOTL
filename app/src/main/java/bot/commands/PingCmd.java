@@ -21,7 +21,7 @@ public class PingCmd extends Command {
 	public PingCmd(App bot) {
 		this.name = "ping";
 		this.aliases = new String[]{"pong"};
-		this.help = "checks the bot's latency";
+		this.help = "bot.other.ping.description";
 		this.guildOnly = false;
 		this.category = new Category("other");
 		this.bot = bot;

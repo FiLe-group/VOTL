@@ -70,7 +70,7 @@ public class HelpWrapper {
 				}
 				builder.append("\n`").append(prefix).append(prefix==null?" ":"").append(command.getName())
 					.append(command.getArguments()==null ? "`" : " "+command.getArguments()+"`")
-					.append(" - ").append(command.getHelp());
+					.append(" - ").append(bot.getMsg(guildID, (command.getHelp().isEmpty() ? "misc.unknown" : command.getHelp())));
 			}
 		}
 		User owner = event.getJDA().getUserById(ownerID);

@@ -20,27 +20,34 @@
 		"and": "and",
 		"info": "Hey there {user}!\nMy prefix on this discord server is `{prefix}`\nRun `{prefix}help` for a list of commands.",
 		"language": "English (en)",
-		"unknown_user": "Unknown"
+		"unknown": "Unknown"
 	},
 	"bot": {
 		"owner": {
 			"eval": {
 				"description": "Evaluates code using Groovy",
-				"no_args": "You didn't provided code to evaluate.\nUsage: `{prefix}eval <code>`",
+				"invalid_args": "You didn't provided code to evaluate.\nUsage: `{prefix}eval <code>`",
 				"time": "Evaluated in {time}ms",
 				"input": "Input:",
 				"output": "Output:"
 			},
 			"shutdown": {
-				"description": "Safely shuts down the bot."
+				"description": "Safely shuts down the bot"
 			}
 		},
 		"guild": {
 			"prefix": {
 				"description": "Set new prefix for guild",
-				"no_args": "You didn't provided new prefix.\nUsage: `{prefix}prefix <new prefix, max 4 char>`",
-				"no_range": "Prefix must be max 4 characters long.",
+				"invalid_args": "You didn't provided new prefix.\nUsage: `{prefix}prefix <new prefix, max 4 char>`",
+				"invalid_range": "Prefix must be max 4 characters long.",
 				"done": "Successfully changed prefix to `{prefix}`!"
+			},
+			"language": {
+				"description": "Set language for guild",
+				"available_lang": "Available languages: \n*Use `{prefix}language <language>` to set chosen language for this guild.*",
+				"invalid_args": "You didn't provided language.\nUsage: `{prefix}language <language>`",
+				"invalid_lang": "The provided language is invalid.\nUse `{prefix}language` to see all available languages.",
+				"done": "Successfully changed language to `{language}`!"
 			}
 		},
 		"voice": {
@@ -56,23 +63,23 @@
 			},
 			"setlimit": {
 				"description": "Sets default user limit for server's voice channels",
-				"no_args": "You didn't provided limit.\nUsage: `{prefix}setlimit <Integer from 0 to 99>`",
-				"not_integer": "Provided value is not an Integer.",
-				"not_range": "Provided integer must be in range from 0 to 99.",
+				"invalid_args": "You didn't provided limit.\nUsage: `{prefix}setlimit <Integer from 0 to 99>`",
+				"invalid_type": "Provided value is not an Integer.",
+				"invalid_range": "Provided integer must be in range from 0 to 99.",
 				"done": "Successfully changed default voice channel limit to {value}!"
 			},
 			"name": {
 				"description": "Sets name for your channel",
 				"no_args": "You didn't provided name.\nUsage: `{prefix}name <String from 1 to 100 symbols>`",
-				"not_range": "Channel name must be in range from 1 to 100 symbols.",
+				"invalid_range": "Channel name must be in range from 1 to 100 symbols.",
 				"no_channel": "You don't own/has any voice channel.",
 				"done": "Successfully changed your's channel name to {value}!"
 			},
 			"limit": {
 				"description": "Sets limit for your channel",
-				"no_args": "You didn't provided limit.\nUsage: `{prefix}limit <Integer from 0 to 99>`",
-				"not_integer": "Provided value is not an Integer.",
-				"not_range": "Provided integer must be in range from 0 to 99.",
+				"invalid_args": "You didn't provided limit.\nUsage: `{prefix}limit <Integer from 0 to 99>`",
+				"invalid_type": "Provided value is not an Integer.",
+				"invalid_range": "Provided integer must be in range from 0 to 99.",
 				"no_channel": "You don't own/has any voice channel.",
 				"done": "Successfully changed your's channel limit to {value}!"
 			},
@@ -95,7 +102,7 @@
 			},
 			"permit": {
 				"description": "Gives the user permission to join your channel",
-				"no_args": "You didn't provided users.\nUsage: `{prefix}permit <user/-s by ID or mention>`",
+				"invalid_args": "You didn't provided users.\nUsage: `{prefix}permit <user/-s by ID or mention>`",
 				"not_self": "You can't add yourself.",
 				"no_channel": "You don't own/has any voice channel.",
 				"done": "Successfully permited {targets} to connect to your channel!"
@@ -103,7 +110,7 @@
 			},
 			"reject": {
 				"description": "Withdraw the user permission to join your channel",
-				"no_args": "You didn't provided users.\nUsage: `{prefix}reject <user/-s by ID or mention>`",
+				"invalid_args": "You didn't provided users.\nUsage: `{prefix}reject <user/-s by ID or mention>`",
 				"not_self": "You can't add yourself.",
 				"no_channel": "You don't own/has any voice channel.",
 				"done": "Successfully rejected {targets} from connecting to your channel!"
@@ -144,7 +151,7 @@
 				}
 			},
 			"status": {
-				"description": "",
+				"description": "Gets bot's status, shard info",
 				"embed": {
 					"stats_title": "Stats",
 					"stats" : {

@@ -27,7 +27,7 @@ public class SetupCmd extends Command {
 
 	public SetupCmd(App bot) {
 		this.name = "setup";
-		this.help = "Setup bot for using in this server";
+		this.help = "bot.voice.setup.description";
 		this.category = new Category("voice");
 		this.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS};

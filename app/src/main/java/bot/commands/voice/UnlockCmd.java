@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 @CommandInfo(
 	name = "unlock",
-	description = "Unocks your channel for everyone (ex. disallowed users)",
+	description = "Unocks your channel for everyone (ex. disallowed users).",
 	usage = "{prefix}unlock",
 	requirements = "Must have created voice channel"
 )
@@ -24,7 +24,7 @@ public class UnlockCmd extends Command {
 
 	public UnlockCmd(App bot) {
 		this.name = "unlock";
-		this.help = "Unocks your channel for everyone (ex. disallowed users)";
+		this.help = "bot.voice.unlock.description";
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
 		this.bot = bot;

@@ -23,7 +23,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 	name = "Eval",
 	usage = "{prefix}eval {java code}",
 	description = "Evaluates givven code.",
-	requirements = {"Be the bot owner"}
+	requirements = {"Be the bot's owner", "Have fck knowledge of what your're doing with it"}
 )
 public class EvalCmd extends Command {
 
@@ -33,7 +33,7 @@ public class EvalCmd extends Command {
 	
 	public EvalCmd(App bot) {
 		this.name = "eval";
-		this.help = "evaluates givven code (Groovy lang)";
+		this.help = "bot.owner.eval.description";
 		//this.guildOnly = false;
 		this.ownerCommand = true;
 		this.category = new Category("owner");
@@ -49,8 +49,8 @@ public class EvalCmd extends Command {
 		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms))
 			return;
 
-		if (event.getArgs().length() == 0) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.owner.eval.no_args");
+		if (event.getArgs().isEmpty()) {
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.owner.eval.invalid_args");
 			event.reply("Available variables:\nbot; jda; guild; channel; message", success -> success.delete().queueAfter(5, TimeUnit.SECONDS));
 			return;
 		}

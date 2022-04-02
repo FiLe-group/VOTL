@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 
 @CommandInfo(
 	name = "Limit",
-	description = "Sets limit for your channel",
+	description = "Sets limit for your channel.",
 	usage = "{prefix}limit <Integer from 0 to 99>",
 	requirements = "Must have created voice channel"
 )
@@ -23,7 +23,7 @@ public class LimitCmd extends Command {
 
 	public LimitCmd(App bot) {
 		this.name = "limit";
-		this.help = "Sets limit for your channel";
+		this.help = "bot.voice.limit.description";
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_CHANNEL};
 		this.bot = bot;
@@ -41,8 +41,8 @@ public class LimitCmd extends Command {
 
 		if (bot.getDBUtil().isVoiceChannel(event.getMember().getId())) {
 			String args = event.getArgs();
-			if (args.length() == 0) {
-				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.limit.no_args");
+			if (args.isEmpty()) {
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.limit.invalid_args");
 				return;
 			}
 
@@ -50,7 +50,7 @@ public class LimitCmd extends Command {
 			try {
 				limit = Integer.parseInt(args);
 			} catch (NumberFormatException ex) {
-				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.not_integer");
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.invalid_type");
 				return;
 			}
 
@@ -65,7 +65,7 @@ public class LimitCmd extends Command {
 					}
 				);
 			} catch (IllegalArgumentException ex) {
-				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.limit.not_range");
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.limit.invalid_range");
 				return;
 			}
 			if (!bot.getDBUtil().isUser(event.getMember().getId())) {

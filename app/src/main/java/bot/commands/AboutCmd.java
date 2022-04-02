@@ -27,7 +27,7 @@ public class AboutCmd extends Command {
 	public AboutCmd(App bot) {
 		this.name = "about";
 		this.aliases = new String[]{"info"};
-		this.help = "gets information about the bot";
+		this.help = "bot.other.about.description";
 		this.guildOnly = false;
 		this.category = new Category("other");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};

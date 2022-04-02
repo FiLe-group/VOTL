@@ -18,7 +18,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 @CommandInfo(
 	name = "reject",
-	description = "Withdraw the user permission to join your channel",
+	description = "Withdraw the user permission to join your channel.",
 	usage = "{prefix}reject <user/-s by ID or mention>",
 	requirements = "Must have created voice channel"
 )
@@ -30,7 +30,7 @@ public class RejectCmd extends Command {
 
 	public RejectCmd(App bot) {
 		this.name = "reject";
-		this.help = "Withdraw the user permission to join your channel";
+		this.help = "bot.voice.reject.description";
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS};
 		this.bot = bot;
@@ -51,7 +51,7 @@ public class RejectCmd extends Command {
 
 			List<Member> members = event.getMessage().getMentionedMembers(event.getGuild());
 			if (members.isEmpty()) {
-				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.reject.no_args");
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.reject.invalid_args");
 				return;
 			}
 			if (members.contains(event.getMember())) {

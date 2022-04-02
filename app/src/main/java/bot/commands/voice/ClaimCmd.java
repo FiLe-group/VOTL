@@ -16,7 +16,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 @CommandInfo(
 	name = "Claim",
-	description = "Claim ownership of channel once owner has left",
+	description = "Claim ownership of channel once owner has left.",
 	usage = "{prefix}claim",
 	requirements = "Must be in un-owned custom voice channel"
 )
@@ -28,7 +28,7 @@ public class ClaimCmd extends Command {
 
 	public ClaimCmd(App bot) {
 		this.name = "claim";
-		this.help = "Claim ownership of channel once owner has left";
+		this.help = "bot.voice.claim.description";
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
 		this.bot = bot;

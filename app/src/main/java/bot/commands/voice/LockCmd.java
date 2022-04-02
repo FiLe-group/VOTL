@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 @CommandInfo(
 	name = "lock",
-	description = "Locks your channel for everyone (ex. allowed one)",
+	description = "Locks your channel for everyone (ex. allowed one).",
 	usage = "{prefix}lock",
 	requirements = "Must have created voice channel"
 )
@@ -24,7 +24,7 @@ public class LockCmd extends Command {
 
 	public LockCmd(App bot) {
 		this.name = "lock";
-		this.help = "Locks your channel for everyone (ex. allowed one)";
+		this.help = "bot.voice.lock.description";
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
 		this.bot = bot;

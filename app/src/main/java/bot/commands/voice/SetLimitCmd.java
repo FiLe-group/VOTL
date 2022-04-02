@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 
 @CommandInfo(
 	name = "SetLimit",
-	description = "Sets default user limit for server's voice channels",
+	description = "Sets default user limit for server's voice channels.",
 	usage = "{prefix}setlimit <Integer from 0 to 99>",
 	requirements = "Have 'Manage server' permission"
 )
@@ -23,7 +23,7 @@ public class SetLimitCmd extends Command {
 
 	public SetLimitCmd(App bot) {
 		this.name = "setlimit";
-		this.help = "Sets default user limit for server's voice channels";
+		this.help = "bot.voice.setlimit.description";
 		this.category = new Category("voice");
 		this.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
@@ -42,19 +42,19 @@ public class SetLimitCmd extends Command {
 		}
 
 		String args = event.getArgs();
-		if (args.length() == 0) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.no_args");
+		if (args.isEmpty()) {
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.invalid_args");
 			return;
 		}
 		Integer limit = null;
 		try {
 			limit = Integer.parseInt(args);
 		} catch (NumberFormatException ex) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.not_integer");
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.invalid_type");
 			return;
 		}
 		if (limit == null || limit<0 || limit>99) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.not_range");
+			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.invalid_range");
 			return;
 		}
 

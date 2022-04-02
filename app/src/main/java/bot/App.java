@@ -116,6 +116,7 @@ public class App {
 				new RejectCmd(this),
 				// guild
 				new PrefixCmd(this),
+				new LanguageCmd(this),
 				// owner
 				new EvalCmd(this),
 				new ShutdownCmd(this),
@@ -154,7 +155,7 @@ public class App {
 			} catch (LoginException ex) {
 				logger.error("Build failed", ex);
 				System.exit(0);
-			} catch (ErrorResponseException ex) { // Tries to reconnect to DNS x times with some delay, else exits
+			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits
 				if (retries > 0) {
 					retries--;
 					logger.info("Retrying connecting in "+cooldown+" seconds..."+retries+" more attempts");

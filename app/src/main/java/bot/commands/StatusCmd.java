@@ -22,7 +22,7 @@ public class StatusCmd extends Command {
 
 	public StatusCmd(App bot) {
 		this.name = "status";
-		this.help = "gets bot's status";
+		this.help = "bot.other.status.description";
 		this.guildOnly = false;
 		this.category = new Category("other");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};

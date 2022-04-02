@@ -41,7 +41,7 @@ public final class LangUtil {
 			this.emote = "\uD83C" + code1 + "\uD83C" + code2;
 		}
 
-		public String getEmote(String lang) {
+		public static String getEmote(String lang) {
 			for (Language language : values()) {
 				if (lang.equals(language.name().toLowerCase().replace("_", "-")))
 					return language.emote;
@@ -50,7 +50,7 @@ public final class LangUtil {
 			return UNKNOWN.emote;
 		}
 
-		public String getString(String lang) {
+		public static String getString(String lang) {
 			for (Language language : values()) {
 				if (lang.equals(language.name().toLowerCase().replace("_", "-")))
 					return language.emote + " " + lang;

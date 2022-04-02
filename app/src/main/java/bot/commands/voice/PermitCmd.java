@@ -18,7 +18,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 @CommandInfo(
 	name = "permit",
-	description = "Gives the user permission to join your channel",
+	description = "Gives the user permission to join your channel.",
 	usage = "{prefix}permit <user/-s by ID or mention>",
 	requirements = "Must have created voice channel"
 )
@@ -30,7 +30,7 @@ public class PermitCmd extends Command {
 
 	public PermitCmd(App bot) {
 		this.name = "permit";
-		this.help = "Gives the user permission to join your channel";
+		this.help = "bot.voice.permit.description";
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
 		this.bot = bot;
@@ -51,7 +51,7 @@ public class PermitCmd extends Command {
 
 			List<Member> members = event.getMessage().getMentionedMembers(event.getGuild());
 			if (members.isEmpty()) {
-				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.permit.no_args");
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.permit.invalid_args");
 				return;
 			}
 			if (members.contains(event.getMember())) {

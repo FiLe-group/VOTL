@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 
 @CommandInfo(
 	name = "Name",
-	description = "Sets name for your channel",
+	description = "Sets name for your channel.",
 	usage = "{prefix}name <String name>",
 	requirements = "Must have created voice channel"
 )
@@ -23,7 +23,7 @@ public class NameCmd extends Command {
 
 	public NameCmd(App bot) {
 		this.name = "name";
-		this.help = "Sets name for your channel";
+		this.help = "bot.voice.name.description";
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_CHANNEL};
 		this.bot = bot;
@@ -41,8 +41,8 @@ public class NameCmd extends Command {
 
 		if (bot.getDBUtil().isVoiceChannel(event.getMember().getId())) {
 			String name = event.getArgs();
-			if (name.length() == 0) {
-				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.name.no_args");
+			if (name.isEmpty()) {
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.name.invalid_args");
 				return;
 			}
 
@@ -57,7 +57,7 @@ public class NameCmd extends Command {
 					}
 				);
 			} catch (IllegalArgumentException ex) {
-				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.name.not_range");
+				bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.name.invalid_range");
 				return;
 			}
 			if (!bot.getDBUtil().isUser(event.getMember().getId())) {
