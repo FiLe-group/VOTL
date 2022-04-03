@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 (
 	name = {"prefix"},
 	description = "Set new prefix for guild.",
-	usage = "{prefix}prefix <new prefix, max 4 char>",
+	usage = "{prefix}prefix <reset / new prefix (max 4 char)>",
 	requirements = "Have 'Manage server' permission"
 )
 public class PrefixCmd extends Command {
@@ -46,6 +46,8 @@ public class PrefixCmd extends Command {
 		if (args.isEmpty()) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "bot.guild.prefix.invalid_args");
 			return;
+		} else if (args.equalsIgnoreCase("reset")) {
+			args = bot.defaultPrefix;
 		} else if (args.length() > 4 || args.contains(" ")) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "bot.guild.prefix.invalid_range");
 			return;

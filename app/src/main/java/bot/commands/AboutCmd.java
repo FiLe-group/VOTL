@@ -101,7 +101,7 @@ public class AboutCmd extends Command {
 				String.join(
 					"\n",
 					bot.getMsg(guildID, "bot.other.about.embed.links.discord"),
-					bot.getMsg(guildID, "bot.other.about.embed.links.github")
+					bot.getMsg(guildID, "bot.other.about.embed.links.github").replace("{github_url}", Links.GITHUB)
 				),
 				true
 			)
@@ -109,9 +109,9 @@ public class AboutCmd extends Command {
 				bot.getMsg(guildID, "bot.other.about.embed.links.unionteams_title"),
 				String.join(
 					"\n",
-					bot.getMsg(guildID, "bot.other.about.embed.links.unionteams_website"),
-					bot.getMsg(guildID, "bot.other.about.embed.links.rotr"),
-					bot.getMsg(guildID, "bot.other.about.embed.links.ww2")
+					bot.getMsg(guildID, "bot.other.about.embed.links.unionteams_website").replace("{unionteams}", Links.UNIONTEAMS),
+					bot.getMsg(guildID, "bot.other.about.embed.links.rotr").replace("{rotr_invite}", Links.ROTR_INVITE),
+					bot.getMsg(guildID, "bot.other.about.embed.links.ww2").replace("{ww2_invite}", Links.WW2_INVITE)
 				),
 				true
 			);

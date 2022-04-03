@@ -249,17 +249,14 @@ public class App {
 
 	public String getMsg(String id, String path) {
 		return setPlaceholders(langUtil.getString(getLanguage(id), path))
-			.replace("{prefix}", getPrefix(id));
+			.replace("{prefix}", getPrefix(id)
+			.replace("{default-prefix}", defaultPrefix));
 	}
 
 	private String setPlaceholders(String msg) {
 		return Emotes.getWithEmotes(msg)
 			.replace("{name}", "Voice of the Lord")
 			.replace("{guild_invite}", Links.DISCORD)
-			.replace("{github_url}", Links.GITHUB)
-			.replace("{unionteams}", Links.UNIONTEAMS)
-			.replace("{rotr_invite}", Links.ROTR_INVITE)
-			.replace("{ww2_invite}", Links.WW2_INVITE)
 			.replace("{owner}", fileManager.getString("config", "owner"))
 			.replace("{owner_id}", Constants.OWNER_ID)
 			.replace("{bot_invite}", fileManager.getString("config", "bot-invite"))

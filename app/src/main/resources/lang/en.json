@@ -38,14 +38,17 @@
 		"guild": {
 			"prefix": {
 				"description": "Set new prefix for guild",
-				"invalid_args": "You didn't provided new prefix.\nUsage: `{prefix}prefix <new prefix, max 4 char>`",
+				"invalid_args": "You didn't provided new prefix.\nUsage: `{prefix}prefix <new prefix, max 4 char>`\n**OR**\nType `{prefix}prefix reset` to set prefix to default(`{default-prefix}`).",
 				"invalid_range": "Prefix must be max 4 characters long.",
 				"done": "Successfully changed prefix to `{prefix}`!"
 			},
 			"language": {
 				"description": "Set language for guild",
-				"available_lang": "Available languages: \n*Use `{prefix}language <language>` to set chosen language for this guild.*",
-				"invalid_args": "You didn't provided language.\nUsage: `{prefix}language <language>`",
+				"embed": {
+					"available_lang_title": "Available languages",
+					"available_lang_value": "*Use `{prefix}language <language>` to set chosen language in this guild*\n**OR**\n*Type `{prefix}language reset` to set language to default(EN).*",
+					"available_lang_field": "Chose one below:"
+				},
 				"invalid_lang": "The provided language is invalid.\nUse `{prefix}language` to see all available languages.",
 				"done": "Successfully changed language to `{language}`!"
 			}

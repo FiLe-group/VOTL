@@ -16,7 +16,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 (
 	name = "language",
 	description = "Set language for guild.",
-	usage = "{prefix}language <language from list>",
+	usage = "{prefix}language <reset / language from list>",
 	requirements = "Have 'Manage server' permission"
 )
 public class LanguageCmd extends Command {
@@ -49,11 +49,14 @@ public class LanguageCmd extends Command {
 		String args = event.getArgs();
 		if (args.isEmpty()) {
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
-				.setTitle(bot.getMsg(event.getGuild().getId(), "bot.guild.language.available_lang"))
-				.setDescription(getLanguages())
+				.setTitle(bot.getMsg(event.getGuild().getId(), "bot.guild.language.embed.available_lang_title"))
+				.setDescription(bot.getMsg(event.getGuild().getId(), "bot.guild.language.embed.available_lang_value"))
+				.addField(bot.getMsg(event.getGuild().getId(), "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
 				.build();
 			event.reply(embed);
 			return;
+		} else if (args.equalsIgnoreCase("reset")) {
+			args = "en";
 		} else if (args.length() < 2 || !getLangList().contains(args.toLowerCase())) {
 			bot.getEmbedUtil().sendError(event.getEvent(), "bot.guild.language.invalid_lang");
 			return;
