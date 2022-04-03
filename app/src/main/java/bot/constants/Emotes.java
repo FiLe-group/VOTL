@@ -5,25 +5,26 @@ import java.util.regex.Pattern;
 
 public enum Emotes {
 	// Animated emotes
-	LOADING     ("loading",     "921686838115196988", true),
-	TYPING      ("typing",      "921724249213919313", true),
+	LOADING     ("loading",     "960102018217828352", true),
+	TYPING      ("typing",      "960102038291742750", true),
+	THINKING	("thinking",	"960102089919447080", true),
 	// Static/Normal emotes
-	CHECK       ("check",       "921698379262730260", false),
-	WARNING     ("warning",     "921713575557488661", false),
-	INFORMATION ("information", "921698379065589800", false),
-	SETTINGS_1  ("settings_1",  "921698379342413824", false),
-	SETTINGS_2  ("settings_2",  "921698379111743518", false),
-	SETTINGS_3  ("settings_3",  "921698378977538088", false),
-	PING        ("ping",        "921725669921140736", false),
-	CLOUD       ("cloud",       "921698378495176736", false),
-	DOWNLOAD    ("download",    "921698378436476959", false),
-	FAVORITES   ("favorites",   "921698378964951060", false),
-	SHIELD      ("shield",      "921698379082391552", false),
-	TROPHY      ("trophy",      "921698380315525170", false),
-	MEGAPHONE   ("megaphone",   "921698379011084348", false),
-	POWER       ("power",       "921698380277768202", false),
-	ADDUSER     ("adduser",     "921698378511974411", false),
-	REMOVEUSER  ("removeuser",  "921698379111747624", false);
+	CHECK       ("check",       "960101819428769812", false),
+	WARNING     ("warning",     "960101573571276820", false),
+	INFORMATION ("information", "960101921362964511", false),
+	SETTINGS_1  ("settings_1",  "960101709630275584", false),
+	SETTINGS_2  ("settings_2",  "960101748775714816", false),
+	SETTINGS_3  ("settings_3",  "960101769097150474", false),
+	PING        ("ping",        "960101551857360906", false),
+	CLOUD       ("cloud",       "960101979659599872", false),
+	DOWNLOAD    ("download",    "960101994402562068", false),
+	FAVORITES   ("favorites",   "960101970771845161", false),
+	SHIELD      ("shield",      "960101908750663760", false),
+	TROPHY      ("trophy",      "960101605091454996", false),
+	MEGAPHONE   ("megaphone",   "960101946243571802", false),
+	POWER       ("power",       "960101627136737280", false),
+	ADDUSER     ("adduser",     "960101846687551508", false),
+	REMOVEUSER  ("removeuser",  "960101868577648640", false);
 
 	private static final Pattern emote_pattern = Pattern.compile("\\{EMOTE_(?<name>[A-Z0-9_]+)}");
 	private static final Emotes[] ALL = values();
