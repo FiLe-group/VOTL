@@ -43,7 +43,7 @@ public class NameCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				String filName = event.getOption("limit").getAsString();
+				String filName = event.getOption("name").getAsString();
 				MessageEditData reply = getReply(event, filName);
 
 				hook.editOriginal(reply).queue();

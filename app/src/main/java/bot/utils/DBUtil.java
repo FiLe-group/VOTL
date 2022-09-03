@@ -208,7 +208,7 @@ public class DBUtil {
 	private void insert(String table, String[] insertKeys, Object[] insertValuesObj) {
 		String[] insertValues = new String[insertValuesObj.length];
 		for (int i = 0; i<insertValuesObj.length; i++) {
-			insertValues[i] = "'"+String.valueOf(insertValuesObj[i])+"'";
+			insertValues[i] = quote(insertValuesObj[i]);
 		}
 
 		String sql = "INSERT INTO "+table+" ("+String.join(", ", insertKeys)+") VALUES ("+String.join(", ", insertValues)+")";
@@ -222,8 +222,7 @@ public class DBUtil {
 
 	// SELECT sql
 	private Object select(String table, String selectKey, String condKey, Object condValueObj) {
-		String condValue = String.valueOf(condValueObj);
-		condValue = "'"+condValue+"'";
+		String condValue = quote(condValueObj);
 
 		String sql = "SELECT * FROM "+table+" WHERE "+condKey+"="+condValue;
 		Object result = null;
@@ -247,10 +246,9 @@ public class DBUtil {
 	private void update(String table, String[] updateKeys, Object[] updateValuesObj, String condKey, Object condValueObj) {
 		String[] updateValues = new String[updateValuesObj.length];
 		for (int i = 0; i<updateValuesObj.length; i++) {
-			updateValues[i] = "'"+String.valueOf(updateValuesObj[i])+"'";
+			updateValues[i] = quote(updateValuesObj[i]);
 		}
-		String condValue = String.valueOf(condValueObj);
-		condValue = "'"+condValue+"'"; 
+		String condValue = quote(condValueObj);
 
 		String sql = "UPDATE "+table+" SET ";
 		for (int i = 0; i<updateKeys.length; i++) {
@@ -270,8 +268,7 @@ public class DBUtil {
 
 	// DELETE sql
 	private void delete(String table, String condKey, Object condValueObj) {
-		String condValue = String.valueOf(condValueObj);
-		condValue = "'"+condValue+"'"; 
+		String condValue = quote(condValueObj); 
 
 		String sql = "DELETE FROM "+table+" WHERE "+condKey+"="+condValue;
 		try (Connection conn = connect();
@@ -280,5 +277,10 @@ public class DBUtil {
 		} catch (SQLException ex) {
 			logger.warn("DB: Error at UPDATE\nrequest: {}", sql, ex);
 		}
+	}
+
+	private String quote(Object value) {
+		// Convert to string and replace '(single quote) with ''(2 single quotes) for sql
+		return "'" + String.valueOf(value).replaceAll("'", "''") + "'"; // smt's -> 'smt''s'
 	}
 }

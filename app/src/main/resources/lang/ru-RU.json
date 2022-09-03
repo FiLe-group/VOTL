@@ -85,19 +85,19 @@
 			"setlimit": {
 				"description": "Sets default user limit for server's voice channels",
 				"option_description": "Enter integer 0 <> 99",
-				"done": "Successfully changed default voice channel limit to {value}!"
+				"done": "Successfully changed default voice channel limit to `{value}`!"
 			},
 			"name": {
 				"description": "Sets name for your channel",
 				"option_description": "Enter string 1 <> 100 symbols",
 				"no_channel": "You don't own/has any voice channel.",
-				"done": "Successfully changed your's channel name to {value}!"
+				"done": "Successfully changed your's channel name to `{value}`!"
 			},
 			"limit": {
 				"description": "Sets limit for your channel",
 				"option_description": "Enter integer 0 <> 99",
 				"no_channel": "You don't own/has any voice channel.",
-				"done": "Successfully changed your's channel limit to {value}!"
+				"done": "Successfully changed your's channel limit to `{value}`!"
 			},
 			"claim": {
 				"description": "Claim ownership of channel once owner has left",
@@ -118,8 +118,8 @@
 			},
 			"permit": {
 				"description": "Gives the user permission to join your channel",
-				"option_description": "Enter Role or Member mention",
-				"invalid_args": "You didn't provided users.\nUsage: `/permit <user/-s by ID or mention>`",
+				"option_description": "Enter Role or Member mention/-s",
+				"invalid_args": "You didn't provided users.\nUsage: `/permit <mention member/-s or role/-s>`",
 				"not_self": "You can't add yourself.",
 				"no_channel": "You don't own/has any voice channel.",
 				"done": "Successfully permited {targets} to connect to your channel!"
@@ -127,9 +127,9 @@
 			},
 			"reject": {
 				"description": "Withdraw the user permission to join your channel",
-				"option_description": "Enter Role or Member mention",
-				"invalid_args": "You didn't provided users.\nUsage: `/reject <user/-s by ID or mention>`",
-				"not_self": "You can't add yourself.",
+				"option_description": "Enter Role or Member mention/-s",
+				"invalid_args": "You didn't provided users.\nUsage: `/reject <mention member/-s or role/-s>`",
+				"not_self": "You can't remove yourself.",
 				"no_channel": "You don't own/has any voice channel.",
 				"done": "Successfully rejected {targets} from connecting to your channel!"
 			},

@@ -1,5 +1,6 @@
 package bot.commands.voice;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -79,7 +80,7 @@ public class PermitCmd extends SlashCommand {
 				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.permit.not_self"));
 			}
 
-			List<String> mentionStrings = Collections.emptyList();
+			List<String> mentionStrings = new ArrayList<>();
 
 			for (Member member : members) {
 				try {
