@@ -68,7 +68,8 @@ public class App {
 
 		fileManager.addFile("config", Constants.SEPAR + "config.json", Constants.DATA_PATH + Constants.SEPAR + "config.json")
 			.addFile("database", Constants.SEPAR + "server.db", Constants.DATA_PATH + Constants.SEPAR + "server.db")
-			.addLang("en");
+			.addLang("en")
+			.addLang("ru-RU");
 
 		defaultLanguage = "en";
 		

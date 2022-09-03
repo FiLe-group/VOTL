@@ -1,0 +1,223 @@
+{
+	"embed": {
+		"footer": "Запрошено {user}"
+	},
+	"errors": {
+		"missing_perms": {
+			"self": "Мне не хватает разрешения `{permission}` для этого.",
+			"self_channel": "Мне не хватает разрешения `{permission}` в канале {channel} для этого.",
+			"other": "Вам не хватает разрешения `{permission}` для использования этой команды.",
+			"other_channel": "Вам не хватает разрешения `{permission}` в канале {channel} для использования этой команды."
+		},
+		"no_send_perm": "У меня нет разрешения отправлять сообщения в ваш канал. Пожалуйста, исправьте!",
+		"guild_not_setup": "Этот сервер не настроен! Посмотрите команду для настройки в `/help`.",
+		"request_error": "При обработке запроса произошла ошибка. Убедитесь, что мое сообщение не было удалено и что у меня достаточно прав!",
+		"title": "Ошибка",
+		"unknown": "Что-то пошло не так! {EMOTE_WARNING}\nСообщите об этой ошибке `{owner}`!"
+	},
+	"misc": {
+		"and": "и",
+		"info": "Привет, {user}!\nМой префикс на этом сервере - `/`\nПропишите `/help`, чтобы получить список команд.",
+		"language": "Русский (ru)",
+		"unknown": "Неизвестно",
+		"show_description": "информация будет видна другим (по умолчанию-false)"
+	},
+	"bot": {
+		"owner": {
+			"eval": {
+				"description": "Evaluates code using Groovy",
+				"code_description": "Enter your code to evaluate",
+				"time": "Evaluated in {time}ms",
+				"input": "Input:",
+				"output": "Output:"
+			},
+			"shutdown": {
+				"description": "Safely shuts down the bot"
+			}
+		},
+		"guild": {
+			"language": {
+				"description": "Set language for guild",
+				"reset": {
+					"description": "Reset language to default"
+				},
+				"set": {
+					"description": "Set language for guild",
+					"option_description": "Enter selected language"
+				},
+				"show": {
+					"description": "Shows all available languages",
+					"embed": {
+						"title": "Available languages",
+						"value": "*Use `/language set <language>` to set chosen language in this guild*\n**OR**\n*Type `/language reset` to set language to default(EN).*",
+						"field": "Chose one below:"
+					}
+				},
+				"done": "Successfully changed language to `{language}`!"
+			},
+			"setup": {
+				"description": "Setup menu for this server",
+				"embed": {
+					"setup_title": "Guild's setup menu",
+					"setup_value": "Choose option from list below to begin setup for selected function.",
+					"list": {
+						"preview_title": "Preview current setting for this guild",
+						"preview_value": "Shows what settings are on and other.",
+						"voice_title": "Custom Voice channels setup",
+						"voice_value": "Creates category with voice channel to join.",
+						"language_title": "",
+						"language_value": ""
+					}
+				}
+			}
+		},
+		"voice": {
+			"listener": {
+				"cooldown": "Creating voice channels too quickly, wait a bit!",
+				"default_name": "{user}'s channel"
+			},
+			"setup": {
+				"description": "Setup custom voice channels function",
+				"category": "Voice Channels",
+				"channel": "★ Join to create",
+				"done": "Successfully created channel {channel}! Setup is done."
+			},
+			"setlimit": {
+				"description": "Sets default user limit for server's voice channels",
+				"option_description": "Enter integer 0 <> 99",
+				"done": "Successfully changed default voice channel limit to {value}!"
+			},
+			"name": {
+				"description": "Sets name for your channel",
+				"option_description": "Enter string 1 <> 100 symbols",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully changed your's channel name to {value}!"
+			},
+			"limit": {
+				"description": "Sets limit for your channel",
+				"option_description": "Enter integer 0 <> 99",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully changed your's channel limit to {value}!"
+			},
+			"claim": {
+				"description": "Claim ownership of channel once owner has left",
+				"not_in_voice": "You are not connected to any voice channel",
+				"not_custom": "You can't own this voice channel",
+				"has_owner": "The owner of this channel is in this voice channel",
+				"done": "You are now owner of this voice channel {channel}!"
+			},
+			"lock": {
+				"description": "Locks your channel for everyone (ex. allowed users)",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully locked your channel!"
+			},
+			"unlock": {
+				"description": "Unlocks your channel for everyone (ex. disallowed users)",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully unlocked your channel!"
+			},
+			"permit": {
+				"description": "Gives the user permission to join your channel",
+				"option_description": "Enter Role or Member mention",
+				"invalid_args": "You didn't provided users.\nUsage: `/permit <user/-s by ID or mention>`",
+				"not_self": "You can't add yourself.",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully permited {targets} to connect to your channel!"
+				
+			},
+			"reject": {
+				"description": "Withdraw the user permission to join your channel",
+				"option_description": "Enter Role or Member mention",
+				"invalid_args": "You didn't provided users.\nUsage: `/reject <user/-s by ID or mention>`",
+				"not_self": "You can't add yourself.",
+				"no_channel": "You don't own/has any voice channel.",
+				"done": "Successfully rejected {targets} from connecting to your channel!"
+			},
+			"reset": {
+				"description": "Resets user voice settings to default values"
+			}
+		},
+		"other": {
+			"ping": {
+				"description": "Check the bot's latency",
+				"loading": "{EMOTE_TYPING} Ping: ...",
+				"info": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms",
+				"info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest}"
+			},
+			"about": {
+				"description": "Get basic information about the bot",
+				"embed": {
+					"about_title": "About {name}!",
+					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nOwner - **{owner}**.",
+					"bot_info": {
+						"title": "Bot info",
+						"bot_version": "Bot version: `VOTL v{bot_version}`",
+						"library": "Library: [`JDA {jda_version}`]({jda_github}) and [`JDA-Chewtils {chewtils_version}`]({chewtils_github})"
+					},
+					"commands_title": "Commands:",
+					"commands_value": "Use `/help` in any chat to get list of commands.",
+					"links": {
+						"title": "Links",
+						"discord": "[`Discord (Support)`]({guild_invite})",
+						"github": "[`Github`]({github_url})",
+						"unionteams_title": "UnionTeam's project",
+						"unionteams_website": "[`Website`]({unionteams})",
+						"rotr": "[`Discord - Rise of the Republic`]({rotr_invite})",
+						"ww2": "[`Discord - World War II`]({ww2_invite})"
+					}
+				}
+			},
+			"status": {
+				"description": "Gets bot's status, shard info",
+				"embed": {
+					"stats_title": "Stats",
+					"stats" : {
+						"guilds": "{value} Guilds",
+						"shard": "Shard {this}/{all}"
+					},
+					"shard_title": "This shard",
+					"shard": {
+						"users": "{value} Users",
+						"guilds": "{value} Guilds",
+						"text_channels": "{value} Text Channels",
+						"voice_channels": "{value} Voice Channels"
+					},
+					"last_restart": "Last restart"
+				}
+			}
+		},
+		"help": {
+			"description": "List all available commands the bot has or description of specific command.",
+			"category_info": {
+				"description": "Shows commands in selected category"
+			},
+			"command_info": {
+				"description": "Shows information about selected command",
+				"aliases": "Aliases",
+				"docs": "Docs",
+				"no_command": "The provided command (`{command}`) doesn't exist!\nMake sure you typed it correctly.\n\nCategory names need to be prefixed with `cat:` (e.g. `/help cat:voice`)!",
+				"title": "Command help: {command}",
+				"usage_title": "Usage options",
+				"usage_value": "```\n{command}\n```\n`[]` = Optional\n`<>` = Required"
+			},
+			"command_menu": {
+				"title": "Available commands:",
+				"categories": {
+					"voice": "Voice",
+					"owner": "Owner",
+					"guild": "Guild",
+					"other": "Other",
+					"title": "Categories"
+				},
+				"description": {
+					"command_value": "To get more info about a specific command run `/help [command]`.\nYou can also run `/help cat:[category]` to show the commands of a specific category.",
+					"nav_title": "Navigation",
+					"nav_value": "Click the buttons for the following actions:\n\nPrevious page\nNext page\nCancel menu",
+					"support": "If you need help with the bot, contact the owner `{owner}` for support"
+				}
+			}
+		},
+		"dm_failure": "I can't send you a DM!",
+		"dm_success": "Check your DMs!"
+	}
+}
