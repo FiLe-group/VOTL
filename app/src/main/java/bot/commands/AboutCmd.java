@@ -1,7 +1,9 @@
 package bot.commands;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
+import java.util.Collections;
+
+import com.jagrosh.jdautilities.command.SlashCommand;
+import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
@@ -9,62 +11,54 @@ import bot.App;
 import bot.constants.Links;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
-import net.dv8tion.jda.api.Permission;
+//import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 @CommandInfo
 (
 	name = {"About","Info"},
 	description = "Gets information about the bot.",
-	usage = "{prefix}about"
+	usage = "/about [show?]"
 )
-public class AboutCmd extends Command {
+public class AboutCmd extends SlashCommand {
 
 	private final App bot;
 
-	protected Permission[] botPerms;
+	//protected Permission[] botPerms;
 
 	public AboutCmd(App bot) {
 		this.name = "about";
 		this.aliases = new String[]{"info"};
-		this.help = "bot.other.about.description";
+		this.help = bot.getMsg("0", "bot.other.about.description");
 		this.guildOnly = false;
 		this.category = new Category("other");
-		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
+		//this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
+		this.options = Collections.singletonList(
+			new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("0", "misc.show_description"))
+		);
 		this.bot = bot;
 	}
 
 	@Override
-	protected void execute(CommandEvent event) {
-		
-		MessageEmbed embed = getAboutEmbed(event);
+	protected void execute(SlashCommandEvent event) {
 
-		if (event.getEvent().isFromGuild()) {
-			if (bot.getMessageUtil().hasArgs("dm", event.getArgs())) {
-				String mention = event.getMember().getAsMention();
-				event.getMember().getUser().openPrivateChannel()
-					.flatMap(channel -> channel.sendMessageEmbeds(embed))
-					.queue(
-						message -> event.getChannel().sendMessage(
-							bot.getMsg(event.getGuild().getId(), "bot.dm_success", mention)
-						).queue(), 
-						error -> event.getChannel().sendMessage(
-							bot.getMsg(event.getGuild().getId(), "bot.dm_failure", mention)
-						).queue()
-					);
-				return;
-			} else if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, event.getTextChannel(), botPerms)) {
-				return;
+		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
+			hook -> {
+				MessageEmbed embed = getAboutEmbed(event);
+
+				hook.editOriginalEmbeds(embed).queue();
 			}
-		}
+		);
 
-		event.reply(embed);
 	}
 
-	private MessageEmbed getAboutEmbed(CommandEvent event) {
+	private MessageEmbed getAboutEmbed(SlashCommandEvent event) {
 		String guildID = "0";
 		EmbedBuilder builder = null;
-		if (event.getEvent().isFromGuild()) {
+		if (event.isFromGuild()) {
 			guildID = event.getGuild().getId();
 			builder = bot.getEmbedUtil().getEmbed(event.getMember());
 		} else {

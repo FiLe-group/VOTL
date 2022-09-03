@@ -2,14 +2,16 @@ package bot.utils.message;
 
 import java.time.ZonedDateTime;
 
+import com.jagrosh.jdautilities.command.SlashCommandEvent;
+
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import bot.App;
 
 public class EmbedUtil {
@@ -46,7 +48,7 @@ public class EmbedUtil {
 		return (user == null ? getEmbed() : getEmbed(user)).setColor(0xFF0000);
 	}
 
-	public MessageEmbed getPermErrorEmbed(Member member, Guild guild, TextChannel channel, Permission perm, boolean self) {
+	public EmbedBuilder getPermErrorEmbed(Member member, Guild guild, TextChannel channel, Permission perm, boolean self) {
 		EmbedBuilder embed = getErrorEmbed(member);
 		String msg;
 		if (self) {
@@ -69,18 +71,18 @@ public class EmbedUtil {
 			}
 		}
 
-		return embed.setDescription(msg).build();
+		return embed.setDescription(msg);
 	}
 
-	public void sendError(MessageReceivedEvent event, String path) {
-		sendError(event, path, null);
+	public MessageCreateData getError(SlashCommandEvent event, String path) {
+		return getError(event, path, null);
 	}
 
-	public void sendError(MessageReceivedEvent event, String path, String reason) {
+	public MessageCreateData getError(SlashCommandEvent event, String path, String reason) {
 		
 		String guildID = (event.isFromGuild() ? event.getGuild().getId() : "0");
 
-		EmbedBuilder embed = getErrorEmbed(event.getAuthor());
+		EmbedBuilder embed = getErrorEmbed(event.getMember());
 		String msg;
 		
 		msg = (event.getMember() == null ? bot.getMsg(guildID, path) : bot.getMsg(guildID, path, event.getMember().getEffectiveName()));
@@ -93,44 +95,43 @@ public class EmbedUtil {
 				reason,
 				false
 			);
+		
+		MessageCreateBuilder mb = new MessageCreateBuilder();
+		mb.setEmbeds(embed.build());
 
-		event.getChannel().sendMessageEmbeds(embed.build()).queue();
+		return mb.build();
 	}
 
-	public void sendPermError(TextChannel tc, Member member, Permission perm, boolean self) {
-		sendPermError(tc, member, null, perm, self);
+	public MessageCreateData getPermError(TextChannel tc, Member member, Permission perm, boolean self) {
+		return getPermError(tc, member, null, perm, self);
 	}
 
-	public void sendPermError(TextChannel tc, Member member, TextChannel channel, Permission perm, boolean self) {
+	public MessageCreateData getPermError(TextChannel tc, Member member, TextChannel channel, Permission perm, boolean self) {
 		if (perm.equals(Permission.MESSAGE_SEND)) {
 			member.getUser().openPrivateChannel()
 				.flatMap(ch -> ch.sendMessage(bot.getMsg(member.getGuild().getId(), "errors.no_send_perm")))
 				.queue();
-			return;
+			return null;
 		}
+		MessageCreateBuilder mb = new MessageCreateBuilder();
+
 		if (perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
 			if (channel == null) {
-				tc.sendMessage(
-					bot.getMsg(
-						tc.getId(),
-						"errors.missing_perms.self"
-					)
-					.replace("{permission}", perm.getName())
-				).queue();
+				mb.setContent(
+					bot.getMsg(tc.getId(),"errors.missing_perms.self")
+						.replace("{permission}", perm.getName())
+				);
 			} else {
-				tc.sendMessage(
-					bot.getMsg(
-						tc.getId(),
-						"errors.missing_perms.self_channel"
-					)
-					.replace("{permission}", perm.getName())
-					.replace("{channel}", channel.getAsMention())
-				).queue();
+				mb.setContent(
+					bot.getMsg(tc.getId(),"errors.missing_perms.self_channel")
+						.replace("{permission}", perm.getName())
+						.replace("{channel}", channel.getAsMention())
+				);
 			}
-			return;
+		} else {
+			mb.setEmbeds(getPermErrorEmbed(member, tc.getGuild(), channel, perm, self).build());
 		}
-
-		tc.sendMessageEmbeds(getPermErrorEmbed(member, tc.getGuild(), channel, perm, self)).queue();
+		return mb.build();
 	}
 	
 }

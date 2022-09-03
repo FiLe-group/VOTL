@@ -1,9 +1,7 @@
 package bot.commands;
 
-import java.time.temporal.ChronoUnit;
-
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.SlashCommand;
+import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
@@ -12,32 +10,33 @@ import bot.App;
 (
 	name = {"Ping", "Pong"},
 	description = "Checks the bot's latency.",
-	usage = "{prefix}ping"
+	usage = "/ping"
 )
-public class PingCmd extends Command {
+public class PingCmd extends SlashCommand {
 
 	private final App bot;
 	
 	public PingCmd(App bot) {
 		this.name = "ping";
 		this.aliases = new String[]{"pong"};
-		this.help = "bot.other.ping.description";
+		this.help = bot.getMsg("0", "bot.other.ping.description");
 		this.guildOnly = false;
 		this.category = new Category("other");
 		this.bot = bot;
 	}
 
 	@Override
-	protected void execute(CommandEvent event) {
-		String guildID = (event.getEvent().isFromGuild() ? event.getGuild().getId() : "0");
+	protected void execute(SlashCommandEvent event) {
+		String guildID = (event.isFromGuild() ? event.getGuild().getId() : "0");
 
-		event.reply(bot.getMsg(guildID, "bot.other.ping.loading"), m -> {
-			long ping = event.getMessage().getTimeCreated().until(m.getTimeCreated(), ChronoUnit.MILLIS);
-			m.editMessage(
-				bot.getMsg(guildID, "bot.other.ping.info")
-					.replace("{ping}", ping+"")
-					.replace("{websocket}", event.getJDA().getGatewayPing()+"")
-			).queue();
+		event.deferReply(true).queue(hook -> {
+			hook.getJDA().getRestPing().queue(time -> {
+				hook.editOriginal(
+					bot.getMsg(guildID, "bot.other.ping.info")
+						.replace("{ping}", time+"")
+						.replace("{websocket}", event.getJDA().getGatewayPing()+"")
+				).queue();
+			});	
 		});
 	}
 }

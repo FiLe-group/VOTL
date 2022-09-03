@@ -90,11 +90,11 @@ public class FileManager {
 					}
 				}
 			} else {
-				logger.info("Successfully loaded {}!", name);
+				logger.info("Successfully located {}!", name);
 				files.put(name, file);
 			}
 		} catch (IOException ex) {
-			logger.error("Couldn't create nor load {}", file.getAbsolutePath(), ex);
+			logger.error("Couldn't locate nor create {}", file.getAbsolutePath(), ex);
 		}
 	}
 	
@@ -118,11 +118,11 @@ public class FileManager {
 					try {
 						res = jsonObject.get(key);
 					} catch (NullPointerException ex) {
-						logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
 						throw new KeyIsNull("ERROR at file manager");
 					}
 					if (res == null) {
-						throw new KeyIsNull("");
+						logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
+						throw new KeyIsNull("err");
 					}
 						
 				}
@@ -162,10 +162,10 @@ public class FileManager {
 				return false;
 				
 			return true;
-		} catch (FileNotFoundException ex) {
+		} catch (FileNotFoundException | ParseException ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
 			return false;
-		} catch (IOException | ParseException ex) {
+		} catch (IOException ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
 			return false;
 		}

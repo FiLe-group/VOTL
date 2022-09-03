@@ -1,7 +1,7 @@
 package bot.commands.owner;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.SlashCommand;
+import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
@@ -11,17 +11,17 @@ import net.dv8tion.jda.api.entities.Activity;
 @CommandInfo
 (
 	name = "Shutdown",
-	usage = "{prefix}shutdown",
+	usage = "/shutdown",
 	description = "Safely shuts down the bot.",
 	requirements = {"Be the bot owner", "Prepare for the consequences"}
 )
-public class ShutdownCmd extends Command {
+public class ShutdownCmd extends SlashCommand {
 
 	private final App bot;
 
 	public ShutdownCmd(App bot) {
 		this.name = "shutdown";
-		this.help = "bot.owner.shutdown.description";
+		this.help = bot.getMsg("0", "bot.owner.shutdown.description");
 		this.guildOnly = false;
 		this.ownerCommand = true;
 		this.category = new Category("owner");
@@ -29,11 +29,10 @@ public class ShutdownCmd extends Command {
 	}
 	
 	@Override
-	protected void execute(CommandEvent event) {
-		event.reactWarning();
-		event.getJDA().getPresence().setStatus(OnlineStatus.IDLE);
-		event.getJDA().getPresence().setActivity(Activity.competing("Shutting down..."));
-		bot.getLogger().info("Shutting down, by '" + event.getAuthor().getName() + "'");
+	protected void execute(SlashCommandEvent event) {
+		event.reply("Shutting down...").setEphemeral(true).queue();
+		event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Shutting down..."));
+		bot.getLogger().info("Shutting down, by '" + event.getUser().getName() + "'");
 		event.getJDA().shutdown();
 	}
 }

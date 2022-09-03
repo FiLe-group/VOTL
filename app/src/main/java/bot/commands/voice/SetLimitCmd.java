@@ -1,68 +1,78 @@
 package bot.commands.voice;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
+import java.util.Collections;
+
+import com.jagrosh.jdautilities.command.SlashCommand;
+import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "SetLimit",
 	description = "Sets default user limit for server's voice channels.",
-	usage = "{prefix}setlimit <Integer from 0 to 99>",
+	usage = "/setlimit <limit:Integer from 0 to 99>",
 	requirements = "Have 'Manage server' permission"
 )
-public class SetLimitCmd extends Command {
+public class SetLimitCmd extends SlashCommand {
 	
 	private final App bot;
 
 	protected Permission[] userPerms;
-	protected Permission[] botPerms;
 
 	public SetLimitCmd(App bot) {
 		this.name = "setlimit";
-		this.help = "bot.voice.setlimit.description";
+		this.help = bot.getMsg("0", "bot.voice.setlimit.description");
 		this.category = new Category("voice");
 		this.userPerms = new Permission[]{Permission.MANAGE_SERVER};
-		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
+		this.options = Collections.singletonList(
+			new OptionData(OptionType.INTEGER, "limit", bot.getMsg("0", "bot.voice.setlimit.option_description"))
+				.setRequiredRange(0, 99)
+				.setRequired(true)
+		);
 		this.bot = bot;
 	}
 
 	@Override
-	protected void execute(CommandEvent event) {
-		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms) || 
-				bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms))
-			return;
+	protected void execute(SlashCommandEvent event) {
 
-		if (!bot.getDBUtil().isGuildVoice(event.getGuild().getId())) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
-			return;
+		event.deferReply(true).queue(
+			hook -> {
+				Integer filLimit;
+				MessageEditData reply;
+				try {
+					filLimit = event.getOption("limit").getAsInt();
+					reply = getReply(event, filLimit);
+				} catch (Exception e) {
+					reply = MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.request_error", e.toString()));
+				}
+
+				hook.editOriginal(reply).queue();
+			}
+		);
+
+	}
+
+	private MessageEditData getReply(SlashCommandEvent event, Integer filLimit) {
+		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
+		if (permission != null)
+			return MessageEditData.fromCreateData(permission);
+
+		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		}
 
-		String args = event.getArgs();
-		if (args.isEmpty()) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.invalid_args");
-			return;
-		}
-		Integer limit = null;
-		try {
-			limit = Integer.parseInt(args);
-		} catch (NumberFormatException ex) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.invalid_type");
-			return;
-		}
-		if (limit == null || limit<0 || limit>99) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.voice.setlimit.invalid_range");
-			return;
-		}
+		bot.getDBUtil().guildVoiceSetLimit(event.getGuild().getId(), filLimit);
 
-		bot.getDBUtil().guildVoiceSetLimit(event.getGuild().getId(), limit);
-
-		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
-			.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.setlimit.done").replace("{value}", limit.toString()))
-			.build();
-		event.reply(embed);
+		return MessageEditData.fromEmbeds(
+			bot.getEmbedUtil().getEmbed(event.getMember())
+				.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.setlimit.done").replace("{value}", filLimit.toString()))
+				.build()
+		);
 	}
 }

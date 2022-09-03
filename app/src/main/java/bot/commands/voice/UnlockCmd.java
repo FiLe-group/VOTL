@@ -1,22 +1,23 @@
 package bot.commands.voice;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.SlashCommand;
+import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "unlock",
 	description = "Unocks your channel for everyone (ex. disallowed users).",
-	usage = "{prefix}unlock",
+	usage = "/unlock",
 	requirements = "Must have created voice channel"
 )
-public class UnlockCmd extends Command {
+public class UnlockCmd extends SlashCommand {
 	
 	private final App bot;
 
@@ -24,20 +25,32 @@ public class UnlockCmd extends Command {
 
 	public UnlockCmd(App bot) {
 		this.name = "unlock";
-		this.help = "bot.voice.unlock.description";
+		this.help = bot.getMsg("0", "bot.voice.unlock.description");
 		this.category = new Category("voice");
-		this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
+		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS}; // Permission.MESSAGE_EMBED_LINKS
 		this.bot = bot;
 	}
 
 	@Override
-	protected void execute(CommandEvent event) {
-		if (bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms))
-			return;
+	protected void execute(SlashCommandEvent event) {
 
-		if (!bot.getDBUtil().isGuildVoice(event.getGuild().getId())) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "errors.voice_not_setup");
-			return;
+		event.deferReply(true).queue(
+			hook -> {
+				MessageEditData reply = getReply(event);
+
+				hook.editOriginal(reply).queue();
+			}
+		);
+
+	}
+
+	private MessageEditData getReply(SlashCommandEvent event) {
+		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+		if (permission != null)
+			return MessageEditData.fromCreateData(permission);
+
+		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		}
 
 		if (bot.getDBUtil().isVoiceChannel(event.getMember().getId())) {
@@ -45,16 +58,16 @@ public class UnlockCmd extends Command {
 			try {
 				vc.upsertPermissionOverride(event.getGuild().getPublicRole()).clear(Permission.VOICE_CONNECT).queue();
 			} catch (InsufficientPermissionException ex) {
-				bot.getEmbedUtil().sendPermError(event.getTextChannel(), event.getMember(), Permission.MANAGE_PERMISSIONS, true);
-				return;
+				return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true));
 			}
 
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
-				.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.unlock.done"))
-				.build();
-			event.reply(embed);
+			return MessageEditData.fromEmbeds(
+				bot.getEmbedUtil().getEmbed(event.getMember())
+					.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.unlock.done"))
+					.build()
+			);
 		} else {
-			event.reply(bot.getMsg(event.getGuild().getId(), "bot.voice.unlock.no_channel"));
+			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.unlock.no_channel"));
 		}
 	}
 }

@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class CheckUtil {
 
@@ -17,55 +18,51 @@ public class CheckUtil {
 	}
 
 	public boolean isDeveloper(User user) {
-		return user.getId().equals(Constants.OWNER_ID);
+		return user.getId().equals(Constants.DEVELOPER_ID);
 	}
 
-	public boolean lacksPermissions(TextChannel tc, Member member, Permission[] permissions) {
+	public MessageCreateData lacksPermissions(TextChannel tc, Member member, Permission[] permissions) {
 		return lacksPermissions(tc, member, false, null, permissions);
 	}
 
-	public boolean lacksPermissions(TextChannel tc, Member member, boolean isSelf, Permission[] permissions) {
+	public MessageCreateData lacksPermissions(TextChannel tc, Member member, boolean isSelf, Permission[] permissions) {
 		return lacksPermissions(tc, member, isSelf, null, permissions);
 	}
 	
-	public boolean lacksPermissions(TextChannel tc, Member member, boolean isSelf, TextChannel channel, Permission[] permissions) {
+	public MessageCreateData lacksPermissions(TextChannel tc, Member member, boolean isSelf, TextChannel channel, Permission[] permissions) {
 		Guild guild = tc.getGuild();
 		if (isSelf) {
 			Member self = guild.getSelfMember();
 			if (channel == null) {
 				for (Permission perm : permissions) {
 					if (!self.hasPermission(perm)) {
-						bot.getEmbedUtil().sendPermError(tc, member, perm, true);
-						return true;
+						return bot.getEmbedUtil().getPermError(tc, member, perm, true);
 					}
 				}
-				return false;
+				return null;
 			} else {
 				for (Permission perm : permissions) {
 					if (!self.hasPermission(channel, perm)) {
-						bot.getEmbedUtil().sendPermError(tc, member, channel, perm, true);
-						return true;
+						return bot.getEmbedUtil().getPermError(tc, member, channel, perm, true);
 					}
 				}
-				return false;
+				return null;
 			}
 		} else {
 			if (channel == null) {
 				for (Permission perm : permissions) {
 					if (!member.hasPermission(perm)) {
-						bot.getEmbedUtil().sendPermError(tc, member, perm, false);
-						return true;
+						return bot.getEmbedUtil().getPermError(tc, member, perm, false);
 					}
 				}
-				return false;
+				return null;
 			} else {
 				for (Permission perm : permissions) {
 					if (!member.hasPermission(channel, perm)) {
-						bot.getEmbedUtil().sendPermError(tc, member, channel, perm, false);
-						return true;
+						return bot.getEmbedUtil().getPermError(tc, member, channel, perm, false);
 					}
 				}
-				return false;
+				return null;
 			}
 		}
 	}

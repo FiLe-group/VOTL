@@ -63,20 +63,8 @@ public class DBUtil {
 		update("guild", "language", language, "guildID", guildID);
 	}
 
-	public void guildSetPrefix(String guildID, String prefix) {
-		update("guild", "prefix", prefix, "guildID", guildID);
-	}
-
 	public String guildGetLanguage(String guildID) {
 		Object obj = select("guild", "language", "guildID", guildID);
-		if (obj == null) {
-			return null;
-		}
-		return String.valueOf(obj);
-	}
-
-	public String guildGetPrefix(String guildID) {
-		Object obj = select("guild", "prefix", "guildID", guildID);
 		if (obj == null) {
 			return null;
 		}
