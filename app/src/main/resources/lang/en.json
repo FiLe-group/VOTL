@@ -57,17 +57,10 @@
 			},
 			"setup": {
 				"description": "Setup menu for this server",
-				"embed": {
-					"setup_title": "Guild's setup menu",
-					"setup_value": "Choose option from list below to begin setup for selected function.",
-					"list": {
-						"preview_title": "Preview current setting for this guild",
-						"preview_value": "Shows what settings are on and other.",
-						"voice_title": "Custom Voice channels setup",
-						"voice_value": "Creates category with voice channel to join.",
-						"language_title": "",
-						"language_value": ""
-					}
+				"values": {
+					"preview": "Preview current setting for this guild",
+					"reset": "Reset settings",
+					"voice": "Setup custom voice channel"
 				}
 			}
 		},

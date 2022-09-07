@@ -94,7 +94,6 @@ public class App {
 			.setActivity(Activity.watching("/help"))
 			.addSlashCommands(
 				// voice
-				new SetupVoiceCmd(this),
 				new SetLimitCmd(this),
 				new ClaimCmd(this),
 				new NameCmd(this),
@@ -105,6 +104,7 @@ public class App {
 				new UnlockCmd(this),
 				// guild
 				new LanguageCmd(this),
+				new SetupCmd(this),
 				// owner
 				new ShutdownCmd(this),
 				new EvalCmd(this),
@@ -134,7 +134,8 @@ public class App {
 					.setChunkingFilter(ChunkingFilter.ALL)		// chunk all guilds
 					.enableCache(
 						CacheFlag.VOICE_STATE,			// required for policy VOICE
-						CacheFlag.MEMBER_OVERRIDES		// channel permission overrides
+						CacheFlag.MEMBER_OVERRIDES,		// channel permission overrides
+						CacheFlag.ROLE_TAGS				// role search
 					) 
 					.setAutoReconnect(true)
 					.addEventListeners(commandClient, waiter, guildListener, voiceListener)
