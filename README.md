@@ -6,7 +6,7 @@
  ```json
  {
 	"bot-token": "",
-	"owner": "name#0000",
+	"owner-id": "16-19 long ID",
 	"bot-invite": "generated link for inviting the bot"
  }
  ```

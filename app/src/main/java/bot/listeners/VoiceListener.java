@@ -44,7 +44,7 @@ public class VoiceListener extends ListenerAdapter {
 	@Override
 	public void onGuildVoiceLeave(GuildVoiceLeaveEvent event) {
 		if (bot.getDBUtil().isVoiceChannelExists(event.getChannelLeft().getId()) && event.getChannelLeft().getMembers().isEmpty()) {
-			event.getChannelLeft().delete().queueAfter(2000, TimeUnit.MILLISECONDS);
+			event.getChannelLeft().delete().queueAfter(500, TimeUnit.MILLISECONDS);
 			bot.getDBUtil().channelRemove(event.getChannelLeft().getId());
 		}
 	}

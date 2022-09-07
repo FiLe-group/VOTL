@@ -18,10 +18,7 @@ public final class Constants {
 	public static final String WARNING = "\u26A0";
 	public static final String ERROR = "\u274C";
 
+	public static final String DEVELOPER_NAME = "GreenLord#0593";
 	public static final String DEVELOPER_ID = "369062521719488524";
-
-	public static final String CATOWNER = "owner";
-	public static final String CATVOICE = "voice";
-	public static final String CATOTHER = "other";
 
 }

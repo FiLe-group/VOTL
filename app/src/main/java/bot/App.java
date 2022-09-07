@@ -86,7 +86,7 @@ public class App {
 
 		// Define a command client
 		CommandClient commandClient = new CommandClientBuilder()
-			.setOwnerId(Constants.DEVELOPER_ID)
+			.setOwnerId(fileManager.getString("config", "owner-id"))
 			.setServerInvite(Links.DISCORD)
 			.setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
 			.useHelpBuilder(false)
@@ -104,7 +104,6 @@ public class App {
 				new LockCmd(this),
 				new UnlockCmd(this),
 				// guild
-
 				new LanguageCmd(this),
 				// owner
 				new ShutdownCmd(this),
@@ -118,26 +117,25 @@ public class App {
 			.build();
 
 		// Build
-		MemberCachePolicy policy = MemberCachePolicy.VOICE;
-		policy = policy.and(MemberCachePolicy.ONLINE);
-		policy = policy.or(MemberCachePolicy.OWNER);
+		MemberCachePolicy policy = MemberCachePolicy.VOICE		// check if in voice
+			.or(MemberCachePolicy.OWNER);						// check for owner
 
 		Integer retries = 4; // how many times will it try to build
 		Integer cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
 		while (true) {
 			try {
-				setJda = JDABuilder.createDefault(fileManager.getString("config", "bot-token"))
+				setJda = JDABuilder.createLight(fileManager.getString("config", "bot-token"))
 					.setEnabledIntents(
-						GatewayIntent.GUILD_MEMBERS,
-						GatewayIntent.GUILD_MESSAGES,
-						GatewayIntent.GUILD_VOICE_STATES,
-						GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
-						GatewayIntent.DIRECT_MESSAGES,
-						GatewayIntent.MESSAGE_CONTENT
+						GatewayIntent.GUILD_MEMBERS,				// required for updating member profiles and ChunkingFilter
+						GatewayIntent.GUILD_VOICE_STATES,			// required for CF VOICE_STATE and policy VOICE
+						GatewayIntent.MESSAGE_CONTENT				// required for future
 					)
 					.setMemberCachePolicy(policy)
-					.setChunkingFilter(ChunkingFilter.ALL)
-					.enableCache(CacheFlag.VOICE_STATE, CacheFlag.MEMBER_OVERRIDES)
+					.setChunkingFilter(ChunkingFilter.ALL)		// chunk all guilds
+					.enableCache(
+						CacheFlag.VOICE_STATE,			// required for policy VOICE
+						CacheFlag.MEMBER_OVERRIDES		// channel permission overrides
+					) 
 					.setAutoReconnect(true)
 					.addEventListeners(commandClient, waiter, guildListener, voiceListener)
 					.build();
@@ -242,7 +240,8 @@ public class App {
 		return Emotes.getWithEmotes(msg)
 			.replace("{name}", "Voice of the Lord")
 			.replace("{guild_invite}", Links.DISCORD)
-			.replace("{owner}", fileManager.getString("config", "owner"))
+			.replace("{owner_id}", fileManager.getString("config", "owner-id"))
+			.replace("{developer_name}", Constants.DEVELOPER_NAME)
 			.replace("{developer_id}", Constants.DEVELOPER_ID)
 			.replace("{bot_invite}", fileManager.getString("config", "bot-invite"))
 			.replace("{bot_version}", version);

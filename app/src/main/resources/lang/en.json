@@ -13,7 +13,7 @@
 		"guild_not_setup": "Guild was not setup-ed! Check `/help` for setup command",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and thet I have sufficient permissions!",
 		"title": "Error",
-		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to `{owner}`!"
+		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to `{owner_id}`!"
 	},
 	"misc": {
 		"and": "and",
@@ -148,7 +148,7 @@
 				"description": "Get basic information about the bot",
 				"embed": {
 					"about_title": "About {name}!",
-					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nOwner - **{owner}**.",
+					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nDeveloper - **{developer_name}**(developer_id).",
 					"bot_info": {
 						"title": "Bot info",
 						"bot_version": "Bot version: `VOTL v{bot_version}`",
@@ -193,7 +193,6 @@
 			},
 			"command_info": {
 				"description": "Shows information about selected command",
-				"aliases": "Aliases",
 				"docs": "Docs",
 				"no_command": "The provided command (`{command}`) doesn't exist!\nMake sure you typed it correctly.\n\nCategory names need to be prefixed with `cat:` (e.g. `/help cat:voice`)!",
 				"title": "Command help: {command}",
@@ -213,7 +212,7 @@
 					"command_value": "To get more info about a specific command run `/help [command]`.\nYou can also run `/help cat:[category]` to show the commands of a specific category.",
 					"nav_title": "Navigation",
 					"nav_value": "Click the buttons for the following actions:\n\nPrevious page\nNext page\nCancel menu",
-					"support": "If you need help with the bot, contact the owner `{owner}` for support"
+					"support": "If you need help with the bot, contact the developer `{developer_name}` for support"
 				}
 			}
 		},

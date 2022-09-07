@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.entities.Activity;
 	name = "Shutdown",
 	usage = "/shutdown",
 	description = "Safely shuts down the bot.",
-	requirements = {"Be the bot owner", "Prepare for the consequences"}
+	requirements = {"Be the bot's owner", "Prepare for the consequences"}
 )
 public class ShutdownCmd extends SlashCommand {
 

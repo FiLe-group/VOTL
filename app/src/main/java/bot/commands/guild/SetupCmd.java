@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 	name = "setup",
 	description = "Setup menu for this server.",
 	usage = "/setup",
-	requirements = "Have 'Manage Server' or be an owner permission"
+	requirements = "Have 'Manage Server' permission"
 )
 public class SetupCmd extends SlashCommand {
 	

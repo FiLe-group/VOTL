@@ -13,7 +13,7 @@
 		"guild_not_setup": "Этот сервер не настроен! Посмотрите команду для настройки в `/help`.",
 		"request_error": "При обработке запроса произошла ошибка. Убедитесь, что мое сообщение не было удалено и что у меня достаточно прав!",
 		"title": "Ошибка",
-		"unknown": "Что-то пошло не так! {EMOTE_WARNING}\nСообщите об этой ошибке `{owner}`!"
+		"unknown": "Что-то пошло не так! {EMOTE_WARNING}\nСообщите об этой ошибке `{owner_id}`!"
 	},
 	"misc": {
 		"and": "и",
@@ -139,25 +139,25 @@
 		},
 		"other": {
 			"ping": {
-				"description": "Check the bot's latency",
+				"description": "Проверить задержку бота",
 				"loading": "{EMOTE_TYPING} Ping: ...",
 				"info": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms",
 				"info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest}"
 			},
 			"about": {
-				"description": "Get basic information about the bot",
+				"description": "Получить основную информацию о боте",
 				"embed": {
-					"about_title": "About {name}!",
-					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nOwner - **{owner}**.",
+					"about_title": "О {name}!",
+					"about_value": "Discord бот для личного пользования. Написано на Java с использованием библиотеки JDA.\nРазработчик - **{developer_name}**(developer_id).",
 					"bot_info": {
-						"title": "Bot info",
-						"bot_version": "Bot version: `VOTL v{bot_version}`",
-						"library": "Library: [`JDA {jda_version}`]({jda_github}) and [`JDA-Chewtils {chewtils_version}`]({chewtils_github})"
+						"title": "Информация о боте",
+						"bot_version": "Версия: `VOTL v{bot_version}`",
+						"library": "Библиотеки: [`JDA {jda_version}`]({jda_github}) и [`JDA-Chewtils {chewtils_version}`]({chewtils_github})"
 					},
-					"commands_title": "Commands:",
-					"commands_value": "Use `/help` in any chat to get list of commands.",
+					"commands_title": "Команды:",
+					"commands_value": "Используйте `/help` чтобы получить список доступных команд.",
 					"links": {
-						"title": "Links",
+						"title": "Ссылки",
 						"discord": "[`Discord (Support)`]({guild_invite})",
 						"github": "[`Github`]({github_url})",
 						"unionteams_title": "UnionTeam's project",
@@ -168,56 +168,55 @@
 				}
 			},
 			"status": {
-				"description": "Gets bot's status, shard info",
+				"description": "Получить статус бота, информация сигмента",
 				"embed": {
-					"stats_title": "Stats",
+					"stats_title": "Статус",
 					"stats" : {
-						"guilds": "{value} Guilds",
-						"shard": "Shard {this}/{all}"
+						"guilds": "{value} серверов",
+						"shard": "Сигмент {this}/{all}"
 					},
-					"shard_title": "This shard",
+					"shard_title": "Этот сигмент",
 					"shard": {
-						"users": "{value} Users",
-						"guilds": "{value} Guilds",
-						"text_channels": "{value} Text Channels",
-						"voice_channels": "{value} Voice Channels"
+						"users": "{value} пользователей",
+						"guilds": "{value} серверов",
+						"text_channels": "{value} текстовых каналов",
+						"voice_channels": "{value} голосовых каналов"
 					},
-					"last_restart": "Last restart"
+					"last_restart": "Последний рестарт"
 				}
 			}
 		},
 		"help": {
-			"description": "List all available commands the bot has or description of specific command.",
+			"description": "Список всех доступных команд, которые есть у бота, или описание конкретной команды.",
 			"category_info": {
-				"description": "Shows commands in selected category"
+				"description": "Показывает команды в выбранной категории"
 			},
 			"command_info": {
-				"description": "Shows information about selected command",
-				"aliases": "Aliases",
-				"docs": "Docs",
-				"no_command": "The provided command (`{command}`) doesn't exist!\nMake sure you typed it correctly.\n\nCategory names need to be prefixed with `cat:` (e.g. `/help cat:voice`)!",
-				"title": "Command help: {command}",
-				"usage_title": "Usage options",
-				"usage_value": "```\n{command}\n```\n`[]` = Optional\n`<>` = Required"
+				"description": "Показывает информацию о выбранной команде",
+				"docs": "Информация",
+				"no_command": "Запрошенная команда (`{command}`) не существует!\nУбедитесь, что вы ввели правильную команду.\n\nЧтобы просмотреть категорию команды, выберите `cat:` (прим. `/help cat:voice`)!",
+				"title": "Помощь по команде: {command}",
+				"usage_title": "Использование",
+				"usage_value": "```\n{command}\n```\n`[]` = По желанию\n`<>` = Обязательно"
 			},
 			"command_menu": {
-				"title": "Available commands:",
+				"title": "Доступные команды:",
 				"categories": {
-					"voice": "Voice",
-					"owner": "Owner",
-					"guild": "Guild",
-					"other": "Other",
-					"title": "Categories"
+					"voice": "Голосовые",
+					"owner": "Разработка",
+					"guild": "Серверные",
+					"other": "Прочие",
+					"title": "Категории"
 				},
 				"description": {
-					"command_value": "To get more info about a specific command run `/help [command]`.\nYou can also run `/help cat:[category]` to show the commands of a specific category.",
-					"nav_title": "Navigation",
-					"nav_value": "Click the buttons for the following actions:\n\nPrevious page\nNext page\nCancel menu",
-					"support": "If you need help with the bot, contact the owner `{owner}` for support"
+					"command_value": "Чтобы получить больше информации о конкретной команде, пропишите `/help [команда]`.\nВы также можете прописать `/help cat:[категория]` показать команды определенной категории.",
+					"nav_title": "Навигация",
+					"nav_value": "Нажмите кнопки для следующих действий:\n\nПредыдущая страница\nСледующая страница\nЗакрыть меню",
+					"support": "Если вам нужна помощь с ботом, обратитесь к разработчику `{developer_name}` за поддержкой"
 				}
 			}
 		},
-		"dm_failure": "I can't send you a DM!",
-		"dm_success": "Check your DMs!"
+		"dm_failure": "Я не могу отправить вам сообщение в ЛС!",
+		"dm_success": "Откройте свои ЛС!"
 	}
 }
