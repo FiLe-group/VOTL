@@ -10,8 +10,6 @@ name: Java CI with Gradle
 on:
   push:
     branches: [ main ]
-    tags:
-      - 'v*'
   workflow_dispatch:
 
 jobs:
