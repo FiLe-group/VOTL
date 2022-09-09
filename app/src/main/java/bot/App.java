@@ -94,6 +94,7 @@ public class App {
 			.setActivity(Activity.watching("/help"))
 			.addSlashCommands(
 				// voice
+				new SetNameCmd(this),
 				new SetLimitCmd(this),
 				new ClaimCmd(this),
 				new NameCmd(this),

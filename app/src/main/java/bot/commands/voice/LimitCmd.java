@@ -22,44 +22,83 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 )
 public class LimitCmd extends SlashCommand {
 	
-	private final App bot;
+	private static App bot;
 
-	protected Permission[] botPerms;
+	protected static Permission[] botPerms;
 
 	public LimitCmd(App bot) {
 		this.name = "limit";
-		this.help = bot.getMsg("0", "bot.voice.limit.description");
 		this.category = new Category("voice");
-		this.botPerms = new Permission[]{Permission.MANAGE_CHANNEL};
-		this.options = Collections.singletonList(
-			new OptionData(OptionType.INTEGER, "limit", bot.getMsg("0", "bot.voice.limit.option_description"))
-				.setRequiredRange(0, 99)
-				.setRequired(true)
-		);
-		this.bot = bot;
+		LimitCmd.botPerms = new Permission[]{Permission.MANAGE_CHANNEL};
+		this.children = new SlashCommand[]{new Set(bot), new Reset(bot)};
+		LimitCmd.bot = bot;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
 
-		event.deferReply(true).queue(
-			hook -> {
-				Integer filLimit;
-				MessageEditData reply;
-				try {
-					filLimit = event.getOption("limit").getAsInt();
-					reply = getReply(event, filLimit);
-				} catch (Exception e) {
-					reply = MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.request_error", e.toString()));
-				}
-
-				hook.editOriginal(reply).queue();
-			}
-		);
-
 	}
 
-	private MessageEditData getReply(SlashCommandEvent event, Integer filLimit) {
+	private static class Set extends SlashCommand {
+
+		public Set(App bot) {
+			this.name = "set";
+			this.help = bot.getMsg("0", "bot.voice.limit.set.description");
+			this.options = Collections.singletonList(
+				new OptionData(OptionType.INTEGER, "limit", bot.getMsg("0", "bot.voice.limit.set.option_description"))
+					.setRequiredRange(0, 99)
+					.setRequired(true)
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+
+			event.deferReply(true).queue(
+				hook -> {
+					Integer filLimit;
+					MessageEditData reply;
+					try {
+						filLimit = event.getOption("limit").getAsInt();
+						reply = getReply(event, filLimit);
+					} catch (Exception e) {
+						reply = MessageEditData.fromCreateData(LimitCmd.bot.getEmbedUtil().getError(event, "errors.request_error", e.toString()));
+					}
+
+					hook.editOriginal(reply).queue();
+				}
+			);
+
+		}
+	}
+
+	private static class Reset extends SlashCommand {
+
+		public Reset(App bot) {
+			this.name = "reset";
+			this.help = bot.getMsg("0", "bot.voice.limit.reset.description");
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+
+			event.deferReply(true).queue(
+				hook -> {
+					Integer filLimit = LimitCmd.bot.getDBUtil().guildVoiceGetLimit(event.getGuild().getId());
+					if (filLimit == null) {
+						filLimit = 0;
+					}
+
+					MessageEditData reply = getReply(event, filLimit);
+
+					hook.editOriginal(reply).queue();
+				}
+			);
+
+		}
+	}
+
+	private static MessageEditData getReply(SlashCommandEvent event, Integer filLimit) {
 		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
 		if (permission != null)
 			return MessageEditData.fromCreateData(permission);

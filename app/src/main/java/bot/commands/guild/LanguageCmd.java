@@ -33,10 +33,8 @@ public class LanguageCmd extends SlashCommand {
 
 	public LanguageCmd(App bot) {
 		this.name = "language";
-		this.help = bot.getMsg("0", "bot.guild.language.description");
 		this.category = new Category("guild");
 		LanguageCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
-		//this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MANAGE_CHANNEL};
 		this.children = new SlashCommand[]{new Reset(bot), new Set(bot), new Show(bot)};
 		LanguageCmd.bot = bot;
 	}
@@ -48,12 +46,9 @@ public class LanguageCmd extends SlashCommand {
 
 	private static class Reset extends SlashCommand {
 
-		private final App bot;
-
 		public Reset(App bot) {
 			this.name = "reset";
 			this.help = bot.getMsg("0", "bot.guild.language.reset.description");
-			this.bot = bot;
 		}
 
 		@Override
@@ -61,7 +56,7 @@ public class LanguageCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
-					String defaultLang = bot.defaultLanguage;
+					String defaultLang = LanguageCmd.bot.defaultLanguage;
 
 					MessageEditData reply = getReply(event, defaultLang);
 

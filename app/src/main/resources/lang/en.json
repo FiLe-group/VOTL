@@ -37,7 +37,6 @@
 		},
 		"guild": {
 			"language": {
-				"description": "Set language for guild",
 				"reset": {
 					"description": "Reset language to default"
 				},
@@ -75,20 +74,37 @@
 				"channel": "★ Join to create",
 				"done": "Successfully created channel {channel}! Setup is done."
 			},
+			"setname": {
+				"description": "Sets default name for custom voice channels",
+				"option_description": "Enter string 1 <> 100 symbols",
+				"invalid_range": "Channel name must be in range from 1 to 100 symbols",
+				"done": "Successfully changed default voice channel name to `{value}`!"
+			},
 			"setlimit": {
-				"description": "Sets default user limit for server's voice channels",
+				"description": "Sets default user limit for custom voice channels",
 				"option_description": "Enter integer 0 <> 99",
 				"done": "Successfully changed default voice channel limit to `{value}`!"
 			},
 			"name": {
-				"description": "Sets name for your channel",
-				"option_description": "Enter string 1 <> 100 symbols",
+				"reset": {
+					"description": "Reset your VC name to default"
+				},
+				"set": {
+					"description": "Set your VC name",
+					"option_description": "Enter string 1 <> 100 symbols",
+					"invalid_range": "Channel name must be in range from 1 to 100 symbols"
+				},
 				"no_channel": "You don't own/has any voice channel.",
 				"done": "Successfully changed your's channel name to `{value}`!"
 			},
 			"limit": {
-				"description": "Sets limit for your channel",
-				"option_description": "Enter integer 0 <> 99",
+				"reset": {
+					"description": "Reset your VC limit to default"
+				},
+				"set": {
+					"description": "Set your VC limit",
+					"option_description": "Enter integer 0 <> 99"
+				},
 				"no_channel": "You don't own/has any voice channel.",
 				"done": "Successfully changed your's channel limit to `{value}`!"
 			},
