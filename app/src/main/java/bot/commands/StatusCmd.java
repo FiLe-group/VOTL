@@ -22,14 +22,11 @@ public class StatusCmd extends SlashCommand {
 	
 	private App bot;
 
-	//protected Permission[] botPerms;
-
 	public StatusCmd(App bot) {
 		this.name = "status";
 		this.help = bot.getMsg("0", "bot.other.status.description");
 		this.guildOnly = false;
 		this.category = new Category("other");
-		//this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("0", "misc.show_description"))
 		);

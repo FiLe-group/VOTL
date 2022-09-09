@@ -15,21 +15,22 @@ public class GuildListener extends ListenerAdapter {
 
 	@Override
 	public void onGuildJoin(GuildJoinEvent event) {
-		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
-			// adds guild to DB
-			bot.getDBUtil().guildAdd(event.getGuild().getId());
-			bot.getLogger().info("Added guild '"+event.getGuild().getName()+"'("+event.getGuild().getId()+") to db");
+		String guildId = event.getGuild().getId();
+		// check if not exists in DB and adds it
+		if (bot.getDBUtil().guildAdd(guildId)) {
+			bot.getLogger().info("Added guild '"+event.getGuild().getName()+"'("+guildId+") to db");
 		}
-		bot.getLogger().info("Joined guild '"+event.getGuild().getName()+"'("+event.getGuild().getId()+")");
+		bot.getLogger().info("Joined guild '"+event.getGuild().getName()+"'("+guildId+")");
 	}
 
 	@Override
 	public void onGuildLeave(GuildLeaveEvent event) {
-		if (bot.getDBUtil().isGuild(event.getGuild().getId())) {
+		String guildId = event.getGuild().getId();
+		if (bot.getDBUtil().isGuild(guildId) || bot.getDBUtil().isGuildVoice(guildId)) {
 			//deletes from db guild and guildSettings
-			bot.getDBUtil().guildRemove(event.getGuild().getId());
-			bot.getLogger().info("Removed guild '"+event.getGuild().getName()+"'("+event.getGuild().getId()+") from db");
+			bot.getDBUtil().guildRemove(guildId);
+			bot.getLogger().info("Removed guild '"+event.getGuild().getName()+"'("+guildId+") from db");
 		}
-		bot.getLogger().info("Left guild '"+event.getGuild().getName()+"'("+event.getGuild().getId()+")");
+		bot.getLogger().info("Left guild '"+event.getGuild().getName()+"'("+guildId+")");
 	}
 }

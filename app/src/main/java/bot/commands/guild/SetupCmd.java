@@ -31,7 +31,6 @@ public class SetupCmd extends SlashCommand {
 		this.help = bot.getMsg("0", "bot.guild.setup.description");;
 		this.category = new Category("guild");
 		SetupCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
-		//this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
 		this.children = new SlashCommand[]{new Voice(bot)};
 	}
 
@@ -75,8 +74,7 @@ public class SetupCmd extends SlashCommand {
 
 			String guildID = event.getGuild().getId();
 
-			if (!(bot.getDBUtil().isGuild(guildID) && bot.getDBUtil().isGuildVoice(guildID))) {
-				bot.getDBUtil().guildAdd(guildID);
+			if (bot.getDBUtil().guildAdd(guildID)) {
 				bot.getLogger().info("Added guild through setup '"+event.getGuild().getName()+"'("+guildID+") to db");
 			}
 

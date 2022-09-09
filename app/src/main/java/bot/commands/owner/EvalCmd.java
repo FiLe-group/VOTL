@@ -39,7 +39,6 @@ public class EvalCmd extends SlashCommand {
 		this.help = bot.getMsg("0", "bot.owner.eval.description");
 		this.ownerCommand = true;
 		this.category = new Category("owner");
-		//this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.STRING, "code", bot.getMsg("0", "bot.owner.eval.code_description")) 
 				.setRequired(true)

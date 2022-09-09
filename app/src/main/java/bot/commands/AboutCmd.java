@@ -27,15 +27,12 @@ public class AboutCmd extends SlashCommand {
 
 	private final App bot;
 
-	//protected Permission[] botPerms;
-
 	public AboutCmd(App bot) {
 		this.name = "about";
 		this.aliases = new String[]{"info"};
 		this.help = bot.getMsg("0", "bot.other.about.description");
 		this.guildOnly = false;
 		this.category = new Category("other");
-		//this.botPerms = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("0", "misc.show_description"))
 		);

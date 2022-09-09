@@ -68,15 +68,17 @@ public class LimitCmd extends SlashCommand {
 			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		}
 
-		if (bot.getDBUtil().isVoiceChannel(event.getMember().getId())) {
-			VoiceChannel vc = event.getGuild().getVoiceChannelById(bot.getDBUtil().channelGetChannel(event.getMember().getId()));
+		String memberId = event.getMember().getId();
+
+		if (bot.getDBUtil().isVoiceChannel(memberId)) {
+			VoiceChannel vc = event.getGuild().getVoiceChannelById(bot.getDBUtil().channelGetChannel(memberId));
 
 			vc.getManager().setUserLimit(filLimit).queue();
 			
-			if (!bot.getDBUtil().isUser(event.getMember().getId())) {
-				bot.getDBUtil().userAdd(event.getMember().getId());
+			if (!bot.getDBUtil().isUser(memberId)) {
+				bot.getDBUtil().userAdd(memberId);
 			}
-			bot.getDBUtil().userSetLimit(event.getMember().getId(), filLimit);
+			bot.getDBUtil().userSetLimit(memberId, filLimit);
 
 			return MessageEditData.fromEmbeds(
 				bot.getEmbedUtil().getEmbed(event.getMember())
