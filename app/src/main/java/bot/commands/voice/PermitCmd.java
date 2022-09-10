@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.entities.Mentions;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -50,7 +51,7 @@ public class PermitCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				Mentions filMentions = event.getOption("mention").getMentions();
+				Mentions filMentions = event.getOption("mention", OptionMapping::getMentions);
 				MessageEditData reply = getReply(event, filMentions);
 
 				hook.editOriginal(reply).queue();

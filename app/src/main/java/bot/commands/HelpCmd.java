@@ -51,7 +51,7 @@ public class HelpCmd extends SlashCommand {
 
 		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
 			hook -> {
-				String filCat = event.getOption("category", null, OptionMapping::getAsString);
+				String filCat = event.getOption("category", OptionMapping::getAsString);
 				MessageEmbed embed = getHelpEmbed(event, filCat);
 
 				hook.editOriginalEmbeds(embed).queue();

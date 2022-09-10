@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 import bot.App;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -59,7 +60,7 @@ public class LimitCmd extends SlashCommand {
 					Integer filLimit;
 					MessageEditData reply;
 					try {
-						filLimit = event.getOption("limit").getAsInt();
+						filLimit = event.getOption("limit", OptionMapping::getAsInt);
 						reply = getReply(event, filLimit);
 					} catch (Exception e) {
 						reply = MessageEditData.fromCreateData(LimitCmd.bot.getEmbedUtil().getError(event, "errors.request_error", e.toString()));

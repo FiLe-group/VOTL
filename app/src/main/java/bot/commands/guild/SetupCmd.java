@@ -1,8 +1,6 @@
 package bot.commands.guild;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -78,8 +76,8 @@ public class SetupCmd extends SlashCommand {
 				bot.getLogger().info("Added guild through setup '"+event.getGuild().getName()+"'("+guildID+") to db");
 			}
 
-			List<MessageEditBuilder> msgBuilder = new ArrayList<MessageEditBuilder>();
-			msgBuilder.add(new MessageEditBuilder()); // I hate this, but I have no other way to do this, without errors
+			MessageEditBuilder msgBuilder = new MessageEditBuilder();
+			//msgBuilder.add(new MessageEditBuilder()); // I hate this, but I have no other way to do this, without errors
 
 			try {
 				event.getGuild().createCategory(bot.getMsg(guildID, "bot.voice.setup.category"))
@@ -98,24 +96,24 @@ public class SetupCmd extends SlashCommand {
 									.queue(
 										channel -> {
 											bot.getDBUtil().guildVoiceSetup(guildID, category.getId(), channel.getId());
-											msgBuilder.set(0, msgBuilder.get(0).setEmbeds(
+											msgBuilder.setEmbeds(
 												bot.getEmbedUtil().getEmbed(event.getMember())
 													.setDescription(bot.getMsg(guildID, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
 													.build()
-											));
+											);
 										}
 									);
 							} catch (InsufficientPermissionException ex) {
-								msgBuilder.set(0, MessageEditBuilder.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true)));
+								msgBuilder.applyCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true));
 							}
 						}
 					);
 			} catch (InsufficientPermissionException ex) {
-				msgBuilder.set(0, MessageEditBuilder.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true)));
+				msgBuilder.applyCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true));
 				ex.printStackTrace();
 			}
 
-			return msgBuilder.get(0).build();
+			return msgBuilder.build();
 			
 		}
 

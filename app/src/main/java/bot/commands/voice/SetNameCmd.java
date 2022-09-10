@@ -8,6 +8,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -42,7 +43,7 @@ public class SetNameCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				String filName = event.getOption("name").getAsString().trim();
+				String filName = event.getOption("name", OptionMapping::getAsString).trim();
 				MessageEditData reply = getReply(event, filName);
 
 				hook.editOriginal(reply).queue();

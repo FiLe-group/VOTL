@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -70,7 +71,7 @@ public class EvalCmd extends SlashCommand {
 			return;
 		} */
 
-		String args = event.getOption("code").getAsString();
+		String args = event.getOption("code", OptionMapping::getAsString);
 		args = args.trim();
 		if (args.startsWith("```") && args.endsWith("```")) {
 			if (args.startsWith("```java")) {
