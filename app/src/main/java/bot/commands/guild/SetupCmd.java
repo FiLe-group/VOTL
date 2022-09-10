@@ -77,7 +77,6 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			MessageEditBuilder msgBuilder = new MessageEditBuilder();
-			//msgBuilder.add(new MessageEditBuilder()); // I hate this, but I have no other way to do this, without errors
 
 			try {
 				event.getGuild().createCategory(bot.getMsg(guildID, "bot.voice.setup.category"))

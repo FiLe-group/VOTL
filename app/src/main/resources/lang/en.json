@@ -59,7 +59,7 @@
 				"values": {
 					"preview": "Preview current setting for this guild",
 					"reset": "Reset settings",
-					"voice": "Setup custom voice channel"
+					"voice": "Setup custom voice channel module",
 				}
 			}
 		},
@@ -157,7 +157,7 @@
 				"description": "Get basic information about the bot",
 				"embed": {
 					"about_title": "About {name}!",
-					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nDeveloper - **{developer_name}**(developer_id).",
+					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nDeveloper - **{developer_name}**({developer_id}).",
 					"bot_info": {
 						"title": "Bot info",
 						"bot_version": "Bot version: `VOTL v{bot_version}`",

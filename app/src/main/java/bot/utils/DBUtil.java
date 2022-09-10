@@ -6,6 +6,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.LoggerFactory;
 
@@ -53,17 +57,17 @@ public class DBUtil {
 	}
 
 	public boolean isGuild(String guildID) {
-		if (select("guild", "guildID", "guildID", guildID) != null) {
-			return true;
-		}
+		if (select("guild", "guildID", "guildID", guildID).isEmpty()) {
 		return false;
+	}
+		return true;
 	}
 
 	public boolean isGuildVoice(String guildID) {
-		if (select("guildVoice", "guildID", "guildID", guildID) != null) {
-			return true;
-		}
+		if (select("guildVoice", "guildID", "guildID", guildID).isEmpty()) {
 		return false;
+	}
+		return true;
 	}
 
 	// Guild
@@ -72,11 +76,11 @@ public class DBUtil {
 	}
 
 	public String guildGetLanguage(String guildID) {
-		Object obj = select("guild", "language", "guildID", guildID);
-		if (obj == null) {
+		List<Object> objs = select("guild", "language", "guildID", guildID);
+		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
-		return String.valueOf(obj);
+		return String.valueOf(objs.get(0));
 	}
 	
 	// Guild Voice
@@ -93,35 +97,35 @@ public class DBUtil {
 	}
 
 	public String guildVoiceGetCategory(String guildID) {
-		Object obj = select("guildVoice", "categoryID", "guildID", guildID);
-		if (obj == null) {
+		List<Object> objs = select("guildVoice", "categoryID", "guildID", guildID);
+		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
-		return String.valueOf(obj);
+		return String.valueOf(objs.get(0));
 	}
 
 	public String guildVoiceGetChannel(String guildID) {
-		Object obj = select("guildVoice", "channelID", "guildID", guildID);
-		if (obj == null) {
+		List<Object> objs = select("guildVoice", "channelID", "guildID", guildID);
+		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
-		return String.valueOf(obj);
+		return String.valueOf(objs.get(0));
 	}
 
 	public String guildVoiceGetName(String guildID) {
-		Object obj = select("guildVoice", "channelName", "guildID", guildID);
-		if (obj == null) {
+		List<Object> objs = select("guildVoice", "channelName", "guildID", guildID);
+		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
-		return String.valueOf(obj);
+		return String.valueOf(objs.get(0));
 	}
 
 	public Integer guildVoiceGetLimit(String guildID) {
-		Object obj = select("guildVoice", "channelLimit", "guildID", guildID);
-		if (obj == null) {
+		List<Object> objs = select("guildVoice", "channelLimit", "guildID", guildID);
+		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
-		return Integer.parseInt(String.valueOf(obj));
+		return Integer.parseInt(String.valueOf(objs.get(0)));
 	}
 
 	// User Settings
@@ -134,10 +138,10 @@ public class DBUtil {
 	}
 
 	public boolean isUser(String userID) {
-		if (select("userSettings", "userID", "userID", userID) != null) {
-			return true;
-		}
+		if (select("userSettings", "userID", "userID", userID).isEmpty()) {
 		return false;
+	}
+		return true;
 	}
 
 	public void userSetName(String userID, String channelName) {
@@ -149,19 +153,19 @@ public class DBUtil {
 	}
 
 	public String userGetName(String userID) {
-		Object obj = select("userSettings", "channelName", "userID", userID);
-		if (obj == null) {
+		List<Object> objs = select("userSettings", "channelName", "userID", userID);
+		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
-		return String.valueOf(obj);
+		return String.valueOf(objs.get(0));
 	}
 
 	public Integer userGetLimit(String userID) {
-		Object obj = select("userSettings", "channelLimit", "userID", userID);
-		if (obj == null) {
+		List<Object> objs = select("userSettings", "channelLimit", "userID", userID);
+		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
-		return Integer.parseInt(String.valueOf(obj));
+		return Integer.parseInt(String.valueOf(objs.get(0)));
 	}
 
 	// Voice Channel
@@ -174,17 +178,17 @@ public class DBUtil {
 	}
 
 	public boolean isVoiceChannel(String userID) {
-		if (select("voiceChannel", "userID", "userID", userID) != null) {
-			return true;
-		}
+		if (select("voiceChannel", "userID", "userID", userID).isEmpty()) {
 		return false;
+		}
+		return true;
 	}
 
 	public boolean isVoiceChannelExists(String channelID) {
-		if (select("voiceChannel", "channelID", "channelID", channelID) != null) {
-			return true;
-		}
+		if (select("voiceChannel", "channelID", "channelID", channelID).isEmpty()) {
 		return false;
+		}
+		return true;
 	}
 
 	public void channelSetUser(String userID, String channelID) {
@@ -192,18 +196,19 @@ public class DBUtil {
 	}
 
 	public String channelGetChannel(String userID) {
-		Object obj = select("voiceChannel", "channelID", "userID", userID);
-		if (obj == null) {
+		List<Object> objs = select("voiceChannel", "channelID", "userID", userID);
+		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
-		return String.valueOf(obj);
+		return String.valueOf(objs.get(0));
 	}
 
 	public String channelGetUser(String channelID) {
-		Object obj = select("voiceChannel", "userID", "channelID", channelID);
-		if (obj == null) {
+		List<Object> objs = select("voiceChannel", "userID", "channelID", channelID);
+		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
+		return String.valueOf(objs.get(0));
 		return String.valueOf(obj);
 	}
 
@@ -229,21 +234,21 @@ public class DBUtil {
 	}
 
 	// SELECT sql
-	private Object select(String table, String selectKey, String condKey, Object condValueObj) {
+	private List<Object> select(String table, String selectKey, String condKey, Object condValueObj) {
 		String condValue = quote(condValueObj);
 
 		String sql = "SELECT * FROM "+table+" WHERE "+condKey+"="+condValue;
-		Object result = null;
+		List<Object> results = new ArrayList<Object>();
 		try (Connection conn = connect();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 			while (rs.next()) {
-				result = rs.getObject(selectKey);
+				results.add(rs.getObject(selectKey));
 			}
 		} catch (SQLException ex) {
 			logger.warn("DB: Error at SELECT\nrequest: {}", sql, ex);
 		}
-		return result;
+		return results;
 	}
 
 	// UPDATE sql
