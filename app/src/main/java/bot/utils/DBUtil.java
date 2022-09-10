@@ -58,15 +58,15 @@ public class DBUtil {
 
 	public boolean isGuild(String guildID) {
 		if (select("guild", "guildID", "guildID", guildID).isEmpty()) {
-		return false;
-	}
+			return false;
+		}
 		return true;
 	}
 
 	public boolean isGuildVoice(String guildID) {
 		if (select("guildVoice", "guildID", "guildID", guildID).isEmpty()) {
-		return false;
-	}
+			return false;
+		}
 		return true;
 	}
 
@@ -139,8 +139,8 @@ public class DBUtil {
 
 	public boolean isUser(String userID) {
 		if (select("userSettings", "userID", "userID", userID).isEmpty()) {
-		return false;
-	}
+			return false;
+		}
 		return true;
 	}
 
@@ -179,14 +179,14 @@ public class DBUtil {
 
 	public boolean isVoiceChannel(String userID) {
 		if (select("voiceChannel", "userID", "userID", userID).isEmpty()) {
-		return false;
+			return false;
 		}
 		return true;
 	}
 
 	public boolean isVoiceChannelExists(String channelID) {
 		if (select("voiceChannel", "channelID", "channelID", channelID).isEmpty()) {
-		return false;
+			return false;
 		}
 		return true;
 	}
@@ -209,9 +209,32 @@ public class DBUtil {
 			return null;
 		}
 		return String.valueOf(objs.get(0));
-		return String.valueOf(obj);
 	}
 
+	// Webhook List
+	public void webhookAdd(String webhookID, String guildID, String token) {
+		insert("webhookList", new String[]{"webhookID", "guildID", "token"}, new Object[]{webhookID, guildID, token});
+	}
+
+	public void webhookRemove(String webhookID) {
+		delete("webhookList", "webhookID", webhookID);
+	}
+
+	public String webhookGetToken(String webhookID) {
+		List<Object> objs = select("webhookList", "token", "webhookID", webhookID);
+		if (objs.isEmpty() || objs.get(0) == null) {
+			return null;
+		}
+		return String.valueOf(objs.get(0));
+	}
+
+	public List<String> webhookGetIDs(String guildID) {
+		List<Object> objs = select("webhookList", "webhookID", "guildID", guildID);
+		if (objs.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
+	}
 
 	// INSERT sql
 	private void insert(String table, String insertKey, Object insertValueObj) {

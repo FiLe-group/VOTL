@@ -60,6 +60,7 @@
 					"preview": "Preview current setting for this guild",
 					"reset": "Reset settings",
 					"voice": "Setup custom voice channel module",
+					"webhook": "Setup webhook module"
 				}
 			}
 		},
@@ -146,6 +147,30 @@
 				"description": "Resets user voice settings to default values"
 			}
 		},
+		"webhook": {
+			"list": {
+				"description": "Shows added webhooks to bot's list",
+				"option_description": "Show all webhooks in this server? (default-false)",
+				"embed": {
+					"title": "Webhooks",
+					"none_found": "*There are no webhooks on this server found.*",
+					"none_registered": "*There are no webhooks registered in bot's DB!*",
+					"value": "Webhook's name | ID | Channel"
+				}
+			},
+			"move": {
+
+			},
+			"add": {
+
+			},
+			"remove": {
+
+			},
+			"check": {
+
+			}
+		},
 		"other": {
 			"ping": {
 				"description": "Check the bot's latency",
@@ -214,6 +239,7 @@
 					"voice": "Voice",
 					"owner": "Owner",
 					"guild": "Guild",
+					"webhook": "Webhook",
 					"other": "Other",
 					"title": "Categories"
 				},

@@ -21,6 +21,7 @@ import bot.commands.*;
 import bot.commands.guild.*;
 import bot.commands.owner.*;
 import bot.commands.voice.*;
+import bot.commands.webhook.WebhookCmd;
 import bot.constants.*;
 import bot.listeners.GuildListener;
 import bot.listeners.VoiceListener;
@@ -109,6 +110,8 @@ public class App {
 				// owner
 				new ShutdownCmd(this),
 				new EvalCmd(this),
+				// webhook
+				new WebhookCmd(this),
 				// other
 				new PingCmd(this),
 				new AboutCmd(this),

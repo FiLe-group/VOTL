@@ -39,6 +39,7 @@ public class HelpCmd extends SlashCommand {
 			.addChoice("Voice", "voice")
 			.addChoice("Guild", "guild")
 			.addChoice("Owner", "owner")
+			.addChoice("Webhook", "webhook")
 			.addChoice("Other", "other")
 		);
 		this.options = options;
