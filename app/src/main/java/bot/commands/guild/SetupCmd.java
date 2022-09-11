@@ -9,8 +9,8 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 import bot.App;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo
@@ -53,30 +53,30 @@ public class SetupCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					MessageEditData reply = getReply(event);
-
-					hook.editOriginal(reply).queue();
+					sendReply(event, hook);
 				}
 			);
 		}
 
-		private MessageEditData getReply(SlashCommandEvent event) {
+		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 			
 			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
-			if (permission != null)
-				return MessageEditData.fromCreateData(permission);
+			if (permission != null) {
+				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
+				return;
+			}
 
 			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
-			if (permission != null)
-				return MessageEditData.fromCreateData(permission);
+			if (permission != null) {
+				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
+				return;
+			}
 
 			String guildID = event.getGuild().getId();
 
 			if (bot.getDBUtil().guildAdd(guildID)) {
 				bot.getLogger().info("Added guild through setup '"+event.getGuild().getName()+"'("+guildID+") to db");
 			}
-
-			MessageEditBuilder msgBuilder = new MessageEditBuilder();
 
 			try {
 				event.getGuild().createCategory(bot.getMsg(guildID, "bot.voice.setup.category"))
@@ -95,24 +95,26 @@ public class SetupCmd extends SlashCommand {
 									.queue(
 										channel -> {
 											bot.getDBUtil().guildVoiceSetup(guildID, category.getId(), channel.getId());
-											msgBuilder.setEmbeds(
+											hook.editOriginalEmbeds(
 												bot.getEmbedUtil().getEmbed(event.getMember())
 													.setDescription(bot.getMsg(guildID, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
 													.build()
-											);
+											).queue();
 										}
 									);
 							} catch (InsufficientPermissionException ex) {
-								msgBuilder.applyCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true));
+								hook.editOriginal(MessageEditData.fromCreateData(
+									bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true)
+								)).queue();
 							}
 						}
 					);
 			} catch (InsufficientPermissionException ex) {
-				msgBuilder.applyCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true));
+				hook.editOriginal(MessageEditData.fromCreateData(
+					bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true)
+				)).queue();
 				ex.printStackTrace();
 			}
-
-			return msgBuilder.build();
 			
 		}
 

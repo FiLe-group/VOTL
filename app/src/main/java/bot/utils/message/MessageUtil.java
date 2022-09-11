@@ -3,25 +3,14 @@ package bot.utils.message;
 import java.text.DecimalFormat;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.awt.Color;
 
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import bot.App;
 
 public class MessageUtil {
 
 	private final App bot;
-
-	private final Pattern placeholder = Pattern.compile("(\\{(.+?)})", Pattern.CASE_INSENSITIVE);
-	private final Pattern rolePattern = Pattern.compile("(\\{r_(name|mention):(\\d+)})", Pattern.CASE_INSENSITIVE);
-	private final Pattern channelPattern = Pattern.compile("(\\{c_(name|mention):(\\d+)})", Pattern.CASE_INSENSITIVE);
 	
 	private final DecimalFormat decimalFormat = new DecimalFormat("#,###,###");
 
@@ -83,98 +72,6 @@ public class MessageUtil {
 		return color;
 	}
 
-	public String formatPlaceholders(String msg, Member member) {
-		Guild guild = member.getGuild();
-
-		Matcher roleMatcher = rolePattern.matcher(msg);
-		if (roleMatcher.find()) {
-			StringBuilder builder = new StringBuilder();
-			do {
-				Role role = guild.getRoleById(roleMatcher.group(3));
-				if (role == null)
-					continue;
-
-				switch (roleMatcher.group(2).toLowerCase()) {
-					case "name":
-						roleMatcher.appendReplacement(builder, role.getName());
-						break;
-
-					case "mention":
-						roleMatcher.appendReplacement(builder, role.getAsMention());
-						break;
-				}
-			} while (roleMatcher.find());
-
-			roleMatcher.appendTail(builder);
-			msg = builder.toString();
-		}
-
-		Matcher channelMatcher = channelPattern.matcher(msg);
-		if (channelMatcher.find()) {
-			StringBuilder builder = new StringBuilder();
-			do {
-				GuildChannel channel = guild.getGuildChannelById(channelMatcher.group(3));
-				if (channel == null)
-					continue;
-
-				switch (channelMatcher.group(2).toLowerCase()) {
-					case "name":
-						channelMatcher.appendReplacement(builder, channel.getName());
-						break;
-
-					case "mention":
-						if (channel.getType().equals(ChannelType.CATEGORY))
-							continue;
-						channelMatcher.appendReplacement(builder, channel.getAsMention());
-						break;
-				}
-			} while (channelMatcher.find());
-
-			channelMatcher.appendTail(builder);
-			msg = builder.toString();
-		}
-
-		Matcher matcher = placeholder.matcher(msg);
-		if (matcher.find()) {
-			StringBuilder builder = new StringBuilder();
-			do {
-				switch (matcher.group(2).toLowerCase()) {
-					case "mention":
-						matcher.appendReplacement(builder, member.getAsMention());
-						break;
-
-					case "name":
-					case "username":
-						matcher.appendReplacement(builder, member.getEffectiveName());
-						break;
-
-					case "guild":
-					case "server":
-						matcher.appendReplacement(builder, guild.getName());
-						break;
-
-					case "count":
-					case "members":
-						matcher.appendReplacement(builder, String.valueOf(guild.getMemberCount()));
-						break;
-
-					case "count_formatted":
-					case "members_formatted":
-						matcher.appendReplacement(builder, formatNumber(guild.getMemberCount()));
-						break;
-
-					case "tag":
-						matcher.appendReplacement(builder, member.getUser().getAsTag());
-				}
-			} while (matcher.find());
-
-			matcher.appendTail(builder);
-			msg = builder.toString();
-		}
-
-		return msg;
-	}
-
 	public String getFormattedMembers(String id, String... members) {
 		if (members.length == 1)
 			return "**" + escapeAll(members[0]) + "**";
@@ -202,21 +99,6 @@ public class MessageUtil {
 
 	public String formatNumber(long number) {
 		return decimalFormat.format(number);
-	}
-
-	public boolean hasArgs(String value, String... args) {
-		if (args.length == 0)
-			return false;
-
-		for (String arg : args) {
-			if (arg.equalsIgnoreCase("--" + value))
-				return true;
-
-			if (arg.equalsIgnoreCase("\u2014" + value))
-				return true;
-		}
-		
-		return false;
 	}
 
 	private String escapeAll(String name) {

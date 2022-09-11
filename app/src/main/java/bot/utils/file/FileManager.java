@@ -122,7 +122,7 @@ public class FileManager {
 					}
 					if (res == null) {
 						logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
-						throw new KeyIsNull("err");
+						throw new KeyIsNull("error:text not found");
 					}
 						
 				}

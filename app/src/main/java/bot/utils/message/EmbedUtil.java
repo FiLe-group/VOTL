@@ -40,11 +40,11 @@ public class EmbedUtil {
 		);
 	} 
 
-	public EmbedBuilder getErrorEmbed(Member member) {
+	private EmbedBuilder getErrorEmbed(Member member) {
 		return (member == null ? getEmbed() : getEmbed(member)).setColor(0xFF0000);
 	}
 
-	public EmbedBuilder getErrorEmbed(User user) {
+	private EmbedBuilder getErrorEmbed(User user) {
 		return (user == null ? getEmbed() : getEmbed(user)).setColor(0xFF0000);
 	}
 
@@ -80,12 +80,12 @@ public class EmbedUtil {
 
 	public MessageCreateData getError(SlashCommandEvent event, String path, String reason) {
 		
-		String guildID = (event.isFromGuild() ? event.getGuild().getId() : "0");
+		String guildID = (event.isFromGuild() ? event.getGuild().getId() : "0" );
 
-		EmbedBuilder embed = getErrorEmbed(event.getMember());
+		EmbedBuilder embed = event.isFromGuild() ? getErrorEmbed(event.getMember()) : getErrorEmbed(event.getUser());
 		String msg;
 		
-		msg = (event.getMember() == null ? bot.getMsg(guildID, path) : bot.getMsg(guildID, path, event.getMember().getEffectiveName()));
+		msg = (event.isFromGuild() ? bot.getMsg(guildID, path, event.getMember().getEffectiveName()) : bot.getMsg(guildID, path) );
 
 		embed.setDescription(msg);
 
