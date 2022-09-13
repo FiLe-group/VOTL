@@ -220,6 +220,13 @@ public class DBUtil {
 		delete("webhookList", "webhookID", webhookID);
 	}
 
+	public boolean webhookExists(String webhookID) {
+		if (select("webhookList", "webhookID", "webhookID", webhookID).isEmpty()) {
+			return false;
+		}
+		return true;
+	}
+
 	public String webhookGetToken(String webhookID) {
 		List<Object> objs = select("webhookList", "token", "webhookID", webhookID);
 		if (objs.isEmpty() || objs.get(0) == null) {

@@ -149,23 +149,48 @@
 		},
 		"webhook": {
 			"list": {
-				"description": "Shows added webhooks to bot's list",
-				"option_description": "Show all webhooks in this server? (default-false)",
+				"help": "Shows added webhooks to bot's list",
+				"option_all": "Show all webhooks in this server? (default-false)",
 				"embed": {
 					"title": "Webhooks",
 					"none_found": "*There are no webhooks on this server found.*",
 					"none_registered": "*There are no webhooks registered in bot's DB!*",
-					"value": "Webhook's name | ID | Channel"
+					"value": "Name | ID | Channel"
 				}
 			},
 			"move": {
-
+				"help": "Move registered webhook to other channel",
+				"option_id": "Enter ID of registered webhook",
+				"option_channel": "Choose channel to which move webhook",
+				"error_not_registered": "Selected webhook is not registered.",
+				"error_not_found": "Couldn't find webhook by entered ID.",
+				"done": "Successfully moved webhook `{webhook_name}` to channel `{channel}`!"
 			},
 			"add": {
-
+				"help": "Add webhook to the bot's DB",
+				"create": {
+					"help": "Create new webhook to be registered",
+					"option_name": "Choose name for new webhook",
+					"option_channel": "Choose channel in which create webhook (default-this channel)",
+					"invalid_range": "Webhook's name must be in range from 2 to 100 symbols",
+					"done": "Successfully created webhook `{webhook_name}` and registered it!"
+				},
+				"select": {
+					"help": "Select existing webhook to be registered",
+					"option_id": "Enter ID of existing webhook",
+					"error_registered": "Selected webhook is already registered in bot's DB!",
+					"error_not_found": "Couldn't find webhook by entered ID.",
+					"done": "Successfully registered webhook `{webhook_name}`!"
+				}
 			},
 			"remove": {
-
+				"help": "Removes registered webhook",
+				"option_id": "Enter ID of registered webhook",
+				"option_delete": "Also delete webhook? (default-false)",
+				"error_not_registered": "Selected webhook is not registered.",
+				"error_not_found": "Couldn't find webhook by entered ID.",
+				"error_not_guild": "Selected webhook is not from this guild.",
+				"done": "Successfulluy removed webhook `{webhook_name}`!"
 			},
 			"check": {
 

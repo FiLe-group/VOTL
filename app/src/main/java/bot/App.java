@@ -236,6 +236,10 @@ public class App {
 		return getMsg(id, path).replace("{user}", user);
 	}
 
+	public String getMsg(String path) {
+		return getMsg("0", path);
+	}
+
 	public String getMsg(String id, String path) {
 		return setPlaceholders(langUtil.getString(getLanguage(id), path))
 			.replace("{prefix}", getPrefix(id));
