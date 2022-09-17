@@ -37,104 +37,163 @@
 		},
 		"guild": {
 			"language": {
-				"description": "Set language for guild",
 				"reset": {
-					"description": "Reset language to default"
+					"description": "Востановить язык на по умолчанию"
 				},
 				"set": {
-					"description": "Set language for guild",
-					"option_description": "Enter selected language"
+					"description": "Установить язык для сервера",
+					"option_description": "Введите выбранный язык"
 				},
 				"show": {
-					"description": "Shows all available languages",
+					"description": "Показать все доступные языки",
 					"embed": {
-						"title": "Available languages",
-						"value": "*Use `/language set <language>` to set chosen language in this guild*\n**OR**\n*Type `/language reset` to set language to default(EN).*",
-						"field": "Chose one below:"
+						"title": "Доступные языки",
+						"value": "*Используйте `/language set <язык>` чтобы поставить язык для этого сервера*\n**OR**\n*Используйте `/language reset` чтобы поставить язык по умолчанию(EN).*",
+						"field": "Выберите язык:"
 					}
 				},
-				"done": "Successfully changed language to `{language}`!"
+				"done": "Язык успешно сменен на `{language}`!"
 			},
 			"setup": {
-				"description": "Setup menu for this server",
-				"embed": {
-					"setup_title": "Guild's setup menu",
-					"setup_value": "Choose option from list below to begin setup for selected function.",
-					"list": {
-						"preview_title": "Preview current setting for this guild",
-						"preview_value": "Shows what settings are on and other.",
-						"voice_title": "Custom Voice channels setup",
-						"voice_value": "Creates category with voice channel to join.",
-						"language_title": "",
-						"language_value": ""
-					}
+				"description": "Меню настройки бота для этого сервера",
+				"values": {
+					"preview": "Просмотреть текущие настройки для этого сервера",
+					"reset": "Сбросить настройки",
+					"voice": "Настроить модуль создания пользовательских каналов",
+					"webhook": "Настроить модуль управления вебхуками"
 				}
 			}
 		},
 		"voice": {
 			"listener": {
-				"cooldown": "Creating voice channels too quickly, wait a bit!",
-				"default_name": "{user}'s channel"
+				"cooldown": "Создание голосовых каналов слишком быстро, подождите немного!",
+				"default_name": "канал {user}"
 			},
 			"setup": {
-				"description": "Setup custom voice channels function",
-				"category": "Voice Channels",
-				"channel": "★ Join to create",
-				"done": "Successfully created channel {channel}! Setup is done."
+				"category": "Голосовые каналы",
+				"channel": "★ Создание канала",
+				"done": "Успешно создан канал {channel}! Настройка завершена."
+			},
+			"setname": {
+				"description": "Устанавливает название по умолчанию для пользовательских голосовых каналов",
+				"option_description": "Введите текст 1 <> 100 символов",
+				"invalid_range": "Название канала должно быть длиной от 1 до 100 символов",
+				"done": "Успешно сменено название по умолчанию на `{value}`!"
 			},
 			"setlimit": {
-				"description": "Sets default user limit for server's voice channels",
-				"option_description": "Enter integer 0 <> 99",
-				"done": "Successfully changed default voice channel limit to `{value}`!"
+				"description": "Устанавливает ограничение пользователей по умолчанию для пользовательских голосовых каналов",
+				"option_description": "Введите значение 0 <> 99",
+				"done": "Успешно сменено ограничение по умолчанию на `{value}`!"
 			},
 			"name": {
-				"description": "Sets name for your channel",
-				"option_description": "Enter string 1 <> 100 symbols",
-				"no_channel": "You don't own/has any voice channel.",
-				"done": "Successfully changed your's channel name to `{value}`!"
+				"reset": {
+					"description": "Сбросить название вашего голосового канала на по умолачию"
+				},
+				"set": {
+					"description": "Установить название для вашего голосового канала",
+					"option_description": "Введите текст 1 <> 100 символов",
+					"invalid_range": "Название канала должно быть длиной от 1 до 100 символов"
+				},
+				"no_channel": "Вам не принадлежит/нету пользовательского голосового канала.",
+				"done": "Успешно сменено название на `{value}`!"
 			},
 			"limit": {
-				"description": "Sets limit for your channel",
-				"option_description": "Enter integer 0 <> 99",
-				"no_channel": "You don't own/has any voice channel.",
-				"done": "Successfully changed your's channel limit to `{value}`!"
+				"reset": {
+					"description": "Сбросить ограничение пользователей вашего голосового канала на по умолачию"
+				},
+				"set": {
+					"description": "Установить ограничение пользователей для вашего голосового канала",
+					"option_description": "Введите значение 0 <> 99"
+				},
+				"no_channel": "Вам не принадлежит/нету пользовательского голосового канала.",
+				"done": "Успешно сменено ограничение на `{value}`!"
 			},
 			"claim": {
 				"description": "Claim ownership of channel once owner has left",
-				"not_in_voice": "You are not connected to any voice channel",
-				"not_custom": "You can't own this voice channel",
-				"has_owner": "The owner of this channel is in this voice channel",
-				"done": "You are now owner of this voice channel {channel}!"
+				"not_in_voice": "Вы не находитесь в голосовом канале",
+				"not_custom": "Вы не можете владеть этим каналом",
+				"has_owner": "Владелец этого канала находится в этом канале",
+				"done": "Вы теперь владелец голосового канала {channel}!"
 			},
 			"lock": {
-				"description": "Locks your channel for everyone (ex. allowed users)",
-				"no_channel": "You don't own/has any voice channel.",
-				"done": "Successfully locked your channel!"
+				"description": "Закрывает ваш голосовой канал для всех (искл. разрешенный пользователи)",
+				"no_channel": "Вам не принадлежит/нету пользовательского голосового канала.",
+				"done": "Ваш канала успешно закрыт!"
 			},
 			"unlock": {
-				"description": "Unlocks your channel for everyone (ex. disallowed users)",
-				"no_channel": "You don't own/has any voice channel.",
-				"done": "Successfully unlocked your channel!"
+				"description": "Открывает ваш голосовой канал для всех (искл. запрещенные пользователи)",
+				"no_channel": "Вам не принадлежит/нету пользовательского голосового канала.",
+				"done": "Ваш канала успешно открыт!"
 			},
 			"permit": {
-				"description": "Gives the user permission to join your channel",
-				"option_description": "Enter Role or Member mention/-s",
-				"invalid_args": "You didn't provided users.\nUsage: `/permit <mention member/-s or role/-s>`",
-				"not_self": "You can't add yourself.",
-				"no_channel": "You don't own/has any voice channel.",
-				"done": "Successfully permited {targets} to connect to your channel!"
+				"description": "Дает разрешение присоединиться к вашему каналу, если он закрыт",
+				"option_description": "Введите пинг роль/-и или пинг пользователя/-ей",
+				"invalid_args": "Вы не указали роль/пользователя.\nИспользование: `/permit <упоминание роли/пользователя>`",
+				"not_self": "Вы не можете выбрать себя.",
+				"no_channel": "Вам не принадлежит/нету пользовательского голосового канала.",
+				"done": "{targets} разрешено подключаться к вашему каналу!"
 				
 			},
 			"reject": {
-				"description": "Withdraw the user permission to join your channel",
-				"option_description": "Enter Role or Member mention/-s",
-				"invalid_args": "You didn't provided users.\nUsage: `/reject <mention member/-s or role/-s>`",
-				"not_self": "You can't remove yourself.",
-				"no_channel": "You don't own/has any voice channel.",
-				"done": "Successfully rejected {targets} from connecting to your channel!"
+				"description": "Запрещает присоединиться к вашему каналу",
+				"option_description": "Введите пинг роль/-и или пинг пользователя/-ей",
+				"invalid_args": "Вы не указали роль/пользователя.\nИспользование: `/reject <упоминание роли/пользователя>`",
+				"not_self": "Вы не можете выбрать себя.",
+				"no_channel": "Вам не принадлежит/нету пользовательского голосового канала.",
+				"done": "{targets} запрещено подключаться к вашему каналу!"
 			},
 			"reset": {
-				"description": "Resets user voice settings to default values"
+				"description": "Сбрасывает пользовательские настройки на по умолчанию"
+			}
+		},
+		"webhook": {
+			"help": "Модуль для управления вебхуками",
+			"list": {
+				"help": "Показать добавленные вебхуки",
+				"option_all": "Показать все вебхуки на этом сервере? (по умолч.-false)",
+				"embed": {
+					"title": "Вебхуки",
+					"none_found": "*Вебхуки на этом сервере не найдены.*",
+					"none_registered": "*Нету зарзарегистрированных в базе бота!*",
+					"value": "Название | ID | Канал"
+				}
+			},
+			"move": {
+				"help": "Переместить зарегистрированный вебхук в другой канал",
+				"option_id": "Введите ID зарегистрированного вебхука",
+				"option_channel": "Выберите канал для перемещения вебхука",
+				"error_not_registered": "Выбранный вебхук не зарегистрирован.",
+				"error_not_found": "Не удалось найти вебхук по введенному ID.",
+				"done": "Вебхук `{webhook_name}` успешно перемещен в канал `{channel}`!"
+			},
+			"add": {
+				"help": "Добавить вебхук в базу бота",
+				"create": {
+					"help": "Создать новый вебхук для регистрации",
+					"option_name": "Введите имя для нового вебхука",
+					"option_channel": "Выберите канал, в котором создать вебхук (по умолч.-этот канал)",
+					"invalid_range": "Название вебхука должно быть в диапазоне от 2 до 100 символов.",
+					"done": "Вебхук `{webhook_name}` создан успешно и зарегистрирован!"
+				},
+				"select": {
+					"help": "Выберите существующий вебхук для регистрации",
+					"option_id": "Введите ID существующего вебхука",
+					"error_registered": "Выбранный вебхук уже зарегистрирован в базе бота!",
+					"error_not_found": "Не удалось найти вебхук по введенному ID.",
+					"done": "Вебхук `{webhook_name}` успешно зарегистрирован!"
+				}
+			},
+			"remove": {
+				"help": "Убирает зарегистрированный вебхук из базы бота",
+				"option_id": "Введите ID существующего вебхука",
+				"option_delete": "Также удалить вебхук? (по умолч.-false)",
+				"error_not_registered": "Выбранный вебхук не зарегистрирован.",
+				"error_not_found": "Не удалось найти вебхук по введенному ID.",
+				"error_not_guild": "Выбранный вебхук не из этого сервера.",
+				"done": "Вебхук `{webhook_name}` успешно убран!"
+			},
+			"check": {
+
 			}
 		},
 		"other": {
@@ -205,6 +264,7 @@
 					"voice": "Голосовые",
 					"owner": "Разработка",
 					"guild": "Серверные",
+					"webhook": "Вебхук",
 					"other": "Прочие",
 					"title": "Категории"
 				},

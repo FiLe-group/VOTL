@@ -8,7 +8,7 @@ import bot.App;
 
 @CommandInfo
 (
-	name = {"Ping", "Pong"},
+	name = "Ping",
 	description = "Checks the bot's latency.",
 	usage = "/ping"
 )
@@ -18,8 +18,7 @@ public class PingCmd extends SlashCommand {
 	
 	public PingCmd(App bot) {
 		this.name = "ping";
-		this.aliases = new String[]{"pong"};
-		this.help = bot.getMsg("0", "bot.other.ping.description");
+		this.help = bot.getMsg("bot.other.ping.description");
 		this.guildOnly = false;
 		this.category = new Category("other");
 		this.bot = bot;

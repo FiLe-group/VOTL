@@ -44,9 +44,9 @@ public class LimitCmd extends SlashCommand {
 
 		public Set(App bot) {
 			this.name = "set";
-			this.help = bot.getMsg("0", "bot.voice.limit.set.description");
+			this.help = bot.getMsg("bot.voice.limit.set.description");
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.INTEGER, "limit", bot.getMsg("0", "bot.voice.limit.set.option_description"))
+				new OptionData(OptionType.INTEGER, "limit", bot.getMsg("bot.voice.limit.set.option_description"))
 					.setRequiredRange(0, 99)
 					.setRequired(true)
 			);
@@ -77,7 +77,7 @@ public class LimitCmd extends SlashCommand {
 
 		public Reset(App bot) {
 			this.name = "reset";
-			this.help = bot.getMsg("0", "bot.voice.limit.reset.description");
+			this.help = bot.getMsg("bot.voice.limit.reset.description");
 		}
 
 		@Override

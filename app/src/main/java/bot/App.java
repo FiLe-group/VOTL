@@ -131,8 +131,7 @@ public class App {
 				setJda = JDABuilder.createLight(fileManager.getString("config", "bot-token"))
 					.setEnabledIntents(
 						GatewayIntent.GUILD_MEMBERS,				// required for updating member profiles and ChunkingFilter
-						GatewayIntent.GUILD_VOICE_STATES,			// required for CF VOICE_STATE and policy VOICE
-						GatewayIntent.MESSAGE_CONTENT				// required for future
+						GatewayIntent.GUILD_VOICE_STATES			// required for CF VOICE_STATE and policy VOICE
 					)
 					.setMemberCachePolicy(policy)
 					.setChunkingFilter(ChunkingFilter.ALL)		// chunk all guilds

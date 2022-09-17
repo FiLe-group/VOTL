@@ -28,11 +28,11 @@ public class SetLimitCmd extends SlashCommand {
 
 	public SetLimitCmd(App bot) {
 		this.name = "setlimit";
-		this.help = bot.getMsg("0", "bot.voice.setlimit.description");
+		this.help = bot.getMsg("bot.voice.setlimit.description");
 		this.category = new Category("voice");
 		this.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.INTEGER, "limit", bot.getMsg("0", "bot.voice.setlimit.option_description"))
+			new OptionData(OptionType.INTEGER, "limit", bot.getMsg("bot.voice.setlimit.option_description"))
 				.setRequiredRange(0, 99)
 				.setRequired(true)
 		);

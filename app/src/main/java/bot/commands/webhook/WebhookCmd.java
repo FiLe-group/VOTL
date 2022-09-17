@@ -29,6 +29,7 @@ public class WebhookCmd extends SlashCommand {
 
 	public WebhookCmd(App bot) {
 		this.name = "webhook";
+		this.help = bot.getMsg("bot.webhook.help");
 		this.category = new Category("webhook");
 		WebhookCmd.botPerms = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		WebhookCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};

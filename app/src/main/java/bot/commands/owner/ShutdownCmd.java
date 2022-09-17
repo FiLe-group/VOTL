@@ -21,7 +21,7 @@ public class ShutdownCmd extends SlashCommand {
 
 	public ShutdownCmd(App bot) {
 		this.name = "shutdown";
-		this.help = bot.getMsg("0", "bot.owner.shutdown.description");
+		this.help = bot.getMsg("bot.owner.shutdown.description");
 		this.guildOnly = false;
 		this.ownerCommand = true;
 		this.category = new Category("owner");

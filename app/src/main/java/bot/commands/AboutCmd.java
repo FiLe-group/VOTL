@@ -19,7 +19,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 @CommandInfo
 (
-	name = {"About","Info"},
+	name = "About",
 	description = "Gets information about the bot.",
 	usage = "/about [show?]"
 )
@@ -29,12 +29,11 @@ public class AboutCmd extends SlashCommand {
 
 	public AboutCmd(App bot) {
 		this.name = "about";
-		this.aliases = new String[]{"info"};
-		this.help = bot.getMsg("0", "bot.other.about.description");
+		this.help = bot.getMsg("bot.other.about.description");
 		this.guildOnly = false;
 		this.category = new Category("other");
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("0", "misc.show_description"))
+			new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("misc.show_description"))
 		);
 		this.bot = bot;
 	}

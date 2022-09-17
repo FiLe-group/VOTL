@@ -28,11 +28,11 @@ public class SetNameCmd extends SlashCommand {
 
 	public SetNameCmd(App bot) {
 		this.name = "setname";
-		this.help = bot.getMsg("0", "bot.voice.setname.description");
+		this.help = bot.getMsg("bot.voice.setname.description");
 		this.category = new Category("voice");
 		this.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "name", bot.getMsg("0", "bot.voice.setname.option_description"))
+			new OptionData(OptionType.STRING, "name", bot.getMsg("bot.voice.setname.option_description"))
 				.setRequired(true)
 		);
 		this.bot = bot;

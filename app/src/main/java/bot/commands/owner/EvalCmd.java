@@ -37,11 +37,11 @@ public class EvalCmd extends SlashCommand {
 	
 	public EvalCmd(App bot) {
 		this.name = "eval";
-		this.help = bot.getMsg("0", "bot.owner.eval.description");
+		this.help = bot.getMsg("bot.owner.eval.description");
 		this.ownerCommand = true;
 		this.category = new Category("owner");
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "code", bot.getMsg("0", "bot.owner.eval.code_description")) 
+			new OptionData(OptionType.STRING, "code", bot.getMsg("bot.owner.eval.code_description")) 
 				.setRequired(true)
 			// Я блять ненавижу эту штуку
 			// Нужно переделовать через modals, но для этого нужно вначале получить комманду от пользователя

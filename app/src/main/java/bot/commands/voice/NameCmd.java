@@ -44,9 +44,9 @@ public class NameCmd extends SlashCommand {
 
 		public Set(App bot) {
 			this.name = "set";
-			this.help = bot.getMsg("0", "bot.voice.name.set.description");
+			this.help = bot.getMsg("bot.voice.name.set.description");
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "name", bot.getMsg("0", "bot.voice.name.set.option_description"))
+				new OptionData(OptionType.STRING, "name", bot.getMsg("bot.voice.name.set.option_description"))
 					.setRequired(true)
 			);
 		}
@@ -71,7 +71,7 @@ public class NameCmd extends SlashCommand {
 
 		public Reset(App bot) {
 			this.name = "reset";
-			this.help = bot.getMsg("0", "bot.voice.name.reset.description");
+			this.help = bot.getMsg("bot.voice.name.reset.description");
 		}
 
 		@Override

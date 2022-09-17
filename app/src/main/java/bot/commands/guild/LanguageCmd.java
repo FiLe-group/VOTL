@@ -49,7 +49,7 @@ public class LanguageCmd extends SlashCommand {
 
 		public Reset(App bot) {
 			this.name = "reset";
-			this.help = bot.getMsg("0", "bot.guild.language.reset.description");
+			this.help = bot.getMsg("bot.guild.language.reset.description");
 		}
 
 		@Override
@@ -73,9 +73,9 @@ public class LanguageCmd extends SlashCommand {
 
 		public Set(App bot) {
 			this.name = "set";
-			this.help = bot.getMsg("0", "bot.guild.language.set.description");
+			this.help = bot.getMsg("bot.guild.language.set.description");
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "language", bot.getMsg("0", "bot.guild.language.set.option_description"))
+				new OptionData(OptionType.STRING, "language", bot.getMsg("bot.guild.language.set.option_description"))
 					.setRequired(true)
 					.addChoices(bot.getFileManager().getLanguages().stream().map(
 						lang -> {
@@ -108,7 +108,7 @@ public class LanguageCmd extends SlashCommand {
 
 		public Show(App bot) {
 			this.name = "show";
-			this.help = bot.getMsg("0", "bot.guild.language.show.description");
+			this.help = bot.getMsg("bot.guild.language.show.description");
 			this.bot = bot;
 		}
 

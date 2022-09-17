@@ -36,11 +36,11 @@ public class RejectCmd extends SlashCommand {
 
 	public RejectCmd(App bot) {
 		this.name = "reject";
-		this.help = bot.getMsg("0", "bot.voice.reject.description");
+		this.help = bot.getMsg("bot.voice.reject.description");
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS};
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "mention", bot.getMsg("0", "bot.voice.reject.option_description"))
+			new OptionData(OptionType.STRING, "mention", bot.getMsg("bot.voice.reject.option_description"))
 				.setRequired(true)
 		);
 		this.bot = bot;

@@ -29,13 +29,13 @@ public class HelpCmd extends SlashCommand {
 
 	public HelpCmd(App bot) {
 		this.name = "help";
-		this.help = bot.getMsg("0", "bot.help.description");
+		this.help = bot.getMsg("bot.help.description");
 		this.guildOnly = false;
 		this.category = new Category("other");
 
 		List<OptionData> options = new ArrayList<>();
-		options.add(new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("0", "misc.show_description")));
-		options.add(new OptionData(OptionType.STRING, "category", bot.getMsg("0", "bot.help.command_info.description"))
+		options.add(new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("misc.show_description")));
+		options.add(new OptionData(OptionType.STRING, "category", bot.getMsg("bot.help.command_info.description"))
 			.addChoice("Voice", "voice")
 			.addChoice("Guild", "guild")
 			.addChoice("Owner", "owner")

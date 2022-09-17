@@ -70,7 +70,6 @@
 				"default_name": "{user}'s channel"
 			},
 			"setup": {
-				"description": "Setup custom voice channels function",
 				"category": "Voice Channels",
 				"channel": "★ Join to create",
 				"done": "Successfully created channel {channel}! Setup is done."
@@ -148,6 +147,7 @@
 			}
 		},
 		"webhook": {
+			"help": "Module for managing webhooks",
 			"list": {
 				"help": "Shows added webhooks to bot's list",
 				"option_all": "Show all webhooks in this server? (default-false)",
@@ -159,9 +159,9 @@
 				}
 			},
 			"move": {
-				"help": "Move registered webhook to other channel",
+				"help": "Move registered webhook to another channel",
 				"option_id": "Enter ID of registered webhook",
-				"option_channel": "Choose channel to which move webhook",
+				"option_channel": "Choose the channel to move webhook to",
 				"error_not_registered": "Selected webhook is not registered.",
 				"error_not_found": "Couldn't find webhook by entered ID.",
 				"done": "Successfully moved webhook `{webhook_name}` to channel `{channel}`!"
@@ -173,7 +173,7 @@
 					"option_name": "Choose name for new webhook",
 					"option_channel": "Choose channel in which create webhook (default-this channel)",
 					"invalid_range": "Webhook's name must be in range from 2 to 100 symbols",
-					"done": "Successfully created webhook `{webhook_name}` and registered it!"
+					"done": "Successfully created webhook `{webhook_name}` and registered!"
 				},
 				"select": {
 					"help": "Select existing webhook to be registered",

@@ -26,7 +26,7 @@ public class SetupCmd extends SlashCommand {
 
 	public SetupCmd(App bot) {
 		this.name = "setup";
-		this.help = bot.getMsg("0", "bot.guild.setup.description");;
+		this.help = bot.getMsg("bot.guild.setup.description");;
 		this.category = new Category("guild");
 		SetupCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.children = new SlashCommand[]{new Voice(bot)};
@@ -45,7 +45,7 @@ public class SetupCmd extends SlashCommand {
 
 		public Voice(App bot) {
 			this.name = "voice";
-			this.help = bot.getMsg("0", "bot.guild.setup.values.voice");
+			this.help = bot.getMsg("bot.guild.setup.values.voice");
 			this.botPerms = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS
 			this.bot = bot;
 		}

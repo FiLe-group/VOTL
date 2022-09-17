@@ -25,7 +25,7 @@ public class UnlockCmd extends SlashCommand {
 
 	public UnlockCmd(App bot) {
 		this.name = "unlock";
-		this.help = bot.getMsg("0", "bot.voice.unlock.description");
+		this.help = bot.getMsg("bot.voice.unlock.description");
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS}; // Permission.MESSAGE_EMBED_LINKS
 		this.bot = bot;

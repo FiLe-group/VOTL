@@ -36,11 +36,11 @@ public class PermitCmd extends SlashCommand {
 
 	public PermitCmd(App bot) {
 		this.name = "permit";
-		this.help = bot.getMsg("0", "bot.voice.permit.description");
+		this.help = bot.getMsg("bot.voice.permit.description");
 		this.category = new Category("voice");
 		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "mention", bot.getMsg("0", "bot.voice.permit.option_description"))
+			new OptionData(OptionType.STRING, "mention", bot.getMsg("bot.voice.permit.option_description"))
 				.setRequired(true)
 		);
 		this.bot = bot;
