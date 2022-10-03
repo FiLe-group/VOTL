@@ -32,6 +32,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -144,8 +145,8 @@ public class App {
 					.addEventListeners(commandClient, waiter, guildListener, voiceListener)
 					.build();
 				break;
-			} catch (LoginException ex) {
-				logger.error("Build failed", ex);
+			} catch (InvalidTokenException ex) {
+				logger.error("Login failed due to Token", ex);
 				System.exit(0);
 			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits
 				if (retries > 0) {
@@ -255,10 +256,8 @@ public class App {
 			.replace("{bot_version}", version);
 	}
 
-
 	public static void main(String[] args) {
 		instance = new App();
 		instance.logger.info("Success start");
-		instance.jda.getPresence().setPresence(OnlineStatus.ONLINE, Activity.watching("/help"));
 	}
 }

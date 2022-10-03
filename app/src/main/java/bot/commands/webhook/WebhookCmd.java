@@ -11,7 +11,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import bot.App;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.WebhookType;
 import net.dv8tion.jda.api.exceptions.PermissionException;

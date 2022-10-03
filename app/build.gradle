@@ -29,7 +29,7 @@ dependencies {
 	implementation 'com.google.guava:guava:31.1-jre'
 
 	// JDA library
-	implementation 'net.dv8tion:JDA:5.0.0-alpha.18'					// JDA library
+	implementation 'net.dv8tion:JDA:5.0.0-alpha.19'					// JDA library
 	implementation 'ch.qos.logback:logback-classic:1.4.0'			// Logging (required by JDA)
 
 	// Chewtils extentions
