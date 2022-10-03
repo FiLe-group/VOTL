@@ -3,6 +3,8 @@ package bot.listeners;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+
 import bot.App;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -21,7 +23,7 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildVoiceJoin(GuildVoiceJoinEvent event) {
+	public void onGuildVoiceJoin(@Nonnull GuildVoiceJoinEvent event) {
 		String voiceID = bot.getDBUtil().guildVoiceGetChannel(event.getGuild().getId());
 		if (voiceID != null && voiceID.equals(event.getChannelJoined().getId())) {
 			handleVoice(event.getGuild(), event.getMember());
@@ -29,7 +31,7 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildVoiceMove(GuildVoiceMoveEvent event) {
+	public void onGuildVoiceMove(@Nonnull GuildVoiceMoveEvent event) {
 		if (bot.getDBUtil().isVoiceChannelExists(event.getChannelLeft().getId()) && event.getChannelLeft().getMembers().isEmpty()) {
 			event.getChannelLeft().delete().queueAfter(2000, TimeUnit.MILLISECONDS);
 			bot.getDBUtil().channelRemove(event.getChannelLeft().getId());
@@ -42,7 +44,7 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildVoiceLeave(GuildVoiceLeaveEvent event) {
+	public void onGuildVoiceLeave(@Nonnull GuildVoiceLeaveEvent event) {
 		if (bot.getDBUtil().isVoiceChannelExists(event.getChannelLeft().getId()) && event.getChannelLeft().getMembers().isEmpty()) {
 			event.getChannelLeft().delete().queueAfter(500, TimeUnit.MILLISECONDS);
 			bot.getDBUtil().channelRemove(event.getChannelLeft().getId());

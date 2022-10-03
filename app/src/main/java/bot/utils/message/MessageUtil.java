@@ -19,11 +19,14 @@ public class MessageUtil {
 	}
 
 	public String formatTime(TemporalAccessor time) {
-		return String.format(
-			"%s (%s)",
-			TimeFormat.DATE_TIME_SHORT.format(time),
-			TimeFormat.RELATIVE.format(time)
-		);
+		if (time != null) {
+			return String.format(
+				"%s (%s)",
+				TimeFormat.DATE_TIME_SHORT.format(time),
+				TimeFormat.RELATIVE.format(time)
+			);
+		}
+		return "";
 	}
 
 	public Color getColor(String input) {

@@ -1,5 +1,7 @@
 package bot.utils;
 
+import javax.annotation.Nullable;
+
 import bot.App;
 import bot.constants.Constants;
 import net.dv8tion.jda.api.Permission;
@@ -21,14 +23,17 @@ public class CheckUtil {
 		return user.getId().equals(Constants.DEVELOPER_ID);
 	}
 
+	@Nullable
 	public MessageCreateData lacksPermissions(TextChannel tc, Member member, Permission[] permissions) {
 		return lacksPermissions(tc, member, false, null, permissions);
 	}
 
+	@Nullable
 	public MessageCreateData lacksPermissions(TextChannel tc, Member member, boolean isSelf, Permission[] permissions) {
 		return lacksPermissions(tc, member, isSelf, null, permissions);
 	}
 	
+	@Nullable
 	public MessageCreateData lacksPermissions(TextChannel tc, Member member, boolean isSelf, TextChannel channel, Permission[] permissions) {
 		Guild guild = tc.getGuild();
 		if (isSelf) {

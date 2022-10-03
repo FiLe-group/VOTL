@@ -1,7 +1,11 @@
 package bot.constants;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public enum Emotes {
 	// Animated emotes
@@ -60,7 +64,8 @@ public enum Emotes {
 		return this.id;
 	}
 
-	public static String getWithEmotes(String input) {
+	@Nonnull
+	public static String getWithEmotes(@Nonnull String input) {
 		Matcher matcher = emote_pattern.matcher(input);
 		if (matcher.find()) {
 			StringBuilder builder = new StringBuilder();
@@ -74,12 +79,13 @@ public enum Emotes {
 			} while (matcher.find());
 
 			matcher.appendTail(builder);
-			input = builder.toString();
+			return Objects.requireNonNull(builder.toString());
 		}
 
 		return input;
 	}
 
+	@Nullable
 	private static String getEmote(String name) {
 		for (Emotes emote : ALL) {
 			if (emote.name().equalsIgnoreCase(name))

@@ -2,9 +2,10 @@ package bot;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
-import javax.security.auth.login.LoginException;
+import javax.annotation.Nonnull;
 
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
@@ -123,7 +124,7 @@ public class App {
 
 		// Build
 		MemberCachePolicy policy = MemberCachePolicy.VOICE		// check if in voice
-			.or(MemberCachePolicy.OWNER);						// check for owner
+			.or(Objects.requireNonNull(MemberCachePolicy.OWNER));						// check for owner
 
 		Integer retries = 4; // how many times will it try to build
 		Integer cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
@@ -197,12 +198,14 @@ public class App {
 		return checkUtil;
 	}
 
+	@Nonnull
 	public String getLanguage(String id) {
 		String res = dbUtil.guildGetLanguage(id);
 		return (res == null ? "en" : res);
 	}
 
 	@ForRemoval
+	@Nonnull
 	public String getPrefix(String id) {
 		return "/"; // default prefix
 	}
@@ -211,49 +214,59 @@ public class App {
 		dbUtil.guildSetLanguage(id, value);
 	}
 
+	@Nonnull
 	public String getMsg(String id, String path, String user, String target) {
 		target = target == null ? "null" : target;
 		
 		return getMsg(id, path, user, Collections.singletonList(target));
 	}
 
+	@Nonnull
 	public String getMsg(String id, String path, String user, List<String> targets) {
 		String targetReplacement = targets.isEmpty() ? "null" : getMessageUtil().getFormattedMembers(id, targets.toArray(new String[0]));
 
-		return getMsg(id, path, user)
+		return Objects.requireNonNull(getMsg(id, path, user)
 			.replace("{target}", targetReplacement)
-			.replace("{targets}", targetReplacement);
+			.replace("{targets}", targetReplacement));
 	}
 
+	@Nonnull
 	public String getMsg(String id, String path, String user) {
 		return getMsg(id, path, user, true);
 	}
 
+	@Nonnull
 	public String getMsg(String id, String path, String user, boolean format) {
 		if (format)
 			user = getMessageUtil().getFormattedMembers(id, user);
 
-		return getMsg(id, path).replace("{user}", user);
+		return Objects.requireNonNull(getMsg(id, path).replace("{user}", user));
 	}
 
+	@Nonnull
 	public String getMsg(String path) {
 		return getMsg("0", path);
 	}
 
+	@Nonnull
 	public String getMsg(String id, String path) {
-		return setPlaceholders(langUtil.getString(getLanguage(id), path))
-			.replace("{prefix}", getPrefix(id));
+		return Objects.requireNonNull(
+			setPlaceholders(langUtil.getString(getLanguage(id), path))
+				.replace("{prefix}", getPrefix(id))
+		);
 	}
 
-	private String setPlaceholders(String msg) {
-		return Emotes.getWithEmotes(msg)
+	@Nonnull
+	private String setPlaceholders(@Nonnull String msg) {
+		return Objects.requireNonNull(Emotes.getWithEmotes(msg)
 			.replace("{name}", "Voice of the Lord")
 			.replace("{guild_invite}", Links.DISCORD)
 			.replace("{owner_id}", fileManager.getString("config", "owner-id"))
 			.replace("{developer_name}", Constants.DEVELOPER_NAME)
 			.replace("{developer_id}", Constants.DEVELOPER_ID)
 			.replace("{bot_invite}", fileManager.getString("config", "bot-invite"))
-			.replace("{bot_version}", version);
+			.replace("{bot_version}", version)
+		);
 	}
 
 	public static void main(String[] args) {

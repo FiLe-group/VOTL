@@ -2,6 +2,8 @@ package bot.utils.file.lang;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import bot.App;
 
 public final class LangUtil {
@@ -11,6 +13,7 @@ public final class LangUtil {
 		this.bot = bot;
 	}
 	
+	@Nonnull
 	public String getString(String language, String path) {
 		switch (language.toLowerCase()) {
 			case "ru-ru":
@@ -20,6 +23,7 @@ public final class LangUtil {
 		}
 	}
 
+	@Nonnull
 	public List<String> getStringList(String language, String path) {
 		switch (language.toLowerCase()) {
 			case "ru-ru":
@@ -35,12 +39,14 @@ public final class LangUtil {
 
 		UNKNOWN ("\uDDFA", "\uDDF3");
 
+		@Nonnull
 		private final String emote;
 
 		Language(String code1, String code2) {
 			this.emote = "\uD83C" + code1 + "\uD83C" + code2;
 		}
 
+		@Nonnull
 		public static String getEmote(String lang) {
 			for (Language language : values()) {
 				if (lang.equals(language.name().toLowerCase().replace("_", "-")))
@@ -50,6 +56,7 @@ public final class LangUtil {
 			return UNKNOWN.emote;
 		}
 
+		@Nonnull
 		public static String getString(String lang) {
 			for (Language language : values()) {
 				if (lang.equals(language.name().toLowerCase().replace("_", "-")))

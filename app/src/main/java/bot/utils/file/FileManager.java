@@ -13,7 +13,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -98,14 +101,15 @@ public class FileManager {
 		}
 	}
 	
+	@Nonnull
 	public String getString(String name, String path) {
 		File file = files.get(name);
-		
-		if (file == null)
-			return "";
 
 		JSONParser parser = new JSONParser();
+		String text = "";
 		try {
+			if (file == null)
+				throw new FileNotFoundException();
 			
 			Object obj = parser.parse(new FileReader(file));
 			JSONObject jsonObject = (JSONObject)obj;
@@ -119,23 +123,27 @@ public class FileManager {
 						res = jsonObject.get(key);
 					} catch (NullPointerException ex) {
 						throw new KeyIsNull("ERROR at file manager");
-					}
-					if (res == null) {
-						logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
-						throw new KeyIsNull("error:text not found");
-					}
-						
+					}						
 				}
 			}
+
+			if (res == null)
+				throw new KeyIsNull(path);
 			
-			return res.toString();
+			text = String.valueOf(res);
 		
+		} catch (FileNotFoundException ex) {
+			logger.error("Couldn't find file {}", name);
+			text = "ERROR: file not found";
 		} catch (KeyIsNull ex) {
-			return ex.getMessage();
+			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
+			text = ex.getMessage();
 		} catch (IOException | ParseException ex) {
 			logger.warn("Couldn't process file {}.json", name, ex);
-			return "ERROR at processing file";
+			text = "ERROR at processing file";
 		}
+
+		return Objects.requireNonNull(text);
 	}
 	
 	public boolean getBoolean(String name, String path){
@@ -171,6 +179,7 @@ public class FileManager {
 		}
 	}
 
+	@Nonnull
 	public List<String> getStringList(String name, String path){
 		File file = files.get(name);
 		
@@ -192,7 +201,7 @@ public class FileManager {
 			if (jsonArray == null || jsonArray.isEmpty())
 				return new ArrayList<>();
 				
-			return Arrays.asList(Arrays.copyOf(jsonArray.toArray(), jsonArray.size(), String[].class));
+			return Objects.requireNonNull(Arrays.asList(Arrays.copyOf(jsonArray.toArray(), jsonArray.size(), String[].class)));
 		} catch (FileNotFoundException ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
 			return new ArrayList<>();

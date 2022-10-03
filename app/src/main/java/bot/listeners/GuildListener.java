@@ -1,5 +1,7 @@
 package bot.listeners;
 
+import javax.annotation.Nonnull;
+
 import bot.App;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
@@ -14,7 +16,7 @@ public class GuildListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildJoin(GuildJoinEvent event) {
+	public void onGuildJoin(@Nonnull GuildJoinEvent event) {
 		String guildId = event.getGuild().getId();
 		// check if not exists in DB and adds it
 		if (bot.getDBUtil().guildAdd(guildId)) {
@@ -24,7 +26,7 @@ public class GuildListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildLeave(GuildLeaveEvent event) {
+	public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
 		String guildId = event.getGuild().getId();
 		if (bot.getDBUtil().isGuild(guildId) || bot.getDBUtil().isGuildVoice(guildId)) {
 			//deletes from db guild and guildSettings
