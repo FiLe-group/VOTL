@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 
@@ -233,7 +231,7 @@ public class WebhookCmd extends SlashCommand {
 			);
 		}
 
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, @NonNull String webhookId) {
+		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String webhookId) {
 
 			Member member = Objects.requireNonNull(event.getMember());
 
@@ -293,10 +291,10 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					String webhookId = event.getOption("id", "0", OptionMapping::getAsString);
+					String webhookId = event.getOption("id", "0", OptionMapping::getAsString).trim();
 					Boolean delete = event.getOption("delete", false, OptionMapping::getAsBoolean);
 
-					sendReply(event, hook, Objects.requireNonNull(webhookId), delete);
+					sendReply(event, hook, webhookId, delete);
 				}
 			);
 		}
@@ -372,10 +370,10 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					String webhookId = event.getOption("id", OptionMapping::getAsString);
+					String webhookId = event.getOption("id", OptionMapping::getAsString).trim();
 					GuildChannel channel = event.getOption("channel", OptionMapping::getAsChannel);
 
-					sendReply(event, hook, Objects.requireNonNull(webhookId), channel);
+					sendReply(event, hook, webhookId, channel);
 				}
 			);
 		}
