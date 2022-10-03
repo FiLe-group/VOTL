@@ -1,6 +1,7 @@
 package bot.commands;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -45,8 +46,9 @@ public class StatusCmd extends SlashCommand {
 
 	}
 
+	@SuppressWarnings("null")
 	private MessageEmbed getStatusEmbed(SlashCommandEvent event) {
-		String guildID = (event.isFromGuild() ? event.getGuild().getId() : "0");
+		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		EmbedBuilder builder = bot.getEmbedUtil().getEmbed();
 
 		builder.setAuthor(event.getJDA().getSelfUser().getName(), event.getJDA().getSelfUser().getEffectiveAvatarUrl())

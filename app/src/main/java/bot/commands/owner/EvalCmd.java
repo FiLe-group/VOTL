@@ -5,6 +5,7 @@ import bot.App;
 import java.awt.Color;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -65,13 +66,8 @@ public class EvalCmd extends SlashCommand {
 	}
 
 	private MessageEmbed getEvalEmbed(SlashCommandEvent event) {
-		/* if (event.getArgs().isEmpty()) {
-			bot.getEmbedUtil().sendError(event.getEvent(), "bot.owner.eval.invalid_args");
-			event.reply("Available variables:\nbot; jda; guild; channel; message", success -> success.delete().queueAfter(5, TimeUnit.SECONDS));
-			return;
-		} */
 
-		String args = event.getOption("code", OptionMapping::getAsString);
+		String args = event.getOption("code", "", OptionMapping::getAsString);
 		args = args.trim();
 		if (args.startsWith("```") && args.endsWith("```")) {
 			if (args.startsWith("```java")) {
@@ -83,7 +79,7 @@ public class EvalCmd extends SlashCommand {
 		Map<String, Object> variables = Map.of(
 			"bot", bot,
 			"jda", event.getJDA(),
-			"guild", event.getGuild(),
+			"guild", (event.isFromGuild() ? event.getGuild() : null),
 			"channel", event.getChannel(),
 			"client", event.getClient()
 		);
@@ -93,22 +89,25 @@ public class EvalCmd extends SlashCommand {
 
 		long startTime = System.currentTimeMillis();
 
+		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+
 		try {
 			Object resp = shell.evaluate(args);
 			String respString = String.valueOf(resp);
 
 			return formatEvalEmbed(event.getTextChannel(), args, respString,
-				bot.getMsg(event.getGuild().getId(), "bot.owner.eval.time")
+				bot.getMsg(guildId, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
 	 			, true);
 		} catch (PowerAssertionError | Exception ex) {
 			return formatEvalEmbed(event.getTextChannel(), args, ex.getMessage(),
-				bot.getMsg(event.getGuild().getId(), "bot.owner.eval.time")
+				bot.getMsg(guildId, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
 				, false);
 		}
 	}
 
+	@SuppressWarnings("null")
 	private MessageEmbed formatEvalEmbed(TextChannel tc, String input, String output, String footer, boolean success) {
 		String newMsg = input;
 		

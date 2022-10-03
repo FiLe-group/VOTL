@@ -1,6 +1,7 @@
 package bot.commands;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -50,11 +51,13 @@ public class AboutCmd extends SlashCommand {
 
 	}
 
+	@SuppressWarnings("null")
 	private MessageEmbed getAboutEmbed(SlashCommandEvent event) {
-		String guildID = "0";
+
+		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		EmbedBuilder builder = null;
+
 		if (event.isFromGuild()) {
-			guildID = event.getGuild().getId();
 			builder = bot.getEmbedUtil().getEmbed(event.getMember());
 		} else {
 			builder = bot.getEmbedUtil().getEmbed();

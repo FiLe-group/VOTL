@@ -3,7 +3,13 @@ package bot.commands.webhook;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -12,6 +18,8 @@ import bot.App;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.WebhookType;
 import net.dv8tion.jda.api.exceptions.PermissionException;
@@ -23,6 +31,7 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
+@SuppressWarnings("null")
 public class WebhookCmd extends SlashCommand {
 
 	protected static Permission[] userPerms, botPerms;
@@ -67,40 +76,45 @@ public class WebhookCmd extends SlashCommand {
 
 		private void sendReply(SlashCommandEvent event, InteractionHook hook, boolean listAll) {
 
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+			Member member = Objects.requireNonNull(event.getMember());
+
+			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
 			}
 			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
+			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
 			}
 
-			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event.getMember())
-				.setTitle(bot.getMsg(event.getGuild().getId(), "bot.webhook.list.embed.title"));
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildId = guild.getId();
+
+			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(member)
+				.setTitle(bot.getMsg(guildId, "bot.webhook.list.embed.title"));
 			
 			// Retrieves every webhook in server
-			event.getGuild().retrieveWebhooks().queue(webhooks -> {
+			guild.retrieveWebhooks().queue(webhooks -> {
 				// Remove FOLLOWER type webhooks
 				webhooks = webhooks.stream().filter(wh -> wh.getType().equals(WebhookType.INCOMING)).collect(Collectors.toList());
 
 				// If there is any webhook and only saved in DB are to be shown
 				if (!listAll) {
 					// Keeps only saved in DB type Webhook objects
-					List<String> regWebhookIDs = bot.getDBUtil().webhookGetIDs(event.getGuild().getId());
+					List<String> regWebhookIDs = bot.getDBUtil().webhookGetIDs(guildId);
 						
 					webhooks = webhooks.stream().filter(wh -> regWebhookIDs.contains(wh.getId())).collect(Collectors.toList());
 				}
 
 				if (webhooks.isEmpty()) {
 					embedBuilder.setDescription(
-						bot.getMsg(event.getGuild().getId(),(listAll ? "bot.webhook.list.embed.none_found" : "bot.webhook.list.embed.none_registered"))
+						bot.getMsg(guildId, (listAll ? "bot.webhook.list.embed.none_found" : "bot.webhook.list.embed.none_registered"))
 					);
 				} else {
-					String title = bot.getMsg(event.getGuild().getId(), "bot.webhook.list.embed.value");
+					String title = bot.getMsg(guildId, "bot.webhook.list.embed.value");
 					StringBuilder text = new StringBuilder();
 					for (Webhook wh : webhooks) {
 						if (text.length() > 790) { // max characters for field value = 1024, and max for each line = ~226, so 4.5 lines fits in one field
@@ -141,7 +155,7 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					String name = event.getOption("name", OptionMapping::getAsString).trim();
+					String name = event.getOption("name", "Dafault name", OptionMapping::getAsString).trim();
 					GuildChannel channel = event.getOption("channel", event.getGuildChannel(), OptionMapping::getAsChannel);
 
 					sendReply(event, hook, name, channel);
@@ -151,13 +165,15 @@ public class WebhookCmd extends SlashCommand {
 
 		private void sendReply(SlashCommandEvent event, InteractionHook hook, String name, GuildChannel channel) {
 
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+			Member member = Objects.requireNonNull(event.getMember());
+
+			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
 			}
 			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
+			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
@@ -168,21 +184,24 @@ public class WebhookCmd extends SlashCommand {
 				return;
 			}
 
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildId = guild.getId();
+
 			try {
 				// DYK, guildChannel doesn't have WebhookContainer! no shit
-				event.getGuild().getTextChannelById(channel.getId()).createWebhook(name).queue(
+				guild.getTextChannelById(channel.getId()).createWebhook(name).queue(
 					webhook -> {
 						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 						hook.editOriginal(MessageEditData.fromEmbeds(
-							bot.getEmbedUtil().getEmbed(event.getMember()).setDescription(
-								bot.getMsg(event.getGuild().getId(), "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
+							bot.getEmbedUtil().getEmbed(member).setDescription(
+								bot.getMsg(guildId, "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
 							).build()
 						)).queue();
 					}
 				);
 			} catch (PermissionException ex) {
 				hook.editOriginal(MessageEditData.fromCreateData(
-					bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true)
+					bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)
 				)).queue();
 				ex.printStackTrace();
 			}
@@ -207,28 +226,32 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					String webhookId = event.getOption("id", OptionMapping::getAsString).trim();
+					String webhookId = event.getOption("id", "0", OptionMapping::getAsString).trim();
 
 					sendReply(event, hook, webhookId);
 				}
 			);
 		}
 
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, String webhookId) {
+		private void sendReply(SlashCommandEvent event, InteractionHook hook, @NonNull String webhookId) {
 
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+			Member member = Objects.requireNonNull(event.getMember());
+
+			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
 			}
 			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
+			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
 			}
 
-			event.getJDA().retrieveWebhookById(webhookId).queue(
+			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+
+			event.getJDA().retrieveWebhookById(Objects.requireNonNull(webhookId)).queue(
 				webhook -> {
 					if (bot.getDBUtil().webhookExists(webhookId)) {
 						hook.editOriginal(MessageEditData.fromCreateData(
@@ -237,8 +260,8 @@ public class WebhookCmd extends SlashCommand {
 					} else {
 						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 						hook.editOriginalEmbeds(
-							bot.getEmbedUtil().getEmbed(event.getMember()).setDescription(
-								bot.getMsg(event.getGuild().getId(), "bot.webhook.add.select.done").replace("{webhook_name}", webhook.getName())
+							bot.getEmbedUtil().getEmbed(member).setDescription(
+								bot.getMsg(guildId, "bot.webhook.add.select.done").replace("{webhook_name}", webhook.getName())
 							).build()
 						).queue();
 					}
@@ -270,27 +293,32 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					String webhookId = event.getOption("id", OptionMapping::getAsString);
+					String webhookId = event.getOption("id", "0", OptionMapping::getAsString);
 					Boolean delete = event.getOption("delete", false, OptionMapping::getAsBoolean);
 
-					sendReply(event, hook, webhookId, delete);
+					sendReply(event, hook, Objects.requireNonNull(webhookId), delete);
 				}
 			);
 		}
 
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, String webhookId, Boolean delete) {
+		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String webhookId, Boolean delete) {
 
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+			Member member = Objects.requireNonNull(event.getMember());
+
+			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
 			}
 			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
+			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
 			}
+
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildId = guild.getId();
 
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
@@ -299,14 +327,14 @@ public class WebhookCmd extends SlashCommand {
 							bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_registered")
 						)).queue();
 					} else {
-						if (webhook.getGuild().equals(event.getGuild())) {
+						if (webhook.getGuild().equals(guild)) {
 							if (delete) {
 								webhook.delete(webhook.getToken()).queue();
 							}
 							bot.getDBUtil().webhookRemove(webhookId);
 							hook.editOriginalEmbeds(
-								bot.getEmbedUtil().getEmbed(event.getMember()).setDescription(
-									bot.getMsg(event.getGuild().getId(), "bot.webhook.remove.done").replace("{webhook_name}", webhook.getName())
+								bot.getEmbedUtil().getEmbed(member).setDescription(
+									bot.getMsg(guildId, "bot.webhook.remove.done").replace("{webhook_name}", webhook.getName())
 								).build()
 							).queue();
 						} else {
@@ -347,32 +375,38 @@ public class WebhookCmd extends SlashCommand {
 					String webhookId = event.getOption("id", OptionMapping::getAsString);
 					GuildChannel channel = event.getOption("channel", OptionMapping::getAsChannel);
 
-					sendReply(event, hook, webhookId, channel);
+					sendReply(event, hook, Objects.requireNonNull(webhookId), channel);
 				}
 			);
 		}
 
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, String webhookId, GuildChannel channel) {
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String webhookId, GuildChannel channel) {
+
+			Member member = Objects.requireNonNull(event.getMember());
+
+			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
 			}
 			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
+			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
 			if (permission != null) {
 				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
 				return;
 			}
 
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildId = guild.getId();
+
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
 					if (bot.getDBUtil().webhookExists(webhookId)) {
-						webhook.getManager().setChannel(event.getGuild().getTextChannelById(channel.getId())).queue(
+						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).queue(
 							wm -> {
 								hook.editOriginalEmbeds(
-									bot.getEmbedUtil().getEmbed(event.getMember()).setDescription(
-										bot.getMsg(event.getGuild().getId(), "bot.webhook.move.done")
+									bot.getEmbedUtil().getEmbed(member).setDescription(
+										bot.getMsg(guildId, "bot.webhook.move.done")
 											.replace("{webhook_name}", webhook.getName())
 											.replace("{channel}", channel.getName())
 									).build()

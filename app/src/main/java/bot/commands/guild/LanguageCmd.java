@@ -2,7 +2,11 @@ package bot.commands.guild;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -71,6 +75,7 @@ public class LanguageCmd extends SlashCommand {
 
 	private static class Set extends SlashCommand {
 
+		@SuppressWarnings("null")
 		public Set(App bot) {
 			this.name = "set";
 			this.help = bot.getMsg("bot.guild.language.set.description");
@@ -90,7 +95,7 @@ public class LanguageCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
-					String lang = event.getOption("language", OptionMapping::getAsString).toLowerCase();
+					String lang = event.getOption("language", null, OptionMapping::getAsString).toLowerCase();
 
 					MessageEditData reply = getReply(event, lang);
 
@@ -117,10 +122,11 @@ public class LanguageCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
+					String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 					MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
-						.setTitle(bot.getMsg(event.getGuild().getId(), "bot.guild.language.show.embed.title"))
-						.setDescription(bot.getMsg(event.getGuild().getId(), "bot.guild.language.show.embed.value"))
-						.addField(bot.getMsg(event.getGuild().getId(), "bot.guild.language.show.embed.field"), getLanguages(), false)
+						.setTitle(bot.getMsg(guildID, "bot.guild.language.show.embed.title"))
+						.setDescription(bot.getMsg(guildID, "bot.guild.language.show.embed.value"))
+						.addField(bot.getMsg(guildID, "bot.guild.language.show.embed.field"), getLanguages(), false)
 						.build();
 
 					hook.editOriginalEmbeds(embed).queue();
@@ -131,30 +137,34 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
+
+	@Nonnull
 	private static MessageEditData getReply(SlashCommandEvent event, String language) {
 		
 		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
 		if (permission != null)
 			return MessageEditData.fromCreateData(permission);
 
-		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+
+		if (!bot.getDBUtil().isGuild(guildID)) {
 			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		}
 
 		if (!getLangList().contains(language.toLowerCase())) {
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
-				.setTitle(bot.getMsg(event.getGuild().getId(), "bot.guild.language.embed.available_lang_title"))
-				.setDescription(bot.getMsg(event.getGuild().getId(), "bot.guild.language.embed.available_lang_value"))
-				.addField(bot.getMsg(event.getGuild().getId(), "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
+				.setTitle(bot.getMsg(guildID, "bot.guild.language.embed.available_lang_title"))
+				.setDescription(bot.getMsg(guildID, "bot.guild.language.embed.available_lang_value"))
+				.addField(bot.getMsg(guildID, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
 				.build();
 			return MessageEditData.fromEmbeds(embed);
 		}
 
-		bot.getDBUtil().guildSetLanguage(event.getGuild().getId(), language);
+		bot.getDBUtil().guildSetLanguage(guildID, language);
 
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
 			.setColor(bot.getMessageUtil().getColor("rgb:0,200,30"))
-			.setDescription(bot.getMsg(event.getGuild().getId(), "bot.guild.language.done").replace("{language}", language))
+			.setDescription(bot.getMsg(guildID, "bot.guild.language.done").replace("{language}", language))
 			.build();
 		return MessageEditData.fromEmbeds(embed);
 	}
@@ -163,6 +173,7 @@ public class LanguageCmd extends SlashCommand {
         return bot.getFileManager().getLanguages();
     }
     
+	@Nonnull
     private static String getLanguages(){
         List<String> langs = getLangList();
         Collections.sort(langs);
@@ -175,6 +186,6 @@ public class LanguageCmd extends SlashCommand {
             builder.append(LangUtil.Language.getString(language));
         }
         
-        return builder.toString();
+        return Objects.requireNonNull(builder.toString());
     }
 }

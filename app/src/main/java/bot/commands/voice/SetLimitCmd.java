@@ -1,6 +1,10 @@
 package bot.commands.voice;
 
 import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
+
+import javax.annotation.Nonnull;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -8,6 +12,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -59,20 +64,26 @@ public class SetLimitCmd extends SlashCommand {
 
 	}
 
+	@Nonnull
 	private MessageEditData getReply(SlashCommandEvent event, Integer filLimit) {
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
+
+		Member member = Objects.requireNonNull(event.getMember());
+
+		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
 		if (permission != null)
 			return MessageEditData.fromCreateData(permission);
 
-		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+
+		if (!bot.getDBUtil().isGuild(guildId)) {
 			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		}
 
-		bot.getDBUtil().guildVoiceSetLimit(event.getGuild().getId(), filLimit);
+		bot.getDBUtil().guildVoiceSetLimit(guildId, filLimit);
 
 		return MessageEditData.fromEmbeds(
-			bot.getEmbedUtil().getEmbed(event.getMember())
-				.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.setlimit.done").replace("{value}", filLimit.toString()))
+			bot.getEmbedUtil().getEmbed(member)
+				.setDescription(bot.getMsg(guildId, "bot.voice.setlimit.done").replace("{value}", filLimit.toString()))
 				.build()
 		);
 	}

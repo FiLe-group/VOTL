@@ -1,5 +1,7 @@
 package bot.commands;
 
+import java.util.Optional;
+
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
@@ -24,9 +26,10 @@ public class PingCmd extends SlashCommand {
 		this.bot = bot;
 	}
 
+	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		String guildID = (event.isFromGuild() ? event.getGuild().getId() : "0");
+		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
 		event.deferReply(true).queue(hook -> {
 			hook.getJDA().getRestPing().queue(time -> {

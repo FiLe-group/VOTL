@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
+
+import javax.annotation.Nonnull;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -11,6 +14,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Mentions;
 import net.dv8tion.jda.api.entities.Role;
@@ -60,35 +64,43 @@ public class PermitCmd extends SlashCommand {
 
 	}
 
+	@SuppressWarnings("null")
+	@Nonnull
 	private MessageEditData getReply(SlashCommandEvent event, Mentions filMentions) {
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+
+		Member member = Objects.requireNonNull(event.getMember());
+
+		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
 		if (permission != null)
 			return MessageEditData.fromCreateData(permission);
 
-		if (!bot.getDBUtil().isGuild(event.getGuild().getId())) {
+		Guild guild = Objects.requireNonNull(event.getGuild());
+		String guildId = guild.getId();
+
+		if (!bot.getDBUtil().isGuild(guildId)) {
 			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		}
 
-		if (bot.getDBUtil().isVoiceChannel(event.getMember().getId())) {
-			VoiceChannel vc = event.getGuild().getVoiceChannelById(bot.getDBUtil().channelGetChannel(event.getMember().getId()));
+		if (bot.getDBUtil().isVoiceChannel(member.getId())) {
+			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
 
 			List<Member> members = filMentions.getMembers();
 			List<Role> roles = filMentions.getRoles();
 			if (members.isEmpty() & roles.isEmpty()) {
 				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.permit.invalid_args"));
 			}
-			if (members.contains(event.getMember())) {
+			if (members.contains(member)) {
 				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.permit.not_self"));
 			}
 
 			List<String> mentionStrings = new ArrayList<>();
 
-			for (Member member : members) {
+			for (Member xMember : members) {
 				try {
-					vc.getManager().putMemberPermissionOverride(member.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT), null).queue();
-					mentionStrings.add(member.getEffectiveName());
+					vc.getManager().putMemberPermissionOverride(xMember.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT), null).queue();
+					mentionStrings.add(xMember.getEffectiveName());
 				} catch (InsufficientPermissionException ex) {
-					return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), Permission.MANAGE_PERMISSIONS, true));
+					return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true));
 				}
 			}
 
@@ -98,17 +110,17 @@ public class PermitCmd extends SlashCommand {
 						vc.getManager().putRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT), null).queue();
 						mentionStrings.add(role.getName());
 					} catch (InsufficientPermissionException ex) {
-						return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), Permission.MANAGE_PERMISSIONS, true));
+						return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true));
 					}
 			}
 
 			return MessageEditData.fromEmbeds(
-				bot.getEmbedUtil().getEmbed(event.getMember())
-					.setDescription(bot.getMsg(event.getGuild().getId(), "bot.voice.permit.done", "", mentionStrings))
+				bot.getEmbedUtil().getEmbed(member)
+					.setDescription(bot.getMsg(guildId, "bot.voice.permit.done", "", mentionStrings))
 					.build()
 			);
 		} else {
-			return MessageEditData.fromContent(bot.getMsg(event.getGuild().getId(), "bot.voice.permit.no_channel"));
+			return MessageEditData.fromContent(bot.getMsg(guildId, "bot.voice.permit.no_channel"));
 		}
 	}
 }

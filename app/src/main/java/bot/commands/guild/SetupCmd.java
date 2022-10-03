@@ -1,6 +1,7 @@
 package bot.commands.guild;
 
 import java.util.EnumSet;
+import java.util.Objects;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -8,6 +9,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -58,6 +60,7 @@ public class SetupCmd extends SlashCommand {
 			);
 		}
 
+		@SuppressWarnings("null")
 		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 			
 			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
@@ -72,15 +75,16 @@ public class SetupCmd extends SlashCommand {
 				return;
 			}
 
-			String guildID = event.getGuild().getId();
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildID = guild.getId();
 
 			if (bot.getDBUtil().guildAdd(guildID)) {
-				bot.getLogger().info("Added guild through setup '"+event.getGuild().getName()+"'("+guildID+") to db");
+				bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildID+") to db");
 			}
 
 			try {
-				event.getGuild().createCategory(bot.getMsg(guildID, "bot.voice.setup.category"))
-					.addRolePermissionOverride(event.getGuild().getRoleByBot(event.getJDA().getSelfUser().getId()).getIdLong(),
+				guild.createCategory(bot.getMsg(guildID, "bot.voice.setup.category"))
+					.addRolePermissionOverride(guild.getRoleByBot(event.getJDA().getSelfUser().getId()).getIdLong(),
 						EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS),
 						null)
 					.queue(
@@ -91,7 +95,7 @@ public class SetupCmd extends SlashCommand {
 									.addMemberPermissionOverride(event.getJDA().getSelfUser().getIdLong(),
 										EnumSet.of(Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS),
 										null)
-									.addPermissionOverride(event.getGuild().getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
+									.addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
 									.queue(
 										channel -> {
 											bot.getDBUtil().guildVoiceSetup(guildID, category.getId(), channel.getId());

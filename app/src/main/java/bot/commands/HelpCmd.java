@@ -3,6 +3,7 @@ package bot.commands;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
@@ -64,15 +65,14 @@ public class HelpCmd extends SlashCommand {
 		// in dev
 	} */
 
+	@SuppressWarnings("null")
 	private MessageEmbed getHelpEmbed(SlashCommandEvent event, String filCat) {
-		String guildID = "0";
+
+		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		String prefix = "/";
-		String ownerID = event.getClient().getOwnerId();
-		String serverInvite = event.getClient().getServerInvite();
 		EmbedBuilder builder = null;
 
 		if (event.isFromGuild()) {
-			guildID = event.getGuild().getId();
 			builder = bot.getEmbedUtil().getEmbed(event.getMember());
 		} else {
 			builder = bot.getEmbedUtil().getEmbed();
@@ -109,12 +109,14 @@ public class HelpCmd extends SlashCommand {
 			builder.addField(fieldTitle.toString(), fieldValue.toString(), false);
 		}
 
-		User owner = event.getJDA().getUserById(ownerID);
-		if (owner!=null) {
+		User owner = Optional.ofNullable(event.getClient().getOwnerId()).map(id -> event.getJDA().getUserById(id)).orElse(null);
+		String serverInvite = event.getClient().getServerInvite();
+
+		if (owner != null) {
 			fieldTitle = "*Additional help*";
 			fieldValue = new StringBuilder()
 				.append("\n\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator());
-			if(serverInvite!=null)
+			if (serverInvite != null)
 				fieldValue.append(" or join ").append(serverInvite);
 			builder.addField(fieldTitle.toString(), fieldValue.toString(), false);
 		}
