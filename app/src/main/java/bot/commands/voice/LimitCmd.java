@@ -50,7 +50,7 @@ public class LimitCmd extends SlashCommand {
 
 		public Set(App bot) {
 			this.name = "set";
-			this.help = bot.getMsg("bot.voice.limit.set.description");
+			this.help = bot.getMsg("bot.voice.limit.set.help");
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.INTEGER, "limit", bot.getMsg("bot.voice.limit.set.option_description"))
 					.setRequiredRange(0, 99)
@@ -83,7 +83,7 @@ public class LimitCmd extends SlashCommand {
 
 		public Reset(App bot) {
 			this.name = "reset";
-			this.help = bot.getMsg("bot.voice.limit.reset.description");
+			this.help = bot.getMsg("bot.voice.limit.reset.help");
 		}
 
 		@Override
@@ -138,7 +138,7 @@ public class LimitCmd extends SlashCommand {
 					.build()
 			);
 		} else {
-			return MessageEditData.fromContent(bot.getMsg(guildId, "bot.voice.limit.no_channel"));
+			return MessageEditData.fromContent(bot.getMsg(guildId, "errors.no_channel"));
 		}
 	}
 }

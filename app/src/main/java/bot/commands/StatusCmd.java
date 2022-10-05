@@ -25,7 +25,7 @@ public class StatusCmd extends SlashCommand {
 
 	public StatusCmd(App bot) {
 		this.name = "status";
-		this.help = bot.getMsg("bot.other.status.description");
+		this.help = bot.getMsg("bot.other.status.help");
 		this.guildOnly = false;
 		this.category = new Category("other");
 		this.options = Collections.singletonList(

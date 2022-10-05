@@ -1,5 +1,6 @@
 package bot.commands.guild;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Objects;
 
@@ -28,7 +29,7 @@ public class SetupCmd extends SlashCommand {
 
 	public SetupCmd(App bot) {
 		this.name = "setup";
-		this.help = bot.getMsg("bot.guild.setup.description");;
+		this.help = bot.getMsg("bot.guild.setup.help");;
 		this.category = new Category("guild");
 		SetupCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.children = new SlashCommand[]{new Voice(bot)};
@@ -48,7 +49,7 @@ public class SetupCmd extends SlashCommand {
 		public Voice(App bot) {
 			this.name = "voice";
 			this.help = bot.getMsg("bot.guild.setup.values.voice");
-			this.botPerms = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS
+			this.botPerms = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS
 			this.bot = bot;
 		}
 
@@ -85,16 +86,12 @@ public class SetupCmd extends SlashCommand {
 			try {
 				guild.createCategory(bot.getMsg(guildID, "bot.voice.setup.category"))
 					.addRolePermissionOverride(guild.getRoleByBot(event.getJDA().getSelfUser().getId()).getIdLong(),
-						EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS),
+						Arrays.asList(botPerms),
 						null)
 					.queue(
 						category -> {
 							try {
 								category.createVoiceChannel(bot.getMsg(guildID, "bot.voice.setup.channel"))
-									.syncPermissionOverrides()
-									.addMemberPermissionOverride(event.getJDA().getSelfUser().getIdLong(),
-										EnumSet.of(Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS),
-										null)
 									.addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
 									.queue(
 										channel -> {

@@ -19,7 +19,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "unlock",
-	description = "Unocks your channel for everyone (ex. disallowed users).",
+	description = "Unlocks voice channel for @everyone (ex. disallowed users).",
 	usage = "/unlock",
 	requirements = "Must have created voice channel"
 )
@@ -31,9 +31,9 @@ public class UnlockCmd extends SlashCommand {
 
 	public UnlockCmd(App bot) {
 		this.name = "unlock";
-		this.help = bot.getMsg("bot.voice.unlock.description");
+		this.help = bot.getMsg("bot.voice.unlock.help");
 		this.category = new Category("voice");
-		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS}; // Permission.MESSAGE_EMBED_LINKS
+		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
 		this.bot = bot;
 	}
 
@@ -81,7 +81,7 @@ public class UnlockCmd extends SlashCommand {
 					.build()
 			);
 		} else {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.unlock.no_channel"));
+			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.no_channel"));
 		}
 	}
 }

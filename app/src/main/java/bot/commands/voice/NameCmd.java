@@ -50,7 +50,7 @@ public class NameCmd extends SlashCommand {
 
 		public Set(App bot) {
 			this.name = "set";
-			this.help = bot.getMsg("bot.voice.name.set.description");
+			this.help = bot.getMsg("bot.voice.name.set.help");
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.STRING, "name", bot.getMsg("bot.voice.name.set.option_description"))
 					.setRequired(true)
@@ -77,7 +77,7 @@ public class NameCmd extends SlashCommand {
 
 		public Reset(App bot) {
 			this.name = "reset";
-			this.help = bot.getMsg("bot.voice.name.reset.description");
+			this.help = bot.getMsg("bot.voice.name.reset.help");
 		}
 
 		@Override
@@ -140,7 +140,7 @@ public class NameCmd extends SlashCommand {
 					.build()
 			);
 		} else {
-			return MessageEditData.fromContent(bot.getMsg(guildId, "bot.voice.name.no_channel"));
+			return MessageEditData.fromContent(bot.getMsg(guildId, "errors.no_channel"));
 		}
 	}
 }

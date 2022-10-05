@@ -38,7 +38,7 @@ public class EvalCmd extends SlashCommand {
 	
 	public EvalCmd(App bot) {
 		this.name = "eval";
-		this.help = bot.getMsg("bot.owner.eval.description");
+		this.help = bot.getMsg("bot.owner.eval.help");
 		this.ownerCommand = true;
 		this.category = new Category("owner");
 		this.options = Collections.singletonList(

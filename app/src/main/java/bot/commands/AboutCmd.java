@@ -29,7 +29,7 @@ public class AboutCmd extends SlashCommand {
 
 	public AboutCmd(App bot) {
 		this.name = "about";
-		this.help = bot.getMsg("bot.other.about.description");
+		this.help = bot.getMsg("bot.other.about.help");
 		this.guildOnly = false;
 		this.category = new Category("other");
 		this.options = Collections.singletonList(

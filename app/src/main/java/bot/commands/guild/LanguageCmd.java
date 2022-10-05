@@ -40,7 +40,7 @@ public class LanguageCmd extends SlashCommand {
 		this.name = "language";
 		this.category = new Category("guild");
 		LanguageCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
-		this.children = new SlashCommand[]{new Reset(bot), new Set(bot), new Show(bot)};
+		this.children = new SlashCommand[]{new Reset(), new Set(), new Show()};
 		LanguageCmd.bot = bot;
 	}
 
@@ -51,9 +51,9 @@ public class LanguageCmd extends SlashCommand {
 
 	private static class Reset extends SlashCommand {
 
-		public Reset(App bot) {
+		public Reset() {
 			this.name = "reset";
-			this.help = bot.getMsg("bot.guild.language.reset.description");
+			this.help = bot.getMsg("bot.guild.language.reset.help");
 		}
 
 		@Override
@@ -76,9 +76,9 @@ public class LanguageCmd extends SlashCommand {
 	private static class Set extends SlashCommand {
 
 		@SuppressWarnings("null")
-		public Set(App bot) {
+		public Set() {
 			this.name = "set";
-			this.help = bot.getMsg("bot.guild.language.set.description");
+			this.help = bot.getMsg("bot.guild.language.set.help");
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.STRING, "language", bot.getMsg("bot.guild.language.set.option_description"))
 					.setRequired(true)
@@ -109,12 +109,9 @@ public class LanguageCmd extends SlashCommand {
 
 	private static class Show extends SlashCommand {
 
-		private final App bot;
-
-		public Show(App bot) {
+		public Show() {
 			this.name = "show";
-			this.help = bot.getMsg("bot.guild.language.show.description");
-			this.bot = bot;
+			this.help = bot.getMsg("bot.guild.language.show.help");
 		}
 
 		@Override

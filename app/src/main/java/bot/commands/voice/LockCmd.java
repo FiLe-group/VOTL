@@ -19,7 +19,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "lock",
-	description = "Locks your channel for everyone (ex. allowed one).",
+	description = "Locks voice channel for @everyone (ex. allowed one).",
 	usage = "/lock",
 	requirements = "Must have created voice channel"
 )
@@ -31,9 +31,9 @@ public class LockCmd extends SlashCommand {
 
 	public LockCmd(App bot) {
 		this.name = "lock";
-		this.help = bot.getMsg("bot.voice.lock.description");
+		this.help = bot.getMsg("bot.voice.lock.help");
 		this.category = new Category("voice");
-		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS}; // Permission.MESSAGE_EMBED_LINKS
+		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
 		this.bot = bot;
 	}
 
@@ -81,7 +81,7 @@ public class LockCmd extends SlashCommand {
 					.build()
 			);
 		} else {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.lock.no_channel"));
+			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.no_channel"));
 		}
 	}
 }

@@ -40,9 +40,9 @@ public class PermitCmd extends SlashCommand {
 
 	public PermitCmd(App bot) {
 		this.name = "permit";
-		this.help = bot.getMsg("bot.voice.permit.description");
+		this.help = bot.getMsg("bot.voice.permit.help");
 		this.category = new Category("voice");
-		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
+		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.STRING, "mention", bot.getMsg("bot.voice.permit.option_description"))
 				.setRequired(true)
@@ -97,7 +97,7 @@ public class PermitCmd extends SlashCommand {
 
 			for (Member xMember : members) {
 				try {
-					vc.getManager().putMemberPermissionOverride(xMember.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT), null).queue();
+					vc.getManager().putMemberPermissionOverride(xMember.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
 					mentionStrings.add(xMember.getEffectiveName());
 				} catch (InsufficientPermissionException ex) {
 					return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true));
@@ -107,7 +107,7 @@ public class PermitCmd extends SlashCommand {
 			for (Role role : roles) {
 				if (!role.hasPermission(new Permission[]{Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES}))
 					try {
-						vc.getManager().putRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT), null).queue();
+						vc.getManager().putRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
 						mentionStrings.add(role.getName());
 					} catch (InsufficientPermissionException ex) {
 						return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true));
@@ -120,7 +120,7 @@ public class PermitCmd extends SlashCommand {
 					.build()
 			);
 		} else {
-			return MessageEditData.fromContent(bot.getMsg(guildId, "bot.voice.permit.no_channel"));
+			return MessageEditData.fromContent(bot.getMsg(guildId, "errors.no_channel"));
 		}
 	}
 }
