@@ -35,10 +35,11 @@ public class NameCmd extends SlashCommand {
 
 	public NameCmd(App bot) {
 		this.name = "name";
+		this.help = bot.getMsg("bot.voice.name.help");
 		this.category = new Category("voice");
 		NameCmd.botPerms = new Permission[]{Permission.MANAGE_CHANNEL};
-		this.children = new SlashCommand[]{new Set(bot), new Reset(bot)};
 		NameCmd.bot = bot;
+		this.children = new SlashCommand[]{new Set(), new Reset()};
 	}
 
 	@Override
@@ -48,7 +49,7 @@ public class NameCmd extends SlashCommand {
 
 	private static class Set extends SlashCommand {
 
-		public Set(App bot) {
+		public Set() {
 			this.name = "set";
 			this.help = bot.getMsg("bot.voice.name.set.help");
 			this.options = Collections.singletonList(
@@ -75,7 +76,7 @@ public class NameCmd extends SlashCommand {
 
 	private static class Reset extends SlashCommand {
 
-		public Reset(App bot) {
+		public Reset() {
 			this.name = "reset";
 			this.help = bot.getMsg("bot.voice.name.reset.help");
 		}

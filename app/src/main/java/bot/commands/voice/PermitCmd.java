@@ -89,7 +89,7 @@ public class PermitCmd extends SlashCommand {
 			if (members.isEmpty() & roles.isEmpty()) {
 				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.permit.invalid_args"));
 			}
-			if (members.contains(member)) {
+			if (members.contains(member) || members.contains(guild.getSelfMember())) {
 				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.permit.not_self"));
 			}
 

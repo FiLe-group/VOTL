@@ -38,6 +38,7 @@
 		},
 		"guild": {
 			"language": {
+				"help": "Manage bot's localization used on this server",
 				"reset": {
 					"help": "Reset language to default"
 				},
@@ -87,6 +88,7 @@
 				"done": "Successfully changed default voice channel limit to `{value}`!"
 			},
 			"name": {
+				"help": "Control your VC name",
 				"reset": {
 					"help": "Reset your VC name to default"
 				},
@@ -98,6 +100,7 @@
 				"done": "Successfully changed your's channel name to `{value}`!"
 			},
 			"limit": {
+				"help": "Control your VC limit",
 				"reset": {
 					"help": "Reset your VC limit to default"
 				},
@@ -126,18 +129,18 @@
 				"help": "Gives the user permission to join your channel",
 				"option_description": "Enter Role or Member mention/-s",
 				"invalid_args": "You didn't provided users.\nUsage: `/permit <mention member/-s or role/-s>`",
-				"not_self": "You can't add yourself.",
+				"not_self": "You can't add yourself or me.",
 				"done": "Successfully permited {targets} to connect to your channel!"
 			},
 			"reject": {
 				"help": "Withdraw the user permission to join your channel",
 				"option_description": "Enter Role or Member mention/-s",
 				"invalid_args": "You didn't provided users.\nUsage: `/reject <mention member/-s or role/-s>`",
-				"not_self": "You can't remove yourself.",
+				"not_self": "You can't remove yourself or me.",
 				"done": "Successfully rejected {targets} from connecting to your channel!"
 			},
 			"reset": {
-				"description": "Resets user voice settings to default values"
+				"help": "Resets user voice settings to default values"
 			}
 		},
 		"webhook": {

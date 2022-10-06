@@ -89,7 +89,7 @@ public class RejectCmd extends SlashCommand {
 			if (members.isEmpty() & roles.isEmpty()) {
 				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.reject.invalid_args"));
 			}
-			if (members.contains(member)) {
+			if (members.contains(member) || members.contains(guild.getSelfMember())) {
 				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.reject.not_self"));
 			}
 

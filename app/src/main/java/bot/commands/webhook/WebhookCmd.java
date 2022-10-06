@@ -32,6 +32,8 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 @SuppressWarnings("null")
 public class WebhookCmd extends SlashCommand {
 
+	private static App bot;
+
 	protected static Permission[] userPerms, botPerms;
 
 	public WebhookCmd(App bot) {
@@ -40,7 +42,8 @@ public class WebhookCmd extends SlashCommand {
 		this.category = new Category("webhook");
 		WebhookCmd.botPerms = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		WebhookCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
-		this.children = new SlashCommand[]{new ShowList(bot), new Create(bot), new Select(bot), new Remove(bot), new Move(bot)};
+		WebhookCmd.bot = bot;
+		this.children = new SlashCommand[]{new ShowList(), new Create(), new Select(), new Remove(), new Move()};
 	}
 
 	@Override
@@ -50,15 +53,12 @@ public class WebhookCmd extends SlashCommand {
 
 	private static class ShowList extends SlashCommand {
 
-		private final App bot;
-
-		public ShowList(App bot) {
+		public ShowList() {
 			this.name = "list";
 			this.help = bot.getMsg("bot.webhook.list.help");
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.BOOLEAN, "all", bot.getMsg("bot.webhook.list.option_all"))
 			);
-			this.bot = bot;
 		}
 
 		@Override
@@ -135,18 +135,14 @@ public class WebhookCmd extends SlashCommand {
 
 	private static class Create extends SlashCommand {
 
-		private final App bot;
-
-		public Create(App bot) {
+		public Create() {
 			this.name = "create";
 			this.help = bot.getMsg("bot.webhook.add.create.help");
-
 			List<OptionData> options = new ArrayList<OptionData>();
 			options.add(new OptionData(OptionType.STRING, "name", bot.getMsg("bot.webhook.add.create.option_name"), true));
 			options.add(new OptionData(OptionType.CHANNEL, "channel", bot.getMsg("bot.webhook.add.create.option_channel")));
 			this.options = options;
 			this.subcommandGroup = new SubcommandGroupData("add", bot.getMsg("bot.webhook.add.help"));
-			this.bot = bot;
 		}
 
 		@Override
@@ -208,16 +204,13 @@ public class WebhookCmd extends SlashCommand {
 
 	private static class Select extends SlashCommand {
 
-		private final App bot;
-
-		public Select(App bot) {
+		public Select() {
 			this.name = "select";
 			this.help = bot.getMsg("bot.webhook.add.select.help");
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.STRING, "id", bot.getMsg("bot.webhook.add.select.option_id"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("add", bot.getMsg("bot.webhook.add.help"));
-			this.bot = bot;
 		}
 
 		@Override
@@ -275,16 +268,13 @@ public class WebhookCmd extends SlashCommand {
 
 	private static class Remove extends SlashCommand {
 
-		private final App bot;
-
-		public Remove(App bot) {
+		public Remove() {
 			this.name = "remove";
 			this.help = bot.getMsg("bot.webhook.remove.help");
 			List<OptionData> options = new ArrayList<OptionData>();
 			options.add(new OptionData(OptionType.STRING, "id", bot.getMsg("bot.webhook.remove.option_id"), true));
 			options.add(new OptionData(OptionType.BOOLEAN, "delete", bot.getMsg("bot.webhook.remove.option_delete")));
 			this.options = options;
-			this.bot = bot;
 		}
 
 		@Override
@@ -354,16 +344,13 @@ public class WebhookCmd extends SlashCommand {
 
 	private static class Move extends SlashCommand {
 
-		private final App bot;
-
-		public Move(App bot) {
+		public Move() {
 			this.name = "move";
 			this.help = bot.getMsg("bot.webhook.move.help");
 			List<OptionData> options = new ArrayList<OptionData>();
 			options.add(new OptionData(OptionType.STRING, "id", bot.getMsg("bot.webhook.move.option_id"), true));
 			options.add(new OptionData(OptionType.CHANNEL, "channel", bot.getMsg("bot.webhook.move.option_channel"), true));
 			this.options = options;
-			this.bot = bot;
 		}
 
 		@Override

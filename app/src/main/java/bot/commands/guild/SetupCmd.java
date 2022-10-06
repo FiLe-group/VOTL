@@ -25,6 +25,8 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 )
 public class SetupCmd extends SlashCommand {
 
+	private static App bot;
+
 	protected static Permission[] userPerms;
 
 	public SetupCmd(App bot) {
@@ -32,7 +34,8 @@ public class SetupCmd extends SlashCommand {
 		this.help = bot.getMsg("bot.guild.setup.help");;
 		this.category = new Category("guild");
 		SetupCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
-		this.children = new SlashCommand[]{new Voice(bot)};
+		SetupCmd.bot = bot;
+		this.children = new SlashCommand[]{new Voice()};
 	}
 
 	@Override
@@ -42,15 +45,12 @@ public class SetupCmd extends SlashCommand {
 
 	private static class Voice extends SlashCommand {
 
-		private final App bot;
-
 		protected Permission[] botPerms;
 
-		public Voice(App bot) {
+		public Voice() {
 			this.name = "voice";
 			this.help = bot.getMsg("bot.guild.setup.values.voice");
 			this.botPerms = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS
-			this.bot = bot;
 		}
 
 		protected void execute(SlashCommandEvent event) {

@@ -38,10 +38,11 @@ public class LanguageCmd extends SlashCommand {
 
 	public LanguageCmd(App bot) {
 		this.name = "language";
+		this.help = bot.getMsg("bot.guild.language.help");
 		this.category = new Category("guild");
 		LanguageCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
-		this.children = new SlashCommand[]{new Reset(), new Set(), new Show()};
 		LanguageCmd.bot = bot;
+		this.children = new SlashCommand[]{new Reset(), new Set(), new Show()};
 	}
 
 	@Override

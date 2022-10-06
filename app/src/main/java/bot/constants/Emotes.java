@@ -11,7 +11,7 @@ public enum Emotes {
 	// Animated emotes
 	LOADING     ("loading",     "960102018217828352", true),
 	TYPING      ("typing",      "960102038291742750", true),
-	THINKING	("thinking",	"960102089919447080", true),
+	THINKING	("thinking",    "960102089919447080", true),
 	// Static/Normal emotes
 	CHECK       ("check",       "960101819428769812", false),
 	WARNING     ("warning",     "960101573571276820", false),
