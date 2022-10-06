@@ -2,14 +2,12 @@ package bot.utils.file;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +16,11 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.LoggerFactory;
+
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
 
 import ch.qos.logback.classic.Logger;
 import bot.App;
@@ -105,32 +103,17 @@ public class FileManager {
 	public String getString(String name, String path) {
 		File file = files.get(name);
 
-		JSONParser parser = new JSONParser();
 		String text = "";
 		try {
 			if (file == null)
 				throw new FileNotFoundException();
-			
-			Object obj = parser.parse(new FileReader(file));
-			JSONObject jsonObject = (JSONObject)obj;
-			Object res = null;
-			
-			for (String key : path.split("\\.")) {
-				if (path.contains(".") && !key.equals(path.substring(path.lastIndexOf(".")+1, path.length())))
-					jsonObject = (JSONObject) jsonObject.get(key);
-				else {
-					try {
-						res = jsonObject.get(key);
-					} catch (NullPointerException ex) {
-						throw new KeyIsNull("ERROR at file manager");
-					}						
-				}
-			}
 
-			if (res == null)
+			Configuration conf = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
+
+			text = JsonPath.using(conf).parse(file).read("$." + path);
+
+			if (text == null || text.isEmpty())
 				throw new KeyIsNull(path);
-			
-			text = String.valueOf(res);
 		
 		} catch (FileNotFoundException ex) {
 			logger.error("Couldn't find file {}", name);
@@ -138,7 +121,7 @@ public class FileManager {
 		} catch (KeyIsNull ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
 			text = ex.getMessage();
-		} catch (IOException | ParseException ex) {
+		} catch (IOException ex) {
 			logger.warn("Couldn't process file {}.json", name, ex);
 			text = "ERROR at processing file";
 		}
@@ -152,26 +135,18 @@ public class FileManager {
 		if(file == null)
 			return false;
 		
-		JSONParser parser = new JSONParser();
 		try {
 			
-			Object obj = parser.parse(new FileReader(file));
-			JSONObject jsonObject = (JSONObject)obj;
-			Object res = null;
-			
-			for (String key : path.split("\\.")) {
-				if(res != null)
-					break;
-					   
-				res = jsonObject.get(key);
-			}
+			Configuration conf = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
+
+			Object res = JsonPath.using(conf).parse(file).read("$." + path);
 			
 			if (res == null || res.equals(null))
 				return false;
 				
 			return true;
-		} catch (FileNotFoundException | ParseException ex) {
-			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
+		} catch (FileNotFoundException ex) {
+			logger.error("Couldn't find file {}", name);
 			return false;
 		} catch (IOException ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
@@ -186,27 +161,25 @@ public class FileManager {
 		if(file == null)
 			return new ArrayList<>();
 
-		JSONParser parser = new JSONParser();
+		List<String> array = new ArrayList<String>();
 		try {
 			
-			Object obj = parser.parse(new FileReader(file));
-			JSONObject jsonObject = (JSONObject)obj;
-			JSONArray jsonArray = null;
+			Configuration conf = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
+
+			array = JsonPath.using(conf).parse(file).read("$." + path);	
 			
-			for (String key : path.split("\\.")) {
+			if (array == null || array.isEmpty())
+				throw new KeyIsNull(path);
 				
-				jsonArray = (JSONArray) jsonObject.get(key);
-			}
-			
-			if (jsonArray == null || jsonArray.isEmpty())
-				return new ArrayList<>();
-				
-			return Objects.requireNonNull(Arrays.asList(Arrays.copyOf(jsonArray.toArray(), jsonArray.size(), String[].class)));
+			return array;
 		} catch (FileNotFoundException ex) {
-			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
+			logger.error("Couldn't find file {}", name);
 			return new ArrayList<>();
-		} catch (IOException | ParseException ex) {
-			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
+		} catch (KeyIsNull ex) {
+			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
+			return new ArrayList<>();
+		} catch (IOException ex) {
+			logger.warn("Couldn't process file {}.json", name, ex);
 			return new ArrayList<>();
 		}
 	}

@@ -38,7 +38,7 @@ dependencies {
 	implementation 'pw.chew:jda-chewtils-doc:2.0-SNAPSHOT'			// Documentation Package (future implementation)
 
 	// Tools
-	implementation 'com.googlecode.json-simple:json-simple:1.1.1'	// json
+	implementation 'com.jayway.jsonpath:json-path:2.7.0'			// json path-er
 	implementation 'org.xerial:sqlite-jdbc:3.39.2.1'				// sqlite database
 
 	// Eval
