@@ -125,6 +125,14 @@
 				"help": "Unlocks your channel for @everyone (ex. disallowed users)",
 				"done": "Successfully unlocked your channel!"
 			},
+			"ghost": {
+				"help": "Hides your channel for @everyone (ex. allowed users)",
+				"done": "Successfully ghosted your channel!"
+			},
+			"unghost": {
+				"help": "Unhides your channel for @everyone",
+				"done": "Successfully unghosted your channel!"
+			},
 			"permit": {
 				"help": "Gives the user permission to join your channel",
 				"option_description": "Enter Role or Member mention/-s",
@@ -138,6 +146,24 @@
 				"invalid_args": "You didn't provided users.\nUsage: `/reject <mention member/-s or role/-s>`",
 				"not_self": "You can't remove yourself or me.",
 				"done": "Successfully rejected {targets} from connecting to your channel!"
+			},
+			"perms": {
+				"help": "View/Reset voice channel permissions",
+				"view": {
+					"help": "View voice channel permissions",
+					"embed": {
+						"title": "Channel permissions for {channel}",
+						"field": "**Holder | Can View | Can Join**",
+						"everyone": "Everyone",
+						"roles": "Roles:",
+						"members": "Members:",
+						"none": "*None*"
+					}
+				},
+				"reset": {
+					"help": "Reset voice channel permissions to default (sync with category)",
+					"done": "Successfully synced channel permissions with category!"
+				}
 			},
 			"reset": {
 				"help": "Resets user voice settings to default values"

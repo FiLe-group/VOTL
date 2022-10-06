@@ -106,6 +106,9 @@ public class App {
 				new RejectCmd(this),
 				new LockCmd(this),
 				new UnlockCmd(this),
+				new GhostCmd(this),
+				new UnghostCmd(this),
+				new PermsCmd(this),
 				// guild
 				new LanguageCmd(this),
 				new SetupCmd(this),
