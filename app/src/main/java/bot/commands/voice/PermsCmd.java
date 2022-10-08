@@ -87,7 +87,7 @@ public class PermsCmd extends SlashCommand {
 				VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
 
 				EmbedBuilder embed = bot.getEmbedUtil().getEmbed(member)
-					.setTitle(bot.getMsg(guildId, "bot.voice.perms.view.embed.title").replace("{channel}", vc.getAsMention()))
+					.setTitle(bot.getMsg(guildId, "bot.voice.perms.view.embed.title").replace("{channel}", vc.getName()))
 					.setDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.field")+"\n\n");
 
 				//@Everyone
@@ -100,7 +100,7 @@ public class PermsCmd extends SlashCommand {
 					.appendDescription("\n\n" + bot.getMsg(guildId, "bot.voice.perms.view.embed.roles") + "\n");
 
 				//Roles
-				List<PermissionOverride> overrides = new ArrayList<>(vc.getRolePermissionOverrides());
+				List<PermissionOverride> overrides = new ArrayList<>(vc.getRolePermissionOverrides()); // cause given override list is immutable
 				try {
 					overrides.remove(vc.getPermissionOverride(Objects.requireNonNull(guild.getBotRole()))); // removes bot's role
 					overrides.remove(vc.getPermissionOverride(guild.getPublicRole())); // removes @everyone role

@@ -54,7 +54,7 @@ public class HelpCmd extends SlashCommand {
 		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
 			hook -> {
 				String filCat = event.getOption("category", null, OptionMapping::getAsString);
-
+				
 				sendReply(event, hook, filCat);
 			}
 		);
@@ -92,7 +92,7 @@ public class HelpCmd extends SlashCommand {
 			if (!command.isHidden() && (!command.isOwnerCommand() || bot.getCheckUtil().isDeveloper(event.getUser()))) {
 				if (!Objects.equals(category, command.getCategory())) {
 					if (category != null) {
-						builder.addField(fieldTitle.toString(), fieldValue.toString(), false);
+						builder.addField(fieldTitle, fieldValue.toString(), false);
 					}
 					category = command.getCategory();
 					fieldTitle = bot.getMsg(guildID, "bot.help.command_menu.categories."+category.getName());
@@ -105,7 +105,7 @@ public class HelpCmd extends SlashCommand {
 			}
 		}
 		if (category != null) {
-			builder.addField(fieldTitle.toString(), fieldValue.toString(), false);
+			builder.addField(fieldTitle, fieldValue.toString(), false);
 		}
 
 		User owner = Optional.ofNullable(event.getClient().getOwnerId()).map(id -> event.getJDA().getUserById(id)).orElse(null);
@@ -117,7 +117,7 @@ public class HelpCmd extends SlashCommand {
 				.append("\n\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator());
 			if (serverInvite != null)
 				fieldValue.append(" or join ").append(serverInvite);
-			builder.addField(fieldTitle.toString(), fieldValue.toString(), false);
+			builder.addField(fieldTitle, fieldValue.toString(), false);
 		}
 		
 		hook.editOriginalEmbeds(builder.build()).queue();

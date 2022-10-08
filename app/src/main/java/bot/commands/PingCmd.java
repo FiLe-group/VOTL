@@ -34,8 +34,9 @@ public class PingCmd extends SlashCommand {
 		event.deferReply(true).queue(hook -> {
 			hook.getJDA().getRestPing().queue(time -> {
 				hook.editOriginal(
-					bot.getMsg(guildID, "bot.other.ping.info")
-						.replace("{ping}", time+"")
+					bot.getMsg(guildID, "bot.other.ping.info_full")
+						.replace("{ping}", "-")
+						.replace("{rest}", time+"")
 						.replace("{websocket}", event.getJDA().getGatewayPing()+"")
 				).queue();
 			});	

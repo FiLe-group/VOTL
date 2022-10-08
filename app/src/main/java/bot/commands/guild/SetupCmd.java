@@ -80,9 +80,7 @@ public class SetupCmd extends SlashCommand {
 
 			try {
 				guild.createCategory(bot.getMsg(guildID, "bot.voice.setup.category"))
-					.addRolePermissionOverride(guild.getRoleByBot(event.getJDA().getSelfUser().getId()).getIdLong(),
-						Arrays.asList(botPerms),
-						null)
+					.addPermissionOverride(guild.getBotRole(), Arrays.asList(botPerms), null)
 					.queue(
 						category -> {
 							try {
