@@ -25,12 +25,9 @@ repositories {
 }
 
 dependencies {
-	// This dependency is used by the application.
-	implementation 'com.google.guava:guava:31.1-jre'
-
 	// JDA library
-	implementation 'net.dv8tion:JDA:5.0.0-alpha.19'					// JDA library
-	implementation 'ch.qos.logback:logback-classic:1.4.0'			// Logging (required by JDA)
+	implementation 'net.dv8tion:JDA:5.0.0-alpha.20'					// JDA library
+	implementation 'ch.qos.logback:logback-classic:1.4.3'			// Logging (required by JDA)
 
 	// Chewtils extentions
 	implementation 'pw.chew:jda-chewtils-command:2.0-SNAPSHOT'		// Command Package
@@ -39,10 +36,10 @@ dependencies {
 
 	// Tools
 	implementation 'com.jayway.jsonpath:json-path:2.7.0'			// json path-er
-	implementation 'org.xerial:sqlite-jdbc:3.39.2.1'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.39.3.0'				// sqlite database
 
 	// Eval
-	implementation 'org.codehaus.groovy:groovy:3.0.12'				// Groovy - code evaluation
+	implementation 'org.codehaus.groovy:groovy:3.0.13'				// Groovy - code evaluation
 
 }
 
