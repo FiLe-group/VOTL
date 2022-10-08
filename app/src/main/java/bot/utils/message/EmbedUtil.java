@@ -13,8 +13,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import bot.App;
 
 public class EmbedUtil {
@@ -84,12 +84,12 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public MessageCreateData getError(SlashCommandEvent event, String path) {
+	public MessageEditData getError(SlashCommandEvent event, String path) {
 		return getError(event, path, null);
 	}
 
 	@Nonnull
-	public MessageCreateData getError(SlashCommandEvent event, String path, String reason) {
+	public MessageEditData getError(SlashCommandEvent event, String path, String reason) {
 		
 		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
@@ -104,27 +104,26 @@ public class EmbedUtil {
 				reason,
 				false
 			);
-		
-		MessageCreateBuilder mb = new MessageCreateBuilder();
-		mb.setEmbeds(embed.build());
 
-		return mb.build();
+		return MessageEditData.fromEmbeds(embed.build());
 	}
 
 	@Nonnull
-	public MessageCreateData getPermError(TextChannel tc, Member member, Permission perm, boolean self) {
+	public MessageEditData getPermError(TextChannel tc, Member member, Permission perm, boolean self) {
 		return getPermError(tc, member, null, perm, self);
 	}
 
+	
+
 	@Nonnull
-	public MessageCreateData getPermError(TextChannel tc, Member member, TextChannel channel, Permission perm, boolean self) {
+	public MessageEditData getPermError(TextChannel tc, Member member, TextChannel channel, Permission perm, boolean self) {
 		if (perm.equals(Permission.MESSAGE_SEND)) {
 			member.getUser().openPrivateChannel()
 				.flatMap(ch -> ch.sendMessage(bot.getMsg(member.getGuild().getId(), "errors.no_send_perm")))
 				.queue();
-			return MessageCreateData.fromContent("PM sended");
+			return MessageEditData.fromContent("PM sended");
 		}
-		MessageCreateBuilder mb = new MessageCreateBuilder();
+		MessageEditBuilder mb = new MessageEditBuilder();
 
 		if (perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
 			if (channel == null) {
