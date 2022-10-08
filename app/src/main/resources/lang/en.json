@@ -152,7 +152,7 @@
 				"view": {
 					"help": "View voice channel permissions",
 					"embed": {
-						"title": "Channel permissions for {channel}",
+						"title": "Channel permissions for `{channel}`",
 						"field": "**Holder | Can View | Can Join**",
 						"everyone": "Everyone",
 						"roles": "Roles:",
