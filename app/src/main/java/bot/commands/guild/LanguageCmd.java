@@ -13,15 +13,15 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import bot.utils.file.lang.LangUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo
 (
@@ -63,10 +63,7 @@ public class LanguageCmd extends SlashCommand {
 			event.deferReply(true).queue(
 				hook -> {
 					String defaultLang = LanguageCmd.bot.defaultLanguage;
-
-					MessageEditData reply = getReply(event, defaultLang);
-
-					hook.editOriginal(reply).queue();
+					sendReply(event, hook, defaultLang);
 				}
 			);
 
@@ -97,10 +94,7 @@ public class LanguageCmd extends SlashCommand {
 			event.deferReply(true).queue(
 				hook -> {
 					String lang = event.getOption("language", null, OptionMapping::getAsString).toLowerCase();
-
-					MessageEditData reply = getReply(event, lang);
-
-					hook.editOriginal(reply).queue();
+					sendReply(event, hook, lang);
 				}
 			);
 
@@ -135,18 +129,19 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
+	private static void sendReply(SlashCommandEvent event, InteractionHook hook, String language) {
 
-	@Nonnull
-	private static MessageEditData getReply(SlashCommandEvent event, String language) {
-		
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
-		if (permission != null)
-			return MessageEditData.fromCreateData(permission);
+		try {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms);
+		} catch (LacksPermException ex) {
+			hook.editOriginal(ex.getEditData()).queue();
+			return;
+		}
 
 		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
 		if (!bot.getDBUtil().isGuild(guildID)) {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		}
 
 		if (!getLangList().contains(language.toLowerCase())) {
@@ -155,7 +150,8 @@ public class LanguageCmd extends SlashCommand {
 				.setDescription(bot.getMsg(guildID, "bot.guild.language.embed.available_lang_value"))
 				.addField(bot.getMsg(guildID, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
 				.build();
-			return MessageEditData.fromEmbeds(embed);
+			hook.editOriginalEmbeds(embed).queue();
+			return;
 		}
 
 		bot.getDBUtil().guildSetLanguage(guildID, language);
@@ -164,7 +160,7 @@ public class LanguageCmd extends SlashCommand {
 			.setColor(bot.getMessageUtil().getColor("rgb:0,200,30"))
 			.setDescription(bot.getMsg(guildID, "bot.guild.language.done").replace("{language}", language))
 			.build();
-		return MessageEditData.fromEmbeds(embed);
+		hook.editOriginalEmbeds(embed).queue();
 	}
 
 	private static List<String> getLangList(){

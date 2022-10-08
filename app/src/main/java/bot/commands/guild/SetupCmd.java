@@ -9,12 +9,11 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo
 (
@@ -64,15 +63,11 @@ public class SetupCmd extends SlashCommand {
 		@SuppressWarnings("null")
 		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 			
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
-				return;
-			}
-
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), event.getMember(), userPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
+			try {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms);
+			} catch (LacksPermException ex) {
+				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
 
@@ -104,16 +99,16 @@ public class SetupCmd extends SlashCommand {
 										}
 									);
 							} catch (InsufficientPermissionException ex) {
-								hook.editOriginal(MessageEditData.fromCreateData(
+								hook.editOriginal(
 									bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true)
-								)).queue();
+								).queue();
 							}
 						}
 					);
 			} catch (InsufficientPermissionException ex) {
-				hook.editOriginal(MessageEditData.fromCreateData(
+				hook.editOriginal(
 					bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true)
-				)).queue();
+				).queue();
 				ex.printStackTrace();
 			}
 			

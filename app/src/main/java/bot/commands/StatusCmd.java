@@ -9,7 +9,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -38,16 +38,14 @@ public class StatusCmd extends SlashCommand {
 
 		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
 			hook -> {
-				MessageEmbed embed = getStatusEmbed(event);
-
-				hook.editOriginalEmbeds(embed).queue();
+				sendReply(event, hook);
 			}
 		);
 
 	}
 
 	@SuppressWarnings("null")
-	private MessageEmbed getStatusEmbed(SlashCommandEvent event) {
+	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		EmbedBuilder builder = bot.getEmbedUtil().getEmbed();
 
@@ -85,6 +83,6 @@ public class StatusCmd extends SlashCommand {
 		builder.setFooter(bot.getMsg(guildID, "bot.other.status.embed.last_restart"))
 			.setTimestamp(event.getClient().getStartTime());
 
-		return builder.build();
+		hook.editOriginalEmbeds(builder.build()).queue();
 	}
 }

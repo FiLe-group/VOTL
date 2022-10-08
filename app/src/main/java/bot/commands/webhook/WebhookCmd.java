@@ -13,6 +13,7 @@ import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -26,8 +27,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @SuppressWarnings("null")
 public class WebhookCmd extends SlashCommand {
@@ -76,15 +75,11 @@ public class WebhookCmd extends SlashCommand {
 
 			Member member = Objects.requireNonNull(event.getMember());
 
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
-				return;
-			}
-			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
+			try {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (LacksPermException ex) {
+				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
 
@@ -161,20 +156,16 @@ public class WebhookCmd extends SlashCommand {
 
 			Member member = Objects.requireNonNull(event.getMember());
 
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
-				return;
-			}
-			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
+			try {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (LacksPermException ex) {
+				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
 
 			if (name.isEmpty() || name.length() > 100) {
-				hook.editOriginal(MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.webhook.add.create.invalid_range")));
+				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.webhook.add.create.invalid_range")).queue();
 				return;
 			}
 
@@ -186,17 +177,17 @@ public class WebhookCmd extends SlashCommand {
 				guild.getTextChannelById(channel.getId()).createWebhook(name).queue(
 					webhook -> {
 						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
-						hook.editOriginal(MessageEditData.fromEmbeds(
+						hook.editOriginalEmbeds(
 							bot.getEmbedUtil().getEmbed(member).setDescription(
 								bot.getMsg(guildId, "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
 							).build()
-						)).queue();
+						).queue();
 					}
 				);
 			} catch (PermissionException ex) {
-				hook.editOriginal(MessageEditData.fromCreateData(
+				hook.editOriginal(
 					bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)
-				)).queue();
+				).queue();
 				ex.printStackTrace();
 			}
 		}
@@ -228,15 +219,11 @@ public class WebhookCmd extends SlashCommand {
 
 			Member member = Objects.requireNonNull(event.getMember());
 
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
-				return;
-			}
-			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
+			try {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (LacksPermException ex) {
+				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
 
@@ -245,9 +232,9 @@ public class WebhookCmd extends SlashCommand {
 			event.getJDA().retrieveWebhookById(Objects.requireNonNull(webhookId)).queue(
 				webhook -> {
 					if (bot.getDBUtil().webhookExists(webhookId)) {
-						hook.editOriginal(MessageEditData.fromCreateData(
+						hook.editOriginal(
 							bot.getEmbedUtil().getError(event, "bot.webhook.add.select.error_registered")
-						)).queue();
+						).queue();
 					} else {
 						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 						hook.editOriginalEmbeds(
@@ -257,9 +244,9 @@ public class WebhookCmd extends SlashCommand {
 						).queue();
 					}
 				}, failure -> {
-					hook.editOriginal(MessageEditData.fromCreateData(
+					hook.editOriginal(
 						bot.getEmbedUtil().getError(event, "bot.webhook.add.select.error_not_found", failure.getMessage())
-					)).queue();
+					).queue();
 				}
 			);
 			
@@ -293,15 +280,11 @@ public class WebhookCmd extends SlashCommand {
 
 			Member member = Objects.requireNonNull(event.getMember());
 
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
-				return;
-			}
-			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
+			try {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (LacksPermException ex) {
+				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
 
@@ -311,9 +294,9 @@ public class WebhookCmd extends SlashCommand {
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
 					if (!bot.getDBUtil().webhookExists(webhookId)) {
-						hook.editOriginal(MessageEditData.fromCreateData(
+						hook.editOriginal(
 							bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_registered")
-						)).queue();
+						).queue();
 					} else {
 						if (webhook.getGuild().equals(guild)) {
 							if (delete) {
@@ -326,16 +309,16 @@ public class WebhookCmd extends SlashCommand {
 								).build()
 							).queue();
 						} else {
-							hook.editOriginal(MessageEditData.fromCreateData(
+							hook.editOriginal(
 								bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_guild", String.format("Selected webhook guild: %s", webhook.getGuild().getName()))
-							)).queue();
+							).queue();
 						}
 					}
 				},
 				failure -> {
-					hook.editOriginal(MessageEditData.fromCreateData(
+					hook.editOriginal(
 						bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_found", failure.getMessage())
-					)).queue();
+					).queue();
 				}
 			);
 		}
@@ -369,15 +352,11 @@ public class WebhookCmd extends SlashCommand {
 
 			Member member = Objects.requireNonNull(event.getMember());
 
-			MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
-				return;
-			}
-			
-			permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
+			try {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (LacksPermException ex) {
+				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
 
@@ -398,20 +377,20 @@ public class WebhookCmd extends SlashCommand {
 								).queue();
 							},
 							failure -> {
-								hook.editOriginal(MessageEditData.fromCreateData(
+								hook.editOriginal(
 									bot.getEmbedUtil().getError(event, "errors.unknown", failure.getMessage())
-								)).queue();
+								).queue();
 							}
 						);
 					} else {
-						hook.editOriginal(MessageEditData.fromCreateData(
+						hook.editOriginal(
 							bot.getEmbedUtil().getError(event, "bot.webhook.move.error_not_registered")
-						)).queue();
+						).queue();
 					}
 				}, failure -> {
-					hook.editOriginal(MessageEditData.fromCreateData(
+					hook.editOriginal(
 						bot.getEmbedUtil().getError(event, "bot.webhook.move.error_not_found", failure.getMessage())
-					)).queue();
+					).queue();
 				}
 			);
 		}

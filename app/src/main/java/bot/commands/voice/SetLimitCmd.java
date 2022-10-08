@@ -4,20 +4,18 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "SetLimit",
@@ -50,41 +48,41 @@ public class SetLimitCmd extends SlashCommand {
 		event.deferReply(true).queue(
 			hook -> {
 				Integer filLimit;
-				MessageEditData reply;
 				try {
 					filLimit = event.getOption("limit", OptionMapping::getAsInt);
-					reply = getReply(event, filLimit);
+					sendReply(event, hook, filLimit);
 				} catch (Exception e) {
-					reply = MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.request_error", e.toString()));
+					hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.request_error", e.toString()));
 				}
-
-				hook.editOriginal(reply).queue();
 			}
 		);
 
 	}
 
-	@Nonnull
-	private MessageEditData getReply(SlashCommandEvent event, Integer filLimit) {
+	private void sendReply(SlashCommandEvent event, InteractionHook hook, Integer filLimit) {
 
 		Member member = Objects.requireNonNull(event.getMember());
 
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
-		if (permission != null)
-			return MessageEditData.fromCreateData(permission);
+		try {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
+		} catch (LacksPermException ex) {
+			hook.editOriginal(ex.getEditData()).queue();
+			return;
+		}
 
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
 		if (!bot.getDBUtil().isGuild(guildId)) {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup")).queue();
+			return;
 		}
 
 		bot.getDBUtil().guildVoiceSetLimit(guildId, filLimit);
 
-		return MessageEditData.fromEmbeds(
+		hook.editOriginalEmbeds(
 			bot.getEmbedUtil().getEmbed(member)
 				.setDescription(bot.getMsg(guildId, "bot.voice.setlimit.done").replace("{value}", filLimit.toString()))
 				.build()
-		);
+		).queue();
 	}
 }

@@ -4,22 +4,20 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "Name",
@@ -64,10 +62,7 @@ public class NameCmd extends SlashCommand {
 			event.deferReply(true).queue(
 				hook -> {
 					String filName = event.getOption("name", "", OptionMapping::getAsString).trim();
-
-					MessageEditData reply = getReply(event, filName);
-
-					hook.editOriginal(reply).queue();
+					sendReply(event, hook, filName);
 				}
 			);
 
@@ -93,9 +88,7 @@ public class NameCmd extends SlashCommand {
 						bot.getMsg(guildId, "bot.voice.listener.default_name", Objects.requireNonNull(event.getMember()).getUser().getName(), false)
 					);
 
-					MessageEditData reply = getReply(event, filName);
-
-					hook.editOriginal(reply).queue();
+					sendReply(event, hook, filName);
 				}
 			);
 
@@ -103,24 +96,28 @@ public class NameCmd extends SlashCommand {
 	}
 
 	@SuppressWarnings("null")
-	@Nonnull
-	private static MessageEditData getReply(SlashCommandEvent event, String filName) {
+	private static void sendReply(SlashCommandEvent event, InteractionHook hook, String filName) {
 
 		Member member = Objects.requireNonNull(event.getMember());
 
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-		if (permission != null)
-			return MessageEditData.fromCreateData(permission);
+		try {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+		} catch (LacksPermException ex) {
+			hook.editOriginal(ex.getEditData()).queue();
+			return;
+		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		String guildId = guild.getId();
 
 		if (!bot.getDBUtil().isGuild(guildId)) {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup")).queue();
+			return;
 		}
 
 		if (filName.isEmpty() || filName.length() > 100) {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.name.invalid_range"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.name.invalid_range")).queue();
+			return;
 		}
 
 		String memberId = member.getId();
@@ -135,13 +132,13 @@ public class NameCmd extends SlashCommand {
 			}
 			bot.getDBUtil().userSetName(memberId, filName);
 
-			return MessageEditData.fromEmbeds(
+			hook.editOriginalEmbeds(
 				bot.getEmbedUtil().getEmbed(member)
 					.setDescription(bot.getMsg(guildId, "bot.voice.name.done").replace("{value}", filName))
 					.build()
-			);
+			).queue();
 		} else {
-			return MessageEditData.fromContent(bot.getMsg(guildId, "errors.no_channel"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
 		}
 	}
 }

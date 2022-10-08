@@ -7,14 +7,13 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "ghost",
@@ -51,17 +50,18 @@ public class GhostCmd extends SlashCommand {
 
 		Member member = Objects.requireNonNull(event.getMember());
 
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-			if (permission != null) {
-				hook.editOriginal(MessageEditData.fromCreateData(permission)).queue();
-				return;
-			}
+		try {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+		} catch (LacksPermException ex) {
+			hook.editOriginal(ex.getEditData()).queue();
+			return;
+		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		String guildId = guild.getId();
 
 		if (!bot.getDBUtil().isGuild(guildId)) {
-			hook.editOriginal(MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"))).queue();
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup")).queue();
 			return;
 		}
 
@@ -70,7 +70,7 @@ public class GhostCmd extends SlashCommand {
 			try {
 				vc.upsertPermissionOverride(guild.getPublicRole()).deny(Permission.VIEW_CHANNEL).queue();
 			} catch (InsufficientPermissionException ex) {
-				hook.editOriginal(MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true))).queue();
+				hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)).queue();
 				return;
 			}
 
@@ -80,7 +80,7 @@ public class GhostCmd extends SlashCommand {
 					.build()
 			).queue();
 		} else {
-			hook.editOriginal(MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.no_channel"))).queue();
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
 			return;
 		}
 	}

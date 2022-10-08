@@ -12,7 +12,7 @@ import bot.App;
 import bot.constants.Links;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
-import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -43,16 +43,14 @@ public class AboutCmd extends SlashCommand {
 
 		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
 			hook -> {
-				MessageEmbed embed = getAboutEmbed(event);
-
-				hook.editOriginalEmbeds(embed).queue();
+				sendReply(event, hook);
 			}
 		);
 
 	}
 
 	@SuppressWarnings("null")
-	private MessageEmbed getAboutEmbed(SlashCommandEvent event) {
+	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
 		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		EmbedBuilder builder = null;
@@ -108,6 +106,6 @@ public class AboutCmd extends SlashCommand {
 				true
 			);
 
-		return builder.build();
+		hook.editOriginalEmbeds(builder.build()).queue();
 	}
 }

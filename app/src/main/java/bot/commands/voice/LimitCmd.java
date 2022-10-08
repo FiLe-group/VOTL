@@ -4,22 +4,20 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "Limit",
@@ -64,16 +62,12 @@ public class LimitCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
-					Integer filLimit;
-					MessageEditData reply;
 					try {
-						filLimit = event.getOption("limit", 0, OptionMapping::getAsInt);
-						reply = getReply(event, filLimit);
+						Integer filLimit = event.getOption("limit", 0, OptionMapping::getAsInt);
+						sendReply(event, hook, filLimit);
 					} catch (Exception e) {
-						reply = MessageEditData.fromCreateData(LimitCmd.bot.getEmbedUtil().getError(event, "errors.request_error", e.toString()));
+						hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.request_error", e.toString())).queue();
 					}
-
-					hook.editOriginal(reply).queue();
 				}
 			);
 
@@ -92,11 +86,9 @@ public class LimitCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
-					Integer filLimit = Optional.ofNullable(LimitCmd.bot.getDBUtil().guildVoiceGetLimit(Objects.requireNonNull(event.getGuild()).getId())).orElse(0);
+					Integer filLimit = Optional.ofNullable(bot.getDBUtil().guildVoiceGetLimit(Objects.requireNonNull(event.getGuild()).getId())).orElse(0);
 
-					MessageEditData reply = getReply(event, filLimit);
-
-					hook.editOriginal(reply).queue();
+					sendReply(event, hook, filLimit);
 				}
 			);
 
@@ -104,21 +96,24 @@ public class LimitCmd extends SlashCommand {
 	}
 
 	@SuppressWarnings("null")
-	@Nonnull
-	private static MessageEditData getReply(SlashCommandEvent event, Integer filLimit) {
+	private static void sendReply(SlashCommandEvent event, InteractionHook hook, Integer filLimit) {
 
 		Member member = Objects.requireNonNull(event.getMember());
 
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-		if (permission != null)
-			return MessageEditData.fromCreateData(permission);
+		try {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+		} catch (LacksPermException ex) {
+			hook.editOriginal(ex.getEditData());
+			return;
+		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		String guildId = guild.getId();
 		
 
 		if (!bot.getDBUtil().isGuild(guildId)) {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup")).queue();
+			return;
 		}
 
 		String memberId = member.getId();
@@ -133,13 +128,13 @@ public class LimitCmd extends SlashCommand {
 			}
 			bot.getDBUtil().userSetLimit(memberId, filLimit);
 
-			return MessageEditData.fromEmbeds(
+			hook.editOriginalEmbeds(
 				bot.getEmbedUtil().getEmbed(member)
 					.setDescription(bot.getMsg(guildId, "bot.voice.limit.done").replace("{value}", filLimit.toString()))
 					.build()
-			);
+			).queue();
 		} else {
-			return MessageEditData.fromContent(bot.getMsg(guildId, "errors.no_channel"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
 		}
 	}
 }

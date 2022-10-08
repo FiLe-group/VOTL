@@ -12,8 +12,8 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -53,10 +53,9 @@ public class HelpCmd extends SlashCommand {
 
 		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
 			hook -> {
-				String filCat = event.getOption("category", OptionMapping::getAsString);
-				MessageEmbed embed = getHelpEmbed(event, filCat);
+				String filCat = event.getOption("category", null, OptionMapping::getAsString);
 
-				hook.editOriginalEmbeds(embed).queue();
+				sendReply(event, hook, filCat);
 			}
 		);
 	}
@@ -66,7 +65,7 @@ public class HelpCmd extends SlashCommand {
 	} */
 
 	@SuppressWarnings("null")
-	private MessageEmbed getHelpEmbed(SlashCommandEvent event, String filCat) {
+	private void sendReply(SlashCommandEvent event, InteractionHook hook, String filCat) {
 
 		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		String prefix = "/";
@@ -121,6 +120,6 @@ public class HelpCmd extends SlashCommand {
 			builder.addField(fieldTitle.toString(), fieldValue.toString(), false);
 		}
 		
-		return builder.build();
+		hook.editOriginalEmbeds(builder.build()).queue();
 	}
 }

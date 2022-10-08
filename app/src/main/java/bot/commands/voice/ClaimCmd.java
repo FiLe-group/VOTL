@@ -3,21 +3,19 @@ package bot.commands.voice;
 import java.util.EnumSet;
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
-
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 @CommandInfo(
 	name = "Claim",
@@ -44,29 +42,30 @@ public class ClaimCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				MessageEditData reply = getReply(event);
-
-				hook.editOriginal(reply).queue();
+				sendReply(event, hook);
 			}
 		);
 
 	}
 
 	@SuppressWarnings("null")
-	@Nonnull
-	private MessageEditData getReply(SlashCommandEvent event) {
+	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
 		Member member = Objects.requireNonNull(event.getMember());
 
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-		if (permission != null)
-			return MessageEditData.fromCreateData(permission);
+		try {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+		} catch (LacksPermException ex) {
+			hook.editOriginal(ex.getEditData()).queue();
+			return;
+		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		String guildId = guild.getId();
 
 		if (!bot.getDBUtil().isGuild(guildId)) {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup")).queue();
+			return;
 		}
 
 		if (member.getVoiceState().inAudioChannel()) {
@@ -76,27 +75,29 @@ public class ClaimCmd extends SlashCommand {
 				Member owner = guild.getMemberById(bot.getDBUtil().channelGetUser(vc.getId()));
 				for (Member vcMember : vc.getMembers()) {
 					if (vcMember == owner) {
-						return MessageEditData.fromContent(bot.getMsg(guildId, "bot.voice.claim.has_owner"));
+						hook.editOriginal(bot.getMsg(guildId, "bot.voice.claim.has_owner"));
+						return;
 					}
 				}
 				try {
 					vc.getManager().removePermissionOverride(owner.getIdLong()).queue();
 					vc.getManager().putMemberPermissionOverride(member.getIdLong(), EnumSet.of(Permission.MANAGE_CHANNEL), null).queue();
 				} catch (InsufficientPermissionException ex) {
-					return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true));
+					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)).queue();
+					return;
 				}
 				bot.getDBUtil().channelSetUser(member.getId(), vc.getId());
 				
-				return MessageEditData.fromEmbeds(
+				hook.editOriginalEmbeds(
 					bot.getEmbedUtil().getEmbed(member)
 						.setDescription(bot.getMsg(guildId, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
 						.build()
-				);
+				).queue();
 			} else {
-				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_custom"));
+				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_custom")).queue();
 			}
 		} else {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_in_voice"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_in_voice")).queue();
 		}
 	}
 }

@@ -6,13 +6,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
-
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -20,11 +19,10 @@ import net.dv8tion.jda.api.entities.Mentions;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "permit",
@@ -56,29 +54,30 @@ public class PermitCmd extends SlashCommand {
 		event.deferReply(true).queue(
 			hook -> {
 				Mentions filMentions = event.getOption("mention", OptionMapping::getMentions);
-				MessageEditData reply = getReply(event, filMentions);
-
-				hook.editOriginal(reply).queue();
+				sendReply(event, hook, filMentions);
 			}
 		);
 
 	}
 
 	@SuppressWarnings("null")
-	@Nonnull
-	private MessageEditData getReply(SlashCommandEvent event, Mentions filMentions) {
+	private void sendReply(SlashCommandEvent event, InteractionHook hook, Mentions filMentions) {
 
 		Member member = Objects.requireNonNull(event.getMember());
 
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, true, botPerms);
-		if (permission != null)
-			return MessageEditData.fromCreateData(permission);
+		try {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
+		} catch (LacksPermException ex) {
+			hook.editOriginal(ex.getEditData()).queue();
+			return;
+		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		String guildId = guild.getId();
 
 		if (!bot.getDBUtil().isGuild(guildId)) {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup")).queue();
+			return;
 		}
 
 		if (bot.getDBUtil().isVoiceChannel(member.getId())) {
@@ -87,10 +86,10 @@ public class PermitCmd extends SlashCommand {
 			List<Member> members = filMentions.getMembers();
 			List<Role> roles = filMentions.getRoles();
 			if (members.isEmpty() & roles.isEmpty()) {
-				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.permit.invalid_args"));
+				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.permit.invalid_args")).queue();
 			}
 			if (members.contains(member) || members.contains(guild.getSelfMember())) {
-				return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.permit.not_self"));
+				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.permit.not_self")).queue();
 			}
 
 			List<String> mentionStrings = new ArrayList<>();
@@ -100,7 +99,8 @@ public class PermitCmd extends SlashCommand {
 					vc.getManager().putMemberPermissionOverride(xMember.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
 					mentionStrings.add(xMember.getEffectiveName());
 				} catch (InsufficientPermissionException ex) {
-					return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true));
+					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true));
+					return;
 				}
 			}
 
@@ -110,17 +110,18 @@ public class PermitCmd extends SlashCommand {
 						vc.getManager().putRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
 						mentionStrings.add(role.getName());
 					} catch (InsufficientPermissionException ex) {
-						return MessageEditData.fromCreateData(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true));
+						hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true)).queue();
+						return;
 					}
 			}
 
-			return MessageEditData.fromEmbeds(
+			hook.editOriginalEmbeds(
 				bot.getEmbedUtil().getEmbed(member)
 					.setDescription(bot.getMsg(guildId, "bot.voice.permit.done", "", mentionStrings))
 					.build()
-			);
+			).queue();
 		} else {
-			return MessageEditData.fromContent(bot.getMsg(guildId, "errors.no_channel"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
 		}
 	}
 }

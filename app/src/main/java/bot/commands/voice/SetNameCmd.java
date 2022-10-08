@@ -4,20 +4,18 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.utils.exception.LacksPermException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 @CommandInfo(
 	name = "SetName",
@@ -49,39 +47,41 @@ public class SetNameCmd extends SlashCommand {
 		event.deferReply(true).queue(
 			hook -> {
 				String filName = event.getOption("name", "Default name", OptionMapping::getAsString).trim();
-				MessageEditData reply = getReply(event, filName);
-
-				hook.editOriginal(reply).queue();
+				sendReply(event, hook, filName);
 			}
 		);
 
 	}
 
-	@Nonnull
-	private MessageEditData getReply(SlashCommandEvent event, String filName) {
+	private void sendReply(SlashCommandEvent event, InteractionHook hook, String filName) {
 
 		Member member = Objects.requireNonNull(event.getMember());
 
-		MessageCreateData permission = bot.getCheckUtil().lacksPermissions(event.getTextChannel(), member, userPerms);
-		if (permission != null)
-			return MessageEditData.fromCreateData(permission);
+		try {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
+		} catch (LacksPermException ex) {
+			hook.editOriginal(ex.getEditData()).queue();
+			return;
+		}
 
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
 		if (!bot.getDBUtil().isGuild(guildId)) {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup")).queue();
+			return;
 		}
 
 		if (filName.isEmpty() || filName.length() > 100) {
-			return MessageEditData.fromCreateData(bot.getEmbedUtil().getError(event, "bot.voice.setname.invalid_range"));
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.setname.invalid_range")).queue();
+			return;
 		}
 
 		bot.getDBUtil().guildVoiceSetName(guildId, filName);
 
-		return MessageEditData.fromEmbeds(
+		hook.editOriginalEmbeds(
 			bot.getEmbedUtil().getEmbed(member)
 				.setDescription(bot.getMsg(guildId, "bot.voice.setname.done").replace("{value}", filName))
 				.build()
-		);
+		).queue();
 	}
 }
