@@ -34,12 +34,54 @@ public class SetupCmd extends SlashCommand {
 		this.category = new Category("guild");
 		SetupCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		SetupCmd.bot = bot;
-		this.children = new SlashCommand[]{new Voice()};
+		this.children = new SlashCommand[]{new Voice(), new Main()};
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
 
+	}
+
+	private static class Main extends SlashCommand {
+		
+		public Main() {
+			this.name = "main";
+			this.help = bot.getMsg("bot.guild.setup.main.help");
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue(
+				hook -> {
+					
+					try {
+						bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms);
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+
+					Guild guild = Objects.requireNonNull(event.getGuild());
+					String guildId = guild.getId();
+
+					if (bot.getDBUtil().guildAdd(guildId, false)) {
+						hook.editOriginalEmbeds(
+							bot.getEmbedUtil().getEmbed(event.getMember())
+								.setDescription(bot.getMsg(guildId, "bot.guild.setup.main.done"))
+								.build()
+						).queue();
+						bot.getLogger().info("Added guild (inc. -) through setup '"+guild.getName()+"'("+guildId+") to db");
+					} else {
+						hook.editOriginalEmbeds(
+							bot.getEmbedUtil().getEmbed(event.getMember())
+								.setDescription(bot.getMsg(guildId, "bot.guild.setup.main.exists"))
+								.build()
+						).queue();
+					}
+					
+				}
+			);
+		}
 	}
 
 	private static class Voice extends SlashCommand {
@@ -63,7 +105,7 @@ public class SetupCmd extends SlashCommand {
 
 		@SuppressWarnings("null")
 		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
-			
+
 			try {
 				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms)
 					.hasPermissions(event.getTextChannel(), event.getMember(), userPerms);

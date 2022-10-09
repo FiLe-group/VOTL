@@ -19,7 +19,7 @@ public class GuildListener extends ListenerAdapter {
 	public void onGuildJoin(@Nonnull GuildJoinEvent event) {
 		String guildId = event.getGuild().getId();
 		// check if not exists in DB and adds it
-		if (bot.getDBUtil().guildAdd(guildId)) {
+		if (bot.getDBUtil().guildAdd(guildId, false)) {
 			bot.getLogger().info("Added guild '"+event.getGuild().getName()+"'("+guildId+") to db");
 		}
 		bot.getLogger().info("Joined guild '"+event.getGuild().getName()+"'("+guildId+")");

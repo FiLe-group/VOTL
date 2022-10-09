@@ -38,14 +38,14 @@ public class DBUtil {
 
 
 	// Guild oweral
-	public boolean guildAdd(String guildID) {
+	public boolean guildAdd(String guildId, boolean voice) {
 		boolean added = false;
-		if (!isGuild(guildID)) {
-			insert("guild", "guildID", guildID);
+		if (!isGuild(guildId)) {
+			insert("guild", "guildId", guildId);
 			added = true;
 		}
-		if (!isGuildVoice(guildID)) {
-			insert("guildVoice", "guildID", guildID);
+		if (voice && !isGuildVoice(guildId)) {
+			insert("guildVoice", "guildId", guildId);
 			added = true;
 		}
 		return added;
