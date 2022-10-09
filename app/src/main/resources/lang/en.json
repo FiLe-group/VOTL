@@ -11,8 +11,9 @@
 		},
 		"no_send_perm": "I have no permission to send messages in your channel. Pls fix!",
 		"no_channel": "You don't own/has any voice channel.",
+		"module_disabled": "This command(module) is disabled.",
 		"guild_not_setup": "Guild was not setup-ed! Check `/help` for setup command",
-		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and thet I have sufficient permissions!",
+		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and that I have sufficient permissions!",
 		"title": "Error",
 		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to `{owner_id}`!"
 	},

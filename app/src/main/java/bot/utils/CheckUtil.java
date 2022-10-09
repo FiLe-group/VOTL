@@ -23,10 +23,15 @@ public class CheckUtil {
 		return user.getId().equals(Constants.DEVELOPER_ID);
 	}
 
-	public CheckUtil isGuild(SlashCommandEvent event, String guildId) throws CheckException {
-		if (!bot.getDBUtil().isGuild(guildId)) {
+	public CheckUtil guildExists(SlashCommandEvent event, String guildId) throws CheckException {
+		if (!bot.getDBUtil().isGuild(guildId))
 			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
-		}
+		return this;
+	}
+
+	public CheckUtil moduleEnabled(SlashCommandEvent event, String guildId, String module) throws CheckException {
+		if (bot.getDBUtil().moduleDisabled(guildId, module)) 
+			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.module_disabled"));
 		return this;
 	}
 

@@ -28,6 +28,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class LimitCmd extends SlashCommand {
 	
 	private static App bot;
+	private static final String MODULE = "voice";
 
 	protected static Permission[] botPerms;
 
@@ -103,8 +104,9 @@ public class LimitCmd extends SlashCommand {
 		String guildId = guild.getId();
 
 		try {
-			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms)
-				.isGuild(event, guildId);
+			bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
+				.hasPermissions(event.getTextChannel(), member, true, botPerms)
+				.guildExists(event, guildId);
 		} catch (CheckException ex) {
 			hook.editOriginal(ex.getEditData());
 			return;

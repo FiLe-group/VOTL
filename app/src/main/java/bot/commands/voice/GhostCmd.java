@@ -24,6 +24,7 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 public class GhostCmd extends SlashCommand {
 	
 	private final App bot;
+	private static final String MODULE = "voice";
 
 	protected Permission[] botPerms;
 
@@ -53,8 +54,9 @@ public class GhostCmd extends SlashCommand {
 		String guildId = guild.getId();
 
 		try {
-			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms)
-				.isGuild(event, guildId);
+			bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
+				.hasPermissions(event.getTextChannel(), member, true, botPerms)
+				.guildExists(event, guildId);
 		} catch (CheckException ex) {
 			hook.editOriginal(ex.getEditData()).queue();
 			return;

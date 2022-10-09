@@ -33,6 +33,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class LanguageCmd extends SlashCommand {
 	
 	private static App bot;
+	private static final String MODULE = "language";
 
 	protected static Permission[] userPerms;
 
@@ -114,6 +115,12 @@ public class LanguageCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						bot.getCheckUtil().moduleEnabled(event, Objects.requireNonNull(event.getGuild()).getId(), MODULE);
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
 					String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 					MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
 						.setTitle(bot.getMsg(guildId, "bot.guild.language.show.embed.title"))
@@ -134,8 +141,9 @@ public class LanguageCmd extends SlashCommand {
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
 		try {
-			bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-				.isGuild(event, guildId);
+			bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
+				.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+				.guildExists(event, guildId);
 		} catch (CheckException ex) {
 			hook.editOriginal(ex.getEditData()).queue();
 			return;

@@ -69,7 +69,7 @@ public class ModuleCmd extends SlashCommand {
 
 			try {
 				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-					.isGuild(event, guildId);
+					.guildExists(event, guildId);
 			} catch (CheckException ex) {
 				hook.editOriginal(ex.getEditData()).queue();
 				return;
@@ -119,7 +119,7 @@ public class ModuleCmd extends SlashCommand {
 
 			try {
 				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-					.isGuild(event, guildId);
+					.guildExists(event, guildId);
 			} catch (CheckException ex) {
 				hook.editOriginal(ex.getEditData()).queue();
 				return;
@@ -204,7 +204,7 @@ public class ModuleCmd extends SlashCommand {
 
 			try {
 				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-					.isGuild(event, guildId);
+					.guildExists(event, guildId);
 			} catch (CheckException ex) {
 				hook.editOriginal(ex.getEditData()).queue();
 				return;

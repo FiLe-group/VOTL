@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class SetNameCmd extends SlashCommand {
 	
 	private final App bot;
+	private static final String MODULE = "voice";
 
 	protected Permission[] userPerms;
 
@@ -59,8 +60,9 @@ public class SetNameCmd extends SlashCommand {
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
 		try {
-			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms)
-				.isGuild(event, guildId);
+			bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
+				.hasPermissions(event.getTextChannel(), member, userPerms)
+				.guildExists(event, guildId);
 		} catch (CheckException ex) {
 			hook.editOriginal(ex.getEditData()).queue();
 			return;
