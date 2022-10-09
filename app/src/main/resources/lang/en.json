@@ -83,6 +83,7 @@
 					"embed_title": "Disable module",
 					"embed_value": "Select module from list bellow to be disabled.",
 					"none": "__All modules are already disabled!__",
+					"timed_out": "Timed out",
 					"done": "Module {module} successfully disabled."
 				},
 				"enable": {
@@ -91,6 +92,7 @@
 					"embed_title": "Enable module",
 					"embed_value": "Select module from list bellow to be enabled.",
 					"none": "__All modules are already enabled!__",
+					"timed_out": "Timed out",
 					"done": "Module {module} successfully enabled."
 				},
 				"list": {

@@ -1,6 +1,5 @@
 package bot.commands.guild;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +13,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import bot.App;
+import bot.constants.Constants;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -78,7 +78,7 @@ public class ModuleCmd extends SlashCommand {
 			StringBuilder builder = new StringBuilder();
 			List<String> disabled = getModules(guildId, false);
 			for (String module : getModules(guildId, true, false)) {
-				builder.append(format(bot.getMsg(guildId, "bot.guild.module.list."+module), (disabled.contains(module) ? "❌" : "✅"))).append("\n");
+				builder.append(format(bot.getMsg(guildId, "bot.guild.module.list."+module), (disabled.contains(module) ? Constants.FAILURE : Constants.SUCCESS))).append("\n");
 			}
 
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
@@ -130,7 +130,8 @@ public class ModuleCmd extends SlashCommand {
 
 			List<String> enabled = getModules(guildId, true);
 			if (enabled.isEmpty()) {
-				embed.setDescription(bot.getMsg(guildId, "bot.guild.module.disable.none"));
+				embed.setDescription(bot.getMsg(guildId, "bot.guild.module.disable.none"))
+					.setColor(Constants.COLOR_FAILURE);
 				hook.editOriginalEmbeds(embed.build()).queue();
 			} else {
 
@@ -158,17 +159,17 @@ public class ModuleCmd extends SlashCommand {
 										bot.getDBUtil().moduleAdd(guildId, module);
 										EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
 											.setTitle(bot.getMsg(guildId, "bot.guild.module.disable.done").replace("{module}", module))
-											.setColor(Color.GREEN);
+											.setColor(Constants.COLOR_SUCCESS);
 										hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
 									}
 								);
 
 							},
-							10,
+							30,
 							TimeUnit.SECONDS,
 							() -> {
 								hook.editOriginalComponents(
-									ActionRow.of(menu.createCopy().setPlaceholder("Timed out").setDisabled(true).build())
+									ActionRow.of(menu.createCopy().setPlaceholder(bot.getMsg(guildId, "bot.guild.module.enable.timed_out")).setDisabled(true).build())
 								).queue();
 							}
 						);
@@ -242,7 +243,7 @@ public class ModuleCmd extends SlashCommand {
 										bot.getDBUtil().moduleRemove(guildId, module);
 										EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
 											.setTitle(bot.getMsg(guildId, "bot.guild.module.enable.done").replace("{module}", module))
-											.setColor(Color.GREEN);
+											.setColor(Constants.COLOR_SUCCESS);
 										hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
 									}
 								);
@@ -252,7 +253,7 @@ public class ModuleCmd extends SlashCommand {
 							TimeUnit.SECONDS,
 							() -> {
 								hook.editOriginalComponents(
-									ActionRow.of(menu.createCopy().setPlaceholder("Timed out").setDisabled(true).build())
+									ActionRow.of(menu.createCopy().setPlaceholder(bot.getMsg(guildId, "bot.guild.module.enable.timed_out")).setDisabled(true).build())
 								).queue();
 							}
 						);

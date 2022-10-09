@@ -1,8 +1,8 @@
 package bot.commands.owner;
 
 import bot.App;
+import bot.constants.Constants;
 
-import java.awt.Color;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -108,7 +108,7 @@ public class EvalCmd extends SlashCommand {
 	@SuppressWarnings("null")
 	private MessageEmbed formatEvalEmbed(TextChannel tc, String input, String output, String footer, boolean success) {		
 		EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
-			.setColor(success ? Color.GREEN : Color.RED)
+			.setColor(success ? Constants.COLOR_SUCCESS : Constants.COLOR_FAILURE)
 			.addField(bot.getMsg(tc.getGuild().getId(), "bot.owner.eval.input"), String.format(
 				"```java\n"+
 					"%s\n"+

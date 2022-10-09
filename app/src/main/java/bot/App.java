@@ -91,7 +91,7 @@ public class App {
 		CommandClient commandClient = new CommandClientBuilder()
 			.setOwnerId(fileManager.getString("config", "owner-id"))
 			.setServerInvite(Links.DISCORD)
-			.setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
+			.setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.FAILURE)
 			.useHelpBuilder(false)
 			.setStatus(OnlineStatus.ONLINE)
 			.setActivity(Activity.watching("/help"))

@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import bot.App;
+import bot.constants.Constants;
 
 public class EmbedUtil {
 
@@ -27,7 +28,7 @@ public class EmbedUtil {
 
 	@Nonnull
 	public EmbedBuilder getEmbed() {
-		return new EmbedBuilder().setColor(0x8010112e).setTimestamp(ZonedDateTime.now());
+		return new EmbedBuilder().setColor(Constants.COLOR_DEFAULT).setTimestamp(ZonedDateTime.now());
 	}
 
 	@Nonnull
@@ -48,12 +49,12 @@ public class EmbedUtil {
 
 	@Nonnull
 	private EmbedBuilder getErrorEmbed(Member member) {
-		return (member == null ? getEmbed() : getEmbed(member)).setColor(0xFF0000);
+		return (member == null ? getEmbed() : getEmbed(member)).setColor(Constants.COLOR_FAILURE);
 	}
 
 	@Nonnull
 	private EmbedBuilder getErrorEmbed(User user) {
-		return (user == null ? getEmbed() : getEmbed(user)).setColor(0xFF0000);
+		return (user == null ? getEmbed() : getEmbed(user)).setColor(Constants.COLOR_FAILURE);
 	}
 
 	@Nonnull
