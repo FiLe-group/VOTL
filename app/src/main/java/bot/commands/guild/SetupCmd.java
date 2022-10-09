@@ -9,7 +9,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
-import bot.utils.exception.LacksPermException;
+import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
@@ -64,9 +64,9 @@ public class SetupCmd extends SlashCommand {
 		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 			
 			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms);
-			} catch (LacksPermException ex) {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms)
+					.hasPermissions(event.getTextChannel(), event.getMember(), userPerms);
+			} catch (CheckException ex) {
 				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}

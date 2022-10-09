@@ -13,7 +13,7 @@ import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 
 import bot.App;
-import bot.utils.exception.LacksPermException;
+import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -76,9 +76,9 @@ public class WebhookCmd extends SlashCommand {
 			Member member = Objects.requireNonNull(event.getMember());
 
 			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (LacksPermException ex) {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms)
+					.hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (CheckException ex) {
 				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
@@ -157,9 +157,9 @@ public class WebhookCmd extends SlashCommand {
 			Member member = Objects.requireNonNull(event.getMember());
 
 			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (LacksPermException ex) {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms)
+					.hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (CheckException ex) {
 				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
@@ -220,9 +220,9 @@ public class WebhookCmd extends SlashCommand {
 			Member member = Objects.requireNonNull(event.getMember());
 
 			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (LacksPermException ex) {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms)
+					.hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (CheckException ex) {
 				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
@@ -281,9 +281,9 @@ public class WebhookCmd extends SlashCommand {
 			Member member = Objects.requireNonNull(event.getMember());
 
 			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (LacksPermException ex) {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms)
+					.hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (CheckException ex) {
 				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}
@@ -353,9 +353,9 @@ public class WebhookCmd extends SlashCommand {
 			Member member = Objects.requireNonNull(event.getMember());
 
 			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms);
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (LacksPermException ex) {
+				bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, true, botPerms)
+					.hasPermissions(event.getTextChannel(), member, userPerms);
+			} catch (CheckException ex) {
 				hook.editOriginal(ex.getEditData()).queue();
 				return;
 			}

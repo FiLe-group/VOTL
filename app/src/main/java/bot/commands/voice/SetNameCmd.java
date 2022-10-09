@@ -9,7 +9,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
-import bot.utils.exception.LacksPermException;
+import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -56,18 +56,13 @@ public class SetNameCmd extends SlashCommand {
 	private void sendReply(SlashCommandEvent event, InteractionHook hook, String filName) {
 
 		Member member = Objects.requireNonNull(event.getMember());
-
-		try {
-			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms);
-		} catch (LacksPermException ex) {
-			hook.editOriginal(ex.getEditData()).queue();
-			return;
-		}
-
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
-		if (!bot.getDBUtil().isGuild(guildId)) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup")).queue();
+		try {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), member, userPerms)
+				.isGuild(event, guildId);
+		} catch (CheckException ex) {
+			hook.editOriginal(ex.getEditData()).queue();
 			return;
 		}
 

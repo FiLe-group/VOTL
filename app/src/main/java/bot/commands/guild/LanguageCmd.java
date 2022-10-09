@@ -13,7 +13,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
-import bot.utils.exception.LacksPermException;
+import bot.utils.exception.CheckException;
 import bot.utils.file.lang.LangUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -131,34 +131,32 @@ public class LanguageCmd extends SlashCommand {
 
 	private static void sendReply(SlashCommandEvent event, InteractionHook hook, String language) {
 
+		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+
 		try {
-			bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms);
-		} catch (LacksPermException ex) {
+			bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+				.isGuild(event, guildId);
+		} catch (CheckException ex) {
 			hook.editOriginal(ex.getEditData()).queue();
 			return;
 		}
 
-		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-
-		if (!bot.getDBUtil().isGuild(guildID)) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
-		}
-
+		// fail-safe
 		if (!getLangList().contains(language.toLowerCase())) {
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
-				.setTitle(bot.getMsg(guildID, "bot.guild.language.embed.available_lang_title"))
-				.setDescription(bot.getMsg(guildID, "bot.guild.language.embed.available_lang_value"))
-				.addField(bot.getMsg(guildID, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
+				.setTitle(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_title"))
+				.setDescription(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_value"))
+				.addField(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
 				.build();
 			hook.editOriginalEmbeds(embed).queue();
 			return;
 		}
 
-		bot.getDBUtil().guildSetLanguage(guildID, language);
+		bot.getDBUtil().guildSetLanguage(guildId, language);
 
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
 			.setColor(bot.getMessageUtil().getColor("rgb:0,200,30"))
-			.setDescription(bot.getMsg(guildID, "bot.guild.language.done").replace("{language}", language))
+			.setDescription(bot.getMsg(guildId, "bot.guild.language.done").replace("{language}", language))
 			.build();
 		hook.editOriginalEmbeds(embed).queue();
 	}
