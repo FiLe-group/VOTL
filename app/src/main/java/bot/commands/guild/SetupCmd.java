@@ -64,13 +64,13 @@ public class SetupCmd extends SlashCommand {
 					Guild guild = Objects.requireNonNull(event.getGuild());
 					String guildId = guild.getId();
 
-					if (bot.getDBUtil().guildAdd(guildId, false)) {
+					if (bot.getDBUtil().guildAdd(guildId)) {
 						hook.editOriginalEmbeds(
 							bot.getEmbedUtil().getEmbed(event.getMember())
 								.setDescription(bot.getMsg(guildId, "bot.guild.setup.main.done"))
 								.build()
 						).queue();
-						bot.getLogger().info("Added guild (inc. -) through setup '"+guild.getName()+"'("+guildId+") to db");
+						bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
 					} else {
 						hook.editOriginalEmbeds(
 							bot.getEmbedUtil().getEmbed(event.getMember())
@@ -96,11 +96,15 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
+			// WAIT FOR ChewTils TO SUPPORT JDA-alpha.21
+			// as createCategory does not work!!!
+			return;
+
+			/* event.deferReply(true).queue(
 				hook -> {
 					sendReply(event, hook);
 				}
-			);
+			); */
 		}
 
 		@SuppressWarnings("null")
@@ -117,8 +121,8 @@ public class SetupCmd extends SlashCommand {
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
 
-			if (bot.getDBUtil().guildAdd(guildId, true)) {
-				bot.getLogger().info("Added guild (inc. voice) through setup '"+guild.getName()+"'("+guildId+") to db");
+			if (bot.getDBUtil().guildAdd(guildId)) {
+				bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
 			}
 
 			try {
@@ -132,6 +136,7 @@ public class SetupCmd extends SlashCommand {
 									.queue(
 										channel -> {
 											bot.getDBUtil().guildVoiceSetup(guildId, category.getId(), channel.getId());
+											bot.getLogger().info("Voice setup done in guild `"+guild.getName()+"'("+guildId+")");
 											hook.editOriginalEmbeds(
 												bot.getEmbedUtil().getEmbed(event.getMember())
 													.setDescription(bot.getMsg(guildId, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))

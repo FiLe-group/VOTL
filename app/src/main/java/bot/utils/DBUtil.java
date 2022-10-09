@@ -38,17 +38,12 @@ public class DBUtil {
 
 
 	// Guild oweral
-	public boolean guildAdd(String guildId, boolean voice) {
-		boolean added = false;
+	public boolean guildAdd(String guildId) {
 		if (!isGuild(guildId)) {
 			insert("guild", "guildId", guildId);
-			added = true;
+			return true;
 		}
-		if (voice && !isGuildVoice(guildId)) {
-			insert("guildVoice", "guildId", guildId);
-			added = true;
-		}
-		return added;
+		return false;
 	}
 
 	public void guildRemove(String guildId) {
@@ -84,8 +79,12 @@ public class DBUtil {
 	}
 	
 	// Guild Voice
-	public void guildVoiceSetup(String guildId, String categoryID, String channelId) {
-		update("guildVoice", new String[]{"categoryID", "channelId"}, new String[]{categoryID, channelId}, "guildId", guildId);
+	public void guildVoiceSetup(String guildId, String categoryId, String channelId) {
+		if (isGuildVoice(guildId)) {
+			update("guildVoice", new String[]{"categoryId", "channelId"}, new String[]{categoryId, channelId}, "guildId", guildId);
+		} else {
+			insert("guildVoice", new String[]{"guildId", "categoryId", "channelId"}, new String[]{guildId, categoryId, channelId});
+		}
 	}
 
 	public void guildVoiceSetName(String guildId, String defaultName) {
@@ -97,7 +96,7 @@ public class DBUtil {
 	}
 
 	public String guildVoiceGetCategory(String guildId) {
-		List<Object> objs = select("guildVoice", "categoryID", "guildId", guildId);
+		List<Object> objs = select("guildVoice", "categoryId", "guildId", guildId);
 		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
