@@ -19,6 +19,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -57,18 +58,15 @@ public class EvalCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				MessageEmbed embed = getEvalEmbed(event);
-
-				hook.editOriginalEmbeds(embed).queue();
+				sendEvalEmbed(event, hook);
 			}
 		);
 
 	}
 
-	private MessageEmbed getEvalEmbed(SlashCommandEvent event) {
+	private void sendEvalEmbed(SlashCommandEvent event, InteractionHook hook) {
 
-		String args = event.getOption("code", "", OptionMapping::getAsString);
-		args = args.trim();
+		String args = event.getOption("code", "", OptionMapping::getAsString).trim();
 		if (args.startsWith("```") && args.endsWith("```")) {
 			if (args.startsWith("```java")) {
 				args = args.substring(4);
@@ -95,29 +93,27 @@ public class EvalCmd extends SlashCommand {
 			Object resp = shell.evaluate(args);
 			String respString = String.valueOf(resp);
 
-			return formatEvalEmbed(event.getTextChannel(), args, respString,
+			hook.editOriginalEmbeds(formatEvalEmbed(event.getTextChannel(), args, respString,
 				bot.getMsg(guildId, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
-	 			, true);
+	 			, true)).queue();
 		} catch (PowerAssertionError | Exception ex) {
-			return formatEvalEmbed(event.getTextChannel(), args, ex.getMessage(),
+			hook.editOriginalEmbeds(formatEvalEmbed(event.getTextChannel(), args, ex.getMessage(),
 				bot.getMsg(guildId, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
-				, false);
+				, false)).queue();
 		}
 	}
 
 	@SuppressWarnings("null")
-	private MessageEmbed formatEvalEmbed(TextChannel tc, String input, String output, String footer, boolean success) {
-		String newMsg = input;
-		
+	private MessageEmbed formatEvalEmbed(TextChannel tc, String input, String output, String footer, boolean success) {		
 		EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
 			.setColor(success ? Color.GREEN : Color.RED)
 			.addField(bot.getMsg(tc.getGuild().getId(), "bot.owner.eval.input"), String.format(
 				"```java\n"+
 					"%s\n"+
 					"```",
-				newMsg
+				input
 				), false)
 			.addField(bot.getMsg(tc.getGuild().getId(), "bot.owner.eval.output"), String.format(
 				"```java\n"+

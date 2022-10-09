@@ -67,7 +67,7 @@ public class HelpCmd extends SlashCommand {
 	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, InteractionHook hook, String filCat) {
 
-		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		String prefix = "/";
 		EmbedBuilder builder = null;
 
@@ -77,8 +77,8 @@ public class HelpCmd extends SlashCommand {
 			builder = bot.getEmbedUtil().getEmbed();
 		}
 
-		builder.setTitle(bot.getMsg(guildID, "bot.help.command_menu.title"))
-			.setDescription(bot.getMsg(guildID, "bot.help.command_menu.description.command_value"));
+		builder.setTitle(bot.getMsg(guildId, "bot.help.command_menu.title"))
+			.setDescription(bot.getMsg(guildId, "bot.help.command_menu.description.command_value"));
 
 		Category category = null;
 		String fieldTitle = "";
@@ -95,7 +95,7 @@ public class HelpCmd extends SlashCommand {
 						builder.addField(fieldTitle, fieldValue.toString(), false);
 					}
 					category = command.getCategory();
-					fieldTitle = bot.getMsg(guildID, "bot.help.command_menu.categories."+category.getName());
+					fieldTitle = bot.getMsg(guildId, "bot.help.command_menu.categories."+category.getName());
 					fieldValue = new StringBuilder();
 				}
 				fieldValue.append("`").append(prefix).append(prefix==null?" ":"").append(command.getName())
@@ -109,14 +109,11 @@ public class HelpCmd extends SlashCommand {
 		}
 
 		User owner = Optional.ofNullable(event.getClient().getOwnerId()).map(id -> event.getJDA().getUserById(id)).orElse(null);
-		String serverInvite = event.getClient().getServerInvite();
 
 		if (owner != null) {
-			fieldTitle = "*Additional help*";
+			fieldTitle = bot.getMsg(guildId, "bot.help.command_menu.description.support_title");
 			fieldValue = new StringBuilder()
-				.append("\n\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator());
-			if (serverInvite != null)
-				fieldValue.append(" or join ").append(serverInvite);
+				.append(bot.getMsg(guildId, "bot.help.command_menu.description.support_value").replace("{owner_name}", owner.getAsTag()));
 			builder.addField(fieldTitle, fieldValue.toString(), false);
 		}
 		

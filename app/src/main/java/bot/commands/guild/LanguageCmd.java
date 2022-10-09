@@ -80,7 +80,7 @@ public class LanguageCmd extends SlashCommand {
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.STRING, "language", bot.getMsg("bot.guild.language.set.option_description"))
 					.setRequired(true)
-					.addChoices(bot.getFileManager().getLanguages().stream().map(
+					.addChoices(getLangList().stream().map(
 						lang -> {
 							return new Choice(lang, lang);
 						}
@@ -114,11 +114,11 @@ public class LanguageCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
-					String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+					String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 					MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
-						.setTitle(bot.getMsg(guildID, "bot.guild.language.show.embed.title"))
-						.setDescription(bot.getMsg(guildID, "bot.guild.language.show.embed.value"))
-						.addField(bot.getMsg(guildID, "bot.guild.language.show.embed.field"), getLanguages(), false)
+						.setTitle(bot.getMsg(guildId, "bot.guild.language.show.embed.title"))
+						.setDescription(bot.getMsg(guildId, "bot.guild.language.show.embed.value"))
+						.addField(bot.getMsg(guildId, "bot.guild.language.show.embed.field"), getLanguages(), false)
 						.build();
 
 					hook.editOriginalEmbeds(embed).queue();

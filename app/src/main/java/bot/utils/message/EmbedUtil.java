@@ -91,11 +91,11 @@ public class EmbedUtil {
 	@Nonnull
 	public MessageEditData getError(SlashCommandEvent event, String path, String reason) {
 		
-		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
 		EmbedBuilder embed = event.isFromGuild() ? getErrorEmbed(event.getMember()) : getErrorEmbed(event.getUser());
 		embed.setDescription(
-			Optional.ofNullable(event.getMember()).map(m -> bot.getMsg(guildID, path, m.getEffectiveName())).orElse(bot.getMsg(guildID, path))
+			Optional.ofNullable(event.getMember()).map(m -> bot.getMsg(guildId, path, m.getEffectiveName())).orElse(bot.getMsg(guildId, path))
 		);
 
 		if (reason != null)

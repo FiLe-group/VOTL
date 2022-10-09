@@ -52,25 +52,25 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	private void handleVoice(Guild guild, Member member) {
-		String guildID = guild.getId();
+		String guildId = guild.getId();
 		String userID = member.getId();
 
 		if (bot.getDBUtil().isVoiceChannel(userID)) {
 			member.getUser().openPrivateChannel()
-				.queue(channel -> channel.sendMessage(bot.getMsg(guildID, "bot.voice.listener.cooldown")).queue());
+				.queue(channel -> channel.sendMessage(bot.getMsg(guildId, "bot.voice.listener.cooldown")).queue());
 			return;
 		}
-		String CategoryID = bot.getDBUtil().guildVoiceGetCategory(guildID);
+		String CategoryID = bot.getDBUtil().guildVoiceGetCategory(guildId);
 		if (CategoryID == null) return;
 		String channelName = bot.getDBUtil().userGetName(userID);
 		Integer channelLimit = bot.getDBUtil().userGetLimit(userID);
-		String defaultChannelName = bot.getDBUtil().guildVoiceGetName(guildID);
-		Integer defaultChannelLimit = bot.getDBUtil().guildVoiceGetLimit(guildID);
+		String defaultChannelName = bot.getDBUtil().guildVoiceGetName(guildId);
+		Integer defaultChannelLimit = bot.getDBUtil().guildVoiceGetLimit(guildId);
 		String name = null;
 		Integer limit = null;
 		if (channelName == null) {
 			if (defaultChannelName == null) {
-				name = bot.getMsg(guildID, "bot.voice.listener.default_name", member.getUser().getName(), false);
+				name = bot.getMsg(guildId, "bot.voice.listener.default_name", member.getUser().getName(), false);
 			} else {
 				name = defaultChannelName;
 			}

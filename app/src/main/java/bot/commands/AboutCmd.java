@@ -52,7 +52,7 @@ public class AboutCmd extends SlashCommand {
 	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
-		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		EmbedBuilder builder = null;
 
 		if (event.isFromGuild()) {
@@ -64,21 +64,21 @@ public class AboutCmd extends SlashCommand {
 		builder.setAuthor(event.getJDA().getSelfUser().getName(), event.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.setThumbnail(event.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.addField(
-				bot.getMsg(guildID, "bot.other.about.embed.about_title"),
-				bot.getMsg(guildID, "bot.other.about.embed.about_value"),
+				bot.getMsg(guildId, "bot.other.about.embed.about_title"),
+				bot.getMsg(guildId, "bot.other.about.embed.about_value"),
 				false
 			)
 			.addField(
-				bot.getMsg(guildID, "bot.other.about.embed.commands_title"),
-				bot.getMsg(guildID, "bot.other.about.embed.commands_value"),
+				bot.getMsg(guildId, "bot.other.about.embed.commands_title"),
+				bot.getMsg(guildId, "bot.other.about.embed.commands_value"),
 				false
 			)
 			.addField(
-				bot.getMsg(guildID, "bot.other.about.embed.bot_info.title"),
+				bot.getMsg(guildId, "bot.other.about.embed.bot_info.title"),
 				String.join(
 					"\n",
-					bot.getMsg(guildID, "bot.other.about.embed.bot_info.bot_version"),
-					bot.getMsg(guildID, "bot.other.about.embed.bot_info.library")
+					bot.getMsg(guildId, "bot.other.about.embed.bot_info.bot_version"),
+					bot.getMsg(guildId, "bot.other.about.embed.bot_info.library")
 						.replace("{jda_version}", JDAInfo.VERSION_MAJOR+"."+JDAInfo.VERSION_MINOR+"."+JDAInfo.VERSION_REVISION+"-"+JDAInfo.VERSION_CLASSIFIER)
 						.replace("{jda_github}", JDAInfo.GITHUB)
 						.replace("{chewtils_version}", JDAUtilitiesInfo.VERSION_MAJOR+"."+JDAUtilitiesInfo.VERSION_MINOR)
@@ -87,21 +87,21 @@ public class AboutCmd extends SlashCommand {
 				false
 			)
 			.addField(
-				bot.getMsg(guildID, "bot.other.about.embed.links.title"),
+				bot.getMsg(guildId, "bot.other.about.embed.links.title"),
 				String.join(
 					"\n",
-					bot.getMsg(guildID, "bot.other.about.embed.links.discord"),
-					bot.getMsg(guildID, "bot.other.about.embed.links.github").replace("{github_url}", Links.GITHUB)
+					bot.getMsg(guildId, "bot.other.about.embed.links.discord"),
+					bot.getMsg(guildId, "bot.other.about.embed.links.github").replace("{github_url}", Links.GITHUB)
 				),
 				true
 			)
 			.addField(
-				bot.getMsg(guildID, "bot.other.about.embed.links.unionteams_title"),
+				bot.getMsg(guildId, "bot.other.about.embed.links.unionteams_title"),
 				String.join(
 					"\n",
-					bot.getMsg(guildID, "bot.other.about.embed.links.unionteams_website").replace("{unionteams}", Links.UNIONTEAMS),
-					bot.getMsg(guildID, "bot.other.about.embed.links.rotr").replace("{rotr_invite}", Links.ROTR_INVITE),
-					bot.getMsg(guildID, "bot.other.about.embed.links.ww2").replace("{ww2_invite}", Links.WW2_INVITE)
+					bot.getMsg(guildId, "bot.other.about.embed.links.unionteams_website").replace("{unionteams}", Links.UNIONTEAMS),
+					bot.getMsg(guildId, "bot.other.about.embed.links.rotr").replace("{rotr_invite}", Links.ROTR_INVITE),
+					bot.getMsg(guildId, "bot.other.about.embed.links.ww2").replace("{ww2_invite}", Links.WW2_INVITE)
 				),
 				true
 			);

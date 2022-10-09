@@ -48,10 +48,11 @@ public class SetupCmd extends SlashCommand {
 
 		public Voice() {
 			this.name = "voice";
-			this.help = bot.getMsg("bot.guild.setup.values.voice");
+			this.help = bot.getMsg("bot.guild.setup.voice");
 			this.botPerms = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS
 		}
 
+		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
@@ -72,26 +73,26 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildID = guild.getId();
+			String guildId = guild.getId();
 
-			if (bot.getDBUtil().guildAdd(guildID)) {
-				bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildID+") to db");
+			if (bot.getDBUtil().guildAdd(guildId, true)) {
+				bot.getLogger().info("Added guild (inc. voice) through setup '"+guild.getName()+"'("+guildId+") to db");
 			}
 
 			try {
-				guild.createCategory(bot.getMsg(guildID, "bot.voice.setup.category"))
+				guild.createCategory(bot.getMsg(guildId, "bot.voice.setup.category"))
 					.addPermissionOverride(guild.getBotRole(), Arrays.asList(botPerms), null)
 					.queue(
 						category -> {
 							try {
-								category.createVoiceChannel(bot.getMsg(guildID, "bot.voice.setup.channel"))
+								category.createVoiceChannel(bot.getMsg(guildId, "bot.voice.setup.channel"))
 									.addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
 									.queue(
 										channel -> {
-											bot.getDBUtil().guildVoiceSetup(guildID, category.getId(), channel.getId());
+											bot.getDBUtil().guildVoiceSetup(guildId, category.getId(), channel.getId());
 											hook.editOriginalEmbeds(
 												bot.getEmbedUtil().getEmbed(event.getMember())
-													.setDescription(bot.getMsg(guildID, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
+													.setDescription(bot.getMsg(guildId, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
 													.build()
 											).queue();
 										}

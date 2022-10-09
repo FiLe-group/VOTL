@@ -58,12 +58,14 @@
 			},
 			"setup": {
 				"help": "Setup menu for this server",
-				"values": {
 					"preview": "Preview current setting for this guild",
 					"reset": "Reset settings",
-					"voice": "Setup custom voice channel module",
-					"webhook": "Setup webhook module"
-				}
+				"main": {
+					"help": "Setup main function (without touching other modules)",
+					"done": "**Setup done!**\nBot is ready for use on this server.",
+					"exists": "Bot is already configured on this server.\nIf you belive there is an error, contact developer in `/help`"
+				},
+				"voice": "Setup custom voice channel module"
 			}
 		},
 		"voice": {
@@ -293,9 +295,8 @@
 				},
 				"description": {
 					"command_value": "To get more info about a specific command run `/help [command]`.\nYou can also run `/help cat:[category]` to show the commands of a specific category.",
-					"nav_title": "Navigation",
-					"nav_value": "Click the buttons for the following actions:\n\nPrevious page\nNext page\nCancel menu",
-					"support": "If you need help with the bot, contact the developer `{developer_name}` for support"
+					"support_title": "*Additional help*",
+					"support_value": "If you need help with the bot, contact the owner `{owner_name}`."
 				}
 			}
 		},

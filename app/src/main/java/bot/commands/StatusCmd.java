@@ -34,7 +34,8 @@ public class StatusCmd extends SlashCommand {
 		this.bot = bot;
 	}
 
-	public void execute(SlashCommandEvent event) {	
+	@Override
+	protected void execute(SlashCommandEvent event) {	
 
 		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
 			hook -> {
@@ -46,41 +47,41 @@ public class StatusCmd extends SlashCommand {
 
 	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
-		String guildID = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		EmbedBuilder builder = bot.getEmbedUtil().getEmbed();
 
 		builder.setAuthor(event.getJDA().getSelfUser().getName(), event.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.setThumbnail(event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 		
 		builder.addField(
-				bot.getMsg(guildID, "bot.other.status.embed.stats_title"),
+				bot.getMsg(guildId, "bot.other.status.embed.stats_title"),
 				String.join(
 					"\n",
-					bot.getMsg(guildID, "bot.other.status.embed.stats.guilds").replace("{value}", String.valueOf(event.getClient().getTotalGuilds())),
-					bot.getMsg(guildID, "bot.other.status.embed.stats.shard")
+					bot.getMsg(guildId, "bot.other.status.embed.stats.guilds").replace("{value}", String.valueOf(event.getClient().getTotalGuilds())),
+					bot.getMsg(guildId, "bot.other.status.embed.stats.shard")
 						.replace("{this}", String.valueOf(event.getJDA().getShardInfo().getShardId() + 1))
 						.replace("{all}", String.valueOf(event.getJDA().getShardInfo().getShardTotal()))
 				),
 				false
 			)
-			.addField(bot.getMsg(guildID, "bot.other.status.embed.shard_title"),
+			.addField(bot.getMsg(guildId, "bot.other.status.embed.shard_title"),
 				String.join(
 					"\n",
-					bot.getMsg(guildID, "bot.other.status.embed.shard.users").replace("{value}", String.valueOf(event.getJDA().getUsers().size())),
-					bot.getMsg(guildID, "bot.other.status.embed.shard.guilds").replace("{value}", String.valueOf(event.getJDA().getGuilds().size()))
+					bot.getMsg(guildId, "bot.other.status.embed.shard.users").replace("{value}", String.valueOf(event.getJDA().getUsers().size())),
+					bot.getMsg(guildId, "bot.other.status.embed.shard.guilds").replace("{value}", String.valueOf(event.getJDA().getGuilds().size()))
 				),
 				true
 			)
 			.addField("",
 				String.join(
 					"\n",
-					bot.getMsg(guildID, "bot.other.status.embed.shard.text_channels").replace("{value}", String.valueOf(event.getJDA().getTextChannels().size())),
-					bot.getMsg(guildID, "bot.other.status.embed.shard.voice_channels").replace("{value}", String.valueOf(event.getJDA().getVoiceChannels().size()))
+					bot.getMsg(guildId, "bot.other.status.embed.shard.text_channels").replace("{value}", String.valueOf(event.getJDA().getTextChannels().size())),
+					bot.getMsg(guildId, "bot.other.status.embed.shard.voice_channels").replace("{value}", String.valueOf(event.getJDA().getVoiceChannels().size()))
 				),
 				true
 			);
 
-		builder.setFooter(bot.getMsg(guildID, "bot.other.status.embed.last_restart"))
+		builder.setFooter(bot.getMsg(guildId, "bot.other.status.embed.last_restart"))
 			.setTimestamp(event.getClient().getStartTime());
 
 		hook.editOriginalEmbeds(builder.build()).queue();
