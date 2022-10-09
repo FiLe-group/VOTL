@@ -101,7 +101,7 @@ public class EmbedUtil {
 
 		if (reason != null)
 			embed.addField(
-				"Error:",
+				bot.getMsg(guildId, "errors.title"),
 				reason,
 				false
 			);

@@ -16,6 +16,7 @@ import bot.App;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -98,7 +99,7 @@ public class WebhookCmd extends SlashCommand {
 				// If there is any webhook and only saved in DB are to be shown
 				if (!listAll) {
 					// Keeps only saved in DB type Webhook objects
-					List<String> regWebhookIDs = bot.getDBUtil().webhookGetIDs(guildId);
+					List<String> regWebhookIDs = bot.getDBUtil().webhookGetIds(guildId);
 						
 					webhooks = webhooks.stream().filter(wh -> regWebhookIDs.contains(wh.getId())).collect(Collectors.toList());
 				}
@@ -364,6 +365,10 @@ public class WebhookCmd extends SlashCommand {
 				return;
 			}
 
+			if (!channel.getType().equals(ChannelType.TEXT)) {
+				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.webhook.move.error_channel", "Selected channel is not Text Channel")).queue();
+				return;
+			}
 
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {

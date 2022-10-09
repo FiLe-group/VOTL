@@ -234,7 +234,7 @@ public class DBUtil {
 		return String.valueOf(objs.get(0));
 	}
 
-	public List<String> webhookGetIDs(String guildId) {
+	public List<String> webhookGetIds(String guildId) {
 		List<Object> objs = select("webhook", "webhookId", "guildId", guildId);
 		if (objs.isEmpty()) {
 			return Collections.emptyList();

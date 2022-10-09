@@ -116,8 +116,8 @@ public class FileManager {
 				throw new KeyIsNull(path);
 		
 		} catch (FileNotFoundException ex) {
-			logger.error("Couldn't find file {}", name);
-			text = "ERROR: file not found";
+			logger.error("Couldn't find file {}.json", name);
+			text = "TEXT ERROR: file not found";
 		} catch (KeyIsNull ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
 			text = ex.getMessage();
@@ -146,7 +146,7 @@ public class FileManager {
 				
 			return true;
 		} catch (FileNotFoundException ex) {
-			logger.error("Couldn't find file {}", name);
+			logger.error("Couldn't find file {}.json", name);
 			return false;
 		} catch (IOException ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
@@ -173,7 +173,7 @@ public class FileManager {
 				
 			return array;
 		} catch (FileNotFoundException ex) {
-			logger.error("Couldn't find file {}", name);
+			logger.error("Couldn't find file {}.json", name);
 			return new ArrayList<>();
 		} catch (KeyIsNull ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);

@@ -224,6 +224,7 @@
 				"option_channel": "Choose the channel to move webhook to",
 				"error_not_registered": "Selected webhook is not registered.",
 				"error_not_found": "Couldn't find webhook by entered ID.",
+				"error_channel": "Couldn't move webhook to that channel.",
 				"done": "Successfully moved webhook `{webhook_name}` to channel `{channel}`!"
 			},
 			"add": {
