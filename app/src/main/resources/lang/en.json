@@ -58,14 +58,46 @@
 			},
 			"setup": {
 				"help": "Setup menu for this server",
-					"preview": "Preview current setting for this guild",
-					"reset": "Reset settings",
+				"preview": "Preview current setting for this guild",
+				"reset": "Reset settings",
 				"main": {
 					"help": "Setup main function (without touching other modules)",
 					"done": "**Setup done!**\nBot is ready for use on this server.",
 					"exists": "Bot is already configured on this server.\nIf you belive there is an error, contact developer in `/help`"
 				},
 				"voice": "Setup custom voice channel module"
+			},
+			"module": {
+				"help": "Manage modules",
+				"show": {
+					"help": "Show current modules status",
+					"embed": {
+						"title": "Module status",
+						"value": "*To enable/disable a module use `/module enable` or `/module disable`*",
+						"field": "Enabled | Module"
+					}
+				},
+				"disable": {
+					"help": "Disable module",
+					"option_description": "Enter selected module",
+					"embed_title": "Disable module",
+					"embed_value": "Select module from list bellow to be disabled.",
+					"none": "__All modules are already disabled!__",
+					"done": "Module {module} successfully disabled."
+				},
+				"enable": {
+					"help": "Enable module",
+					"option_description": "Enter selected module",
+					"embed_title": "Enable module",
+					"embed_value": "Select module from list bellow to be enabled.",
+					"none": "__All modules are already enabled!__",
+					"done": "Module {module} successfully enabled."
+				},
+				"list": {
+					"voice": "Voice category",
+					"webhook": "Webhook commands",
+					"language": "Language commands"
+				}
 			}
 		},
 		"voice": {

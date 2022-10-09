@@ -242,6 +242,30 @@ public class DBUtil {
 		}
 		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
 	}
+
+	// Module disable
+	public void moduleAdd(String guildId, String module) {
+		insert("moduleOff", new String[]{"guildId", "module"}, new Object[]{guildId, module});
+	}
+
+	public void moduleRemove(String guildId, String module) {
+		delete("moduleOff", new String[]{"guildId", "module"}, new Object[]{guildId, module});
+	}
+
+	public List<String> modulesGet(String guildId) {
+		List<Object> objs = select("moduleOff", "module", "guildId", guildId);
+		if (objs.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
+	}
+
+	public boolean moduleDisabled(String guildId, String module) {
+		if (select("moduleOff", "guildId", new String[]{"guildId", "module"}, new Object[]{guildId, module}).isEmpty()) {
+			return false;
+		}
+		return true;
+	}
 	
 
 	// INSERT sql
@@ -266,9 +290,23 @@ public class DBUtil {
 
 	// SELECT sql
 	private List<Object> select(String table, String selectKey, String condKey, Object condValueObj) {
-		String condValue = quote(condValueObj);
+		return select(table, selectKey, new String[]{condKey}, new Object[]{condValueObj});
+	}
 
-		String sql = "SELECT * FROM "+table+" WHERE "+condKey+"="+condValue;
+	private List<Object> select(String table, String selectKey, String[] condKeys, Object[] condValuesObj) {
+		String[] condValues = new String[condValuesObj.length];
+		for (int i = 0; i<condValuesObj.length; i++) {
+			condValues[i] = quote(condValuesObj[i]);
+		}
+
+		String sql = "SELECT * FROM "+table+" WHERE ";
+		for (int i = 0; i<condKeys.length; i++) {
+			if (i > 0) {
+				sql += " AND ";
+			}
+			sql += condKeys[i]+"="+condValues[i];
+		}
+
 		List<Object> results = new ArrayList<Object>();
 		try (Connection conn = connect();
 		PreparedStatement st = conn.prepareStatement(sql)) {
@@ -316,13 +354,17 @@ public class DBUtil {
 	}
 
 	private void delete(String table, String[] condKeys, Object[] condValuesObj) {
+		String[] condValues = new String[condValuesObj.length];
+		for (int i = 0; i<condValuesObj.length; i++) {
+			condValues[i] = quote(condValuesObj[i]);
+		}
 
 		String sql = "DELETE FROM "+table+" WHERE ";
 		for (int i = 0; i<condKeys.length; i++) {
 			if (i > 0) {
-				sql += ", ";
+				sql += " AND ";
 			}
-			sql += condKeys[i]+"="+quote(condValuesObj[i]);
+			sql += condKeys[i]+"="+condValues[i];
 		}
 
 		try (Connection conn = connect();

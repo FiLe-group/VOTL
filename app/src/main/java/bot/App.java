@@ -112,6 +112,7 @@ public class App {
 				// guild
 				new LanguageCmd(this),
 				new SetupCmd(this),
+				new ModuleCmd(this, waiter),
 				// owner
 				new ShutdownCmd(this),
 				new EvalCmd(this),
@@ -199,6 +200,10 @@ public class App {
 
 	public CheckUtil getCheckUtil() {
 		return checkUtil;
+	}
+
+	public List<String> getAllModules() {
+		return List.of("voice", "webhook", "language");
 	}
 
 	@Nonnull
