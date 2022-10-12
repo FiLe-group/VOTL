@@ -1,8 +1,10 @@
 package bot.commands.owner;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.objects.constants.Constants;
+import bot.utils.exception.CheckException;
 
 import java.util.Collections;
 import java.util.Map;
@@ -36,7 +38,12 @@ public class EvalCmd extends SlashCommand {
 
 	private final App bot;
 
-	protected Permission[] botPerms;
+	private static final boolean mustSetup = false;
+	private static final String MODULE = null;
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.DEV;
+
+	protected static Permission[] userPerms = new Permission[0];
+	protected static Permission[] botPerms = new Permission[0];
 	
 	public EvalCmd(App bot) {
 		this.name = "eval";
@@ -59,6 +66,24 @@ public class EvalCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
+				try {
+					// check access
+					bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+					// check module enabled
+						.moduleEnabled(event, MODULE)
+					// check user perms
+						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+					// check bots perms
+						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					// check setup
+					if (mustSetup) {
+						bot.getCheckUtil().guildExists(event);
+					}
+				} catch (CheckException ex) {
+					hook.editOriginal(ex.getEditData()).queue();
+					return;
+				}
+
 				sendEvalEmbed(event, hook);
 			}
 		);

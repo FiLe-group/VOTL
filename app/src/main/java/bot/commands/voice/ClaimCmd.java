@@ -8,6 +8,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
@@ -27,8 +28,12 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 public class ClaimCmd extends SlashCommand {
 	
 	private final App bot;
+
+	private static final boolean mustSetup = true;
 	private static final String MODULE = "voice";
-	
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ALL;
+
+	protected static Permission[] userPerms = new Permission[0];
 	protected static Permission[] botPerms = new Permission[0];
 
 	public ClaimCmd(App bot) {
@@ -44,6 +49,24 @@ public class ClaimCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
+				try {
+					// check access
+					bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+					// check module enabled
+						.moduleEnabled(event, MODULE)
+					// check user perms
+						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+					// check bots perms
+						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					// check setup
+					if (mustSetup) {
+						bot.getCheckUtil().guildExists(event);
+					}
+				} catch (CheckException ex) {
+					hook.editOriginal(ex.getEditData()).queue();
+					return;
+				}
+				
 				sendReply(event, hook);
 			}
 		);
@@ -53,49 +76,44 @@ public class ClaimCmd extends SlashCommand {
 	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
-		Member member = Objects.requireNonNull(event.getMember());
-		Guild guild = Objects.requireNonNull(event.getGuild());
-		String guildId = guild.getId();
+		Member author = Objects.requireNonNull(event.getMember());
 
-		try {
-			bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-				.hasPermissions(event.getTextChannel(), member, true, botPerms)
-				.guildExists(event, guildId);
-		} catch (CheckException ex) {
-			hook.editOriginal(ex.getEditData()).queue();
+		if (!author.getVoiceState().inAudioChannel()) {
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_in_voice")).queue();
 			return;
 		}
 
-		if (member.getVoiceState().inAudioChannel()) {
-			AudioChannel ac = member.getVoiceState().getChannel();
-			if (bot.getDBUtil().isVoiceChannelExists(ac.getId())) {
-				VoiceChannel vc = guild.getVoiceChannelById(ac.getId());
-				Member owner = guild.getMemberById(bot.getDBUtil().channelGetUser(vc.getId()));
-				for (Member vcMember : vc.getMembers()) {
-					if (vcMember == owner) {
-						hook.editOriginal(bot.getMsg(guildId, "bot.voice.claim.has_owner"));
-						return;
-					}
-				}
-				try {
-					vc.getManager().removePermissionOverride(owner.getIdLong()).queue();
-					vc.getManager().putMemberPermissionOverride(member.getIdLong(), EnumSet.of(Permission.MANAGE_CHANNEL), null).queue();
-				} catch (InsufficientPermissionException ex) {
-					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)).queue();
-					return;
-				}
-				bot.getDBUtil().channelSetUser(member.getId(), vc.getId());
-				
-				hook.editOriginalEmbeds(
-					bot.getEmbedUtil().getEmbed(member)
-						.setDescription(bot.getMsg(guildId, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
-						.build()
-				).queue();
-			} else {
-				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_custom")).queue();
-			}
-		} else {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_in_voice")).queue();
+		AudioChannel ac = author.getVoiceState().getChannel();
+		if (!bot.getDBUtil().isVoiceChannelExists(ac.getId())) {
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_custom")).queue();
+			return;
 		}
+
+		Guild guild = Objects.requireNonNull(event.getGuild());
+		String guildId = guild.getId();
+
+		VoiceChannel vc = guild.getVoiceChannelById(ac.getId());
+		Member owner = guild.getMemberById(bot.getDBUtil().channelGetUser(vc.getId()));
+		for (Member vcMember : vc.getMembers()) {
+			if (vcMember == owner) {
+				hook.editOriginal(bot.getMsg(guildId, "bot.voice.claim.has_owner")).queue();
+				return;
+			}
+		}
+
+		try {
+			vc.getManager().removePermissionOverride(owner).queue();
+			vc.getManager().putPermissionOverride(author, EnumSet.of(Permission.MANAGE_CHANNEL), null).queue();
+		} catch (InsufficientPermissionException ex) {
+			hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, ex.getPermission(), true)).queue();
+			return;
+		}
+		bot.getDBUtil().channelSetUser(author.getId(), vc.getId());
+		
+		hook.editOriginalEmbeds(
+			bot.getEmbedUtil().getEmbed(author)
+				.setDescription(bot.getMsg(guildId, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
+				.build()
+		).queue();
 	}
 }

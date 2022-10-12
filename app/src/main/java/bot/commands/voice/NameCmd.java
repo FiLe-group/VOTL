@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
@@ -29,9 +30,13 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class NameCmd extends SlashCommand {
 	
 	private static App bot;
+	
+	private static final boolean mustSetup = true;
 	private static final String MODULE = "voice";
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ALL;
 
-	protected static Permission[] botPerms;
+	protected static Permission[] userPerms = new Permission[0];
+	protected static Permission[] botPerms = new Permission[0];
 
 	public NameCmd(App bot) {
 		this.name = "name";
@@ -63,6 +68,24 @@ public class NameCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						// check setup
+						if (mustSetup) {
+							bot.getCheckUtil().guildExists(event);
+						}
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+
 					String filName = event.getOption("name", "", OptionMapping::getAsString).trim();
 					sendReply(event, hook, filName);
 				}
@@ -83,6 +106,24 @@ public class NameCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						// check setup
+						if (mustSetup) {
+							bot.getCheckUtil().guildExists(event);
+						}
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+
 					String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 					String filName = Optional.ofNullable(
 						bot.getDBUtil().guildVoiceGetName(guildId)
@@ -100,43 +141,34 @@ public class NameCmd extends SlashCommand {
 	@SuppressWarnings("null")
 	private static void sendReply(SlashCommandEvent event, InteractionHook hook, String filName) {
 
-		Member member = Objects.requireNonNull(event.getMember());
-		Guild guild = Objects.requireNonNull(event.getGuild());
-		String guildId = guild.getId();
-
-		try {
-			bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-				.hasPermissions(event.getTextChannel(), member, true, botPerms)
-				.guildExists(event, guildId);
-		} catch (CheckException ex) {
-			hook.editOriginal(ex.getEditData()).queue();
-			return;
-		}
-
 		if (filName.isEmpty() || filName.length() > 100) {
 			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.name.invalid_range")).queue();
 			return;
 		}
 
+		Member member = Objects.requireNonNull(event.getMember());
 		String memberId = member.getId();
 
-		if (bot.getDBUtil().isVoiceChannel(memberId)) {
-			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(memberId));
-
-			vc.getManager().setName(filName).queue();
-
-			if (!bot.getDBUtil().isUser(memberId)) {
-				bot.getDBUtil().userAdd(memberId);
-			}
-			bot.getDBUtil().userSetName(memberId, filName);
-
-			hook.editOriginalEmbeds(
-				bot.getEmbedUtil().getEmbed(member)
-					.setDescription(bot.getMsg(guildId, "bot.voice.name.done").replace("{value}", filName))
-					.build()
-			).queue();
-		} else {
+		if (!bot.getDBUtil().isVoiceChannel(memberId)) {
 			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
+			return;
 		}
+
+		Guild guild = Objects.requireNonNull(event.getGuild());
+		String guildId = guild.getId();
+
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(memberId));
+		vc.getManager().setName(filName).queue();
+
+		if (!bot.getDBUtil().isUser(memberId)) {
+			bot.getDBUtil().userAdd(memberId);
+		}
+		bot.getDBUtil().userSetName(memberId, filName);
+
+		hook.editOriginalEmbeds(
+			bot.getEmbedUtil().getEmbed(member)
+				.setDescription(bot.getMsg(guildId, "bot.voice.name.done").replace("{value}", filName))
+				.build()
+		).queue();
 	}
 }

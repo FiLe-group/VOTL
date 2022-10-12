@@ -1,8 +1,11 @@
 package bot.utils;
 
+import java.util.Objects;
+
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.Constants;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
@@ -33,6 +36,27 @@ public class CheckUtil {
                 return true;
         return false;
     }
+
+	private CmdAccessLevel getAccessLevel(SlashCommandEvent event) {
+		// Is bot developer, as set in 
+		if (isDeveloper(event.getUser()) || isOwner(event))
+			return CmdAccessLevel.DEV;
+		Member member = Objects.requireNonNull(event.getMember());
+		if (member.isOwner())
+			return CmdAccessLevel.OWNER;
+		/* if (false)
+			return CmdAccessLevel.ADMIN;
+		if (false)
+			return CmdAccessLevel.MOD; */
+		
+		return CmdAccessLevel.ALL;
+	}
+
+	public CheckUtil hasAccess(SlashCommandEvent event, CmdAccessLevel accessLevel) throws CheckException {
+		if (accessLevel.getLevel() > getAccessLevel(event).getLevel())
+			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.low_access_level", "Access: "+accessLevel.getName()));
+		return this;
+	}
 
 	public CheckUtil guildExists(SlashCommandEvent event) throws CheckException {
 		String guildId = Objects.requireNonNull(event.getGuild()).getId();

@@ -13,6 +13,7 @@ import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -34,9 +35,13 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 public class WebhookCmd extends SlashCommand {
 
 	private static App bot;
+	
+	private static final boolean mustSetup = true;
 	private static final String MODULE = "webhook";
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ADMIN;
 
-	protected static Permission[] userPerms, botPerms;
+	protected static Permission[] userPerms = new Permission[0];
+	protected static Permission[] botPerms = new Permission[0];
 
 	public WebhookCmd(App bot) {
 		this.name = "webhook";
@@ -67,8 +72,25 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					Boolean listAll = event.getOption("all", false, OptionMapping::getAsBoolean);
+					try {
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						// check setup
+						if (mustSetup) {
+							bot.getCheckUtil().guildExists(event);
+						}
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
 
+					Boolean listAll = event.getOption("all", false, OptionMapping::getAsBoolean);
 					sendReply(event, hook, listAll);
 				}
 			);
@@ -79,15 +101,6 @@ public class WebhookCmd extends SlashCommand {
 			Member member = Objects.requireNonNull(event.getMember());
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
-
-			try {
-				bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-					.hasPermissions(event.getTextChannel(), member, true, botPerms)
-					.hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(member)
 				.setTitle(bot.getMsg(guildId, "bot.webhook.list.embed.title"));
@@ -147,9 +160,26 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						// check setup
+						if (mustSetup) {
+							bot.getCheckUtil().guildExists(event);
+						}
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+
 					String name = event.getOption("name", "Dafault name", OptionMapping::getAsString).trim();
 					GuildChannel channel = event.getOption("channel", event.getGuildChannel(), OptionMapping::getAsChannel);
-
 					sendReply(event, hook, name, channel);
 				}
 			);
@@ -160,15 +190,6 @@ public class WebhookCmd extends SlashCommand {
 			Member member = Objects.requireNonNull(event.getMember());
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
-
-			try {
-				bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-					.hasPermissions(event.getTextChannel(), member, true, botPerms)
-					.hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
 
 			if (name.isEmpty() || name.length() > 100) {
 				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.webhook.add.create.invalid_range")).queue();
@@ -211,8 +232,25 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					String webhookId = event.getOption("id", "0", OptionMapping::getAsString).trim();
+					try {
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						// check setup
+						if (mustSetup) {
+							bot.getCheckUtil().guildExists(event);
+						}
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
 
+					String webhookId = event.getOption("id", "0", OptionMapping::getAsString).trim();
 					sendReply(event, hook, webhookId);
 				}
 			);
@@ -222,15 +260,6 @@ public class WebhookCmd extends SlashCommand {
 
 			Member member = Objects.requireNonNull(event.getMember());
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-
-			try {
-				bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-					.hasPermissions(event.getTextChannel(), member, true, botPerms)
-					.hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
 
 			event.getJDA().retrieveWebhookById(Objects.requireNonNull(webhookId)).queue(
 				webhook -> {
@@ -271,9 +300,26 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						// check setup
+						if (mustSetup) {
+							bot.getCheckUtil().guildExists(event);
+						}
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+
 					String webhookId = event.getOption("id", "0", OptionMapping::getAsString).trim();
 					Boolean delete = event.getOption("delete", false, OptionMapping::getAsBoolean);
-
 					sendReply(event, hook, webhookId, delete);
 				}
 			);
@@ -284,15 +330,6 @@ public class WebhookCmd extends SlashCommand {
 			Member member = Objects.requireNonNull(event.getMember());
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
-
-			try {
-				bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-					.hasPermissions(event.getTextChannel(), member, true, botPerms)
-					.hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
 
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
@@ -343,9 +380,26 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						// check setup
+						if (mustSetup) {
+							bot.getCheckUtil().guildExists(event);
+						}
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+
 					String webhookId = event.getOption("id", OptionMapping::getAsString).trim();
 					GuildChannel channel = event.getOption("channel", OptionMapping::getAsChannel);
-
 					sendReply(event, hook, webhookId, channel);
 				}
 			);
@@ -356,15 +410,6 @@ public class WebhookCmd extends SlashCommand {
 			Member member = Objects.requireNonNull(event.getMember());
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
-
-			try {
-				bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-					.hasPermissions(event.getTextChannel(), member, true, botPerms)
-					.hasPermissions(event.getTextChannel(), member, userPerms);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
 
 			if (!channel.getType().equals(ChannelType.TEXT)) {
 				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.webhook.move.error_channel", "Selected channel is not Text Channel")).queue();

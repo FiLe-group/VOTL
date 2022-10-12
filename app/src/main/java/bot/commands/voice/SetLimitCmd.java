@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
@@ -27,8 +28,12 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class SetLimitCmd extends SlashCommand {
 	
 	private final App bot;
+	
+	private static final boolean mustSetup = true;
 	private static final String MODULE = "voice";
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ADMIN;
 
+	protected static Permission[] userPerms = new Permission[0];
 	protected static Permission[] botPerms = new Permission[0];
 
 	public SetLimitCmd(App bot) {
@@ -49,9 +54,26 @@ public class SetLimitCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				Integer filLimit;
 				try {
-					filLimit = event.getOption("limit", OptionMapping::getAsInt);
+					// check access
+					bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+					// check module enabled
+						.moduleEnabled(event, MODULE)
+					// check user perms
+						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+					// check bots perms
+						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					// check setup
+					if (mustSetup) {
+						bot.getCheckUtil().guildExists(event);
+					}
+				} catch (CheckException ex) {
+					hook.editOriginal(ex.getEditData()).queue();
+					return;
+				}
+
+				try {
+					Integer filLimit = event.getOption("limit", OptionMapping::getAsInt);
 					sendReply(event, hook, filLimit);
 				} catch (Exception e) {
 					hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.request_error", e.toString()));
@@ -65,15 +87,6 @@ public class SetLimitCmd extends SlashCommand {
 
 		Member member = Objects.requireNonNull(event.getMember());
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-
-		try {
-			bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-				.hasPermissions(event.getTextChannel(), member, userPerms)
-				.guildExists(event, guildId);
-		} catch (CheckException ex) {
-			hook.editOriginal(ex.getEditData()).queue();
-			return;
-		}
 
 		bot.getDBUtil().guildVoiceSetLimit(guildId, filLimit);
 

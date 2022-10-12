@@ -11,6 +11,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
@@ -34,8 +35,12 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class PermitCmd extends SlashCommand {
 	
 	private final App bot;
+	
+	private static final boolean mustSetup = true;
 	private static final String MODULE = "voice";
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ALL;
 
+	protected static Permission[] userPerms = new Permission[0];
 	protected static Permission[] botPerms = new Permission[0];
 
 	public PermitCmd(App bot) {
@@ -55,6 +60,24 @@ public class PermitCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
+				try {
+					// check access
+					bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+					// check module enabled
+						.moduleEnabled(event, MODULE)
+					// check user perms
+						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+					// check bots perms
+						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					// check setup
+					if (mustSetup) {
+						bot.getCheckUtil().guildExists(event);
+					}
+				} catch (CheckException ex) {
+					hook.editOriginal(ex.getEditData()).queue();
+					return;
+				}
+
 				Mentions filMentions = event.getOption("mention", OptionMapping::getMentions);
 				sendReply(event, hook, filMentions);
 			}
@@ -65,61 +88,56 @@ public class PermitCmd extends SlashCommand {
 	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, InteractionHook hook, Mentions filMentions) {
 
-		Member member = Objects.requireNonNull(event.getMember());
-		Guild guild = Objects.requireNonNull(event.getGuild());
-		String guildId = guild.getId();
+		Member author = Objects.requireNonNull(event.getMember());
+		String authorId = author.getId();
 
-		try {
-			bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-				.hasPermissions(event.getTextChannel(), member, true, botPerms)
-				.guildExists(event, guildId);
-		} catch (CheckException ex) {
-			hook.editOriginal(ex.getEditData()).queue();
+		if (!bot.getDBUtil().isVoiceChannel(authorId)) {
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
 			return;
 		}
 
-		if (bot.getDBUtil().isVoiceChannel(member.getId())) {
-			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
+		Guild guild = Objects.requireNonNull(event.getGuild());
+		String guildId = guild.getId();
 
-			List<Member> members = filMentions.getMembers();
-			List<Role> roles = filMentions.getRoles();
-			if (members.isEmpty() & roles.isEmpty()) {
-				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.permit.invalid_args")).queue();
+		List<Member> members = filMentions.getMembers();
+		List<Role> roles = filMentions.getRoles();
+		if (members.isEmpty() & roles.isEmpty()) {
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.permit.invalid_args")).queue();
+			return;
+		}
+		if (members.contains(author) || members.contains(guild.getSelfMember())) {
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.permit.not_self")).queue();
+			return;
+		}
+
+		List<String> mentionStrings = new ArrayList<>();
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(authorId));
+
+		for (Member member : members) {
+			try {
+				vc.getManager().putPermissionOverride(member, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
+				mentionStrings.add(member.getEffectiveName());
+			} catch (InsufficientPermissionException ex) {
+				hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, Permission.MANAGE_PERMISSIONS, true)).queue();
+				return;
 			}
-			if (members.contains(member) || members.contains(guild.getSelfMember())) {
-				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.permit.not_self")).queue();
-			}
+		}
 
-			List<String> mentionStrings = new ArrayList<>();
-
-			for (Member xMember : members) {
+		for (Role role : roles) {
+			if (!role.hasPermission(new Permission[]{Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES}))
 				try {
-					vc.getManager().putMemberPermissionOverride(xMember.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
-					mentionStrings.add(xMember.getEffectiveName());
+					vc.getManager().putPermissionOverride(role, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
+					mentionStrings.add(role.getName());
 				} catch (InsufficientPermissionException ex) {
-					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true));
+					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, Permission.MANAGE_PERMISSIONS, true)).queue();
 					return;
 				}
-			}
-
-			for (Role role : roles) {
-				if (!role.hasPermission(new Permission[]{Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES}))
-					try {
-						vc.getManager().putRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
-						mentionStrings.add(role.getName());
-					} catch (InsufficientPermissionException ex) {
-						hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, Permission.MANAGE_PERMISSIONS, true)).queue();
-						return;
-					}
-			}
-
-			hook.editOriginalEmbeds(
-				bot.getEmbedUtil().getEmbed(member)
-					.setDescription(bot.getMsg(guildId, "bot.voice.permit.done", "", mentionStrings))
-					.build()
-			).queue();
-		} else {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
 		}
+
+		hook.editOriginalEmbeds(
+			bot.getEmbedUtil().getEmbed(author)
+				.setDescription(bot.getMsg(guildId, "bot.voice.permit.done", "", mentionStrings))
+				.build()
+		).queue();
 	}
 }

@@ -14,6 +14,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.objects.constants.Constants;
 import bot.utils.exception.CheckException;
@@ -35,7 +36,12 @@ public class ModuleCmd extends SlashCommand {
 	private static App bot;
 	private static EventWaiter waiter;
 
-	protected static Permission[] userPerms;
+	private static final boolean mustSetup = true;
+	private static final String MODULE = null;
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.OWNER;
+
+	protected static Permission[] userPerms = new Permission[0];
+	protected static Permission[] botPerms = new Permission[0];
 	
 	public ModuleCmd(App bot, EventWaiter waiter) {
 		this.name = "module";
@@ -63,6 +69,22 @@ public class ModuleCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check setup
+						if (mustSetup)
+							bot.getCheckUtil().guildExists(event);
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
 					sendReply(event, hook);
 				}	
 			);
@@ -72,14 +94,6 @@ public class ModuleCmd extends SlashCommand {
 		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-
-			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-					.guildExists(event, guildId);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
 
 			StringBuilder builder = new StringBuilder();
 			List<String> disabled = getModules(guildId, false);
@@ -113,6 +127,23 @@ public class ModuleCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check setup
+						if (mustSetup)
+							bot.getCheckUtil().guildExists(event);
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+					
 					sendReply(event, hook);
 				}
 			);
@@ -123,14 +154,6 @@ public class ModuleCmd extends SlashCommand {
 
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
-			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-					.guildExists(event, guildId);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
-
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event.getMember())
 				.setTitle(bot.getMsg(guildId, "bot.guild.module.disable.embed_title"));
 
@@ -139,54 +162,53 @@ public class ModuleCmd extends SlashCommand {
 				embed.setDescription(bot.getMsg(guildId, "bot.guild.module.disable.none"))
 					.setColor(Constants.COLOR_FAILURE);
 				hook.editOriginalEmbeds(embed.build()).queue();
-			} else {
+				return;
+			}
 
-				embed.setDescription(bot.getMsg(guildId, "bot.guild.module.disable.embed_value"));
-				SelectMenu menu = SelectMenu.create("disable-module")
-					.setPlaceholder("Select")
-					.setRequiredRange(1, 1)
-					.addOptions(enabled.stream().map(
-						module -> {
+			embed.setDescription(bot.getMsg(guildId, "bot.guild.module.disable.embed_value"));
+			SelectMenu menu = SelectMenu.create("disable-module")
+				.setPlaceholder("Select")
+				.setRequiredRange(1, 1)
+				.addOptions(enabled.stream().map(
+					module -> {
 						return SelectOption.of(bot.getMsg(guildId, "modules."+module), module);
-						}
-					).collect(Collectors.toList()))
-					.build();
+					}
+				).collect(Collectors.toList()))
+				.build();
 
-				hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(
-					sendHook -> {
-						waiter.waitForEvent(
-							SelectMenuInteractionEvent.class,
+			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(
+				sendHook -> {
+					waiter.waitForEvent(
+						SelectMenuInteractionEvent.class,
 						e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(sendHook.getId()),
-							actionEvent -> {
+						actionEvent -> {
 
-								actionEvent.deferEdit().queue(
-									actionHook -> {
-										String module = actionEvent.getSelectedOptions().get(0).getValue();
+							actionEvent.deferEdit().queue(
+								actionHook -> {
+									String module = actionEvent.getSelectedOptions().get(0).getValue();
 									if (bot.getDBUtil().moduleDisabled(guildId, module)) {
 										hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.module.disable.already")).setComponents().queue();
 										return;
 									}
-										bot.getDBUtil().moduleAdd(guildId, module);
-										EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
+									bot.getDBUtil().moduleAdd(guildId, module);
+									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
 										.setTitle(bot.getMsg(guildId, "bot.guild.module.disable.done").replace("{module}", bot.getMsg(guildId, "modules."+module)))
-											.setColor(Constants.COLOR_SUCCESS);
-										hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
-									}
-								);
+										.setColor(Constants.COLOR_SUCCESS);
+									hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
+								}
+							);
 
-							},
-							30,
-							TimeUnit.SECONDS,
-							() -> {
-								hook.editOriginalComponents(
-									ActionRow.of(menu.createCopy().setPlaceholder(bot.getMsg(guildId, "bot.guild.module.enable.timed_out")).setDisabled(true).build())
-								).queue();
-							}
-						);
-					}
-				);
-
-			}
+						},
+						30,
+						TimeUnit.SECONDS,
+						() -> {
+							hook.editOriginalComponents(
+								ActionRow.of(menu.createCopy().setPlaceholder(bot.getMsg(guildId, "bot.guild.module.enable.timed_out")).setDisabled(true).build())
+							).queue();
+						}
+					);
+				}
+			);
 
 		}
 	}
@@ -202,6 +224,22 @@ public class ModuleCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check setup
+						if (mustSetup)
+							bot.getCheckUtil().guildExists(event);
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
 					sendReply(event, hook);
 				}
 			);
@@ -212,14 +250,6 @@ public class ModuleCmd extends SlashCommand {
 
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
-			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-					.guildExists(event, guildId);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
-
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event.getMember())
 				.setTitle(bot.getMsg(guildId, "bot.guild.module.enable.embed_title"));
 
@@ -228,54 +258,53 @@ public class ModuleCmd extends SlashCommand {
 				embed.setDescription(bot.getMsg(guildId, "bot.guild.module.enable.none"))
 					.setColor(Constants.COLOR_FAILURE);
 				hook.editOriginalEmbeds(embed.build()).queue();
-			} else {
+				return;
+			}
 
-				embed.setDescription(bot.getMsg(guildId, "bot.guild.module.enable.embed_value"));
-				SelectMenu menu = SelectMenu.create("enable-module")
-					.setPlaceholder("Select")
-					.setRequiredRange(1, 1)
-					.addOptions(enabled.stream().map(
-						module -> {
+			embed.setDescription(bot.getMsg(guildId, "bot.guild.module.enable.embed_value"));
+			SelectMenu menu = SelectMenu.create("enable-module")
+				.setPlaceholder("Select")
+				.setRequiredRange(1, 1)
+				.addOptions(enabled.stream().map(
+					module -> {
 						return SelectOption.of(bot.getMsg(guildId, "modules."+module), module);
-						}
-					).collect(Collectors.toList()))
-					.build();
+					}
+				).collect(Collectors.toList()))
+				.build();
 
-				hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(
-					sendHook -> {
-						waiter.waitForEvent(
-							SelectMenuInteractionEvent.class,
+			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(
+				sendHook -> {
+					waiter.waitForEvent(
+						SelectMenuInteractionEvent.class,
 						e -> e.getComponentId().equals("enable-module") && e.getMessageId().equals(sendHook.getId()),
-							actionEvent -> {
+						actionEvent -> {
 
-								actionEvent.deferEdit().queue(
-									actionHook -> {
-										String module = actionEvent.getSelectedOptions().get(0).getValue();
+							actionEvent.deferEdit().queue(
+								actionHook -> {
+									String module = actionEvent.getSelectedOptions().get(0).getValue();
 									if (!bot.getDBUtil().moduleDisabled(guildId, module)) {
 										hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.module.enable.already")).setComponents().queue();
 										return;
 									}
-										bot.getDBUtil().moduleRemove(guildId, module);
-										EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
+									bot.getDBUtil().moduleRemove(guildId, module);
+									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
 										.setTitle(bot.getMsg(guildId, "bot.guild.module.enable.done").replace("{module}", bot.getMsg(guildId, "modules."+module)))
-											.setColor(Constants.COLOR_SUCCESS);
-										hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
-									}
-								);
+										.setColor(Constants.COLOR_SUCCESS);
+									hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
+								}
+							);
 
-							},
-							10,
-							TimeUnit.SECONDS,
-							() -> {
-								hook.editOriginalComponents(
-									ActionRow.of(menu.createCopy().setPlaceholder(bot.getMsg(guildId, "bot.guild.module.enable.timed_out")).setDisabled(true).build())
-								).queue();
-							}
-						);
-					}
-				);
-				
-			}
+						},
+						10,
+						TimeUnit.SECONDS,
+						() -> {
+							hook.editOriginalComponents(
+								ActionRow.of(menu.createCopy().setPlaceholder(bot.getMsg(guildId, "bot.guild.module.enable.timed_out")).setDisabled(true).build())
+							).queue();
+						}
+					);
+				}
+			);
 
 		}
 	}

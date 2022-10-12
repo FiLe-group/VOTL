@@ -11,6 +11,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -31,7 +32,13 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 public class PermsCmd extends SlashCommand {
 	
 	private static App bot;
+	
+	private static final boolean mustSetup = true;
 	private static final String MODULE = "voice";
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ALL;
+
+	protected static Permission[] userPerms = new Permission[0];
+	protected static Permission[] botPerms = new Permission[0];
 
 	public PermsCmd(App bot) {
 		this.name = "perms";
@@ -60,6 +67,24 @@ public class PermsCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						// check setup
+						if (mustSetup) {
+							bot.getCheckUtil().guildExists(event);
+						}
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+
 					sendReply(event, hook);
 				}
 			);
@@ -69,81 +94,73 @@ public class PermsCmd extends SlashCommand {
 		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
 			Member member = Objects.requireNonNull(event.getMember());
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
-	
-			try {
-				bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-					.hasPermissions(event.getTextChannel(), member, true, botPerms)
-					.guildExists(event, guildId);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
 
-			if (bot.getDBUtil().isVoiceChannel(member.getId())) {
-				VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
-
-				EmbedBuilder embed = bot.getEmbedUtil().getEmbed(member)
-					.setTitle(bot.getMsg(guildId, "bot.voice.perms.view.embed.title").replace("{channel}", vc.getName()))
-					.setDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.field")+"\n\n");
-
-				//@Everyone
-				PermissionOverride publicOverride = vc.getPermissionOverride(guild.getPublicRole());
-
-				String view = contains(publicOverride, Permission.VIEW_CHANNEL);
-				String join = contains(publicOverride, Permission.VOICE_CONNECT);
-				
-				embed = embed.appendDescription(formatHolder(bot.getMsg(guildId, "bot.voice.perms.view.embed.everyone"), view, join))
-					.appendDescription("\n\n" + bot.getMsg(guildId, "bot.voice.perms.view.embed.roles") + "\n");
-
-				//Roles
-				List<PermissionOverride> overrides = new ArrayList<>(vc.getRolePermissionOverrides()); // cause given override list is immutable
-				try {
-					overrides.remove(vc.getPermissionOverride(Objects.requireNonNull(guild.getBotRole()))); // removes bot's role
-					overrides.remove(vc.getPermissionOverride(guild.getPublicRole())); // removes @everyone role
-				} catch (NullPointerException ex) {
-					bot.getLogger().warn("PermsCmd null pointer at role override remove");
-				}
-				
-				if (overrides.isEmpty()) {
-					embed = embed.appendDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.none") + "\n");
-				} else {
-					for (PermissionOverride ov : overrides) {
-						view = contains(ov, Permission.VIEW_CHANNEL);
-						join = contains(ov, Permission.VOICE_CONNECT);
-
-						embed = embed.appendDescription(formatHolder(ov.getRole().getName(), view, join) + "\n");
-					}
-				}
-				embed = embed.appendDescription("\n" + bot.getMsg(guildId, "bot.voice.perms.view.embed.members") + "\n");
-
-				//Members
-				overrides = new ArrayList<>(vc.getMemberPermissionOverrides());
-				try {
-					overrides.remove(vc.getPermissionOverride(member)); // removes user
-					overrides.remove(vc.getPermissionOverride(guild.getSelfMember())); // removes bot
-				} catch (NullPointerException ex) {
-					bot.getLogger().warn("PermsCmd null pointer at member override remove");
-				}
-
-				if (overrides.isEmpty()) {
-					embed = embed.appendDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.none") + "\n");
-				} else {
-					for (PermissionOverride ov : overrides) {
-						view = contains(ov, Permission.VIEW_CHANNEL);
-						join = contains(ov, Permission.VOICE_CONNECT);
-
-						embed = embed.appendDescription(formatHolder(ov.getMember().getEffectiveName(), view, join) + "\n");
-					}
-				}
-				
-
-				hook.editOriginalEmbeds(embed.build()).queue();
-			} else {
+			if (!bot.getDBUtil().isVoiceChannel(member.getId())) {
 				hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
 				return;
 			}
+
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildId = guild.getId();
+			
+			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
+
+			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(member)
+				.setTitle(bot.getMsg(guildId, "bot.voice.perms.view.embed.title").replace("{channel}", vc.getName()))
+				.setDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.field")+"\n\n");
+
+			//@Everyone
+			PermissionOverride publicOverride = vc.getPermissionOverride(guild.getPublicRole());
+
+			String view = contains(publicOverride, Permission.VIEW_CHANNEL);
+			String join = contains(publicOverride, Permission.VOICE_CONNECT);
+			
+			embed = embed.appendDescription(formatHolder(bot.getMsg(guildId, "bot.voice.perms.view.embed.everyone"), view, join))
+				.appendDescription("\n\n" + bot.getMsg(guildId, "bot.voice.perms.view.embed.roles") + "\n");
+
+			//Roles
+			List<PermissionOverride> overrides = new ArrayList<>(vc.getRolePermissionOverrides()); // cause given override list is immutable
+			try {
+				overrides.remove(vc.getPermissionOverride(Objects.requireNonNull(guild.getBotRole()))); // removes bot's role
+				overrides.remove(vc.getPermissionOverride(guild.getPublicRole())); // removes @everyone role
+			} catch (NullPointerException ex) {
+				bot.getLogger().warn("PermsCmd null pointer at role override remove");
+			}
+			
+			if (overrides.isEmpty()) {
+				embed = embed.appendDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.none") + "\n");
+			} else {
+				for (PermissionOverride ov : overrides) {
+					view = contains(ov, Permission.VIEW_CHANNEL);
+					join = contains(ov, Permission.VOICE_CONNECT);
+
+					embed = embed.appendDescription(formatHolder(ov.getRole().getName(), view, join) + "\n");
+				}
+			}
+			embed = embed.appendDescription("\n" + bot.getMsg(guildId, "bot.voice.perms.view.embed.members") + "\n");
+
+			//Members
+			overrides = new ArrayList<>(vc.getMemberPermissionOverrides());
+			try {
+				overrides.remove(vc.getPermissionOverride(member)); // removes user
+				overrides.remove(vc.getPermissionOverride(guild.getSelfMember())); // removes bot
+			} catch (NullPointerException ex) {
+				bot.getLogger().warn("PermsCmd null pointer at member override remove");
+			}
+
+			if (overrides.isEmpty()) {
+				embed = embed.appendDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.none") + "\n");
+			} else {
+				for (PermissionOverride ov : overrides) {
+					view = contains(ov, Permission.VIEW_CHANNEL);
+					join = contains(ov, Permission.VOICE_CONNECT);
+
+					embed = embed.appendDescription(formatHolder(ov.getMember().getEffectiveName(), view, join) + "\n");
+				}
+			}
+
+			hook.editOriginalEmbeds(embed.build()).queue();
+
 		}
 
 		private String contains(PermissionOverride override, Permission perm) {
@@ -176,6 +193,24 @@ public class PermsCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						// check setup
+						if (mustSetup) {
+							bot.getCheckUtil().guildExists(event);
+						}
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+					
 					sendReply(event, hook);
 				}
 			);
@@ -185,36 +220,28 @@ public class PermsCmd extends SlashCommand {
 		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
 			Member member = Objects.requireNonNull(event.getMember());
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
-	
-			try {
-				bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-					.hasPermissions(event.getTextChannel(), member, true, botPerms)
-					.guildExists(event, guildId);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
 
-			if (bot.getDBUtil().isVoiceChannel(member.getId())) {
-				VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
-				try {
-					vc.getManager().sync().queue();
-				} catch (InsufficientPermissionException ex) {
-					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)).queue();
-					return;
-				}
-	
-				hook.editOriginalEmbeds(
-					bot.getEmbedUtil().getEmbed(member)
-						.setDescription(bot.getMsg(guildId, "bot.voice.perms.reset.done"))
-						.build()
-				).queue();
-			} else {
+			if (!bot.getDBUtil().isVoiceChannel(member.getId())) {
 				hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
 				return;
 			}
+
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildId = guild.getId();
+
+			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
+			try {
+				vc.getManager().sync().queue();
+			} catch (InsufficientPermissionException ex) {
+				hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)).queue();
+				return;
+			}
+
+			hook.editOriginalEmbeds(
+				bot.getEmbedUtil().getEmbed(member)
+					.setDescription(bot.getMsg(guildId, "bot.voice.perms.reset.done"))
+					.build()
+			).queue();
 		}
 	}
 }

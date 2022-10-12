@@ -13,6 +13,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import bot.utils.file.lang.LangUtil;
@@ -34,9 +35,13 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class LanguageCmd extends SlashCommand {
 	
 	private static App bot;
-	private static final String MODULE = "language";
 
-	protected static Permission[] userPerms;
+	private static final boolean mustSetup = true;
+	private static final String MODULE = "language";
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ADMIN;
+
+	protected static Permission[] userPerms = new Permission[0];
+	protected static Permission[] botPerms = new Permission[0];
 
 	public LanguageCmd(App bot) {
 		this.name = "language";
@@ -64,6 +69,23 @@ public class LanguageCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check setup
+						if (mustSetup)
+							bot.getCheckUtil().guildExists(event);
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+					
 					String defaultLang = LanguageCmd.bot.defaultLanguage;
 					sendReply(event, hook, defaultLang);
 				}
@@ -95,6 +117,23 @@ public class LanguageCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check setup
+						if (mustSetup)
+							bot.getCheckUtil().guildExists(event);
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+
 					String lang = event.getOption("language", null, OptionMapping::getAsString).toLowerCase();
 					sendReply(event, hook, lang);
 				}
@@ -117,11 +156,22 @@ public class LanguageCmd extends SlashCommand {
 			event.deferReply(true).queue(
 				hook -> {
 					try {
-						bot.getCheckUtil().moduleEnabled(event, Objects.requireNonNull(event.getGuild()).getId(), MODULE);
+						// check setup
+						if (mustSetup)
+							bot.getCheckUtil().guildExists(event);
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
 					}
+					
 					String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 					MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
 						.setTitle(bot.getMsg(guildId, "bot.guild.language.show.embed.title"))
@@ -140,15 +190,6 @@ public class LanguageCmd extends SlashCommand {
 	private static void sendReply(SlashCommandEvent event, InteractionHook hook, String language) {
 
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-
-		try {
-			bot.getCheckUtil().moduleEnabled(event, guildId, MODULE)
-				.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-				.guildExists(event, guildId);
-		} catch (CheckException ex) {
-			hook.editOriginal(ex.getEditData()).queue();
-			return;
-		}
 
 		// fail-safe
 		if (!getLangList().contains(language.toLowerCase())) {

@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdAccessLevel;
 import bot.objects.constants.CmdCategory;
 import bot.objects.constants.Constants;
 import bot.utils.exception.CheckException;
@@ -28,7 +29,12 @@ public class SetupCmd extends SlashCommand {
 
 	private static App bot;
 
-	protected static Permission[] userPerms;
+	private static final boolean mustSetup = false;
+	private static final String MODULE = null;
+	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ADMIN;
+
+	protected static Permission[] userPerms = new Permission[0];
+	protected static Permission[] botPerms = new Permission[0];
 
 	public SetupCmd(App bot) {
 		this.name = "setup";
@@ -57,7 +63,17 @@ public class SetupCmd extends SlashCommand {
 				hook -> {
 					
 					try {
-						bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), userPerms);
+						// check setup
+						if (mustSetup)
+							bot.getCheckUtil().guildExists(event);
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
@@ -106,6 +122,23 @@ public class SetupCmd extends SlashCommand {
 
 			/* event.deferReply(true).queue(
 				hook -> {
+					try {
+						// check setup
+						if (mustSetup)
+							bot.getCheckUtil().guildExists(event);
+						// check access
+						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
+						// check module enabled
+							.moduleEnabled(event, MODULE)
+						// check user perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						// check bots perms
+							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+					} catch (CheckException ex) {
+						hook.editOriginal(ex.getEditData()).queue();
+						return;
+					}
+
 					sendReply(event, hook);
 				}
 			); */
@@ -113,14 +146,6 @@ public class SetupCmd extends SlashCommand {
 
 		@SuppressWarnings("null")
 		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
-
-			try {
-				bot.getCheckUtil().hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms)
-					.hasPermissions(event.getTextChannel(), event.getMember(), userPerms);
-			} catch (CheckException ex) {
-				hook.editOriginal(ex.getEditData()).queue();
-				return;
-			}
 
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
