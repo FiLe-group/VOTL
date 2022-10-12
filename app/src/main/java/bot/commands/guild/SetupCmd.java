@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.Constants;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,7 +20,7 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 (
 	name = "setup",
 	description = "Setup menu for this server.",
-	usage = "/setup <select>",
+	usage = "/setup <main / voice>",
 	requirements = "Have 'Manage Server' permission"
 )
 public class SetupCmd extends SlashCommand {
@@ -68,6 +69,7 @@ public class SetupCmd extends SlashCommand {
 						hook.editOriginalEmbeds(
 							bot.getEmbedUtil().getEmbed(event.getMember())
 								.setDescription(bot.getMsg(guildId, "bot.guild.setup.main.done"))
+								.setColor(Constants.COLOR_SUCCESS)
 								.build()
 						).queue();
 						bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
@@ -75,6 +77,7 @@ public class SetupCmd extends SlashCommand {
 						hook.editOriginalEmbeds(
 							bot.getEmbedUtil().getEmbed(event.getMember())
 								.setDescription(bot.getMsg(guildId, "bot.guild.setup.main.exists"))
+								.setColor(Constants.COLOR_WARNING)
 								.build()
 						).queue();
 					}
@@ -140,6 +143,7 @@ public class SetupCmd extends SlashCommand {
 											hook.editOriginalEmbeds(
 												bot.getEmbedUtil().getEmbed(event.getMember())
 													.setDescription(bot.getMsg(guildId, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
+													.setColor(Constants.COLOR_SUCCESS)
 													.build()
 											).queue();
 										}

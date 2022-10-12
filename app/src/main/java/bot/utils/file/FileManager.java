@@ -24,7 +24,7 @@ import com.jayway.jsonpath.Option;
 
 import ch.qos.logback.classic.Logger;
 import bot.App;
-import bot.constants.Constants;
+import bot.objects.constants.Constants;
 
 class KeyIsNull extends Exception {
 	public KeyIsNull(String str) {
@@ -108,7 +108,7 @@ public class FileManager {
 			if (file == null)
 				throw new FileNotFoundException();
 
-			Configuration conf = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
+			Configuration conf = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS);
 
 			text = JsonPath.using(conf).parse(file).read("$." + path);
 

@@ -11,9 +11,10 @@ import javax.annotation.Nonnull;
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
-import bot.constants.Constants;
+import bot.objects.constants.Constants;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -24,6 +25,10 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 
+@CommandInfo(
+	name = "module",
+	usage = "/module <show / enable / disable>"
+)
 public class ModuleCmd extends SlashCommand {
 	
 	private static App bot;
@@ -78,7 +83,7 @@ public class ModuleCmd extends SlashCommand {
 			StringBuilder builder = new StringBuilder();
 			List<String> disabled = getModules(guildId, false);
 			for (String module : getModules(guildId, true, false)) {
-				builder.append(format(bot.getMsg(guildId, "bot.guild.module.list."+module), (disabled.contains(module) ? Constants.FAILURE : Constants.SUCCESS))).append("\n");
+				builder.append(format(bot.getMsg(guildId, "modules."+module), (disabled.contains(module) ? Constants.FAILURE : Constants.SUCCESS))).append("\n");
 			}
 
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
@@ -141,7 +146,7 @@ public class ModuleCmd extends SlashCommand {
 					.setRequiredRange(1, 1)
 					.addOptions(enabled.stream().map(
 						module -> {
-							return SelectOption.of(bot.getMsg(guildId, "bot.guild.module.list."+module), module);
+						return SelectOption.of(bot.getMsg(guildId, "modules."+module), module);
 						}
 					).collect(Collectors.toList()))
 					.build();
@@ -150,15 +155,19 @@ public class ModuleCmd extends SlashCommand {
 					sendHook -> {
 						waiter.waitForEvent(
 							SelectMenuInteractionEvent.class,
-							e -> e.getMember().equals(event.getMember()) && e.getChannel().equals(event.getChannel()),
+						e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(sendHook.getId()),
 							actionEvent -> {
 
 								actionEvent.deferEdit().queue(
 									actionHook -> {
 										String module = actionEvent.getSelectedOptions().get(0).getValue();
+									if (bot.getDBUtil().moduleDisabled(guildId, module)) {
+										hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.module.disable.already")).setComponents().queue();
+										return;
+									}
 										bot.getDBUtil().moduleAdd(guildId, module);
 										EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
-											.setTitle(bot.getMsg(guildId, "bot.guild.module.disable.done").replace("{module}", module))
+										.setTitle(bot.getMsg(guildId, "bot.guild.module.disable.done").replace("{module}", bot.getMsg(guildId, "modules."+module)))
 											.setColor(Constants.COLOR_SUCCESS);
 										hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
 									}
@@ -215,7 +224,8 @@ public class ModuleCmd extends SlashCommand {
 
 			List<String> enabled = getModules(guildId, false);
 			if (enabled.isEmpty()) {
-				embed.setDescription(bot.getMsg(guildId, "bot.guild.module.enable.none"));
+				embed.setDescription(bot.getMsg(guildId, "bot.guild.module.enable.none"))
+					.setColor(Constants.COLOR_FAILURE);
 				hook.editOriginalEmbeds(embed.build()).queue();
 			} else {
 
@@ -225,7 +235,7 @@ public class ModuleCmd extends SlashCommand {
 					.setRequiredRange(1, 1)
 					.addOptions(enabled.stream().map(
 						module -> {
-							return SelectOption.of(bot.getMsg(guildId, "bot.guild.module.list."+module), module);
+						return SelectOption.of(bot.getMsg(guildId, "modules."+module), module);
 						}
 					).collect(Collectors.toList()))
 					.build();
@@ -234,15 +244,19 @@ public class ModuleCmd extends SlashCommand {
 					sendHook -> {
 						waiter.waitForEvent(
 							SelectMenuInteractionEvent.class,
-							e -> e.getMember().equals(event.getMember()) && e.getChannel().equals(event.getChannel()),
+						e -> e.getComponentId().equals("enable-module") && e.getMessageId().equals(sendHook.getId()),
 							actionEvent -> {
 
 								actionEvent.deferEdit().queue(
 									actionHook -> {
 										String module = actionEvent.getSelectedOptions().get(0).getValue();
+									if (!bot.getDBUtil().moduleDisabled(guildId, module)) {
+										hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.module.enable.already")).setComponents().queue();
+										return;
+									}
 										bot.getDBUtil().moduleRemove(guildId, module);
 										EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
-											.setTitle(bot.getMsg(guildId, "bot.guild.module.enable.done").replace("{module}", module))
+										.setTitle(bot.getMsg(guildId, "bot.guild.module.enable.done").replace("{module}", bot.getMsg(guildId, "modules."+module)))
 											.setColor(Constants.COLOR_SUCCESS);
 										hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
 									}

@@ -1,4 +1,4 @@
-package bot.constants;
+package bot.objects.constants;
 
 public class Links {
 	// Support discord server

@@ -11,7 +11,6 @@
 		},
 		"no_send_perm": "I have no permission to send messages in your channel. Pls fix!",
 		"no_channel": "You don't own/has any voice channel.",
-		"module_disabled": "This command(module) is disabled.",
 		"guild_not_setup": "Guild was not setup-ed! Check `/help` for setup command",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and that I have sufficient permissions!",
 		"title": "Error",
@@ -23,6 +22,12 @@
 		"language": "English (en)",
 		"unknown": "Unknown",
 		"show_description": "information will be visible for others (default-false)"
+	},
+	"modules": {
+		"voice": "Voice category",
+		"webhook": "Webhook commands",
+		"language": "Language commands",
+		"module_disabled": "This command(module) is disabled."
 	},
 	"bot": {
 		"owner": {
@@ -85,6 +90,7 @@
 					"embed_value": "Select module from list bellow to be disabled.",
 					"none": "__All modules are already disabled!__",
 					"timed_out": "Timed out",
+					"already": "Module already disabled!",
 					"done": "Module {module} successfully disabled."
 				},
 				"enable": {
@@ -94,13 +100,12 @@
 					"embed_value": "Select module from list bellow to be enabled.",
 					"none": "__All modules are already enabled!__",
 					"timed_out": "Timed out",
+					"already": "Module already enabled!",
 					"done": "Module {module} successfully enabled."
-				},
-				"list": {
-					"voice": "Voice category",
-					"webhook": "Webhook commands",
-					"language": "Language commands"
 				}
+				},
+			"access": {
+				"help": "Manage users(set mod/admin) access to command use"
 			}
 		},
 		"voice": {

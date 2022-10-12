@@ -1,4 +1,4 @@
-package bot.constants;
+package bot.objects.constants;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -25,5 +25,4 @@ public final class Constants {
 
 	public static final String DEVELOPER_NAME = "GreenLord#0593";
 	public static final String DEVELOPER_ID = "369062521719488524";
-
 }

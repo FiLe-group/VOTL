@@ -16,7 +16,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import bot.App;
-import bot.constants.Constants;
+import bot.objects.constants.Constants;
 
 public class EmbedUtil {
 

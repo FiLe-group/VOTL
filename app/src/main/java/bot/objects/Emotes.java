@@ -1,4 +1,4 @@
-package bot.constants;
+package bot.objects;
 
 import java.util.Objects;
 import java.util.regex.Matcher;

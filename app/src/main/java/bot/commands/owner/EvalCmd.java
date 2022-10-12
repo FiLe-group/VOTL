@@ -1,7 +1,7 @@
 package bot.commands.owner;
 
 import bot.App;
-import bot.constants.Constants;
+import bot.objects.constants.Constants;
 
 import java.util.Collections;
 import java.util.Map;

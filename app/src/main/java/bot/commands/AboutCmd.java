@@ -9,7 +9,7 @@ import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
-import bot.constants.Links;
+import bot.objects.constants.Links;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.interactions.InteractionHook;
