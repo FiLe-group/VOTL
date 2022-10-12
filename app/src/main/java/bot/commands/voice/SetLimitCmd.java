@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -28,13 +29,13 @@ public class SetLimitCmd extends SlashCommand {
 	private final App bot;
 	private static final String MODULE = "voice";
 
-	protected Permission[] userPerms;
+	protected static Permission[] botPerms = new Permission[0];
 
 	public SetLimitCmd(App bot) {
 		this.name = "setlimit";
 		this.help = bot.getMsg("bot.voice.setlimit.help");
-		this.category = new Category("voice");
-		this.userPerms = new Permission[]{Permission.MANAGE_SERVER};
+		this.category = CmdCategory.VOICE;
+		SetLimitCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.INTEGER, "limit", bot.getMsg("bot.voice.setlimit.option_description"))
 				.setRequiredRange(0, 99)

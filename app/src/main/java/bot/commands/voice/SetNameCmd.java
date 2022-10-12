@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -28,13 +29,13 @@ public class SetNameCmd extends SlashCommand {
 	private final App bot;
 	private static final String MODULE = "voice";
 
-	protected Permission[] userPerms;
+	protected static Permission[] botPerms = new Permission[0];
 
 	public SetNameCmd(App bot) {
 		this.name = "setname";
 		this.help = bot.getMsg("bot.voice.setname.help");
-		this.category = new Category("voice");
-		this.userPerms = new Permission[]{Permission.MANAGE_SERVER};
+		this.category = CmdCategory.VOICE;
+		SetNameCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.STRING, "name", bot.getMsg("bot.voice.setname.option_description"))
 				.setRequired(true)

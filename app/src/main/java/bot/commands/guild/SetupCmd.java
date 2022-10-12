@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.objects.constants.Constants;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
@@ -31,8 +32,8 @@ public class SetupCmd extends SlashCommand {
 
 	public SetupCmd(App bot) {
 		this.name = "setup";
-		this.help = bot.getMsg("bot.guild.setup.help");;
-		this.category = new Category("guild");
+		this.help = bot.getMsg("bot.guild.setup.help");
+		this.category = CmdCategory.GUILD;
 		SetupCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		SetupCmd.bot = bot;
 		this.children = new SlashCommand[]{new Voice(), new Main()};

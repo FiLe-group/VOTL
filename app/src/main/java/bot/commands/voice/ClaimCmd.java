@@ -8,6 +8,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
@@ -28,13 +29,13 @@ public class ClaimCmd extends SlashCommand {
 	private final App bot;
 	private static final String MODULE = "voice";
 	
-	protected Permission[] botPerms;
+	protected static Permission[] botPerms = new Permission[0];
 
 	public ClaimCmd(App bot) {
 		this.name = "claim";
 		this.help = bot.getMsg("bot.voice.claim.help");
-		this.category = new Category("voice");
-		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS}; // Permission.MESSAGE_EMBED_LINKS
+		this.category = CmdCategory.VOICE;
+		ClaimCmd.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS}; // Permission.MESSAGE_EMBED_LINKS
 		this.bot = bot;
 	}
 

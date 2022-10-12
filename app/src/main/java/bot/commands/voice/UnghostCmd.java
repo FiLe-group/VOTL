@@ -7,6 +7,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -26,13 +27,13 @@ public class UnghostCmd extends SlashCommand {
 	private final App bot;
 	private static final String MODULE = "voice";
 
-	protected Permission[] botPerms;
+	protected static Permission[] botPerms = new Permission[0];
 
 	public UnghostCmd(App bot) {
 		this.name = "unghost";
 		this.help = bot.getMsg("bot.voice.unghost.help");
-		this.category = new Category("voice");
-		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL};
+		this.category = CmdCategory.VOICE;
+		UnghostCmd.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL};
 		this.bot = bot;
 	}
 

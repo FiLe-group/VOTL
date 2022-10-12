@@ -8,6 +8,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -27,7 +28,7 @@ public class StatusCmd extends SlashCommand {
 		this.name = "status";
 		this.help = bot.getMsg("bot.other.status.help");
 		this.guildOnly = false;
-		this.category = new Category("other");
+		this.category = CmdCategory.OTHER;
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("misc.show_description"))
 		);

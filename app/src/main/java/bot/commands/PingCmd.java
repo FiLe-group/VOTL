@@ -7,6 +7,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 
 @CommandInfo
 (
@@ -22,7 +23,7 @@ public class PingCmd extends SlashCommand {
 		this.name = "ping";
 		this.help = bot.getMsg("bot.other.ping.help");
 		this.guildOnly = false;
-		this.category = new Category("other");
+		this.category = CmdCategory.OTHER;
 		this.bot = bot;
 	}
 

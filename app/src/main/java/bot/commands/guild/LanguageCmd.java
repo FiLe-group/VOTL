@@ -13,6 +13,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import bot.utils.file.lang.LangUtil;
 import net.dv8tion.jda.api.Permission;
@@ -40,7 +41,7 @@ public class LanguageCmd extends SlashCommand {
 	public LanguageCmd(App bot) {
 		this.name = "language";
 		this.help = bot.getMsg("bot.guild.language.help");
-		this.category = new Category("guild");
+		this.category = CmdCategory.GUILD;
 		LanguageCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		LanguageCmd.bot = bot;
 		this.children = new SlashCommand[]{new Reset(), new Set(), new Show()};

@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.objects.constants.Links;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
@@ -31,7 +32,7 @@ public class AboutCmd extends SlashCommand {
 		this.name = "about";
 		this.help = bot.getMsg("bot.other.about.help");
 		this.guildOnly = false;
-		this.category = new Category("other");
+		this.category = CmdCategory.OTHER;
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("misc.show_description"))
 		);

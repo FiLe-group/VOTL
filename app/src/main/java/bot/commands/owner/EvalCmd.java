@@ -1,6 +1,7 @@
 package bot.commands.owner;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.objects.constants.Constants;
 
 import java.util.Collections;
@@ -41,7 +42,7 @@ public class EvalCmd extends SlashCommand {
 		this.name = "eval";
 		this.help = bot.getMsg("bot.owner.eval.help");
 		this.ownerCommand = true;
-		this.category = new Category("owner");
+		this.category = CmdCategory.OWNER;
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.STRING, "code", bot.getMsg("bot.owner.eval.code_description")) 
 				.setRequired(true)

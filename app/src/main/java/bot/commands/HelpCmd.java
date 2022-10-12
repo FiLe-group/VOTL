@@ -11,6 +11,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -32,7 +33,7 @@ public class HelpCmd extends SlashCommand {
 		this.name = "help";
 		this.help = bot.getMsg("bot.help.help");
 		this.guildOnly = false;
-		this.category = new Category("other");
+		this.category = CmdCategory.OTHER;
 
 		List<OptionData> options = new ArrayList<>();
 		options.add(new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("misc.show_description")));

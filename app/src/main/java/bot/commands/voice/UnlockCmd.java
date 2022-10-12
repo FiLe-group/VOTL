@@ -7,6 +7,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -26,13 +27,13 @@ public class UnlockCmd extends SlashCommand {
 	private final App bot;
 	private static final String MODULE = "voice";
 
-	protected Permission[] botPerms;
+	protected static Permission[] botPerms = new Permission[0];
 
 	public UnlockCmd(App bot) {
 		this.name = "unlock";
 		this.help = bot.getMsg("bot.voice.unlock.help");
-		this.category = new Category("voice");
-		this.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
+		this.category = CmdCategory.VOICE;
+		UnlockCmd.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
 		this.bot = bot;
 	}
 

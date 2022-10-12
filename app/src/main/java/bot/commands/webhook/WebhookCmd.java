@@ -13,6 +13,7 @@ import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -40,7 +41,7 @@ public class WebhookCmd extends SlashCommand {
 	public WebhookCmd(App bot) {
 		this.name = "webhook";
 		this.help = bot.getMsg("bot.webhook.help");
-		this.category = new Category("webhook");
+		this.category = CmdCategory.WEBHOOK;
 		WebhookCmd.botPerms = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		WebhookCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
 		WebhookCmd.bot = bot;

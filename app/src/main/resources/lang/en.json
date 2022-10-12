@@ -103,7 +103,7 @@
 					"already": "Module already enabled!",
 					"done": "Module {module} successfully enabled."
 				}
-				},
+			},
 			"access": {
 				"help": "Manage users(set mod/admin) access to command use"
 			}

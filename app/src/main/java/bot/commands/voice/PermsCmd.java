@@ -11,6 +11,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.constants.CmdCategory;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -35,7 +36,7 @@ public class PermsCmd extends SlashCommand {
 	public PermsCmd(App bot) {
 		this.name = "perms";
 		this.help = bot.getMsg("bot.voice.perms.help");
-		this.category = new Category("voice");
+		this.category = CmdCategory.VOICE;
 		PermsCmd.bot = bot;
 		this.children = new SlashCommand[]{new View(), new Reset()};
 	}
