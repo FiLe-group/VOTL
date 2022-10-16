@@ -26,13 +26,13 @@ public class CheckUtil {
 		return user.getId().equals(Constants.DEVELOPER_ID);
 	}
 
-	public boolean isOwner(SlashCommandEvent event) {
-    	if (event.getUser().getId().equals(event.getClient().getOwnerId()))
+	public boolean isOwner(SlashCommandEvent event, User user) {
+    	if (user.getId().equals(event.getClient().getOwnerId()))
     	    return true;
         if (event.getClient().getCoOwnerIds()==null)
             return false;
         for (String id : event.getClient().getCoOwnerIds())
-            if (id.equals(event.getUser().getId()))
+            if (id.equals(user.getId()))
                 return true;
         return false;
     }
@@ -53,7 +53,11 @@ public class CheckUtil {
 	}
 
 	public CheckUtil hasAccess(SlashCommandEvent event, CmdAccessLevel accessLevel) throws CheckException {
-		if (accessLevel.getLevel() > getAccessLevel(event).getLevel())
+		return hasAccess(event, event.getMember(), accessLevel);
+	}
+
+	public CheckUtil hasAccess(SlashCommandEvent event, Member member, CmdAccessLevel accessLevel) throws CheckException {
+		if (accessLevel.getLevel() > getAccessLevel(event, member).getLevel())
 			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.low_access_level", "Access: "+accessLevel.getName()));
 		return this;
 	}

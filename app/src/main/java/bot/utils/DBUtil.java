@@ -321,15 +321,26 @@ public class DBUtil {
 
 	// UPDATE sql
 	private void update(String table, String updateKey, Object updateValueObj, String condKey, Object condValueObj) {
-		update(table, new String[]{updateKey}, new Object[]{updateValueObj}, condKey, condValueObj);
+		update(table, new String[]{updateKey}, new Object[]{updateValueObj}, new String[]{condKey}, new Object[]{condValueObj});
+	}
+
+	private void update(String table, String updateKey, Object updateValueObj, String[] condKeys, Object[] condValuesObj) {
+		update(table, new String[]{updateKey}, new Object[]{updateValueObj}, condKeys, condValuesObj);
 	}
 
 	private void update(String table, String[] updateKeys, Object[] updateValuesObj, String condKey, Object condValueObj) {
+		update(table, updateKeys, updateValuesObj, new String[]{condKey}, new Object[]{condValueObj});
+	}
+
+	private void update(String table, String[] updateKeys, Object[] updateValuesObj, String[] condKeys, Object[] condValuesObj) {
 		String[] updateValues = new String[updateValuesObj.length];
 		for (int i = 0; i<updateValuesObj.length; i++) {
 			updateValues[i] = quote(updateValuesObj[i]);
 		}
-		String condValue = quote(condValueObj);
+		String[] condValues = new String[condValuesObj.length];
+		for (int i = 0; i<condValuesObj.length; i++) {
+			condValues[i] = quote(condValuesObj[i]);
+		}
 
 		String sql = "UPDATE "+table+" SET ";
 		for (int i = 0; i<updateKeys.length; i++) {
@@ -338,7 +349,14 @@ public class DBUtil {
 			}
 			sql += updateKeys[i]+"="+updateValues[i];
 		}
-		sql += " WHERE "+condKey+"="+condValue;
+		sql += " WHERE ";
+		for (int i = 0; i<condKeys.length; i++) {
+			if (i > 0) {
+				sql += " AND ";
+			}
+			sql += condKeys[i]+"="+condValues[i];
+		}
+
 		try (Connection conn = connect();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();

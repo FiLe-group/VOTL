@@ -3,11 +3,11 @@ package bot.objects;
 import javax.annotation.Nonnull;
 
 public enum CmdAccessLevel {
-	ALL		(0, "everyone"),
-	MOD		(1, "mod"),
-	ADMIN	(2, "administrator"),
-	OWNER	(3, "guild owner"),
-	DEV		(4, "bot developer");
+	ALL     (0, "everyone"),
+	MOD     (1, "mod"),
+	ADMIN   (2, "admin"),
+	OWNER   (3, "guild owner"),
+	DEV     (4, "bot developer");
 
 	private final Integer level;
 	private final String name;

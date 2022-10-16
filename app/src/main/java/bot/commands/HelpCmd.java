@@ -90,7 +90,7 @@ public class HelpCmd extends SlashCommand {
 			event.getClient().getSlashCommands().stream().filter(cmd -> cmd.getCategory().getName().contentEquals(filCat)).collect(Collectors.toList())
 		);
 		for (SlashCommand command : commands) {
-			if (!command.isHidden() && (!command.isOwnerCommand() || bot.getCheckUtil().isOwner(event))) {
+			if (!command.isHidden() && (!command.isOwnerCommand() || bot.getCheckUtil().isOwner(event, event.getUser()))) {
 				if (!Objects.equals(category, command.getCategory())) {
 					if (category != null) {
 						builder.addField(fieldTitle, fieldValue.toString(), false);
