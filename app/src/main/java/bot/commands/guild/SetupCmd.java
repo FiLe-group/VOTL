@@ -116,11 +116,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			// WAIT FOR ChewTils TO SUPPORT JDA-alpha.21
-			// as createCategory does not work!!!
-			return;
-
-			/* event.deferReply(true).queue(
+			event.deferReply(true).queue(
 				hook -> {
 					try {
 						// check setup
@@ -141,7 +137,7 @@ public class SetupCmd extends SlashCommand {
 
 					sendReply(event, hook);
 				}
-			); */
+			);
 		}
 
 		@SuppressWarnings("null")

@@ -9,9 +9,8 @@ import bot.App;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class VoiceListener extends ListenerAdapter {
@@ -22,36 +21,21 @@ public class VoiceListener extends ListenerAdapter {
 		this.bot = bot;
 	}
 
-	@Override
-	public void onGuildVoiceJoin(@Nonnull GuildVoiceJoinEvent event) {
-		String voiceID = bot.getDBUtil().guildVoiceGetChannel(event.getGuild().getId());
-		if (voiceID != null && voiceID.equals(event.getChannelJoined().getId())) {
-			handleVoice(event.getGuild(), event.getMember());
+	public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
+		String masterVoiceID = bot.getDBUtil().guildVoiceGetChannel(event.getGuild().getId());
+		AudioChannelUnion channelJoined = event.getChannelJoined();
+		if (channelJoined != null && channelJoined.getId().equals(masterVoiceID)) {
+			handleVoiceCreate(event.getGuild(), event.getMember());
+		}
+
+		AudioChannelUnion channelLeft = event.getChannelLeft();
+		if (channelLeft != null && bot.getDBUtil().isVoiceChannelExists(channelLeft.getId()) && channelLeft.getMembers().isEmpty()) {
+			channelLeft.delete().queueAfter(500, TimeUnit.MILLISECONDS);
+			bot.getDBUtil().channelRemove(channelLeft.getId());
 		}
 	}
 
-	@Override
-	public void onGuildVoiceMove(@Nonnull GuildVoiceMoveEvent event) {
-		if (bot.getDBUtil().isVoiceChannelExists(event.getChannelLeft().getId()) && event.getChannelLeft().getMembers().isEmpty()) {
-			event.getChannelLeft().delete().queueAfter(2000, TimeUnit.MILLISECONDS);
-			bot.getDBUtil().channelRemove(event.getChannelLeft().getId());
-		}
-
-		String voiceID = bot.getDBUtil().guildVoiceGetChannel(event.getGuild().getId());
-		if (voiceID != null && voiceID.equals(event.getChannelJoined().getId())) {
-			handleVoice(event.getGuild(), event.getMember());
-		}
-	}
-
-	@Override
-	public void onGuildVoiceLeave(@Nonnull GuildVoiceLeaveEvent event) {
-		if (bot.getDBUtil().isVoiceChannelExists(event.getChannelLeft().getId()) && event.getChannelLeft().getMembers().isEmpty()) {
-			event.getChannelLeft().delete().queueAfter(500, TimeUnit.MILLISECONDS);
-			bot.getDBUtil().channelRemove(event.getChannelLeft().getId());
-		}
-	}
-
-	private void handleVoice(Guild guild, Member member) {
+	private void handleVoiceCreate(Guild guild, Member member) {
 		String guildId = guild.getId();
 		String userID = member.getId();
 
