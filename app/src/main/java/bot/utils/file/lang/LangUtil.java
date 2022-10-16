@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import bot.App;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 public final class LangUtil {
 
@@ -15,27 +16,27 @@ public final class LangUtil {
 	
 	@Nonnull
 	public String getString(String language, String path) {
-		switch (language.toLowerCase()) {
-			case "ru-ru":
-				return bot.getFileManager().getString(language.toLowerCase(), path);
+		switch (language) {
+			case "ru":
+				return bot.getFileManager().getString(language, path);
 			default: //en
-				return bot.getFileManager().getString("en", path);
+				return bot.getFileManager().getString("en-GB", path);
 		}
 	}
 
 	@Nonnull
 	public List<String> getStringList(String language, String path) {
-		switch (language.toLowerCase()) {
-			case "ru-ru":
-				return bot.getFileManager().getStringList(language.toLowerCase(), path);
+		switch (language) {
+			case "ru":
+				return bot.getFileManager().getStringList(language, path);
 			default: //en
-				return bot.getFileManager().getStringList("en", path);
+				return bot.getFileManager().getStringList("en-GB", path);
 		}
 	}
 
 	public enum Language {
-		EN    ("\uDDEC", "\uDDE7"),
-		RU_RU ("\uDDF7", "\uDDFA"),
+		EN_GB ("\uDDEC", "\uDDE7"),
+		RU    ("\uDDF7", "\uDDFA"),
 
 		UNKNOWN ("\uDDFA", "\uDDF3");
 
@@ -47,7 +48,8 @@ public final class LangUtil {
 		}
 
 		@Nonnull
-		public static String getEmote(String lang) {
+		public static String getEmote(DiscordLocale locale) {
+			String lang = locale.getLocale();
 			for (Language language : values()) {
 				if (lang.equals(language.name().toLowerCase().replace("_", "-")))
 					return language.emote;
@@ -57,10 +59,11 @@ public final class LangUtil {
 		}
 
 		@Nonnull
-		public static String getString(String lang) {
+		public static String getString(DiscordLocale locale) {
+			String lang = locale.getLocale().toLowerCase();
 			for (Language language : values()) {
 				if (lang.equals(language.name().toLowerCase().replace("_", "-")))
-					return language.emote + " " + lang;
+					return language.emote + " " + locale.getNativeName();
 			}
 
 			return UNKNOWN.emote + " " + UNKNOWN.name().toLowerCase();

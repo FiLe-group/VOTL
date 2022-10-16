@@ -23,6 +23,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 
 import ch.qos.logback.classic.Logger;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import bot.App;
 import bot.objects.constants.Constants;
 
@@ -37,7 +38,7 @@ public class FileManager {
 	private final Logger logger = (Logger) LoggerFactory.getLogger(FileManager.class);
 	
 	private Map<String, File> files;
-	private List<String> languages;
+	private List<DiscordLocale> locales;
 
 	public FileManager() {
 	}
@@ -49,21 +50,25 @@ public class FileManager {
 	}
 	
 	// Convenience method do add new languages more easy.
-	public FileManager addLang(String file) {
-		if (languages == null)
-			languages = new ArrayList<>();
+	public FileManager addLang(@Nonnull String file) throws Exception {
+		if (locales == null)
+		locales = new ArrayList<>();
 		
-		languages.add(file.toLowerCase());
+		DiscordLocale locale = DiscordLocale.from(file);
+		if (locale.equals(DiscordLocale.UNKNOWN)) {
+			throw new Exception("Unknown language was provided");
+		}
+		locales.add(locale);
 
-		return addFile(file.toLowerCase(), Constants.LANG_DIR + file + ".json", Constants.DATA_PATH + Constants.LANG_DIR + file + ".json");
+		return addFile(file, Constants.LANG_DIR + file + ".json", Constants.DATA_PATH + Constants.LANG_DIR + file + ".json");
 	}
 	
 	public Map<String, File> getFiles() {
 		return files;
 	}
 	
-	public List<String> getLanguages() {
-		return languages;
+	public List<DiscordLocale> getLanguages() {
+		return locales;
 	}
 	
 	public void createOrLoad(String name, String internal, String external) {

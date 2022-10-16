@@ -56,8 +56,8 @@
 					"help": "Показать все доступные языки",
 					"embed": {
 						"title": "Смена языка",
-						"value": "*Используйте `/language set <язык>`, чтобы задать язык для этого сервера*\n**OR**\n*Используйте `/language reset`, чтобы поставить язык по умолчанию(EN).*",
-						"field": "Доступные языки:"
+						"value": "*Используйте `/language set <язык>`, чтобы задать язык для этого сервера*\n**OR**\n*Используйте `/language reset`, чтобы поставить язык по умолчанию(en-GB).*",
+						"field": "Список языков:"
 					}
 				},
 				"done": "Язык успешно изменен на `{language}`!"
@@ -105,7 +105,6 @@
 				}
 			},
 			"access": {
-				"help": "Управление правами доступа пользователей (мод/админ) к команде"
 			}
 		},
 		"voice": {
@@ -258,14 +257,14 @@
 				"error_not_guild": "Выбранный вебхук не из этого сервера.",
 				"done": "Вебхук `{webhook_name}` успешно убран!"
 			},
-			"check": []
+			"check": {}
 		},
 		"other": {
 			"ping": {
 				"help": "Проверить задержку бота",
 				"loading": "{EMOTE_TYPING} Пинг: ...",
 				"info": "{EMOTE_PING} Пинг: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms",
-				"info_full": "{EMOTE_PING} Пинг: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest}"
+				"info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest} ms"
 			},
 			"about": {
 				"help": "Получить основную информацию о боте",

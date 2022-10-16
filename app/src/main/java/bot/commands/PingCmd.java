@@ -1,7 +1,5 @@
 package bot.commands;
 
-import java.util.Optional;
-
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
@@ -18,10 +16,12 @@ import bot.objects.constants.CmdCategory;
 public class PingCmd extends SlashCommand {
 
 	private final App bot;
+	private final String helpPath = "bot.other.ping.help";
 	
 	public PingCmd(App bot) {
 		this.name = "ping";
-		this.help = bot.getMsg("bot.other.ping.help");
+		this.help = bot.getMsg(helpPath);
+		this.descriptionLocalization = bot.getFullLocaleMap(helpPath);
 		this.guildOnly = false;
 		this.category = CmdCategory.OTHER;
 		this.bot = bot;
@@ -30,12 +30,10 @@ public class PingCmd extends SlashCommand {
 	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-
 		event.deferReply(true).queue(hook -> {
 			hook.getJDA().getRestPing().queue(time -> {
 				hook.editOriginal(
-					bot.getMsg(guildId, "bot.other.ping.info_full")
+					bot.getLocale(event.getUserLocale(), "bot.other.ping.info_full")
 						.replace("{ping}", "-")
 						.replace("{rest}", time+"")
 						.replace("{websocket}", event.getJDA().getGatewayPing()+"")

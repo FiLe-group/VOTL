@@ -56,8 +56,8 @@
 					"help": "Shows all available languages",
 					"embed": {
 						"title": "Available languages",
-						"value": "*Use `/language set <language>` to set chosen language in this guild*\n**OR**\n*Type `/language reset` to set language to default(EN).*",
-						"field": "Chose one below:"
+						"value": "*Use `/language set <language>` to set chosen language in this guild*\n**OR**\n*Type `/language reset` to set language to default(en-GB).*",
+						"field": "Language list:"
 					}
 				},
 				"done": "Successfully changed language to `{language}`!"
@@ -105,7 +105,6 @@
 				}
 			},
 			"access": {
-				"help": "Manage users(set mod/admin) access to command use"
 			}
 		},
 		"voice": {
@@ -267,7 +266,7 @@
 				"help": "Check the bot's latency",
 				"loading": "{EMOTE_TYPING} Ping: ...",
 				"info": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms",
-				"info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest}"
+				"info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest} ms"
 			},
 			"about": {
 				"help": "Get basic information about the bot",

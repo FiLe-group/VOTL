@@ -1,7 +1,9 @@
 package bot;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -34,6 +36,7 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -63,18 +66,21 @@ public class App {
 	private LangUtil langUtil;
 	private CheckUtil checkUtil;
 
-	public String defaultLanguage;
+	public final String defaultLanguage = "en-GB";
 
 	public App() {
 
 		JDA setJda = null;
 
-		fileManager.addFile("config", Constants.SEPAR + "config.json", Constants.DATA_PATH + Constants.SEPAR + "config.json")
-			.addFile("database", Constants.SEPAR + "server.db", Constants.DATA_PATH + Constants.SEPAR + "server.db")
-			.addLang("en")
-			.addLang("ru-RU");
-
-		defaultLanguage = "en";
+		try {
+			fileManager.addFile("config", Constants.SEPAR + "config.json", Constants.DATA_PATH + Constants.SEPAR + "config.json")
+				.addFile("database", Constants.SEPAR + "server.db", Constants.DATA_PATH + Constants.SEPAR + "server.db")
+				.addLang("en-GB")
+				.addLang("ru");
+		} catch (Exception ex) {
+			logger.error("Error while interacting with File Manager", ex);
+			System.exit(0);
+		}
 		
 		// Define for default
 		waiter 			= new EventWaiter();
@@ -209,7 +215,7 @@ public class App {
 	@Nonnull
 	public String getLanguage(String id) {
 		String res = dbUtil.guildGetLanguage(id);
-		return (res == null ? "en" : res);
+		return (res == null ? "en-GB" : res);
 	}
 
 	@ForRemoval
@@ -262,6 +268,19 @@ public class App {
 			setPlaceholders(langUtil.getString(getLanguage(id), path))
 				.replace("{prefix}", getPrefix(id))
 		);
+	}
+
+	@Nonnull
+	public String getLocale(DiscordLocale locale, String path) {
+		return setPlaceholders(langUtil.getString(locale.getLanguageName(), path));
+	}
+
+	public Map<DiscordLocale, String> getFullLocaleMap(String path) {
+		Map<DiscordLocale, String> localeMap = new HashMap<>();
+		for (DiscordLocale locale : fileManager.getLanguages()) {
+			localeMap.put(locale, getLocale(locale, path));
+		}
+		return localeMap;
 	}
 
 	@Nonnull

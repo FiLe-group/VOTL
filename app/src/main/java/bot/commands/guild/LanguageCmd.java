@@ -19,6 +19,7 @@ import bot.utils.exception.CheckException;
 import bot.utils.file.lang.LangUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -86,7 +87,7 @@ public class LanguageCmd extends SlashCommand {
 						return;
 					}
 					
-					String defaultLang = LanguageCmd.bot.defaultLanguage;
+					String defaultLang = bot.defaultLanguage;
 					sendReply(event, hook, defaultLang);
 				}
 			);
@@ -105,8 +106,8 @@ public class LanguageCmd extends SlashCommand {
 				new OptionData(OptionType.STRING, "language", bot.getMsg("bot.guild.language.set.option_description"))
 					.setRequired(true)
 					.addChoices(getLangList().stream().map(
-						lang -> {
-							return new Choice(lang, lang);
+						locale -> {
+							return new Choice(locale.getLocale(), locale.getLocale());
 						}
 					).collect(Collectors.toList()))
 			);
@@ -134,7 +135,7 @@ public class LanguageCmd extends SlashCommand {
 						return;
 					}
 
-					String lang = event.getOption("language", null, OptionMapping::getAsString).toLowerCase();
+					String lang = event.getOption("language", bot.defaultLanguage, OptionMapping::getAsString);
 					sendReply(event, hook, lang);
 				}
 			);
@@ -187,12 +188,12 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
-	private static void sendReply(SlashCommandEvent event, InteractionHook hook, String language) {
+	private static void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String language) {
 
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
 		// fail-safe
-		if (!getLangList().contains(language.toLowerCase())) {
+		if (DiscordLocale.from(language).equals(DiscordLocale.UNKNOWN)) {
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
 				.setTitle(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_title"))
 				.setDescription(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_value"))
@@ -211,21 +212,20 @@ public class LanguageCmd extends SlashCommand {
 		hook.editOriginalEmbeds(embed).queue();
 	}
 
-	private static List<String> getLangList(){
+	private static List<DiscordLocale> getLangList(){
         return bot.getFileManager().getLanguages();
     }
     
 	@Nonnull
     private static String getLanguages(){
-        List<String> langs = getLangList();
-        Collections.sort(langs);
+        List<DiscordLocale> langs = getLangList();
         
         StringBuilder builder = new StringBuilder();
-        for(String language : langs){
-            if(builder.length() > 1)
+        for (DiscordLocale locale : langs){
+            if (builder.length() > 1)
                 builder.append("\n");
             
-            builder.append(LangUtil.Language.getString(language));
+            builder.append(LangUtil.Language.getString(locale));
         }
         
         return Objects.requireNonNull(builder.toString());
