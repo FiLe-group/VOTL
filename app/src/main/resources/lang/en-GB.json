@@ -14,7 +14,7 @@
 		"guild_not_setup": "Guild was not setup-ed! Check `/help` for setup command",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and that I have sufficient permissions!",
 		"title": "Error",
-		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to `{owner_id}`!"
+		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to bot's Owner/Developer!"
 	},
 	"misc": {
 		"and": "and",
@@ -105,6 +105,51 @@
 				}
 			},
 			"access": {
+				"help": "Manage users (set Mod/Admin) that has access to command use",
+				"add": {
+					"help": "Add member as Mod/Admin",
+					"mod": {
+						"help": "Add user as a Mod",
+						"already": "Member already has Mod access!",
+						"done": "Successfully asigned {member} Mod access!"
+					},
+					"admin": {
+						"help": "Add user as an Admin",
+						"already": "Member already has Admin access!",
+						"done": "Successfully asigned {member} Admin access!"
+					},
+					"option_user": "Mention member",
+					"no_member": "Couldn't find mentioned member, either they left guild or not existent!",
+					"not_self": "You can't add yourself or any bot.",
+					"is_higher": "Mentioned user has higher or same access as yours"
+				},
+				"remove": {
+					"help": "Remove member from Mod/Admin",
+					"mod": {
+						"help": "Remove user from Mod",
+						"has_no_access": "Mentioned member is not a Mod.",
+						"done": "Successfully removed from {member} Mod access!"
+					},
+					"admin": {
+						"help": "Remove user from Admin",
+						"has_no_access": "Mentioned member is not an Admin.",
+						"done": "Successfully removed from {member} Admin access!"
+					},
+					"option_user": "Mention member",
+					"no_member": "Couldn't find mentioned member, either they left guild or not existent!",
+					"not_self": "You can't remove yourself or any bot.",
+					"is_higher": "Mentioned user has higher or same access as yours"
+				},
+				"view": {
+					"help": "View who has access",
+					"embed": {
+						"title": "Members with access",
+						"none_found": "*None of the members has Mod or Admin access*",
+						"admin": "**Admin access:**",
+						"mod": "**Mod access:**",
+						"none": "*None*"
+					}
+				}
 			}
 		},
 		"voice": {
@@ -196,8 +241,8 @@
 						"title": "Channel permissions for `{channel}`",
 						"field": "**Holder | Can View | Can Join**",
 						"everyone": "Everyone",
-						"roles": "Roles:",
-						"members": "Members:",
+						"roles": "**Roles:**",
+						"members": "**Members:**",
 						"none": "*None*"
 					}
 				},
@@ -301,8 +346,8 @@
 					},
 					"shard_title": "This shard",
 					"shard": {
-						"users": "{value} Users",
-						"guilds": "{value} Guilds",
+						"users": "Cached users {value}",
+						"guilds": "Guilds joined {value}",
 						"text_channels": "{value} Text Channels",
 						"voice_channels": "{value} Voice Channels"
 					},

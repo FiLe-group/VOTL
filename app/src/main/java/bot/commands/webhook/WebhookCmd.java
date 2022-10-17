@@ -48,7 +48,7 @@ public class WebhookCmd extends SlashCommand {
 		this.help = bot.getMsg("bot.webhook.help");
 		this.category = CmdCategory.WEBHOOK;
 		WebhookCmd.botPerms = new Permission[]{Permission.MANAGE_WEBHOOKS};
-		WebhookCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
+		WebhookCmd.userPerms = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		WebhookCmd.bot = bot;
 		this.children = new SlashCommand[]{new ShowList(), new Create(), new Select(), new Remove(), new Move()};
 	}
@@ -126,7 +126,7 @@ public class WebhookCmd extends SlashCommand {
 					String title = bot.getMsg(guildId, "bot.webhook.list.embed.value");
 					StringBuilder text = new StringBuilder();
 					for (Webhook wh : webhooks) {
-						if (text.length() > 790) { // max characters for field value = 1024, and max for each line = ~226, so 4.5 lines fits in one field
+						if (text.length() > 790) { // max characters for field value = 1024, and max for each line = ~226, so at least 4.5 lines fits in one field
 							embedBuilder.addField(title, text.toString(), false);
 							title = "\u200b";
 							text.setLength(0);

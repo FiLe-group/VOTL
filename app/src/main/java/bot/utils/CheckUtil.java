@@ -9,6 +9,7 @@ import bot.objects.CmdAccessLevel;
 import bot.objects.constants.Constants;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
@@ -37,18 +38,28 @@ public class CheckUtil {
         return false;
     }
 
-	private CmdAccessLevel getAccessLevel(SlashCommandEvent event) {
-		// Is bot developer, as set in 
-		if (isDeveloper(event.getUser()) || isOwner(event))
+	public CmdAccessLevel getAccessLevel(SlashCommandEvent event) {
+		return getAccessLevel(event, event.getMember());
+	}
+
+	public CmdAccessLevel getAccessLevel(SlashCommandEvent event, Member member) {
+		// Is bot developer
+		if (isDeveloper(member.getUser()) || isOwner(event, member.getUser()))
 			return CmdAccessLevel.DEV;
-		Member member = Objects.requireNonNull(event.getMember());
+		// Is guild owner
 		if (member.isOwner())
 			return CmdAccessLevel.OWNER;
-		/* if (false)
-			return CmdAccessLevel.ADMIN;
-		if (false)
-			return CmdAccessLevel.MOD; */
 		
+		Guild guild = Objects.requireNonNull(event.getGuild());
+		String access = bot.getDBUtil().hasAccess(guild.getId(), member.getId());
+		// Has either mod or admin access
+		if (access != null) {
+			// Has admin access
+			if (access.equals("admin"))
+				return CmdAccessLevel.ADMIN;
+			return CmdAccessLevel.MOD;
+		}
+		// Default
 		return CmdAccessLevel.ALL;
 	}
 

@@ -119,6 +119,7 @@ public class App {
 				new LanguageCmd(this),
 				new SetupCmd(this),
 				new ModuleCmd(this, waiter),
+				new AccessCmd(this),
 				// owner
 				new ShutdownCmd(this),
 				new EvalCmd(this),

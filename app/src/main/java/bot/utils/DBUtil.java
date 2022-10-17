@@ -265,6 +265,54 @@ public class DBUtil {
 		}
 		return true;
 	}
+
+	// Mod/Admin Access
+	public void accessAdd(String guildId, String userId, boolean admin) {
+		insert("modAccess", new String[]{"guildId", "userId", "admin"}, new Object[]{guildId, userId, (admin ? 1 : 0)});
+	}
+
+	public void accessRemove(String guildId, String userId) {
+		delete("modAccess", new String[]{"guildId", "userId"}, new Object[]{guildId, userId});
+	}
+
+	public void accessChange(String guildId, String userId, boolean admin) {
+		update("modAccess", "admin", (admin ? 1 : 0), new String[]{"guildId", "userId"}, new Object[]{guildId, userId});
+	}
+
+	public List<String> accessAllGet(String guildId) {
+		List<Object> objs = select("modAccess", "userId", "guildId", guildId);
+		if (objs.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
+	}
+
+	public List<String> accessModGet(String guildId) {
+		List<Object> objs = select("modAccess", "userId", new String[]{"guildId", "admin"}, new Object[]{guildId, 0});
+		if (objs.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
+	}
+
+	public List<String> accessAdminGet(String guildId) {
+		List<Object> objs = select("modAccess", "userId", new String[]{"guildId", "admin"}, new Object[]{guildId, 1});
+		if (objs.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
+	}
+
+	public String hasAccess(String guildId, String userId) {
+		List<Object> objs = select("modAccess", "admin", new String[]{"guildId", "userId"}, new Object[]{guildId, userId});
+		if (objs.isEmpty() || objs.get(0) == null) {
+			return null;
+		}
+		if (objs.get(0).equals(1)) {
+			return "admin";
+		}
+		return "mod";
+	}
 	
 
 	// INSERT sql
