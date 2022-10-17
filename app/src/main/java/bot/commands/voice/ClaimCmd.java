@@ -93,27 +93,34 @@ public class ClaimCmd extends SlashCommand {
 		String guildId = guild.getId();
 
 		VoiceChannel vc = guild.getVoiceChannelById(ac.getId());
-		Member owner = guild.getMemberById(bot.getDBUtil().channelGetUser(vc.getId()));
-		for (Member vcMember : vc.getMembers()) {
-			if (vcMember == owner) {
-				hook.editOriginal(bot.getMsg(guildId, "bot.voice.claim.has_owner")).queue();
-				return;
-			}
-		}
+		guild.retrieveMemberById(bot.getDBUtil().channelGetUser(vc.getId())).queue(
+			owner -> {
+				for (Member vcMember : vc.getMembers()) {
+					if (vcMember == owner) {
+						hook.editOriginal(bot.getMsg(guildId, "bot.voice.claim.has_owner")).queue();
+						return;
+					}
+				}
 
-		try {
-			vc.getManager().removePermissionOverride(owner).queue();
-			vc.getManager().putPermissionOverride(author, EnumSet.of(Permission.MANAGE_CHANNEL), null).queue();
-		} catch (InsufficientPermissionException ex) {
-			hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, ex.getPermission(), true)).queue();
-			return;
-		}
-		bot.getDBUtil().channelSetUser(author.getId(), vc.getId());
+				try {
+					vc.getManager().removePermissionOverride(owner).queue();
+					vc.getManager().putPermissionOverride(author, EnumSet.of(Permission.MANAGE_CHANNEL), null).queue();
+				} catch (InsufficientPermissionException ex) {
+					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, ex.getPermission(), true)).queue();
+					return;
+				}
+				bot.getDBUtil().channelSetUser(author.getId(), vc.getId());
+				
+				hook.editOriginalEmbeds(
+					bot.getEmbedUtil().getEmbed(author)
+						.setDescription(bot.getMsg(guildId, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
+						.build()
+				).queue();
+			}, failure -> {
+				hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.unknown", failure.getMessage())).queue();
+			}
+		);
+
 		
-		hook.editOriginalEmbeds(
-			bot.getEmbedUtil().getEmbed(author)
-				.setDescription(bot.getMsg(guildId, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
-				.build()
-		).queue();
 	}
 }

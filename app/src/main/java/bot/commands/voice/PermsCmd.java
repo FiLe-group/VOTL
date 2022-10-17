@@ -93,9 +93,10 @@ public class PermsCmd extends SlashCommand {
 		@SuppressWarnings("null")
 		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
-			Member member = Objects.requireNonNull(event.getMember());
+			Member author = Objects.requireNonNull(event.getMember());
+			String authorId = author.getId();
 
-			if (!bot.getDBUtil().isVoiceChannel(member.getId())) {
+			if (!bot.getDBUtil().isVoiceChannel(authorId)) {
 				hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
 				return;
 			}
@@ -103,9 +104,9 @@ public class PermsCmd extends SlashCommand {
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
 			
-			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
+			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(authorId));
 
-			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(member)
+			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(author)
 				.setTitle(bot.getMsg(guildId, "bot.voice.perms.view.embed.title").replace("{channel}", vc.getName()))
 				.setDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.field")+"\n\n");
 
@@ -115,7 +116,7 @@ public class PermsCmd extends SlashCommand {
 			String view = contains(publicOverride, Permission.VIEW_CHANNEL);
 			String join = contains(publicOverride, Permission.VOICE_CONNECT);
 			
-			embed = embed.appendDescription(formatHolder(bot.getMsg(guildId, "bot.voice.perms.view.embed.everyone"), view, join))
+			embedBuilder = embedBuilder.appendDescription("> " + formatHolder(bot.getMsg(guildId, "bot.voice.perms.view.embed.everyone"), view, join))
 				.appendDescription("\n\n" + bot.getMsg(guildId, "bot.voice.perms.view.embed.roles") + "\n");
 
 			//Roles
@@ -128,38 +129,46 @@ public class PermsCmd extends SlashCommand {
 			}
 			
 			if (overrides.isEmpty()) {
-				embed = embed.appendDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.none") + "\n");
+				embedBuilder.appendDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.none") + "\n");
 			} else {
 				for (PermissionOverride ov : overrides) {
 					view = contains(ov, Permission.VIEW_CHANNEL);
 					join = contains(ov, Permission.VOICE_CONNECT);
 
-					embed = embed.appendDescription(formatHolder(ov.getRole().getName(), view, join) + "\n");
+					embedBuilder.appendDescription("> " + formatHolder(ov.getRole().getName(), view, join) + "\n");
 				}
 			}
-			embed = embed.appendDescription("\n" + bot.getMsg(guildId, "bot.voice.perms.view.embed.members") + "\n");
+			embedBuilder.appendDescription("\n" + bot.getMsg(guildId, "bot.voice.perms.view.embed.members") + "\n");
 
 			//Members
 			overrides = new ArrayList<>(vc.getMemberPermissionOverrides());
 			try {
-				overrides.remove(vc.getPermissionOverride(member)); // removes user
+				overrides.remove(vc.getPermissionOverride(author)); // removes user
 				overrides.remove(vc.getPermissionOverride(guild.getSelfMember())); // removes bot
 			} catch (NullPointerException ex) {
 				bot.getLogger().warn("PermsCmd null pointer at member override remove");
 			}
 
-			if (overrides.isEmpty()) {
-				embed = embed.appendDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.none") + "\n");
-			} else {
-				for (PermissionOverride ov : overrides) {
-					view = contains(ov, Permission.VIEW_CHANNEL);
-					join = contains(ov, Permission.VOICE_CONNECT);
+			EmbedBuilder embedBuilder2 = embedBuilder;
+			List<PermissionOverride> ovs = overrides;
 
-					embed = embed.appendDescription(formatHolder(ov.getMember().getEffectiveName(), view, join) + "\n");
+			guild.retrieveMembersByIds(false, overrides.stream().map(ov -> ov.getId()).toArray(String[]::new)).onSuccess(
+				members -> {
+					if (members.isEmpty()) {
+						embedBuilder2.appendDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.none") + "\n");
+					} else {
+						for (PermissionOverride ov : ovs) {
+							String view2 = contains(ov, Permission.VIEW_CHANNEL);
+							String join2 = contains(ov, Permission.VOICE_CONNECT);
+
+							Member find = members.stream().filter(m -> m.getId().equals(ov.getId())).findFirst().get(); 
+							embedBuilder2.appendDescription("> " + formatHolder(find.getEffectiveName(), view2, join2) + "\n");
+						}
+					}
+
+					hook.editOriginalEmbeds(embedBuilder2.build()).queue();
 				}
-			}
-
-			hook.editOriginalEmbeds(embed.build()).queue();
+			);
 
 		}
 
