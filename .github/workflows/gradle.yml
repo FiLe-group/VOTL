@@ -18,9 +18,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2.4.2
+    - uses: actions/checkout@v2.5.0
     - name: Set up JDK 11
-      uses: actions/setup-java@v3.4.1
+      uses: actions/setup-java@v3.5.1
       with:
         java-version: '11'
         distribution: 'temurin'
@@ -29,7 +29,7 @@ jobs:
       # uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
       uses: gradle/wrapper-validation-action@v1.0.4
     - name: Build with Gradle
-      uses: gradle/gradle-build-action@v2.3.0
+      uses: gradle/gradle-build-action@v2.3.2
       with:
         arguments: build
     - name: Get App Version
@@ -44,7 +44,7 @@ jobs:
       if: "!contains( steps.get_version.outputs.version , 'SNAPSHOT')"
       # You may pin to the exact commit or the version.
       # uses: ncipollo/release-action@40bb172bd05f266cf9ba4ff965cb61e9ee5f6d01
-      uses: ncipollo/release-action@v1.10.0
+      uses: ncipollo/release-action@v1.11.1
       with:
         allowUpdates: true
         # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
