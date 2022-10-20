@@ -55,12 +55,12 @@ public class ClaimCmd extends SlashCommand {
 					// check module enabled
 						.moduleEnabled(event, MODULE)
 					// check user perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						.hasPermissions(event, userPerms)
 					// check bots perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						.hasPermissions(event, true, botPerms);
 					// check setup
 					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event);
+						bot.getCheckUtil().guildExists(event, mustSetup);
 					}
 				} catch (CheckException ex) {
 					hook.editOriginal(ex.getEditData()).queue();
@@ -106,13 +106,13 @@ public class ClaimCmd extends SlashCommand {
 					vc.getManager().removePermissionOverride(owner).queue();
 					vc.getManager().putPermissionOverride(author, EnumSet.of(Permission.MANAGE_CHANNEL), null).queue();
 				} catch (InsufficientPermissionException ex) {
-					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, ex.getPermission(), true)).queue();
+					hook.editOriginal(bot.getEmbedUtil().getPermError(event, ex.getPermission(), true)).queue();
 					return;
 				}
 				bot.getDBUtil().channelSetUser(author.getId(), vc.getId());
 				
 				hook.editOriginalEmbeds(
-					bot.getEmbedUtil().getEmbed(author)
+					bot.getEmbedUtil().getEmbed(event)
 						.setDescription(bot.getMsg(guildId, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
 						.build()
 				).queue();

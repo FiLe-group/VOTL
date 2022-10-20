@@ -5,14 +5,11 @@ import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
-
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import bot.App;
@@ -32,50 +29,37 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public EmbedBuilder getEmbed(Member member) {
+	public EmbedBuilder getEmbed(Interaction interaction) {
 		return getEmbed().setFooter(
-			bot.getMsg(member.getGuild().getId(), "embed.footer", member.getUser().getAsTag(), false),
-			member.getUser().getEffectiveAvatarUrl()
+			bot.getLocalized(interaction.getUserLocale(), "embed.footer", interaction.getUser().getAsTag(), false),
+			interaction.getUser().getEffectiveAvatarUrl()
 		);
 	}
 
 	@Nonnull
-	public EmbedBuilder getEmbed(User user) {
-		return getEmbed().setFooter(
-			bot.getMsg("0", "embed.footer", user.getAsTag(), false),
-			user.getEffectiveAvatarUrl()
-		);
-	} 
-
-	@Nonnull
-	private EmbedBuilder getErrorEmbed(Member member) {
-		return (member == null ? getEmbed() : getEmbed(member)).setColor(Constants.COLOR_FAILURE);
+	private EmbedBuilder getErrorEmbed(Interaction interaction) {
+		return getEmbed(interaction).setColor(Constants.COLOR_FAILURE);
 	}
 
 	@Nonnull
-	private EmbedBuilder getErrorEmbed(User user) {
-		return (user == null ? getEmbed() : getEmbed(user)).setColor(Constants.COLOR_FAILURE);
-	}
-
-	@Nonnull
-	public EmbedBuilder getPermErrorEmbed(Member member, Guild guild, TextChannel channel, Permission perm, boolean self) {
-		EmbedBuilder embed = getErrorEmbed(member);
+	public EmbedBuilder getPermErrorEmbed(Interaction interaction, TextChannel channel, Permission perm, boolean self) {
+		EmbedBuilder embed = getErrorEmbed(interaction);
 		String msg;
 		if (self) {
 			if (channel == null) {
-				msg = bot.getMsg(guild.getId(), "errors.missing_perms.self")
+				msg = bot.getLocalized(interaction.getUserLocale(), "errors.missing_perms.self")
 					.replace("{permissions}", perm.getName());
 			} else {
-				msg = bot.getMsg(guild.getId(), "errors.missing_perms.self_channel")
+				msg = bot.getLocalized(interaction.getUserLocale(), "errors.missing_perms.self_channel")
 					.replace("{permissions}", perm.getName())
 					.replace("{channel}", channel.getAsMention());
 			}
 		} else {
 			if (channel == null) {
-				msg = bot.getMsg(guild.getId(), "errors.missing_perms.other")
+				msg = bot.getLocalized(interaction.getUserLocale(), "errors.missing_perms.other")
 					.replace("{permissions}", perm.getName());
 			} else {
-				msg = bot.getMsg(guild.getId(), "errors.missing_perms.other_channel")
+				msg = bot.getLocalized(interaction.getUserLocale(), "errors.missing_perms.other_channel")
 					.replace("{permissions}", perm.getName())
 					.replace("{channel}", channel.getAsMention());
 			}
@@ -85,23 +69,22 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public MessageEditData getError(SlashCommandEvent event, String path) {
-		return getError(event, path, null);
+	public MessageEditData getError(Interaction interaction, String path) {
+		return getError(interaction, path, null);
 	}
 
 	@Nonnull
-	public MessageEditData getError(SlashCommandEvent event, String path, String reason) {
-		
-		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+	public MessageEditData getError(Interaction interaction, String path, String reason) {
+		DiscordLocale userLocale = interaction.getUserLocale();
 
-		EmbedBuilder embed = event.isFromGuild() ? getErrorEmbed(event.getMember()) : getErrorEmbed(event.getUser());
+		EmbedBuilder embed = getErrorEmbed(interaction);
 		embed.setDescription(
-			Optional.ofNullable(event.getMember()).map(m -> bot.getMsg(guildId, path, m.getEffectiveName())).orElse(bot.getMsg(guildId, path))
+			Optional.ofNullable(interaction.getMember()).map(m -> bot.getLocalized(userLocale, path, m.getEffectiveName())).orElse(bot.getLocalized(userLocale, path))
 		);
 
 		if (reason != null)
 			embed.addField(
-				bot.getMsg(guildId, "errors.title"),
+				bot.getLocalized(userLocale, "errors.title"),
 				reason,
 				false
 			);
@@ -110,17 +93,19 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public MessageEditData getPermError(TextChannel tc, Member member, Permission perm, boolean self) {
-		return getPermError(tc, member, null, perm, self);
+	public MessageEditData getPermError(Interaction interaction, Permission perm, boolean self) {
+		return getPermError(interaction, null, perm, self);
 	}
 
 	
 
 	@Nonnull
-	public MessageEditData getPermError(TextChannel tc, Member member, TextChannel channel, Permission perm, boolean self) {
+	public MessageEditData getPermError(Interaction interaction, TextChannel channel, Permission perm, boolean self) {
+		DiscordLocale userLocale = interaction.getUserLocale();
+
 		if (perm.equals(Permission.MESSAGE_SEND)) {
-			member.getUser().openPrivateChannel()
-				.flatMap(ch -> ch.sendMessage(bot.getMsg(member.getGuild().getId(), "errors.no_send_perm")))
+			interaction.getUser().openPrivateChannel()
+				.flatMap(ch -> ch.sendMessage(bot.getLocalized(userLocale, "errors.no_send_perm")))
 				.queue();
 			return MessageEditData.fromContent("PM sended");
 		}
@@ -129,18 +114,18 @@ public class EmbedUtil {
 		if (perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
 			if (channel == null) {
 				mb.setContent(
-					bot.getMsg(tc.getId(),"errors.missing_perms.self")
+					bot.getLocalized(userLocale, "errors.missing_perms.self")
 						.replace("{permission}", perm.getName())
 				);
 			} else {
 				mb.setContent(
-					bot.getMsg(tc.getId(),"errors.missing_perms.self_channel")
+					bot.getLocalized(userLocale, "errors.missing_perms.self_channel")
 						.replace("{permission}", perm.getName())
 						.replace("{channel}", channel.getAsMention())
 				);
 			}
 		} else {
-			mb.setEmbeds(getPermErrorEmbed(member, tc.getGuild(), channel, perm, self).build());
+			mb.setEmbeds(getPermErrorEmbed(interaction, channel, perm, self).build());
 		}
 		return mb.build();
 	}

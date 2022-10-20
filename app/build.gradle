@@ -28,13 +28,11 @@ dependencies {
 	// This dependency is used by the application.
 	implementation 'com.google.guava:guava:31.1-jre'
 
-
 	// JDA library
 	implementation 'net.dv8tion:JDA:5.0.0-alpha.21'					// JDA library
 	implementation 'ch.qos.logback:logback-classic:1.4.3'			// Logging (required by JDA)
 
 	// Chewtils extentions
-	implementation 'pw.chew:jda-chewtils-command:2.0-SNAPSHOT'		// Command Package
 	implementation 'pw.chew:jda-chewtils-commons:2.0-SNAPSHOT'		// Commons Package
 	implementation 'pw.chew:jda-chewtils-doc:2.0-SNAPSHOT'			// Documentation Package (future implementation)
 
@@ -44,6 +42,9 @@ dependencies {
 
 	// Eval
 	implementation 'org.codehaus.groovy:groovy:3.0.13'				// Groovy - code evaluation
+
+	// Chewtils commands
+	implementation 'org.json:json:20220320'
 
 }
 

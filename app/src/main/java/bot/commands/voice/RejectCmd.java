@@ -66,12 +66,12 @@ public class RejectCmd extends SlashCommand {
 					// check module enabled
 						.moduleEnabled(event, MODULE)
 					// check user perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						.hasPermissions(event, userPerms)
 					// check bots perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						.hasPermissions(event, true, botPerms);
 					// check setup
 					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event);
+						bot.getCheckUtil().guildExists(event, mustSetup);
 					}
 				} catch (CheckException ex) {
 					hook.editOriginal(ex.getEditData()).queue();
@@ -119,7 +119,7 @@ public class RejectCmd extends SlashCommand {
 				vc.getManager().putPermissionOverride(member, null, EnumSet.of(Permission.VOICE_CONNECT)).queue();
 				mentionStrings.add(member.getEffectiveName());
 			} catch (InsufficientPermissionException ex) {
-				hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, Permission.MANAGE_PERMISSIONS, true)).queue();
+				hook.editOriginal(bot.getEmbedUtil().getPermError(event, Permission.MANAGE_PERMISSIONS, true)).queue();
 				return;
 			}
 			if (vc.getMembers().contains(member)) {
@@ -133,14 +133,14 @@ public class RejectCmd extends SlashCommand {
 					vc.getManager().putPermissionOverride(role, null, EnumSet.of(Permission.VOICE_CONNECT)).queue();
 					mentionStrings.add(role.getName());
 				} catch (InsufficientPermissionException ex) {
-					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, Permission.MANAGE_PERMISSIONS, true)).queue();
+					hook.editOriginal(bot.getEmbedUtil().getPermError(event, Permission.MANAGE_PERMISSIONS, true)).queue();
 					return;
 				}
 		}
 
 		hook.editOriginalEmbeds(
-			bot.getEmbedUtil().getEmbed(author)
-				.setDescription(bot.getMsg(guildId, "bot.voice.reject.done", "", mentionStrings))
+			bot.getEmbedUtil().getEmbed(event)
+				.setDescription(bot.getLocalized(event.getUserLocale(), "bot.voice.reject.done", "", mentionStrings))
 				.build()
 		).queue();
 	}

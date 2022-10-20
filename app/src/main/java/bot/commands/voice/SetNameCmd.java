@@ -59,12 +59,12 @@ public class SetNameCmd extends SlashCommand {
 					// check module enabled
 						.moduleEnabled(event, MODULE)
 					// check user perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						.hasPermissions(event, userPerms)
 					// check bots perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						.hasPermissions(event, true, botPerms);
 					// check setup
 					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event);
+						bot.getCheckUtil().guildExists(event, mustSetup);
 					}
 				} catch (CheckException ex) {
 					hook.editOriginal(ex.getEditData()).queue();
@@ -91,7 +91,7 @@ public class SetNameCmd extends SlashCommand {
 		bot.getDBUtil().guildVoiceSetName(guildId, filName);
 
 		hook.editOriginalEmbeds(
-			bot.getEmbedUtil().getEmbed(member)
+			bot.getEmbedUtil().getEmbed(event)
 				.setDescription(bot.getMsg(guildId, "bot.voice.setname.done").replace("{value}", filName))
 				.build()
 		).queue();

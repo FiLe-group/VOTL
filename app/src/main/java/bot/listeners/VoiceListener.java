@@ -54,7 +54,7 @@ public class VoiceListener extends ListenerAdapter {
 		Integer limit = null;
 		if (channelName == null) {
 			if (defaultChannelName == null) {
-				name = bot.getMsg(guildId, "bot.voice.listener.default_name", member.getUser().getName(), false);
+				name = bot.getLocalized(guild.getLocale(), "bot.voice.listener.default_name", member.getUser().getName(), false);
 			} else {
 				name = defaultChannelName;
 			}

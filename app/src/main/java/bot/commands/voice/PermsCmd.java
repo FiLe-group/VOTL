@@ -73,12 +73,12 @@ public class PermsCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -106,7 +106,7 @@ public class PermsCmd extends SlashCommand {
 			
 			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(authorId));
 
-			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(author)
+			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(bot.getMsg(guildId, "bot.voice.perms.view.embed.title").replace("{channel}", vc.getName()))
 				.setDescription(bot.getMsg(guildId, "bot.voice.perms.view.embed.field")+"\n\n");
 
@@ -208,12 +208,12 @@ public class PermsCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -242,12 +242,12 @@ public class PermsCmd extends SlashCommand {
 			try {
 				vc.getManager().sync().queue();
 			} catch (InsufficientPermissionException ex) {
-				hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)).queue();
+				hook.editOriginal(bot.getEmbedUtil().getPermError(event, ex.getPermission(), true)).queue();
 				return;
 			}
 
 			hook.editOriginalEmbeds(
-				bot.getEmbedUtil().getEmbed(member)
+				bot.getEmbedUtil().getEmbed(event)
 					.setDescription(bot.getMsg(guildId, "bot.voice.perms.reset.done"))
 					.build()
 			).queue();

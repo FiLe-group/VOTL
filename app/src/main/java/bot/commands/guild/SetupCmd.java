@@ -65,15 +65,15 @@ public class SetupCmd extends SlashCommand {
 					try {
 						// check setup
 						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						// check access
 						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
@@ -84,7 +84,7 @@ public class SetupCmd extends SlashCommand {
 
 					if (bot.getDBUtil().guildAdd(guildId)) {
 						hook.editOriginalEmbeds(
-							bot.getEmbedUtil().getEmbed(event.getMember())
+							bot.getEmbedUtil().getEmbed(event)
 								.setDescription(bot.getMsg(guildId, "bot.guild.setup.main.done"))
 								.setColor(Constants.COLOR_SUCCESS)
 								.build()
@@ -92,7 +92,7 @@ public class SetupCmd extends SlashCommand {
 						bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
 					} else {
 						hook.editOriginalEmbeds(
-							bot.getEmbedUtil().getEmbed(event.getMember())
+							bot.getEmbedUtil().getEmbed(event)
 								.setDescription(bot.getMsg(guildId, "bot.guild.setup.main.exists"))
 								.setColor(Constants.COLOR_WARNING)
 								.build()
@@ -121,15 +121,15 @@ public class SetupCmd extends SlashCommand {
 					try {
 						// check setup
 						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						// check access
 						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
@@ -163,7 +163,7 @@ public class SetupCmd extends SlashCommand {
 											bot.getDBUtil().guildVoiceSetup(guildId, category.getId(), channel.getId());
 											bot.getLogger().info("Voice setup done in guild `"+guild.getName()+"'("+guildId+")");
 											hook.editOriginalEmbeds(
-												bot.getEmbedUtil().getEmbed(event.getMember())
+												bot.getEmbedUtil().getEmbed(event)
 													.setDescription(bot.getMsg(guildId, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
 													.setColor(Constants.COLOR_SUCCESS)
 													.build()
@@ -172,14 +172,14 @@ public class SetupCmd extends SlashCommand {
 									);
 							} catch (InsufficientPermissionException ex) {
 								hook.editOriginal(
-									bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true)
+									bot.getEmbedUtil().getPermError(event, ex.getPermission(), true)
 								).queue();
 							}
 						}
 					);
 			} catch (InsufficientPermissionException ex) {
 				hook.editOriginal(
-					bot.getEmbedUtil().getPermError(event.getTextChannel(), event.getMember(), ex.getPermission(), true)
+					bot.getEmbedUtil().getPermError(event, ex.getPermission(), true)
 				).queue();
 				ex.printStackTrace();
 			}

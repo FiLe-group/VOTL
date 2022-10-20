@@ -53,12 +53,12 @@ public class UnghostCmd extends SlashCommand {
 					// check module enabled
 						.moduleEnabled(event, MODULE)
 					// check user perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						.hasPermissions(event, userPerms)
 					// check bots perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						.hasPermissions(event, true, botPerms);
 					// check setup
 					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event);
+						bot.getCheckUtil().guildExists(event, mustSetup);
 					}
 				} catch (CheckException ex) {
 					hook.editOriginal(ex.getEditData()).queue();
@@ -88,12 +88,12 @@ public class UnghostCmd extends SlashCommand {
 		try {
 			vc.upsertPermissionOverride(guild.getPublicRole()).clear(Permission.VIEW_CHANNEL).queue();
 		} catch (InsufficientPermissionException ex) {
-			hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)).queue();
+			hook.editOriginal(bot.getEmbedUtil().getPermError(event, ex.getPermission(), true)).queue();
 			return;
 		}
 
 		hook.editOriginalEmbeds(
-			bot.getEmbedUtil().getEmbed(member)
+			bot.getEmbedUtil().getEmbed(event)
 				.setDescription(bot.getMsg(guildId, "bot.voice.unghost.done"))
 				.build()
 		).queue();

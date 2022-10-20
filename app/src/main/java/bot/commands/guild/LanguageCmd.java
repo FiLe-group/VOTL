@@ -73,15 +73,15 @@ public class LanguageCmd extends SlashCommand {
 					try {
 						// check setup
 						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						// check access
 						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
@@ -121,15 +121,15 @@ public class LanguageCmd extends SlashCommand {
 					try {
 						// check setup
 						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						// check access
 						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
@@ -159,22 +159,22 @@ public class LanguageCmd extends SlashCommand {
 					try {
 						// check setup
 						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						// check access
 						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
 					}
 					
 					String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-					MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+					MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
 						.setTitle(bot.getMsg(guildId, "bot.guild.language.show.embed.title"))
 						.setDescription(bot.getMsg(guildId, "bot.guild.language.show.embed.value"))
 						.addField(bot.getMsg(guildId, "bot.guild.language.show.embed.field"), getLanguages(), false)
@@ -194,7 +194,7 @@ public class LanguageCmd extends SlashCommand {
 
 		// fail-safe
 		if (DiscordLocale.from(language).equals(DiscordLocale.UNKNOWN)) {
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_title"))
 				.setDescription(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_value"))
 				.addField(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
@@ -205,7 +205,7 @@ public class LanguageCmd extends SlashCommand {
 
 		bot.getDBUtil().guildSetLanguage(guildId, language);
 
-		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
 			.setColor(bot.getMessageUtil().getColor("rgb:0,200,30"))
 			.setDescription(bot.getMsg(guildId, "bot.guild.language.done").replace("{language}", language))
 			.build();

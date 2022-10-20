@@ -5,6 +5,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.awt.Color;
 
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import bot.App;
 
@@ -75,7 +76,7 @@ public class MessageUtil {
 		return color;
 	}
 
-	public String getFormattedMembers(String id, String... members) {
+	public String getFormattedMembers(DiscordLocale locale, String... members) {
 		if (members.length == 1)
 			return "**" + escapeAll(members[0]) + "**";
 
@@ -87,7 +88,7 @@ public class MessageUtil {
 			builder.append("**").append(escapeAll(member)).append("**");
 		}
 
-		return replaceLast(builder.toString(), ", ", " and ");
+		return replaceLast(builder.toString(), ", ", " "+bot.getLocalized(locale, "misc.and")+" ");
 	}
 
 	public String replaceLast(String input, String target, String replacement) {

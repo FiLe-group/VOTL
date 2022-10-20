@@ -78,13 +78,11 @@ public class WebhookCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms)
 						// check setup
-						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
-						}
+							.guildExists(event, mustSetup);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
@@ -102,7 +100,7 @@ public class WebhookCmd extends SlashCommand {
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
 
-			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(member)
+			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(bot.getMsg(guildId, "bot.webhook.list.embed.title"));
 			
 			// Retrieves every webhook in server
@@ -166,12 +164,12 @@ public class WebhookCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -202,7 +200,7 @@ public class WebhookCmd extends SlashCommand {
 					webhook -> {
 						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 						hook.editOriginalEmbeds(
-							bot.getEmbedUtil().getEmbed(member).setDescription(
+							bot.getEmbedUtil().getEmbed(event).setDescription(
 								bot.getMsg(guildId, "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
 							).build()
 						).queue();
@@ -210,7 +208,7 @@ public class WebhookCmd extends SlashCommand {
 				);
 			} catch (PermissionException ex) {
 				hook.editOriginal(
-					bot.getEmbedUtil().getPermError(event.getTextChannel(), member, ex.getPermission(), true)
+					bot.getEmbedUtil().getPermError(event, ex.getPermission(), true)
 				).queue();
 				ex.printStackTrace();
 			}
@@ -238,12 +236,12 @@ public class WebhookCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -270,7 +268,7 @@ public class WebhookCmd extends SlashCommand {
 					} else {
 						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 						hook.editOriginalEmbeds(
-							bot.getEmbedUtil().getEmbed(member).setDescription(
+							bot.getEmbedUtil().getEmbed(event).setDescription(
 								bot.getMsg(guildId, "bot.webhook.add.select.done").replace("{webhook_name}", webhook.getName())
 							).build()
 						).queue();
@@ -306,12 +304,12 @@ public class WebhookCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -344,7 +342,7 @@ public class WebhookCmd extends SlashCommand {
 							}
 							bot.getDBUtil().webhookRemove(webhookId);
 							hook.editOriginalEmbeds(
-								bot.getEmbedUtil().getEmbed(member).setDescription(
+								bot.getEmbedUtil().getEmbed(event).setDescription(
 									bot.getMsg(guildId, "bot.webhook.remove.done").replace("{webhook_name}", webhook.getName())
 								).build()
 							).queue();
@@ -386,12 +384,12 @@ public class WebhookCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -422,7 +420,7 @@ public class WebhookCmd extends SlashCommand {
 						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).queue(
 							wm -> {
 								hook.editOriginalEmbeds(
-									bot.getEmbedUtil().getEmbed(member).setDescription(
+									bot.getEmbedUtil().getEmbed(event).setDescription(
 										bot.getMsg(guildId, "bot.webhook.move.done")
 											.replace("{webhook_name}", webhook.getName())
 											.replace("{channel}", channel.getName())

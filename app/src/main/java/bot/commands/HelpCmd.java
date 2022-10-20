@@ -11,9 +11,11 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CommandBase;
 import bot.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -25,15 +27,11 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 	description = "shows help menu",
 	usage = "/help [show?][category:]"
 )
-public class HelpCmd extends SlashCommand {
-	
-	private final App bot;
+public class HelpCmd extends CommandBase {
 
 	public HelpCmd(App bot) {
 		this.name = "help";
-		this.help = bot.getMsg("bot.help.help");
-		this.guildOnly = false;
-		this.category = CmdCategory.OTHER;
+		this.helpPath = "bot.help.help";
 
 		List<OptionData> options = new ArrayList<>();
 		options.add(new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("misc.show_description")));
@@ -47,6 +45,8 @@ public class HelpCmd extends SlashCommand {
 		this.options = options;
 
 		this.bot = bot;
+		this.category = CmdCategory.OTHER;
+		this.guildOnly = false;
 	}
 
 	@Override
@@ -68,18 +68,18 @@ public class HelpCmd extends SlashCommand {
 	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, InteractionHook hook, String filCat) {
 
-		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+		DiscordLocale userLocale = event.getUserLocale();
 		String prefix = "/";
 		EmbedBuilder builder = null;
 
 		if (event.isFromGuild()) {
-			builder = bot.getEmbedUtil().getEmbed(event.getMember());
+			builder = bot.getEmbedUtil().getEmbed(event);
 		} else {
 			builder = bot.getEmbedUtil().getEmbed();
 		}
 
-		builder.setTitle(bot.getMsg(guildId, "bot.help.command_menu.title"))
-			.setDescription(bot.getMsg(guildId, "bot.help.command_menu.description.command_value"));
+		builder.setTitle(bot.getLocalized(userLocale, "bot.help.command_menu.title"))
+			.setDescription(bot.getLocalized(userLocale, "bot.help.command_menu.description.command_value"));
 
 		Category category = null;
 		String fieldTitle = "";
@@ -96,12 +96,13 @@ public class HelpCmd extends SlashCommand {
 						builder.addField(fieldTitle, fieldValue.toString(), false);
 					}
 					category = command.getCategory();
-					fieldTitle = bot.getMsg(guildId, "bot.help.command_menu.categories."+category.getName());
+					fieldTitle = bot.getLocalized(userLocale, "bot.help.command_menu.categories."+category.getName());
 					fieldValue = new StringBuilder();
 				}
 				fieldValue.append("`").append(prefix).append(prefix==null?" ":"").append(command.getName())
 					.append(command.getArguments()==null ? "`" : " "+command.getArguments()+"`")
-					.append(" - ").append(command.getHelp())
+					.append(" - ").append(command.getDescriptionLocalization().get(userLocale))
+					// REMAKE to support CommandBase and getLocalized help
 					.append("\n");
 			}
 		}
@@ -112,9 +113,9 @@ public class HelpCmd extends SlashCommand {
 		User owner = Optional.ofNullable(event.getClient().getOwnerId()).map(id -> event.getJDA().getUserById(id)).orElse(null);
 
 		if (owner != null) {
-			fieldTitle = bot.getMsg(guildId, "bot.help.command_menu.description.support_title");
+			fieldTitle = bot.getLocalized(userLocale, "bot.help.command_menu.description.support_title");
 			fieldValue = new StringBuilder()
-				.append(bot.getMsg(guildId, "bot.help.command_menu.description.support_value").replace("{owner_name}", owner.getAsTag()));
+				.append(bot.getLocalized(userLocale, "bot.help.command_menu.description.support_value").replace("{owner_name}", owner.getAsTag()));
 			builder.addField(fieldTitle, fieldValue.toString(), false);
 		}
 		

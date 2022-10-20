@@ -229,40 +229,13 @@ public class App {
 		dbUtil.guildSetLanguage(id, value);
 	}
 
-	@Nonnull
-	public String getMsg(String id, String path, String user, String target) {
-		target = target == null ? "null" : target;
-		
-		return getMsg(id, path, user, Collections.singletonList(target));
-	}
-
-	@Nonnull
-	public String getMsg(String id, String path, String user, List<String> targets) {
-		String targetReplacement = targets.isEmpty() ? "null" : getMessageUtil().getFormattedMembers(id, targets.toArray(new String[0]));
-
-		return Objects.requireNonNull(getMsg(id, path, user)
-			.replace("{target}", targetReplacement)
-			.replace("{targets}", targetReplacement));
-	}
-
-	@Nonnull
-	public String getMsg(String id, String path, String user) {
-		return getMsg(id, path, user, true);
-	}
-
-	@Nonnull
-	public String getMsg(String id, String path, String user, boolean format) {
-		if (format)
-			user = getMessageUtil().getFormattedMembers(id, user);
-
-		return Objects.requireNonNull(getMsg(id, path).replace("{user}", user));
-	}
-
+	@ForRemoval
 	@Nonnull
 	public String getMsg(String path) {
 		return getMsg("0", path);
 	}
 
+	@ForRemoval
 	@Nonnull
 	public String getMsg(String id, String path) {
 		return Objects.requireNonNull(
@@ -272,14 +245,47 @@ public class App {
 	}
 
 	@Nonnull
-	public String getLocale(DiscordLocale locale, String path) {
-		return setPlaceholders(langUtil.getString(locale.getLanguageName(), path));
+	public String getLocalized(DiscordLocale locale, String path) {
+		return setPlaceholders(langUtil.getString(locale.getLocale(), path));
+	}
+
+	@Nonnull
+	public String getLocalized(DiscordLocale locale, String path, String user, String target) {
+		target = target == null ? "null" : target;
+		
+		return getLocalized(locale, path, user, Collections.singletonList(target));
+	}
+
+	@Nonnull
+	public String getLocalized(DiscordLocale locale, String path, String user, List<String> targets) {
+		String targetReplacement = targets.isEmpty() ? "null" : getMessageUtil().getFormattedMembers(locale, targets.toArray(new String[0]));
+
+		return Objects.requireNonNull(getLocalized(locale, path, user)
+			.replace("{target}", targetReplacement)
+			.replace("{targets}", targetReplacement)
+		);
+	}
+
+	@Nonnull
+	public String getLocalized(DiscordLocale locale, String path, String user) {
+		return getLocalized(locale, path, user, true);
+	}
+
+	@Nonnull
+	public String getLocalized(DiscordLocale locale, String path, String user, boolean format) {
+		if (format)
+			user = getMessageUtil().getFormattedMembers(locale, user);
+
+		return Objects.requireNonNull(getLocalized(locale, path).replace("{user}", user));
 	}
 
 	public Map<DiscordLocale, String> getFullLocaleMap(String path) {
 		Map<DiscordLocale, String> localeMap = new HashMap<>();
 		for (DiscordLocale locale : fileManager.getLanguages()) {
-			localeMap.put(locale, getLocale(locale, path));
+			// Also counts en-US as en-GB (otherwise rises problem)
+			if (locale.getLocale().equals("en-GB"))
+				localeMap.put(DiscordLocale.ENGLISH_US, getLocalized(DiscordLocale.ENGLISH_US, path));
+			localeMap.put(locale, getLocalized(locale, path));
 		}
 		return localeMap;
 	}

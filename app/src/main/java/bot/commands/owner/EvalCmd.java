@@ -72,12 +72,12 @@ public class EvalCmd extends SlashCommand {
 					// check module enabled
 						.moduleEnabled(event, MODULE)
 					// check user perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						.hasPermissions(event, userPerms)
 					// check bots perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						.hasPermissions(event, true, botPerms);
 					// check setup
 					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event);
+						bot.getCheckUtil().guildExists(event, mustSetup);
 					}
 				} catch (CheckException ex) {
 					hook.editOriginal(ex.getEditData()).queue();
@@ -102,6 +102,7 @@ public class EvalCmd extends SlashCommand {
 
 		Map<String, Object> variables = Map.of(
 			"bot", bot,
+			"event", event,
 			"jda", event.getJDA(),
 			"guild", (event.isFromGuild() ? event.getGuild() : null),
 			"channel", event.getChannel(),

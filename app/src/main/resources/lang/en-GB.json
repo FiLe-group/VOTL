@@ -14,7 +14,18 @@
 		"guild_not_setup": "Guild was not setup-ed! Check `/help` for setup command",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and that I have sufficient permissions!",
 		"title": "Error",
-		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to bot's Owner/Developer!"
+		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to bot's Owner/Developer!",
+		"command": {
+			"not_owner": "Only an owner may run this command.",
+			"nsfw": "This command may only be used in NSFW text channels!"
+		},
+		"cooldown": {
+			"cooldown_left": "That command is on cooldown for {time} more seconds",
+			"channel": "in this channel",
+			"guild": "in this server",
+			"shard": "on this shard",
+			"global": "globally"
+		}
 	},
 	"misc": {
 		"and": "and",

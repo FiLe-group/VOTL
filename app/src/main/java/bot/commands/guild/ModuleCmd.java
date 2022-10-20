@@ -72,15 +72,15 @@ public class ModuleCmd extends SlashCommand {
 					try {
 						// check setup
 						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						// check access
 						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
@@ -101,7 +101,7 @@ public class ModuleCmd extends SlashCommand {
 				builder.append(format(bot.getMsg(guildId, "modules."+module), (disabled.contains(module) ? Constants.FAILURE : Constants.SUCCESS))).append("\n");
 			}
 
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(bot.getMsg(guildId, "bot.guild.module.show.embed.title"))
 				.setDescription(bot.getMsg(guildId, "bot.guild.module.show.embed.value"))
 				.addField(bot.getMsg(guildId, "bot.guild.module.show.embed.field"), builder.toString(), false)
@@ -130,15 +130,15 @@ public class ModuleCmd extends SlashCommand {
 					try {
 						// check setup
 						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						// check access
 						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
@@ -154,7 +154,7 @@ public class ModuleCmd extends SlashCommand {
 
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
-			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event.getMember())
+			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(bot.getMsg(guildId, "bot.guild.module.disable.embed_title"));
 
 			List<String> enabled = getModules(guildId, true);
@@ -191,7 +191,7 @@ public class ModuleCmd extends SlashCommand {
 										return;
 									}
 									bot.getDBUtil().moduleAdd(guildId, module);
-									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
+									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event)
 										.setTitle(bot.getMsg(guildId, "bot.guild.module.disable.done").replace("{module}", bot.getMsg(guildId, "modules."+module)))
 										.setColor(Constants.COLOR_SUCCESS);
 									hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
@@ -227,15 +227,15 @@ public class ModuleCmd extends SlashCommand {
 					try {
 						// check setup
 						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						// check access
 						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
 						return;
@@ -250,7 +250,7 @@ public class ModuleCmd extends SlashCommand {
 
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 
-			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event.getMember())
+			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(bot.getMsg(guildId, "bot.guild.module.enable.embed_title"));
 
 			List<String> enabled = getModules(guildId, false);
@@ -287,7 +287,7 @@ public class ModuleCmd extends SlashCommand {
 										return;
 									}
 									bot.getDBUtil().moduleRemove(guildId, module);
-									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event.getMember())
+									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event)
 										.setTitle(bot.getMsg(guildId, "bot.guild.module.enable.done").replace("{module}", bot.getMsg(guildId, "modules."+module)))
 										.setColor(Constants.COLOR_SUCCESS);
 									hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();

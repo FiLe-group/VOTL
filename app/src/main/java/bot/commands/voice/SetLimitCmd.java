@@ -60,12 +60,12 @@ public class SetLimitCmd extends SlashCommand {
 					// check module enabled
 						.moduleEnabled(event, MODULE)
 					// check user perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+						.hasPermissions(event, userPerms)
 					// check bots perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+						.hasPermissions(event, true, botPerms);
 					// check setup
 					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event);
+						bot.getCheckUtil().guildExists(event, mustSetup);
 					}
 				} catch (CheckException ex) {
 					hook.editOriginal(ex.getEditData()).queue();
@@ -91,7 +91,7 @@ public class SetLimitCmd extends SlashCommand {
 		bot.getDBUtil().guildVoiceSetLimit(guildId, filLimit);
 
 		hook.editOriginalEmbeds(
-			bot.getEmbedUtil().getEmbed(member)
+			bot.getEmbedUtil().getEmbed(event)
 				.setDescription(bot.getMsg(guildId, "bot.voice.setlimit.done").replace("{value}", filLimit.toString()))
 				.build()
 		).queue();

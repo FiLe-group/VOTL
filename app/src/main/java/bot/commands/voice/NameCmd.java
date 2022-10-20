@@ -74,12 +74,12 @@ public class NameCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -112,12 +112,12 @@ public class NameCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -128,7 +128,7 @@ public class NameCmd extends SlashCommand {
 					String filName = Optional.ofNullable(
 						bot.getDBUtil().guildVoiceGetName(guildId)
 					).orElse(
-						bot.getMsg(guildId, "bot.voice.listener.default_name", Objects.requireNonNull(event.getMember()).getUser().getName(), false)
+						bot.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name", Objects.requireNonNull(event.getMember()).getUser().getName(), false)
 					);
 
 					sendReply(event, hook, filName);
@@ -166,7 +166,7 @@ public class NameCmd extends SlashCommand {
 		bot.getDBUtil().userSetName(memberId, filName);
 
 		hook.editOriginalEmbeds(
-			bot.getEmbedUtil().getEmbed(member)
+			bot.getEmbedUtil().getEmbed(event)
 				.setDescription(bot.getMsg(guildId, "bot.voice.name.done").replace("{value}", filName))
 				.build()
 		).queue();

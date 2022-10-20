@@ -1,30 +1,27 @@
 package bot.commands;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CommandBase;
 import bot.objects.constants.CmdCategory;
 
 @CommandInfo
 (
 	name = "Ping",
 	description = "Checks the bot's latency.",
-	usage = "/ping"
+	usage = "/ping",
+	requirements = "none"
 )
-public class PingCmd extends SlashCommand {
-
-	private final App bot;
-	private final String helpPath = "bot.other.ping.help";
+public class PingCmd extends CommandBase {
 	
 	public PingCmd(App bot) {
 		this.name = "ping";
-		this.help = bot.getMsg(helpPath);
-		this.descriptionLocalization = bot.getFullLocaleMap(helpPath);
-		this.guildOnly = false;
-		this.category = CmdCategory.OTHER;
+		this.helpPath = "bot.other.ping.help";
 		this.bot = bot;
+		this.category = CmdCategory.OTHER;
+		this.guildOnly = false;
 	}
 
 	@SuppressWarnings("null")
@@ -33,7 +30,7 @@ public class PingCmd extends SlashCommand {
 		event.deferReply(true).queue(hook -> {
 			hook.getJDA().getRestPing().queue(time -> {
 				hook.editOriginal(
-					bot.getLocale(event.getUserLocale(), "bot.other.ping.info_full")
+					bot.getLocalized(event.getUserLocale(), "bot.other.ping.info_full")
 						.replace("{ping}", "-")
 						.replace("{rest}", time+"")
 						.replace("{websocket}", event.getJDA().getGatewayPing()+"")

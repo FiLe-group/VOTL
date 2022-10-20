@@ -74,12 +74,12 @@ public class AccessCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -118,7 +118,7 @@ public class AccessCmd extends SlashCommand {
 						bot.getDBUtil().accessAdd(guildId, member.getId(), false);
 					}
 
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(author)
+					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 						.setDescription(bot.getMsg(guildId, "bot.guild.access.add.mod.done").replace("{member}", member.getAsMention()))
 						.setColor(Constants.COLOR_SUCCESS);
 					hook.editOriginalEmbeds(embed.build()).queue();
@@ -154,12 +154,12 @@ public class AccessCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -198,7 +198,7 @@ public class AccessCmd extends SlashCommand {
 						bot.getDBUtil().accessAdd(guildId, member.getId(), true);
 					}
 
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(author)
+					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 						.setDescription(bot.getMsg(guildId, "bot.guild.access.add.admin.done").replace("{member}", member.getAsMention()))
 						.setColor(Constants.COLOR_SUCCESS);
 					hook.editOriginalEmbeds(embed.build()).queue();
@@ -229,12 +229,12 @@ public class AccessCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -256,7 +256,7 @@ public class AccessCmd extends SlashCommand {
 			String[] modsId = bot.getDBUtil().accessModGet(guildId).toArray(new String[0]);
 			String[] adminsId = bot.getDBUtil().accessAdminGet(guildId).toArray(new String[0]);
 
-			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(member)
+			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(bot.getMsg(guildId, "bot.guild.access.view.embed.title"));
 
 			if (adminsId.length == 0 && modsId.length == 0) {
@@ -326,12 +326,12 @@ public class AccessCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -366,7 +366,7 @@ public class AccessCmd extends SlashCommand {
 					}
 					bot.getDBUtil().accessRemove(guildId, member.getId());
 
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(author)
+					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 						.setDescription(bot.getMsg(guildId, "bot.guild.access.remove.mod.done").replace("{member}", member.getAsMention()))
 						.setColor(Constants.COLOR_SUCCESS);
 					hook.editOriginalEmbeds(embed.build()).queue();
@@ -401,12 +401,12 @@ public class AccessCmd extends SlashCommand {
 						// check module enabled
 							.moduleEnabled(event, MODULE)
 						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
+							.hasPermissions(event, userPerms)
 						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
+							.hasPermissions(event, true, botPerms);
 						// check setup
 						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event);
+							bot.getCheckUtil().guildExists(event, mustSetup);
 						}
 					} catch (CheckException ex) {
 						hook.editOriginal(ex.getEditData()).queue();
@@ -441,7 +441,7 @@ public class AccessCmd extends SlashCommand {
 					}
 					bot.getDBUtil().accessRemove(guildId, member.getId());
 
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(author)
+					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 						.setDescription(bot.getMsg(guildId, "bot.guild.access.remove.admin.done").replace("{member}", member.getAsMention()))
 						.setColor(Constants.COLOR_SUCCESS);
 					hook.editOriginalEmbeds(embed.build()).queue();
