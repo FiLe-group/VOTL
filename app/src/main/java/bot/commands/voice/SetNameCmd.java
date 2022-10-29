@@ -1,19 +1,17 @@
 package bot.commands.voice;
 
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
-import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -27,25 +25,28 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 )
 public class SetNameCmd extends SlashCommand {
 	
-	private final App bot;
+	/* private final App bot;
 	
 	private static final boolean mustSetup = true;
 	private static final String MODULE = "voice";
 	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ADMIN;
 
 	protected static Permission[] userPerms = new Permission[0];
-	protected static Permission[] botPerms = new Permission[0];
+	protected static Permission[] botPerms = new Permission[0]; */
 
 	public SetNameCmd(App bot) {
+		this.bot = bot;
 		this.name = "setname";
-		this.help = bot.getMsg("bot.voice.setname.help");
-		this.category = CmdCategory.VOICE;
-		SetNameCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
+		this.helpPath = "bot.voice.setname.help";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "name", bot.getMsg("bot.voice.setname.option_description"))
+			new OptionData(OptionType.STRING, "name", bot.getLocaleUtil().getText("bot.voice.setname.option_description"))
 				.setRequired(true)
 		);
-		this.bot = bot;
+		this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
+		this.category = CmdCategory.VOICE;
+		this.module = "voice";
+		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.mustSetup = true;
 	}
 
 	@Override
@@ -53,24 +54,6 @@ public class SetNameCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				try {
-					// check access
-					bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-					// check module enabled
-						.moduleEnabled(event, MODULE)
-					// check user perms
-						.hasPermissions(event, userPerms)
-					// check bots perms
-						.hasPermissions(event, true, botPerms);
-					// check setup
-					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event, mustSetup);
-					}
-				} catch (CheckException ex) {
-					hook.editOriginal(ex.getEditData()).queue();
-					return;
-				}
-
 				String filName = event.getOption("name", "Default name", OptionMapping::getAsString).trim();
 				sendReply(event, hook, filName);
 			}
@@ -85,14 +68,14 @@ public class SetNameCmd extends SlashCommand {
 			return;
 		}
 
-		Member member = Objects.requireNonNull(event.getMember());
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+		DiscordLocale userLocale = event.getUserLocale();
 
 		bot.getDBUtil().guildVoiceSetName(guildId, filName);
 
 		hook.editOriginalEmbeds(
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(bot.getMsg(guildId, "bot.voice.setname.done").replace("{value}", filName))
+				.setDescription(lu.getLocalized(userLocale, "bot.voice.setname.done").replace("{value}", filName))
 				.build()
 		).queue();
 	}

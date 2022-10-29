@@ -2,11 +2,11 @@ package bot.commands;
 
 import java.util.Collections;
 
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
-import bot.objects.CommandBase;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
@@ -20,13 +20,13 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 	description = "Gets bot's status.",
 	usage = "/status [show?]"
 )
-public class StatusCmd extends CommandBase {
+public class StatusCmd extends SlashCommand {
 
 	public StatusCmd(App bot) {
 		this.name = "status";
 		this.helpPath = "bot.other.status.help";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("misc.show_description"))
+			new OptionData(OptionType.BOOLEAN, "show", bot.getLocaleUtil().getText("misc.show_description"))
 		);
 		this.bot = bot;
 		this.category = CmdCategory.OTHER;
@@ -53,34 +53,34 @@ public class StatusCmd extends CommandBase {
 			.setThumbnail(event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 		
 		builder.addField(
-				bot.getLocalized(userLocale, "bot.other.status.embed.stats_title"),
+				lu.getLocalized(userLocale, "bot.other.status.embed.stats_title"),
 				String.join(
 					"\n",
-					bot.getLocalized(userLocale, "bot.other.status.embed.stats.guilds").replace("{value}", String.valueOf(event.getClient().getTotalGuilds())),
-					bot.getLocalized(userLocale, "bot.other.status.embed.stats.shard")
+					lu.getLocalized(userLocale, "bot.other.status.embed.stats.guilds").replace("{value}", String.valueOf(event.getClient().getTotalGuilds())),
+					lu.getLocalized(userLocale, "bot.other.status.embed.stats.shard")
 						.replace("{this}", String.valueOf(event.getJDA().getShardInfo().getShardId() + 1))
 						.replace("{all}", String.valueOf(event.getJDA().getShardInfo().getShardTotal()))
 				),
 				false
 			)
-			.addField(bot.getLocalized(userLocale, "bot.other.status.embed.shard_title"),
+			.addField(lu.getLocalized(userLocale, "bot.other.status.embed.shard_title"),
 				String.join(
 					"\n",
-					bot.getLocalized(userLocale, "bot.other.status.embed.shard.users").replace("{value}", String.valueOf(event.getJDA().getUsers().size())),
-					bot.getLocalized(userLocale, "bot.other.status.embed.shard.guilds").replace("{value}", String.valueOf(event.getJDA().getGuilds().size()))
+					lu.getLocalized(userLocale, "bot.other.status.embed.shard.users").replace("{value}", String.valueOf(event.getJDA().getUsers().size())),
+					lu.getLocalized(userLocale, "bot.other.status.embed.shard.guilds").replace("{value}", String.valueOf(event.getJDA().getGuilds().size()))
 				),
 				true
 			)
 			.addField("",
 				String.join(
 					"\n",
-					bot.getLocalized(userLocale, "bot.other.status.embed.shard.text_channels").replace("{value}", String.valueOf(event.getJDA().getTextChannels().size())),
-					bot.getLocalized(userLocale, "bot.other.status.embed.shard.voice_channels").replace("{value}", String.valueOf(event.getJDA().getVoiceChannels().size()))
+					lu.getLocalized(userLocale, "bot.other.status.embed.shard.text_channels").replace("{value}", String.valueOf(event.getJDA().getTextChannels().size())),
+					lu.getLocalized(userLocale, "bot.other.status.embed.shard.voice_channels").replace("{value}", String.valueOf(event.getJDA().getVoiceChannels().size()))
 				),
 				true
 			);
 
-		builder.setFooter(bot.getLocalized(userLocale, "bot.other.status.embed.last_restart"))
+		builder.setFooter(lu.getLocalized(userLocale, "bot.other.status.embed.last_restart"))
 			.setTimestamp(event.getClient().getStartTime());
 
 		hook.editOriginalEmbeds(builder.build()).queue();

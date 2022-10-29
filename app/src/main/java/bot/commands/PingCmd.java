@@ -1,10 +1,10 @@
 package bot.commands;
 
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
-import bot.objects.CommandBase;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
 
 @CommandInfo
@@ -14,7 +14,7 @@ import bot.objects.constants.CmdCategory;
 	usage = "/ping",
 	requirements = "none"
 )
-public class PingCmd extends CommandBase {
+public class PingCmd extends SlashCommand {
 	
 	public PingCmd(App bot) {
 		this.name = "ping";
@@ -30,7 +30,7 @@ public class PingCmd extends CommandBase {
 		event.deferReply(true).queue(hook -> {
 			hook.getJDA().getRestPing().queue(time -> {
 				hook.editOriginal(
-					bot.getLocalized(event.getUserLocale(), "bot.other.ping.info_full")
+					bot.getLocaleUtil().getLocalized(event.getUserLocale(), "bot.other.ping.info_full")
 						.replace("{ping}", "-")
 						.replace("{rest}", time+"")
 						.replace("{websocket}", event.getJDA().getGatewayPing()+"")

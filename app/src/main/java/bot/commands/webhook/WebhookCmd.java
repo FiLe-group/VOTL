@@ -4,27 +4,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
-
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
-import bot.utils.exception.CheckException;
+import bot.utils.message.LocaleUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.WebhookType;
 import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -34,23 +32,18 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 @SuppressWarnings("null")
 public class WebhookCmd extends SlashCommand {
 
-	private static App bot;
-	
-	private static final boolean mustSetup = true;
-	private static final String MODULE = "webhook";
-	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ADMIN;
-
-	protected static Permission[] userPerms = new Permission[0];
-	protected static Permission[] botPerms = new Permission[0];
-
 	public WebhookCmd(App bot) {
 		this.name = "webhook";
-		this.help = bot.getMsg("bot.webhook.help");
+		this.helpPath = "bot.webhook.help";
+		this.children = new SlashCommand[]{new ShowList(bot.getLocaleUtil()), new Create(bot.getLocaleUtil()), new Select(bot.getLocaleUtil()),
+			new Remove(bot.getLocaleUtil()), new Move(bot.getLocaleUtil())};
+		this.userPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
+		this.botPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
+		this.bot = bot;
 		this.category = CmdCategory.WEBHOOK;
-		WebhookCmd.botPerms = new Permission[]{Permission.MANAGE_WEBHOOKS};
-		WebhookCmd.userPerms = new Permission[]{Permission.MANAGE_WEBHOOKS};
-		WebhookCmd.bot = bot;
-		this.children = new SlashCommand[]{new ShowList(), new Create(), new Select(), new Remove(), new Move()};
+		this.module = "webhook";
+		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.mustSetup = true;
 	}
 
 	@Override
@@ -58,13 +51,13 @@ public class WebhookCmd extends SlashCommand {
 
 	}
 
-	private static class ShowList extends SlashCommand {
+	private class ShowList extends SlashCommand {
 
-		public ShowList() {
+		public ShowList(LocaleUtil lu) {
 			this.name = "list";
-			this.help = bot.getMsg("bot.webhook.list.help");
+			this.helpPath = "bot.webhook.list.help";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.BOOLEAN, "all", bot.getMsg("bot.webhook.list.option_all"))
+				new OptionData(OptionType.BOOLEAN, "all", lu.getText("bot.webhook.list.option_all"))
 			);
 		}
 
@@ -72,23 +65,8 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					try {
-						// check access
-						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-						// check module enabled
-							.moduleEnabled(event, MODULE)
-						// check user perms
-							.hasPermissions(event, userPerms)
-						// check bots perms
-							.hasPermissions(event, true, botPerms)
-						// check setup
-							.guildExists(event, mustSetup);
-					} catch (CheckException ex) {
-						hook.editOriginal(ex.getEditData()).queue();
-						return;
-					}
-
 					Boolean listAll = event.getOption("all", false, OptionMapping::getAsBoolean);
+
 					sendReply(event, hook, listAll);
 				}
 			);
@@ -96,12 +74,12 @@ public class WebhookCmd extends SlashCommand {
 
 		private void sendReply(SlashCommandEvent event, InteractionHook hook, boolean listAll) {
 
-			Member member = Objects.requireNonNull(event.getMember());
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
+			DiscordLocale userLocale = event.getUserLocale();
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
-				.setTitle(bot.getMsg(guildId, "bot.webhook.list.embed.title"));
+				.setTitle(lu.getLocalized(userLocale, "bot.webhook.list.embed.title"));
 			
 			// Retrieves every webhook in server
 			guild.retrieveWebhooks().queue(webhooks -> {
@@ -118,10 +96,10 @@ public class WebhookCmd extends SlashCommand {
 
 				if (webhooks.isEmpty()) {
 					embedBuilder.setDescription(
-						bot.getMsg(guildId, (listAll ? "bot.webhook.list.embed.none_found" : "bot.webhook.list.embed.none_registered"))
+						lu.getLocalized(userLocale, (listAll ? "bot.webhook.list.embed.none_found" : "bot.webhook.list.embed.none_registered"))
 					);
 				} else {
-					String title = bot.getMsg(guildId, "bot.webhook.list.embed.value");
+					String title = lu.getLocalized(userLocale, "bot.webhook.list.embed.value");
 					StringBuilder text = new StringBuilder();
 					for (Webhook wh : webhooks) {
 						if (text.length() > 790) { // max characters for field value = 1024, and max for each line = ~226, so at least 4.5 lines fits in one field
@@ -142,42 +120,25 @@ public class WebhookCmd extends SlashCommand {
 
 	}
 
-	private static class Create extends SlashCommand {
+	private class Create extends SlashCommand {
 
-		public Create() {
+		public Create(LocaleUtil lu) {
 			this.name = "create";
-			this.help = bot.getMsg("bot.webhook.add.create.help");
+			this.helpPath = "bot.webhook.add.create.help";
 			List<OptionData> options = new ArrayList<OptionData>();
-			options.add(new OptionData(OptionType.STRING, "name", bot.getMsg("bot.webhook.add.create.option_name"), true));
-			options.add(new OptionData(OptionType.CHANNEL, "channel", bot.getMsg("bot.webhook.add.create.option_channel")));
+			options.add(new OptionData(OptionType.STRING, "name", lu.getText("bot.webhook.add.create.option_name"), true));
+			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText("bot.webhook.add.create.option_channel")));
 			this.options = options;
-			this.subcommandGroup = new SubcommandGroupData("add", bot.getMsg("bot.webhook.add.help"));
+			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.webhook.add.help"));
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					try {
-						// check access
-						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-						// check module enabled
-							.moduleEnabled(event, MODULE)
-						// check user perms
-							.hasPermissions(event, userPerms)
-						// check bots perms
-							.hasPermissions(event, true, botPerms);
-						// check setup
-						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event, mustSetup);
-						}
-					} catch (CheckException ex) {
-						hook.editOriginal(ex.getEditData()).queue();
-						return;
-					}
-
 					String name = event.getOption("name", "Dafault name", OptionMapping::getAsString).trim();
 					GuildChannel channel = event.getOption("channel", event.getGuildChannel(), OptionMapping::getAsChannel);
+
 					sendReply(event, hook, name, channel);
 				}
 			);
@@ -185,9 +146,8 @@ public class WebhookCmd extends SlashCommand {
 
 		private void sendReply(SlashCommandEvent event, InteractionHook hook, String name, GuildChannel channel) {
 
-			Member member = Objects.requireNonNull(event.getMember());
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
+			DiscordLocale userLocale = event.getUserLocale();
 
 			if (name.isEmpty() || name.length() > 100) {
 				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.webhook.add.create.invalid_range")).queue();
@@ -201,54 +161,37 @@ public class WebhookCmd extends SlashCommand {
 						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 						hook.editOriginalEmbeds(
 							bot.getEmbedUtil().getEmbed(event).setDescription(
-								bot.getMsg(guildId, "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
+								lu.getLocalized(userLocale, "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
 							).build()
 						).queue();
 					}
 				);
 			} catch (PermissionException ex) {
 				hook.editOriginal(
-					bot.getEmbedUtil().getPermError(event, ex.getPermission(), true)
+					bot.getEmbedUtil().getPermError(event, event.getMember(), ex.getPermission(), true)
 				).queue();
 				ex.printStackTrace();
 			}
 		}
 	}
 
-	private static class Select extends SlashCommand {
+	private class Select extends SlashCommand {
 
-		public Select() {
+		public Select(LocaleUtil lu) {
 			this.name = "select";
-			this.help = bot.getMsg("bot.webhook.add.select.help");
+			this.helpPath = "bot.webhook.add.select.help";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "id", bot.getMsg("bot.webhook.add.select.option_id"), true)
+				new OptionData(OptionType.STRING, "id", lu.getText("bot.webhook.add.select.option_id"), true)
 			);
-			this.subcommandGroup = new SubcommandGroupData("add", bot.getMsg("bot.webhook.add.help"));
+			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.webhook.add.help"));
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					try {
-						// check access
-						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-						// check module enabled
-							.moduleEnabled(event, MODULE)
-						// check user perms
-							.hasPermissions(event, userPerms)
-						// check bots perms
-							.hasPermissions(event, true, botPerms);
-						// check setup
-						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event, mustSetup);
-						}
-					} catch (CheckException ex) {
-						hook.editOriginal(ex.getEditData()).queue();
-						return;
-					}
-
 					String webhookId = event.getOption("id", "0", OptionMapping::getAsString).trim();
+					
 					sendReply(event, hook, webhookId);
 				}
 			);
@@ -256,41 +199,45 @@ public class WebhookCmd extends SlashCommand {
 
 		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String webhookId) {
 
-			Member member = Objects.requireNonNull(event.getMember());
-			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+			DiscordLocale userLocale = event.getUserLocale();
 
-			event.getJDA().retrieveWebhookById(Objects.requireNonNull(webhookId)).queue(
-				webhook -> {
-					if (bot.getDBUtil().webhookExists(webhookId)) {
+			try {
+				event.getJDA().retrieveWebhookById(Objects.requireNonNull(webhookId)).queue(
+					webhook -> {
+						if (bot.getDBUtil().webhookExists(webhookId)) {
+							hook.editOriginal(
+								bot.getEmbedUtil().getError(event, "bot.webhook.add.select.error_registered")
+							).queue();
+						} else {
+							bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
+							hook.editOriginalEmbeds(
+								bot.getEmbedUtil().getEmbed(event).setDescription(
+									lu.getLocalized(userLocale, "bot.webhook.add.select.done").replace("{webhook_name}", webhook.getName())
+								).build()
+							).queue();
+						}
+					}, failure -> {
 						hook.editOriginal(
-							bot.getEmbedUtil().getError(event, "bot.webhook.add.select.error_registered")
-						).queue();
-					} else {
-						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
-						hook.editOriginalEmbeds(
-							bot.getEmbedUtil().getEmbed(event).setDescription(
-								bot.getMsg(guildId, "bot.webhook.add.select.done").replace("{webhook_name}", webhook.getName())
-							).build()
+							bot.getEmbedUtil().getError(event, "bot.webhook.add.select.error_not_found", failure.getMessage())
 						).queue();
 					}
-				}, failure -> {
-					hook.editOriginal(
-						bot.getEmbedUtil().getError(event, "bot.webhook.add.select.error_not_found", failure.getMessage())
-					).queue();
-				}
-			);
-			
+				);
+			} catch (IllegalArgumentException ex) {
+				hook.editOriginal(
+					bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_found", ex.getMessage())
+				).queue();
+			}
 		}
 	}
 
-	private static class Remove extends SlashCommand {
+	private class Remove extends SlashCommand {
 
-		public Remove() {
+		public Remove(LocaleUtil lu) {
 			this.name = "remove";
-			this.help = bot.getMsg("bot.webhook.remove.help");
+			this.helpPath = "bot.webhook.remove.help";
 			List<OptionData> options = new ArrayList<OptionData>();
-			options.add(new OptionData(OptionType.STRING, "id", bot.getMsg("bot.webhook.remove.option_id"), true));
-			options.add(new OptionData(OptionType.BOOLEAN, "delete", bot.getMsg("bot.webhook.remove.option_delete")));
+			options.add(new OptionData(OptionType.STRING, "id", lu.getText("bot.webhook.remove.option_id"), true));
+			options.add(new OptionData(OptionType.BOOLEAN, "delete", lu.getText("bot.webhook.remove.option_delete")));
 			this.options = options;
 		}
 
@@ -298,26 +245,9 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					try {
-						// check access
-						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-						// check module enabled
-							.moduleEnabled(event, MODULE)
-						// check user perms
-							.hasPermissions(event, userPerms)
-						// check bots perms
-							.hasPermissions(event, true, botPerms);
-						// check setup
-						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event, mustSetup);
-						}
-					} catch (CheckException ex) {
-						hook.editOriginal(ex.getEditData()).queue();
-						return;
-					}
-
 					String webhookId = event.getOption("id", "0", OptionMapping::getAsString).trim();
 					Boolean delete = event.getOption("delete", false, OptionMapping::getAsBoolean);
+
 					sendReply(event, hook, webhookId, delete);
 				}
 			);
@@ -325,52 +255,57 @@ public class WebhookCmd extends SlashCommand {
 
 		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String webhookId, Boolean delete) {
 
-			Member member = Objects.requireNonNull(event.getMember());
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
+			DiscordLocale userLocale = event.getUserLocale();
 
-			event.getJDA().retrieveWebhookById(webhookId).queue(
-				webhook -> {
-					if (!bot.getDBUtil().webhookExists(webhookId)) {
-						hook.editOriginal(
-							bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_registered")
-						).queue();
-					} else {
-						if (webhook.getGuild().equals(guild)) {
-							if (delete) {
-								webhook.delete(webhook.getToken()).queue();
-							}
-							bot.getDBUtil().webhookRemove(webhookId);
-							hook.editOriginalEmbeds(
-								bot.getEmbedUtil().getEmbed(event).setDescription(
-									bot.getMsg(guildId, "bot.webhook.remove.done").replace("{webhook_name}", webhook.getName())
-								).build()
+			try {
+				event.getJDA().retrieveWebhookById(webhookId).queue(
+					webhook -> {
+						if (!bot.getDBUtil().webhookExists(webhookId)) {
+							hook.editOriginal(
+								bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_registered")
 							).queue();
 						} else {
-							hook.editOriginal(
-								bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_guild", String.format("Selected webhook guild: %s", webhook.getGuild().getName()))
-							).queue();
+							if (webhook.getGuild().equals(guild)) {
+								if (delete) {
+									webhook.delete(webhook.getToken()).queue();
+								}
+								bot.getDBUtil().webhookRemove(webhookId);
+								hook.editOriginalEmbeds(
+									bot.getEmbedUtil().getEmbed(event).setDescription(
+										lu.getLocalized(userLocale, "bot.webhook.remove.done").replace("{webhook_name}", webhook.getName())
+									).build()
+								).queue();
+							} else {
+								hook.editOriginal(
+									bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_guild", String.format("Selected webhook guild: %s", webhook.getGuild().getName()))
+								).queue();
+							}
 						}
+					},
+					failure -> {
+						hook.editOriginal(
+							bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_found", failure.getMessage())
+						).queue();
 					}
-				},
-				failure -> {
-					hook.editOriginal(
-						bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_found", failure.getMessage())
-					).queue();
-				}
-			);
+				);
+			} catch (IllegalArgumentException ex) {
+				hook.editOriginal(
+					bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_found", ex.getMessage())
+				).queue();
+			}
 		}
 
 	}
 
-	private static class Move extends SlashCommand {
+	private class Move extends SlashCommand {
 
-		public Move() {
+		public Move(LocaleUtil lu) {
 			this.name = "move";
-			this.help = bot.getMsg("bot.webhook.move.help");
+			this.helpPath = "bot.webhook.move.help";
 			List<OptionData> options = new ArrayList<OptionData>();
-			options.add(new OptionData(OptionType.STRING, "id", bot.getMsg("bot.webhook.move.option_id"), true));
-			options.add(new OptionData(OptionType.CHANNEL, "channel", bot.getMsg("bot.webhook.move.option_channel"), true));
+			options.add(new OptionData(OptionType.STRING, "id", lu.getText("bot.webhook.move.option_id"), true));
+			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText("bot.webhook.move.option_channel"), true));
 			this.options = options;
 		}
 
@@ -378,26 +313,9 @@ public class WebhookCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue(
 				hook -> {
-					try {
-						// check access
-						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-						// check module enabled
-							.moduleEnabled(event, MODULE)
-						// check user perms
-							.hasPermissions(event, userPerms)
-						// check bots perms
-							.hasPermissions(event, true, botPerms);
-						// check setup
-						if (mustSetup) {
-							bot.getCheckUtil().guildExists(event, mustSetup);
-						}
-					} catch (CheckException ex) {
-						hook.editOriginal(ex.getEditData()).queue();
-						return;
-					}
-
 					String webhookId = event.getOption("id", OptionMapping::getAsString).trim();
 					GuildChannel channel = event.getOption("channel", OptionMapping::getAsChannel);
+
 					sendReply(event, hook, webhookId, channel);
 				}
 			);
@@ -405,9 +323,8 @@ public class WebhookCmd extends SlashCommand {
 
 		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String webhookId, GuildChannel channel) {
 
-			Member member = Objects.requireNonNull(event.getMember());
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
+			DiscordLocale userLocale = event.getUserLocale();
 
 			if (!channel.getType().equals(ChannelType.TEXT)) {
 				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.webhook.move.error_channel", "Selected channel is not Text Channel")).queue();
@@ -421,7 +338,7 @@ public class WebhookCmd extends SlashCommand {
 							wm -> {
 								hook.editOriginalEmbeds(
 									bot.getEmbedUtil().getEmbed(event).setDescription(
-										bot.getMsg(guildId, "bot.webhook.move.done")
+										lu.getLocalized(userLocale, "bot.webhook.move.done")
 											.replace("{webhook_name}", webhook.getName())
 											.replace("{channel}", channel.getName())
 									).build()

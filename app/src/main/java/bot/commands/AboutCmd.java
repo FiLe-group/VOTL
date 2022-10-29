@@ -2,12 +2,12 @@ package bot.commands;
 
 import java.util.Collections;
 
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
-import bot.objects.CommandBase;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
 import bot.objects.constants.Links;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -24,13 +24,13 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 	description = "Gets information about the bot.",
 	usage = "/about [show?]"
 )
-public class AboutCmd extends CommandBase {
+public class AboutCmd extends SlashCommand {
 
 	public AboutCmd(App bot) {
 		this.name = "about";
 		this.helpPath = "bot.other.about.help";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.BOOLEAN, "show", bot.getMsg("misc.show_description"))
+			new OptionData(OptionType.BOOLEAN, "show", bot.getLocaleUtil().getText("misc.show_description"))
 		);
 		this.bot = bot;
 		this.category = CmdCategory.OTHER;
@@ -48,7 +48,7 @@ public class AboutCmd extends CommandBase {
 
 	}
 
-	//@SuppressWarnings("null")
+	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
 		DiscordLocale userLocale = event.getUserLocale();
@@ -63,21 +63,21 @@ public class AboutCmd extends CommandBase {
 		builder.setAuthor(event.getJDA().getSelfUser().getName(), event.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.setThumbnail(event.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.addField(
-				bot.getLocalized(userLocale, "bot.other.about.embed.about_title"),
-				bot.getLocalized(userLocale, "bot.other.about.embed.about_value"),
+				lu.getLocalized(userLocale, "bot.other.about.embed.about_title"),
+				lu.getLocalized(userLocale, "bot.other.about.embed.about_value"),
 				false
 			)
 			.addField(
-				bot.getLocalized(userLocale, "bot.other.about.embed.commands_title"),
-				bot.getLocalized(userLocale, "bot.other.about.embed.commands_value"),
+				lu.getLocalized(userLocale, "bot.other.about.embed.commands_title"),
+				lu.getLocalized(userLocale, "bot.other.about.embed.commands_value"),
 				false
 			)
 			.addField(
-				bot.getLocalized(userLocale, "bot.other.about.embed.bot_info.title"),
+				lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.title"),
 				String.join(
 					"\n",
-					bot.getLocalized(userLocale, "bot.other.about.embed.bot_info.bot_version"),
-					bot.getLocalized(userLocale, "bot.other.about.embed.bot_info.library")
+					lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.bot_version"),
+					lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.library")
 						.replace("{jda_version}", JDAInfo.VERSION_MAJOR+"."+JDAInfo.VERSION_MINOR+"."+JDAInfo.VERSION_REVISION+"-"+JDAInfo.VERSION_CLASSIFIER)
 						.replace("{jda_github}", JDAInfo.GITHUB)
 						.replace("{chewtils_version}", JDAUtilitiesInfo.VERSION_MAJOR+"."+JDAUtilitiesInfo.VERSION_MINOR)
@@ -86,21 +86,21 @@ public class AboutCmd extends CommandBase {
 				false
 			)
 			.addField(
-				bot.getLocalized(userLocale, "bot.other.about.embed.links.title"),
+				lu.getLocalized(userLocale, "bot.other.about.embed.links.title"),
 				String.join(
 					"\n",
-					bot.getLocalized(userLocale, "bot.other.about.embed.links.discord"),
-					bot.getLocalized(userLocale, "bot.other.about.embed.links.github").replace("{github_url}", Links.GITHUB)
+					lu.getLocalized(userLocale, "bot.other.about.embed.links.discord"),
+					lu.getLocalized(userLocale, "bot.other.about.embed.links.github").replace("{github_url}", Links.GITHUB)
 				),
 				true
 			)
 			.addField(
-				bot.getLocalized(userLocale, "bot.other.about.embed.links.unionteams_title"),
+				lu.getLocalized(userLocale, "bot.other.about.embed.links.unionteams_title"),
 				String.join(
 					"\n",
-					bot.getLocalized(userLocale, "bot.other.about.embed.links.unionteams_website").replace("{unionteams}", Links.UNIONTEAMS),
-					bot.getLocalized(userLocale, "bot.other.about.embed.links.rotr").replace("{rotr_invite}", Links.ROTR_INVITE),
-					bot.getLocalized(userLocale, "bot.other.about.embed.links.ww2").replace("{ww2_invite}", Links.WW2_INVITE)
+					lu.getLocalized(userLocale, "bot.other.about.embed.links.unionteams_website").replace("{unionteams}", Links.UNIONTEAMS),
+					lu.getLocalized(userLocale, "bot.other.about.embed.links.rotr").replace("{rotr_invite}", Links.ROTR_INVITE),
+					lu.getLocalized(userLocale, "bot.other.about.embed.links.ww2").replace("{ww2_invite}", Links.WW2_INVITE)
 				),
 				true
 			);

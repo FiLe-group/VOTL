@@ -1,10 +1,10 @@
 package bot.commands.owner;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -18,15 +18,13 @@ import net.dv8tion.jda.api.entities.Activity;
 )
 public class ShutdownCmd extends SlashCommand {
 
-	private final App bot;
-
 	public ShutdownCmd(App bot) {
 		this.name = "shutdown";
-		this.help = bot.getMsg("bot.owner.shutdown.help");
+		this.helpPath = "bot.owner.shutdown.help";
+		this.bot = bot;
+		this.category = CmdCategory.OWNER;
 		this.guildOnly = false;
 		this.ownerCommand = true;
-		this.category = CmdCategory.OWNER;
-		this.bot = bot;
 	}
 	
 	@Override
