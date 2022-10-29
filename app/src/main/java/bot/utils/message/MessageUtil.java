@@ -3,6 +3,7 @@ package bot.utils.message;
 import java.text.DecimalFormat;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
+import java.util.Random;
 import java.awt.Color;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
@@ -11,12 +12,14 @@ import bot.App;
 
 public class MessageUtil {
 
-	private final App bot;
+	private final Random random;
+	private final LocaleUtil lu;
 	
 	private final DecimalFormat decimalFormat = new DecimalFormat("#,###,###");
 
 	public MessageUtil(App bot) {
-		this.bot = bot;
+		this.random = bot.getRandom();
+		this.lu = bot.getLocaleUtil();
 	}
 
 	public String formatTime(TemporalAccessor time) {
@@ -38,9 +41,9 @@ public class MessageUtil {
 		Color color = null;
 
 		if (input.equals("random")) {
-			int r = bot.getRandom().nextInt(256);
-			int g = bot.getRandom().nextInt(256);
-			int b = bot.getRandom().nextInt(256);
+			int r = random.nextInt(256);
+			int g = random.nextInt(256);
+			int b = random.nextInt(256);
 
 			return new Color(r, g, b);
 		}
@@ -88,7 +91,7 @@ public class MessageUtil {
 			builder.append("**").append(escapeAll(member)).append("**");
 		}
 
-		return replaceLast(builder.toString(), ", ", " "+bot.getLocalized(locale, "misc.and")+" ");
+		return replaceLast(builder.toString(), ", ", " "+lu.getText("misc.and")+" ");
 	}
 
 	public String replaceLast(String input, String target, String replacement) {
