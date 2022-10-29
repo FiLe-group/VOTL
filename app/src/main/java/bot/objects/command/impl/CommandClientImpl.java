@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.jdautilities.command.impl;
+package bot.objects.command.impl;
 
-import com.jagrosh.jdautilities.command.AnnotatedModuleCompiler;
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.Command.Category;
-import com.jagrosh.jdautilities.command.CommandClient;
-import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.jdautilities.command.CommandListener;
-import com.jagrosh.jdautilities.command.ContextMenu;
-import com.jagrosh.jdautilities.command.GuildSettingsManager;
-import com.jagrosh.jdautilities.command.GuildSettingsProvider;
-import com.jagrosh.jdautilities.command.MessageContextMenu;
-import com.jagrosh.jdautilities.command.MessageContextMenuEvent;
-import com.jagrosh.jdautilities.command.SlashCommand;
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
-import com.jagrosh.jdautilities.command.UserContextMenu;
-import com.jagrosh.jdautilities.command.UserContextMenuEvent;
+import bot.objects.command.AnnotatedModuleCompiler;
+import bot.objects.command.Command;
+import bot.objects.command.Command.Category;
+import bot.objects.command.CommandClient;
+import bot.objects.command.CommandEvent;
+import bot.objects.command.CommandListener;
+import bot.objects.command.ContextMenu;
+import bot.objects.command.MessageContextMenu;
+import bot.objects.command.MessageContextMenuEvent;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
+import bot.objects.command.UserContextMenu;
+import bot.objects.command.UserContextMenuEvent;
 import com.jagrosh.jdautilities.commons.utils.FixedSizeCache;
 import com.jagrosh.jdautilities.commons.utils.SafeIdUtil;
 import net.dv8tion.jda.api.JDA;
@@ -75,7 +73,6 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -142,7 +139,6 @@ public class CommandClientImpl implements CommandClient, EventListener
     private final String helpWord;
     private final ScheduledExecutorService executor;
     private final AnnotatedModuleCompiler compiler;
-    private final GuildSettingsManager manager;
 
     private String textPrefix;
     private CommandListener listener = null;
@@ -151,7 +147,7 @@ public class CommandClientImpl implements CommandClient, EventListener
     public CommandClientImpl(String ownerId, String[] coOwnerIds, String prefix, String altprefix, String[] prefixes, Function<MessageReceivedEvent, String> prefixFunction, Function<MessageReceivedEvent, Boolean> commandPreProcessFunction, BiFunction<MessageReceivedEvent, Command, Boolean> commandPreProcessBiFunction, Activity activity, OnlineStatus status, String serverInvite,
                              String success, String warning, String error, String carbonKey, String botsKey, ArrayList<Command> commands, ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus, String forcedGuildId, boolean manualUpsert,
                              boolean useHelp, boolean shutdownAutomatically, Consumer<CommandEvent> helpConsumer, String helpWord, ScheduledExecutorService executor,
-                             int linkedCacheSize, AnnotatedModuleCompiler compiler, GuildSettingsManager manager)
+                             int linkedCacheSize, AnnotatedModuleCompiler compiler)
     {
         Checks.check(ownerId != null, "Owner ID was set null or not set! Please provide an User ID to register as the owner!");
 
@@ -208,7 +204,6 @@ public class CommandClientImpl implements CommandClient, EventListener
         this.helpWord = helpWord==null ? "help" : helpWord;
         this.executor = executor==null ? Executors.newSingleThreadScheduledExecutor() : executor;
         this.compiler = compiler;
-        this.manager = manager;
         this.helpConsumer = helpConsumer==null ? (event) -> {
                 StringBuilder builder = new StringBuilder("**"+event.getSelfUser().getName()+"** commands:\n");
                 Category category = null;
@@ -591,28 +586,9 @@ public class CommandClientImpl implements CommandClient, EventListener
         return linkMap != null;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <S> S getSettingsFor(Guild guild)
-    {
-        if (manager==null)
-            return null;
-        return (S) manager.getSettings(guild);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <M extends GuildSettingsManager> M getSettingsManager()
-    {
-        return (M) manager;
-    }
-
     @Override
     public void shutdown()
     {
-        GuildSettingsManager<?> manager = getSettingsManager();
-        if(manager != null)
-            manager.shutdown();
         executor.shutdown();
     }
 
@@ -666,11 +642,6 @@ public class CommandClientImpl implements CommandClient, EventListener
         if(activity != null)
             event.getJDA().getPresence().setPresence(status==null ? OnlineStatus.ONLINE : status,
                 "default".equals(activity.getName()) ? Activity.playing("Type "+textPrefix+helpWord) : activity);
-
-        // Start SettingsManager if necessary
-        GuildSettingsManager<?> manager = getSettingsManager();
-        if(manager != null)
-            manager.init();
 
         // Upsert slash commands, if not manual
         if (!manualUpsert)
@@ -804,8 +775,6 @@ public class CommandClientImpl implements CommandClient, EventListener
     private MessageParts getParts(MessageReceivedEvent event) {
         String rawContent = event.getMessage().getContentRaw();
 
-        GuildSettingsProvider settings = event.isFromType(ChannelType.TEXT)? provideSettings(event.getGuild()) : null;
-
         // Check for prefix or alternate prefix (@mention cases)
         if(prefix.equals(DEFAULT_PREFIX) || (altprefix != null && altprefix.equals(DEFAULT_PREFIX))) {
             if(rawContent.startsWith("<@"+ event.getJDA().getSelfUser().getId()+">") ||
@@ -848,19 +817,6 @@ public class CommandClientImpl implements CommandClient, EventListener
                 if (lowerCaseContent.startsWith(pre.toLowerCase(Locale.ROOT))) {
                     final int prefixLength = pre.length();
                     return makeMessageParts(rawContent, prefixLength);
-                }
-            }
-        }
-
-        // Check for guild specific prefixes
-        if(settings != null) {
-            Collection<String> prefixes = settings.getPrefixes();
-            if(prefixes != null) {
-                for(String prefix : prefixes) {
-                    if(lowerCaseContent.startsWith(prefix.toLowerCase(Locale.ROOT))) {
-                        final int prefixLength = prefix.length();
-                        return makeMessageParts(rawContent, prefixLength);
-                    }
                 }
             }
         }
@@ -1150,15 +1106,6 @@ public class CommandClientImpl implements CommandClient, EventListener
                     messages.forEach(m -> m.delete().queue(unused -> {}, ignored -> {}));
             }
         }
-    }
-
-    private GuildSettingsProvider provideSettings(Guild guild)
-    {
-        Object settings = getSettingsFor(guild);
-        if(settings instanceof GuildSettingsProvider) //implicit null check
-            return (GuildSettingsProvider)settings;
-        else
-            return null;
     }
 
     /**

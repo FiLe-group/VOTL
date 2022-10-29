@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.jdautilities.command;
+package bot.objects.command;
 
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
@@ -38,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Olivia (Chew)
  */
-@SuppressWarnings("unused")
 public class SlashCommandEvent extends SlashCommandInteractionEvent {
     private final CommandClient client;
 

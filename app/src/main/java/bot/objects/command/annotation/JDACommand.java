@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.jdautilities.command.annotation;
+package bot.objects.command.annotation;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CooldownScope;
+import bot.objects.command.Command;
+import bot.objects.command.CooldownScope;
 import net.dv8tion.jda.api.Permission;
 
 import java.lang.annotation.*;

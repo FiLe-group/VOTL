@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.jdautilities.command;
+package bot.objects.command;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import com.jagrosh.jdautilities.command.impl.CommandClientImpl;
+import bot.objects.command.impl.CommandClientImpl;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;

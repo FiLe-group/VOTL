@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.jdautilities.command;
+package bot.objects.command;
 
+import bot.App;
+import bot.objects.CmdAccessLevel;
+import bot.utils.message.LocaleUtil;
 import net.dv8tion.jda.api.Permission;
 
 /**
@@ -71,6 +74,18 @@ public abstract class Interaction
     protected CooldownScope cooldownScope = CooldownScope.USER;
 
     /**
+     * The permission message used when the bot does not have the required permission.
+     * Requires 3 "%s", first is user mention, second is the permission needed, third is type, e.g. server.
+     */
+    protected String botMissingPermMessage = "%s I need the %s permission in this %s!";
+
+    /**
+     * The permission message used when the user does not have the required permission.
+     * Requires 3 "%s", first is user mention, second is the permission needed, third is type, e.g. server.
+     */
+    protected String userMissingPermMessage = "%s You must have the %s permission in this %s to use that!";
+
+    /**
      * Gets the {@link Interaction#cooldown cooldown} for the Interaction.
      *
      * @return The cooldown for the Interaction
@@ -119,4 +134,51 @@ public abstract class Interaction
     {
         return ownerCommand;
     }
+
+    /**
+	 * Path to the command's help String. Must by set, otherwise 
+	 */
+	protected String helpPath = "misc.unknown";
+	
+	/**
+	 * Gets the {@link bot.commands.OtherCmdBase#helpPath OtherCmdBase.helpPath} for the Command.
+	 *
+	 * @return The path for command's help String.
+	 */
+	public String getHelpPath()
+	{
+		return helpPath;
+	}
+
+	protected App bot = null;
+
+    protected LocaleUtil lu = null;
+	
+	protected boolean mustSetup = false;
+
+	protected String module = null;
+
+	protected CmdAccessLevel accessLevel = CmdAccessLevel.ALL;
+
+	public App getApp() {
+		return bot;
+	}
+
+    public LocaleUtil getLocaleUtil() {
+        return lu;
+    }
+
+	public CmdAccessLevel getAccessLevel() {
+		return accessLevel;
+	}
+
+	public String getModule() {
+		return module;
+	}
+
+	public boolean getMustSetup() {
+		return mustSetup;
+	}
+
+	
 }

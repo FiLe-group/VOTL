@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.jdautilities.command.impl;
+package bot.objects.command.impl;
 
-import com.jagrosh.jdautilities.command.AnnotatedModuleCompiler;
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandBuilder;
-import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.jdautilities.command.annotation.JDACommand;
+import bot.objects.command.AnnotatedModuleCompiler;
+import bot.objects.command.Command;
+import bot.objects.command.CommandBuilder;
+import bot.objects.command.CommandEvent;
+import bot.objects.command.annotation.JDACommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,6 +113,9 @@ public class AnnotatedModuleCompilerImpl implements AnnotatedModuleCompiler
         // Guild Only
         builder.setGuildOnly(properties.guildOnly());
 
+        // Required Role
+        builder.setRequiredRole(properties.requiredRole().trim().isEmpty()? null : properties.requiredRole().trim());
+
         // Owner Command
         builder.setOwnerCommand(properties.ownerCommand());
 
@@ -127,6 +130,9 @@ public class AnnotatedModuleCompilerImpl implements AnnotatedModuleCompiler
 
         // User Permissions
         builder.setUserPermissions(properties.userPermissions());
+
+        // Uses Topic Tags
+        builder.setUsesTopicTags(properties.useTopicTags());
 
         // Hidden
         builder.setHidden(properties.isHidden());

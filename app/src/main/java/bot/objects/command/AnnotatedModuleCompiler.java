@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.jdautilities.command;
+package bot.objects.command;
 
-import com.jagrosh.jdautilities.command.annotation.JDACommand;
+import bot.objects.command.annotation.JDACommand;
 import java.util.List;
 
 /**

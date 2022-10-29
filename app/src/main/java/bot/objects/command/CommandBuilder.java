@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.jdautilities.command;
+package bot.objects.command;
 
-import com.jagrosh.jdautilities.command.Command.*;
+import bot.objects.command.Command.*;
 
 import net.dv8tion.jda.api.Permission;
 
@@ -41,10 +41,12 @@ import java.util.function.Consumer;
 public class CommandBuilder
 {
     private String name = "null";
-    private String help = null;
+    private String help = "no help available";
+    private String helpPath = "misc.unknown";
     private Category category = null;
     private String arguments = null;
     private boolean guildOnly = true;
+    private String requiredRole = null;
     private boolean ownerCommand = false;
     private int cooldown = 0;
     private Permission[] userPermissions = new Permission[0];
@@ -52,6 +54,7 @@ public class CommandBuilder
     private final LinkedList<String> aliases = new LinkedList<>();
     private final LinkedList<Command> children = new LinkedList<>();
     private BiConsumer<CommandEvent, Command> helpBiConsumer = null;
+    private boolean usesTopicTags = true;
     private CooldownScope cooldownScope = CooldownScope.USER;
     private boolean hidden = false;
 
@@ -85,7 +88,7 @@ public class CommandBuilder
     public CommandBuilder setHelp(String help)
     {
         if(help == null)
-            this.help = "Unknown";
+            this.help = "no help available";
         else
             this.help = help;
         return this;
@@ -133,6 +136,21 @@ public class CommandBuilder
     public CommandBuilder setGuildOnly(boolean guildOnly)
     {
         this.guildOnly = guildOnly;
+        return this;
+    }
+
+    /**
+     * Sets the name of a {@link com.jagrosh.jdautilities.command.Command#requiredRole
+     * required role} to use the Command built from this CommandBuilder.
+     *
+     * @param  requiredRole
+     *         The name of a role required to use the Command to be built.
+     *
+     * @return This CommandBuilder
+     */
+    public CommandBuilder setRequiredRole(String requiredRole)
+    {
+        this.requiredRole = requiredRole;
         return this;
     }
 
@@ -386,6 +404,21 @@ public class CommandBuilder
     }
 
     /**
+     * Sets the Command built to {@link com.jagrosh.jdautilities.command.Command#usesTopicTags
+     * use TopicTags}.
+     *
+     * @param  usesTopicTags
+     *         {@code true} if the Command built is uses topic tags, {@code false} if it does not.
+     *
+     * @return This CommandBuilder
+     */
+    public CommandBuilder setUsesTopicTags(boolean usesTopicTags)
+    {
+        this.usesTopicTags = usesTopicTags;
+        return this;
+    }
+
+    /**
      * Sets the {@link com.jagrosh.jdautilities.command.Command#cooldownScope
      * cooldown scope} of the Command built from this CommandBuilder.
      *
@@ -456,10 +489,10 @@ public class CommandBuilder
      */
     public Command build(BiConsumer<Command,CommandEvent> execution)
     {
-        return new BlankCommand(name, help, category,
-                arguments, guildOnly, ownerCommand, cooldown,
+        return new BlankCommand(name, help, helpPath, category, arguments,
+                guildOnly, requiredRole, ownerCommand, cooldown,
                 userPermissions, botPermissions, aliases.toArray(new String[aliases.size()]),
-                children.toArray(new Command[children.size()]), helpBiConsumer,
+                children.toArray(new Command[children.size()]), helpBiConsumer, usesTopicTags,
                 cooldownScope, hidden)
         {
             @Override
@@ -472,18 +505,20 @@ public class CommandBuilder
 
     private abstract class BlankCommand extends Command
     {
-        BlankCommand(String name, String help, Category category,
-                     String arguments, boolean guildOnly, boolean ownerCommand, int cooldown,
-                     Permission[] userPermissions, Permission[] botPermissions,
-                     String[] aliases, Command[] children,
+        BlankCommand(String name, String help, String helpPath, Category category,
+                     String arguments, boolean guildOnly, String requiredRole,
+                     boolean ownerCommand, int cooldown, Permission[] userPermissions,
+                     Permission[] botPermissions, String[] aliases, Command[] children,
                      BiConsumer<CommandEvent, Command> helpBiConsumer,
-                     CooldownScope cooldownScope, boolean hidden)
+                     boolean usesTopicTags, CooldownScope cooldownScope, boolean hidden)
         {
             this.name = name;
             this.help = help;
+            this.helpPath = helpPath;
             this.category = category;
             this.arguments = arguments;
             this.guildOnly = guildOnly;
+            this.requiredRole = requiredRole;
             this.ownerCommand = ownerCommand;
             this.cooldown = cooldown;
             this.userPermissions = userPermissions;
@@ -491,6 +526,7 @@ public class CommandBuilder
             this.aliases = aliases;
             this.children = children;
             this.helpBiConsumer = helpBiConsumer;
+            this.usesTopicTags = usesTopicTags;
             this.cooldownScope = cooldownScope;
             this.hidden = hidden;
         }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.jdautilities.command;
+package bot.objects.command;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -558,42 +558,6 @@ public interface CommandClient
      *         CommandClientBuilder#setLinkedCacheSize(int)
      */
     boolean usesLinkedDeletion();
-
-    /**
-     * Returns an Object of the type parameter that should contain settings relating to the specified
-     * {@link net.dv8tion.jda.api.entities.Guild Guild}.
-     *
-     * <p>The returning object for this is specified via provision of a
-     * {@link com.jagrosh.jdautilities.command.GuildSettingsManager GuildSettingsManager} to
-     * {@link com.jagrosh.jdautilities.command.CommandClientBuilder#setGuildSettingsManager(com.jagrosh.jdautilities.command.GuildSettingsManager)
-     * CommandClientBuilder#setGuildSettingsManager(GuildSettingsManager)}, more specifically
-     * {@link GuildSettingsManager#getSettings(net.dv8tion.jda.api.entities.Guild)
-     * GuildSettingsManager#getSettings(Guild)}.
-     *
-     * @param  <S>
-     *         The type of settings the GuildSettingsManager provides
-     * @param  guild
-     *         The Guild to get Settings for
-     *
-     * @return The settings object for the Guild, specified in
-     *         {@link com.jagrosh.jdautilities.command.GuildSettingsManager#getSettings(Guild)
-     *         GuildSettingsManager#getSettings(Guild)}, can be {@code null} if the implementation
-     *         allows it.
-     */
-    <S> S getSettingsFor(Guild guild);
-
-    /**
-     * Returns the type of {@link com.jagrosh.jdautilities.command.GuildSettingsManager GuildSettingsManager},
-     * the same type of one provided when building this CommandClient, or {@code null} if one was not provided there.
-     *
-     * <p>This is good if you want to use non-abstract methods specific to your implementation.
-     *
-     * @param  <M>
-     *         The type of the GuildSettingsManager
-     *
-     * @return The GuildSettingsManager, or {@code null} if one was not provided when building this CommandClient.
-     */
-    <M extends GuildSettingsManager> M getSettingsManager();
 
     /**
      * Shuts down internals of the Command Client, such as the threadpool and guild settings manager
