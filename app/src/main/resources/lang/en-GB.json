@@ -17,7 +17,8 @@
 		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to bot's Owner/Developer!",
 		"command": {
 			"not_owner": "Only an owner may run this command.",
-			"nsfw": "This command may only be used in NSFW text channels!"
+			"nsfw": "This command may only be used in NSFW text channels!",
+			"guild_only": "This command cannot be used in direct messages!"
 		},
 		"cooldown": {
 			"cooldown_left": "That command is on cooldown for {time} more seconds",
