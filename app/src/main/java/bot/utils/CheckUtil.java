@@ -2,7 +2,10 @@ package bot.utils;
 
 import java.util.Objects;
 
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
+import bot.objects.command.CommandClient;
+import bot.objects.command.CommandEvent;
+import bot.objects.command.MessageContextMenuEvent;
+import bot.objects.command.SlashCommandEvent;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
@@ -12,7 +15,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.api.entities.User;
 
@@ -28,30 +30,26 @@ public class CheckUtil {
 		return user.getId().equals(Constants.DEVELOPER_ID);
 	}
 
-	public boolean isOwner(SlashCommandEvent event, User user) {
-    	if (user.getId().equals(event.getClient().getOwnerId()))
+	public boolean isOwner(CommandClient client, User user) {
+    	if (user.getId().equals(client.getOwnerId()))
     	    return true;
-        if (event.getClient().getCoOwnerIds()==null)
+        if (client.getCoOwnerIds()==null)
             return false;
-        for (String id : event.getClient().getCoOwnerIds())
+        for (String id : client.getCoOwnerIds())
             if (id.equals(user.getId()))
                 return true;
         return false;
     }
 
-	public CmdAccessLevel getAccessLevel(SlashCommandEvent event) {
-		return getAccessLevel(event, event.getMember());
-	}
-
-	public CmdAccessLevel getAccessLevel(SlashCommandEvent event, Member member) {
+	public CmdAccessLevel getAccessLevel(CommandClient client, Member member) {
 		// Is bot developer
-		if (isDeveloper(member.getUser()) || isOwner(event, member.getUser()))
+		if (isDeveloper(member.getUser()) || isOwner(client, member.getUser()))
 			return CmdAccessLevel.DEV;
 		// Is guild owner
 		if (member.isOwner())
 			return CmdAccessLevel.OWNER;
 		
-		Guild guild = Objects.requireNonNull(event.getGuild());
+		Guild guild = Objects.requireNonNull(member.getGuild());
 		String access = bot.getDBUtil().hasAccess(guild.getId(), member.getId());
 		// Has either mod or admin access
 		if (access != null) {
@@ -64,65 +62,120 @@ public class CheckUtil {
 		return CmdAccessLevel.ALL;
 	}
 
-	public CheckUtil hasAccess(SlashCommandEvent event, CmdAccessLevel accessLevel) throws CheckException {
-		return hasAccess(event, event.getMember(), accessLevel);
+	public <T> CheckUtil hasAccess(T genericEvent, CmdAccessLevel accessLevel) throws CheckException {
+		if (genericEvent instanceof SlashCommandEvent) {
+			SlashCommandEvent event = (SlashCommandEvent) genericEvent;
+			return hasAccess(event, event.getClient(), event.getMember(), accessLevel);
+		}
+		if (genericEvent instanceof CommandEvent) {
+			CommandEvent event = (CommandEvent) genericEvent;
+			return hasAccess(event, event.getClient(), event.getMember(), accessLevel);
+		}
+		if (genericEvent instanceof MessageContextMenuEvent) {
+			MessageContextMenuEvent event = (MessageContextMenuEvent) genericEvent;
+			return hasAccess(event, event.getClient(), event.getMember(), accessLevel);
+		}
+		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
 	}
 
-	public CheckUtil hasAccess(SlashCommandEvent event, Member member, CmdAccessLevel accessLevel) throws CheckException {
-		if (accessLevel.getLevel() > getAccessLevel(event, member).getLevel())
+	private <T> CheckUtil hasAccess(T event, CommandClient client, Member member, CmdAccessLevel accessLevel) throws CheckException {
+		if (accessLevel.getLevel() > getAccessLevel(client, member).getLevel())
 			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.low_access_level", "Access: "+accessLevel.getName()));
 		return this;
 	}
 
-	public CheckUtil guildExists(SlashCommandEvent event, Boolean mustSetup) throws CheckException {
+	public <T> CheckUtil guildExists(T genericEvent, boolean mustSetup) throws CheckException {
+		if (genericEvent instanceof SlashCommandEvent) {
+			SlashCommandEvent event = (SlashCommandEvent) genericEvent;
+			return guildExists(event, event.getGuild(), mustSetup);
+		}
+		if (genericEvent instanceof CommandEvent) {
+			CommandEvent event = (CommandEvent) genericEvent;
+			return guildExists(event, event.getGuild(), mustSetup);
+		}
+		if (genericEvent instanceof MessageContextMenuEvent) {
+			MessageContextMenuEvent event = (MessageContextMenuEvent) genericEvent;
+			return guildExists(event, event.getGuild(), mustSetup);
+		}
+		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
+	}
+
+	private <T> CheckUtil guildExists(T event, Guild guild, boolean mustSetup) throws CheckException {
 		if (!mustSetup)
 			return this;
-		String guildId = Objects.requireNonNull(event.getGuild()).getId();
-		if (!bot.getDBUtil().isGuild(guildId))
+		if (!bot.getDBUtil().isGuild(guild.getId()))
 			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		return this;
 	}
 
-	public CheckUtil moduleEnabled(SlashCommandEvent event, String module) throws CheckException {
+	public <T> CheckUtil moduleEnabled(T genericEvent, String module) throws CheckException {
+		if (genericEvent instanceof SlashCommandEvent) {
+			SlashCommandEvent event = (SlashCommandEvent) genericEvent;
+			return moduleEnabled(event, event.getGuild(), module);
+		}
+		if (genericEvent instanceof CommandEvent) {
+			CommandEvent event = (CommandEvent) genericEvent;
+			return moduleEnabled(event, event.getGuild(), module);
+		}
+		if (genericEvent instanceof MessageContextMenuEvent) {
+			MessageContextMenuEvent event = (MessageContextMenuEvent) genericEvent;
+			return moduleEnabled(event, event.getGuild(), module);
+		}
+		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
+	}
+
+	private <T> CheckUtil moduleEnabled(T event, Guild guild, String module) throws CheckException {
 		if (module == null)
 			return this;
-		String guildId = Objects.requireNonNull(event.getGuild()).getId();
-		if (bot.getDBUtil().moduleDisabled(guildId, module)) 
+		if (bot.getDBUtil().moduleDisabled(guild.getId(), module)) 
 			throw new CheckException(bot.getEmbedUtil().getError(event, "modules.module_disabled"));
 		return this;
 	}
 
-	public CheckUtil hasPermissions(Interaction interaction, Permission[] permissions) throws CheckException {
-		return hasPermissions(interaction, false, null, permissions);
+	public <T> CheckUtil hasPermissions(T genericEvent, Permission[] permissions) throws CheckException {
+		return hasPermissions(genericEvent, false, null, permissions);
 	}
 
-	public CheckUtil hasPermissions(Interaction interaction, boolean isSelf, Permission[] permissions) throws CheckException {
-		return hasPermissions(interaction, isSelf, null, permissions);
+	public <T> CheckUtil hasPermissions(T genericEvent, boolean isSelf, Permission[] permissions) throws CheckException {
+		return hasPermissions(genericEvent, isSelf, null, permissions);
 	}
-	
-	public CheckUtil hasPermissions(Interaction interaction, boolean isSelf, TextChannel channel, Permission[] permissions) throws CheckException {
+
+	public <T> CheckUtil hasPermissions(T genericEvent, boolean isSelf, TextChannel channel, Permission[] permissions) throws CheckException {
+		if (genericEvent instanceof SlashCommandEvent) {
+			SlashCommandEvent event = (SlashCommandEvent) genericEvent;
+			return hasPermissions(event, event.getGuild(), event.getMember(), isSelf, channel, permissions);
+		}
+		if (genericEvent instanceof CommandEvent) {
+			CommandEvent event = (CommandEvent) genericEvent;
+			return hasPermissions(event, event.getGuild(), event.getMember(), isSelf, channel, permissions);
+		}
+		if (genericEvent instanceof MessageContextMenuEvent) {
+			MessageContextMenuEvent event = (MessageContextMenuEvent) genericEvent;
+			return hasPermissions(event, event.getGuild(), event.getMember(), isSelf, channel, permissions);
+		}
+		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
+	}
+
+	private <T> CheckUtil hasPermissions(T event, Guild guild, Member member, boolean isSelf, TextChannel channel, Permission[] permissions) throws CheckException {
 		if (permissions.length == 0)
 			return this;
-
-		Guild guild = interaction.getGuild();
-		Member member = interaction.getMember();
 		if (guild == null || member == null)
 			return this;
-		
+
 		MessageEditData msg = null;
 		if (isSelf) {
 			Member self = guild.getSelfMember();
 			if (channel == null) {
 				for (Permission perm : permissions) {
 					if (!self.hasPermission(perm)) {
-						msg = bot.getEmbedUtil().getPermError(interaction, perm, true);
+						msg = bot.getEmbedUtil().getPermError(event, member, perm, true);
 						break;
 					}
 				}
 			} else {
 				for (Permission perm : permissions) {
 					if (!self.hasPermission(channel, perm)) {
-						msg = bot.getEmbedUtil().getPermError(interaction, channel, perm, true);
+						msg = bot.getEmbedUtil().getPermError(event, member, channel, perm, true);
 						break;
 					}
 				}
@@ -131,14 +184,14 @@ public class CheckUtil {
 			if (channel == null) {
 				for (Permission perm : permissions) {
 					if (!member.hasPermission(perm)) {
-						msg = bot.getEmbedUtil().getPermError(interaction, perm, false);
+						msg = bot.getEmbedUtil().getPermError(event, member, perm, false);
 						break;
 					}
 				}
 			} else {
 				for (Permission perm : permissions) {
 					if (!member.hasPermission(channel, perm)) {
-						msg = bot.getEmbedUtil().getPermError(interaction, channel, perm, false);
+						msg = bot.getEmbedUtil().getPermError(event, member, channel, perm, false);
 						break;
 					}
 				}
