@@ -78,12 +78,14 @@ public abstract class Command extends Interaction
 	 * Normal Command: {@code [prefix]<command name>}. <br>
 	 * Slash Command: {@code /<command name>}
 	 */
+	@Nonnull
 	protected String name = "null";
 
 	/**
 	 * A small help String that summarizes the function of the command, used in the default help builder,
 	 * and shown in the client for Slash Commands.
 	 */
+	@Nonnull
 	protected String help = "no help available";
 
 	/**
@@ -274,6 +276,7 @@ public abstract class Command extends Interaction
 	 *
 	 * @return The name for the Command
 	 */
+	@Nonnull
 	public String getName()
 	{
 		return name;
@@ -284,6 +287,7 @@ public abstract class Command extends Interaction
 	 *
 	 * @return The help for the Command
 	 */
+	@Nonnull
 	public String getHelp()
 	{
 		return help;
@@ -429,7 +433,7 @@ public abstract class Command extends Interaction
 		else
 			front.append(" " + lu.getText(event, cooldownScope.errorPath));
 		
-		return MessageCreateData.fromContent(front.append("!").toString());
+		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
 	}
 
 	/**

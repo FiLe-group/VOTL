@@ -91,6 +91,7 @@ public class LanguageCmd extends SlashCommand {
 		}
 
 		@Override
+		@SuppressWarnings("null")
 		protected void execute(SlashCommandEvent event) {
 
 			event.deferReply(true).queue(

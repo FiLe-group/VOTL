@@ -44,7 +44,7 @@ public class App {
 
 	private static App instance;
 
-	public final String version = (App.class.getPackage().getImplementationVersion() == null) ? "DEVELOPMENT" : App.class.getPackage().getImplementationVersion();
+	public final String version = (App.class.getPackage().getImplementationVersion() == null) ? "DEVELOPMENT" : "v"+App.class.getPackage().getImplementationVersion();
 
 	public final JDA jda;
 	public final EventWaiter waiter;

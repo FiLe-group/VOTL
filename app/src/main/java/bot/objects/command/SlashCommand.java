@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
@@ -79,6 +80,7 @@ public abstract class SlashCommand extends Command
 	 *     }
 	 *</code></pre>
 	 */
+	@Nonnull
 	protected Map<DiscordLocale, String> nameLocalization = new HashMap<>();
 
 	/**
@@ -91,14 +93,8 @@ public abstract class SlashCommand extends Command
 	 *     }
 	 *</code></pre>
 	 */
+	@Nonnull
 	protected Map<DiscordLocale, String> descriptionLocalization = new HashMap<>();
-
-	/**
-	 * This option is deprecated in favor of using Discord's permissions<br>
-	 * This deprecation can be ignored if you intend to support normal and slash commands.
-	 */
-	@Deprecated
-	protected String requiredRole = null;
 
 	/**
 	 * The child commands of the command. These are used in the format {@code /<parent name>
@@ -422,11 +418,11 @@ public abstract class SlashCommand extends Command
 		switch (cooldownScope)
 		{
 			case USER:         return cooldownScope.genKey(name,event.getUser().getIdLong());
-			case USER_GUILD:   return event.getGuild()!=null ? cooldownScope.genKey(name,event.getUser().getIdLong(),event.getGuild().getIdLong()) :
-					CooldownScope.USER_CHANNEL.genKey(name,event.getUser().getIdLong(), event.getChannel().getIdLong());
+			case USER_GUILD:   return Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name,event.getUser().getIdLong(),g.getIdLong()))
+				.orElse(CooldownScope.USER_CHANNEL.genKey(name,event.getUser().getIdLong(), event.getChannel().getIdLong()));
 			case USER_CHANNEL: return cooldownScope.genKey(name,event.getUser().getIdLong(),event.getChannel().getIdLong());
-			case GUILD:        return event.getGuild()!=null ? cooldownScope.genKey(name,event.getGuild().getIdLong()) :
-					CooldownScope.CHANNEL.genKey(name,event.getChannel().getIdLong());
+			case GUILD:        return Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name,g.getIdLong()))
+				.orElse(CooldownScope.CHANNEL.genKey(name,event.getChannel().getIdLong()));
 			case CHANNEL:      return cooldownScope.genKey(name,event.getChannel().getIdLong());
 			case SHARD:
 				event.getJDA().getShardInfo();
@@ -477,6 +473,7 @@ public abstract class SlashCommand extends Command
 	 * Gets the specified localizations of slash command names.
 	 * @return Slash command name localizations.
 	 */
+	@Nonnull
 	public Map<DiscordLocale, String> getNameLocalization() {
 		return nameLocalization;
 	}
@@ -485,6 +482,7 @@ public abstract class SlashCommand extends Command
 	 * Gets the specified localizations of slash command descriptions.
 	 * @return Slash command description localizations.
 	 */
+	@Nonnull
 	public Map<DiscordLocale, String> getDescriptionLocalization() {
 		return descriptionLocalization;
 	}

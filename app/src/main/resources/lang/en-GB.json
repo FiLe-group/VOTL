@@ -332,7 +332,7 @@
 					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nDeveloper - **{developer_name}**({developer_id}).",
 					"bot_info": {
 						"title": "Bot info",
-						"bot_version": "Bot version: `VOTL v{bot_version}`",
+						"bot_version": "Bot version: `VOTL-{bot_version}`",
 						"library": "Library: [`JDA {jda_version}`]({jda_github}) and [`JDA-Chewtils {chewtils_version}`]({chewtils_github})"
 					},
 					"commands_title": "Commands:",

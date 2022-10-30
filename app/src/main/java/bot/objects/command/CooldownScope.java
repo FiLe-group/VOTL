@@ -15,6 +15,8 @@
  */
 package bot.objects.command;
 
+import javax.annotation.Nonnull;
+
 /**
  * A series of {@link Enum}s used for defining the scope size for a
  * {@link Interaction}'s cooldown.
@@ -157,9 +159,9 @@ public enum CooldownScope
 	GLOBAL("Global", "errors.cooldown.global");
 
 	private final String format;
-	final String errorPath;
+	@Nonnull final String errorPath;
 
-	CooldownScope(String format, String errorPath)
+	CooldownScope(String format, @Nonnull String errorPath)
 	{
 		this.format = format;
 		this.errorPath = errorPath;

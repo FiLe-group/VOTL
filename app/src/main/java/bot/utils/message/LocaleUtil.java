@@ -86,6 +86,7 @@ public class LocaleUtil {
 		);
 	}
 
+	@Nonnull
 	public Map<DiscordLocale, String> getFullLocaleMap(String path) {
 		Map<DiscordLocale, String> localeMap = new HashMap<>();
 		for (DiscordLocale locale : bot.getFileManager().getLanguages()) {

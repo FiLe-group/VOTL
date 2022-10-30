@@ -37,18 +37,18 @@ import java.util.List;
  */
 public interface AnnotatedModuleCompiler
 {
-    /**
-     * Compiles one or more {@link com.jagrosh.jdautilities.command.Command Command}s
-     * using method annotations as for properties from the specified {@link java.lang.Object
-     * Object}.
-     *
-     * <p><b>This Object must be annotated with {@link
-     * com.jagrosh.jdautilities.command.annotation.JDACommand.Module @JDACommand.Module}!</b>
-     *
-     * @param  o
-     *         The Object, annotated with {@code @JDACommand.Module}.
-     *
-     * @return A {@link java.util.List} of Commands generated from the provided Object
-     */
-    List<Command> compile(Object o);
+	/**
+	 * Compiles one or more {@link com.jagrosh.jdautilities.command.Command Command}s
+	 * using method annotations as for properties from the specified {@link java.lang.Object
+	 * Object}.
+	 *
+	 * <p><b>This Object must be annotated with {@link
+	 * com.jagrosh.jdautilities.command.annotation.JDACommand.Module @JDACommand.Module}!</b>
+	 *
+	 * @param  o
+	 *         The Object, annotated with {@code @JDACommand.Module}.
+	 *
+	 * @return A {@link java.util.List} of Commands generated from the provided Object
+	 */
+	List<Command> compile(Object o);
 }

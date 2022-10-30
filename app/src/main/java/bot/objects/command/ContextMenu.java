@@ -27,6 +27,9 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
+import javax.annotation.Nonnull;
 
 /**
  * Middleware for child context menu types. Anything that extends this class will inherit the following options.
@@ -40,6 +43,7 @@ public abstract class ContextMenu extends Interaction
 	 * Can be 1-32 characters long. Spaces are allowed.
 	 * @see CommandData#setName(String)
 	 */
+	@Nonnull
 	protected String name = "null";
 
 	/**
@@ -47,6 +51,7 @@ public abstract class ContextMenu extends Interaction
 	 *
 	 * @return The name for the Context Menu.
 	 */
+	@Nonnull
 	public String getName()
 	{
 		return name;
@@ -55,12 +60,14 @@ public abstract class ContextMenu extends Interaction
 	/**
 	 * Localization of menu names. Allows discord to change the language of the name of menu in the client.
 	 */
+	@Nonnull
 	protected Map<DiscordLocale, String> nameLocalization = new HashMap<>();
 
 	/**
 	 * Gets the specified localizations of menu name.
 	 * @return Menu name localizations.
 	 */
+	@Nonnull
 	public Map<DiscordLocale, String> getNameLocalization() {
 		return nameLocalization;
 	}
@@ -70,6 +77,7 @@ public abstract class ContextMenu extends Interaction
 	 *
 	 * @return the type
 	 */
+	@Nonnull
 	public Command.Type getType()
 	{
 		if (this instanceof MessageContextMenu)
@@ -92,11 +100,11 @@ public abstract class ContextMenu extends Interaction
 		switch (cooldownScope)
 		{
 			case USER:         return cooldownScope.genKey(name,event.getUser().getIdLong());
-			case USER_GUILD:   return event.getGuild()!=null ? cooldownScope.genKey(name,event.getUser().getIdLong(),event.getGuild().getIdLong()) :
-				CooldownScope.USER_CHANNEL.genKey(name,event.getUser().getIdLong(), event.getChannel().getIdLong());
+			case USER_GUILD:   return Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name,event.getUser().getIdLong(),g.getIdLong()))
+				.orElse(CooldownScope.USER_CHANNEL.genKey(name,event.getUser().getIdLong(), event.getChannel().getIdLong()));
 			case USER_CHANNEL: return cooldownScope.genKey(name,event.getUser().getIdLong(),event.getChannel().getIdLong());
-			case GUILD:        return event.getGuild()!=null ? cooldownScope.genKey(name,event.getGuild().getIdLong()) :
-				CooldownScope.CHANNEL.genKey(name,event.getChannel().getIdLong());
+			case GUILD:        return Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name,g.getIdLong()))
+				.orElse(CooldownScope.CHANNEL.genKey(name,event.getChannel().getIdLong()));
 			case CHANNEL:      return cooldownScope.genKey(name,event.getChannel().getIdLong());
 			case SHARD:        return event.getJDA().getShardInfo() != JDA.ShardInfo.SINGLE ? cooldownScope.genKey(name, event.getJDA().getShardInfo().getShardId()) :
 				CooldownScope.GLOBAL.genKey(name, 0);
