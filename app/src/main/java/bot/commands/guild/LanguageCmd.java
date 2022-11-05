@@ -8,15 +8,15 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
-import bot.utils.exception.CheckException;
 import bot.utils.file.lang.LangUtil;
+import bot.utils.message.LocaleUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
@@ -34,23 +34,17 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 	requirements = "Have 'Manage server' permission"
 )
 public class LanguageCmd extends SlashCommand {
-	
-	private static App bot;
-
-	private static final boolean mustSetup = true;
-	private static final String MODULE = "language";
-	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ADMIN;
-
-	protected static Permission[] userPerms = new Permission[0];
-	protected static Permission[] botPerms = new Permission[0];
 
 	public LanguageCmd(App bot) {
 		this.name = "language";
-		this.help = bot.getMsg("bot.guild.language.help");
+		this.helpPath = "bot.guild.language.help";
+		this.bot = bot;
+		this.children = new SlashCommand[]{new Reset(), new Set(bot.getLocaleUtil()), new Show()};
+		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.GUILD;
-		LanguageCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
-		LanguageCmd.bot = bot;
-		this.children = new SlashCommand[]{new Reset(), new Set(), new Show()};
+		this.module = "language";
+		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.mustSetup = true;
 	}
 
 	@Override
@@ -58,11 +52,11 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
-	private static class Reset extends SlashCommand {
+	private class Reset extends SlashCommand {
 
 		public Reset() {
 			this.name = "reset";
-			this.help = bot.getMsg("bot.guild.language.reset.help");
+			this.helpPath = "bot.guild.language.reset.help";
 		}
 
 		@Override
@@ -70,24 +64,7 @@ public class LanguageCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
-					try {
-						// check setup
-						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
-						// check access
-						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-						// check module enabled
-							.moduleEnabled(event, MODULE)
-						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
-					} catch (CheckException ex) {
-						hook.editOriginal(ex.getEditData()).queue();
-						return;
-					}
-					
-					String defaultLang = bot.defaultLanguage;
+					String defaultLang = lu.getDefaultLanguage();
 					sendReply(event, hook, defaultLang);
 				}
 			);
@@ -96,14 +73,14 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
-	private static class Set extends SlashCommand {
+	private class Set extends SlashCommand {
 
 		@SuppressWarnings("null")
-		public Set() {
+		public Set(LocaleUtil lu) {
 			this.name = "set";
-			this.help = bot.getMsg("bot.guild.language.set.help");
+			this.helpPath = "bot.guild.language.set.help";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "language", bot.getMsg("bot.guild.language.set.option_description"))
+				new OptionData(OptionType.STRING, "language", lu.getText("bot.guild.language.set.option_description"))
 					.setRequired(true)
 					.addChoices(getLangList().stream().map(
 						locale -> {
@@ -114,28 +91,12 @@ public class LanguageCmd extends SlashCommand {
 		}
 
 		@Override
+		@SuppressWarnings("null")
 		protected void execute(SlashCommandEvent event) {
 
 			event.deferReply(true).queue(
 				hook -> {
-					try {
-						// check setup
-						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
-						// check access
-						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-						// check module enabled
-							.moduleEnabled(event, MODULE)
-						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
-					} catch (CheckException ex) {
-						hook.editOriginal(ex.getEditData()).queue();
-						return;
-					}
-
-					String lang = event.getOption("language", bot.defaultLanguage, OptionMapping::getAsString);
+					String lang = event.getOption("language", lu.getDefaultLanguage(), OptionMapping::getAsString);
 					sendReply(event, hook, lang);
 				}
 			);
@@ -144,11 +105,11 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
-	private static class Show extends SlashCommand {
+	private class Show extends SlashCommand {
 
 		public Show() {
 			this.name = "show";
-			this.help = bot.getMsg("bot.guild.language.show.help");
+			this.helpPath = "bot.guild.language.show.help";
 		}
 
 		@Override
@@ -156,28 +117,11 @@ public class LanguageCmd extends SlashCommand {
 
 			event.deferReply(true).queue(
 				hook -> {
-					try {
-						// check setup
-						if (mustSetup)
-							bot.getCheckUtil().guildExists(event);
-						// check access
-						bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-						// check module enabled
-							.moduleEnabled(event, MODULE)
-						// check user perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-						// check bots perms
-							.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
-					} catch (CheckException ex) {
-						hook.editOriginal(ex.getEditData()).queue();
-						return;
-					}
-					
-					String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-					MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
-						.setTitle(bot.getMsg(guildId, "bot.guild.language.show.embed.title"))
-						.setDescription(bot.getMsg(guildId, "bot.guild.language.show.embed.value"))
-						.addField(bot.getMsg(guildId, "bot.guild.language.show.embed.field"), getLanguages(), false)
+					DiscordLocale userLocale = event.getUserLocale();
+					MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
+						.setTitle(lu.getLocalized(userLocale, "bot.guild.language.show.embed.title"))
+						.setDescription(lu.getLocalized(userLocale, "bot.guild.language.show.embed.value"))
+						.addField(lu.getLocalized(userLocale, "bot.guild.language.show.embed.field"), getLanguages(), false)
 						.build();
 
 					hook.editOriginalEmbeds(embed).queue();
@@ -188,16 +132,17 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
-	private static void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String language) {
+	private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String language) {
 
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+		DiscordLocale userLocale = event.getUserLocale();
 
 		// fail-safe
 		if (DiscordLocale.from(language).equals(DiscordLocale.UNKNOWN)) {
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
-				.setTitle(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_title"))
-				.setDescription(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_value"))
-				.addField(bot.getMsg(guildId, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
+			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
+				.setTitle(lu.getLocalized(userLocale, "bot.guild.language.embed.available_lang_title"))
+				.setDescription(lu.getLocalized(userLocale, "bot.guild.language.embed.available_lang_value"))
+				.addField(lu.getLocalized(userLocale, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
 				.build();
 			hook.editOriginalEmbeds(embed).queue();
 			return;
@@ -205,19 +150,19 @@ public class LanguageCmd extends SlashCommand {
 
 		bot.getDBUtil().guildSetLanguage(guildId, language);
 
-		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event.getMember())
+		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
 			.setColor(bot.getMessageUtil().getColor("rgb:0,200,30"))
-			.setDescription(bot.getMsg(guildId, "bot.guild.language.done").replace("{language}", language))
+			.setDescription(lu.getLocalized(userLocale, "bot.guild.language.done").replace("{language}", language))
 			.build();
 		hook.editOriginalEmbeds(embed).queue();
 	}
 
-	private static List<DiscordLocale> getLangList(){
+	private List<DiscordLocale> getLangList(){
         return bot.getFileManager().getLanguages();
     }
     
 	@Nonnull
-    private static String getLanguages(){
+    private String getLanguages(){
         List<DiscordLocale> langs = getLangList();
         
         StringBuilder builder = new StringBuilder();

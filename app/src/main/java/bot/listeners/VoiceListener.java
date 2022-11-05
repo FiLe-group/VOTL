@@ -6,19 +6,23 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 
 import bot.App;
+import bot.utils.message.LocaleUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 public class VoiceListener extends ListenerAdapter {
 	
 	private final App bot;
+	private final LocaleUtil lu;
 
 	public VoiceListener(App bot) {
 		this.bot = bot;
+		this.lu = bot.getLocaleUtil();
 	}
 
 	public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
@@ -38,10 +42,11 @@ public class VoiceListener extends ListenerAdapter {
 	private void handleVoiceCreate(Guild guild, Member member) {
 		String guildId = guild.getId();
 		String userID = member.getId();
+		DiscordLocale guildLocale = guild.getLocale();
 
 		if (bot.getDBUtil().isVoiceChannel(userID)) {
 			member.getUser().openPrivateChannel()
-				.queue(channel -> channel.sendMessage(bot.getMsg(guildId, "bot.voice.listener.cooldown")).queue());
+				.queue(channel -> channel.sendMessage(lu.getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue());
 			return;
 		}
 		String CategoryID = bot.getDBUtil().guildVoiceGetCategory(guildId);
@@ -54,7 +59,7 @@ public class VoiceListener extends ListenerAdapter {
 		Integer limit = null;
 		if (channelName == null) {
 			if (defaultChannelName == null) {
-				name = bot.getMsg(guildId, "bot.voice.listener.default_name", member.getUser().getName(), false);
+				name = lu.getLocalized(guildLocale, "bot.voice.listener.default_name", member.getUser().getName(), false);
 			} else {
 				name = defaultChannelName;
 			}

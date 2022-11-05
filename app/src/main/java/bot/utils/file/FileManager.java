@@ -127,7 +127,7 @@ public class FileManager {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
 			text = ex.getMessage();
 		} catch (IOException ex) {
-			logger.warn("Couldn't process file {}.json", name, ex);
+			logger.error("Couldn't process file {}.json", name, ex);
 			text = "ERROR at processing file";
 		}
 

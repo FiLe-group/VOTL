@@ -1,19 +1,17 @@
 package bot.commands.voice;
 
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
-import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -26,27 +24,21 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 	requirements = "Have 'Manage server' permission"
 )
 public class SetLimitCmd extends SlashCommand {
-	
-	private final App bot;
-	
-	private static final boolean mustSetup = true;
-	private static final String MODULE = "voice";
-	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ADMIN;
-
-	protected static Permission[] userPerms = new Permission[0];
-	protected static Permission[] botPerms = new Permission[0];
 
 	public SetLimitCmd(App bot) {
 		this.name = "setlimit";
-		this.help = bot.getMsg("bot.voice.setlimit.help");
-		this.category = CmdCategory.VOICE;
-		SetLimitCmd.userPerms = new Permission[]{Permission.MANAGE_SERVER};
+		this.helpPath = "bot.voice.setlimit.help";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.INTEGER, "limit", bot.getMsg("bot.voice.setlimit.option_description"))
+			new OptionData(OptionType.INTEGER, "limit", bot.getLocaleUtil().getText("bot.voice.setlimit.option_description"))
 				.setRequiredRange(0, 99)
 				.setRequired(true)
 		);
+		this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.bot = bot;
+		this.category = CmdCategory.VOICE;
+		this.module = "voice";
+		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.mustSetup = true;
 	}
 
 	@Override
@@ -54,24 +46,6 @@ public class SetLimitCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				try {
-					// check access
-					bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-					// check module enabled
-						.moduleEnabled(event, MODULE)
-					// check user perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-					// check bots perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
-					// check setup
-					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event);
-					}
-				} catch (CheckException ex) {
-					hook.editOriginal(ex.getEditData()).queue();
-					return;
-				}
-
 				try {
 					Integer filLimit = event.getOption("limit", OptionMapping::getAsInt);
 					sendReply(event, hook, filLimit);
@@ -85,14 +59,14 @@ public class SetLimitCmd extends SlashCommand {
 
 	private void sendReply(SlashCommandEvent event, InteractionHook hook, Integer filLimit) {
 
-		Member member = Objects.requireNonNull(event.getMember());
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+		DiscordLocale userLocale = event.getUserLocale();
 
 		bot.getDBUtil().guildVoiceSetLimit(guildId, filLimit);
 
 		hook.editOriginalEmbeds(
-			bot.getEmbedUtil().getEmbed(member)
-				.setDescription(bot.getMsg(guildId, "bot.voice.setlimit.done").replace("{value}", filLimit.toString()))
+			bot.getEmbedUtil().getEmbed(event)
+				.setDescription(lu.getLocalized(userLocale, "bot.voice.setlimit.done").replace("{value}", filLimit.toString()))
 				.build()
 		).queue();
 	}

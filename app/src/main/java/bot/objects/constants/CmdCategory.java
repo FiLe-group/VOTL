@@ -1,6 +1,6 @@
 package bot.objects.constants;
 
-import com.jagrosh.jdautilities.command.Command.Category;
+import bot.objects.command.Command.Category;
 
 public final class CmdCategory {
 	private CmdCategory() {

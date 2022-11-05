@@ -6,14 +6,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
-import bot.objects.CmdAccessLevel;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
-import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -21,6 +19,7 @@ import net.dv8tion.jda.api.entities.Mentions;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -33,26 +32,19 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 	requirements = "Must have created voice channel"
 )
 public class PermitCmd extends SlashCommand {
-	
-	private final App bot;
-	
-	private static final boolean mustSetup = true;
-	private static final String MODULE = "voice";
-	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ALL;
-
-	protected static Permission[] userPerms = new Permission[0];
-	protected static Permission[] botPerms = new Permission[0];
 
 	public PermitCmd(App bot) {
 		this.name = "permit";
-		this.help = bot.getMsg("bot.voice.permit.help");
-		this.category = CmdCategory.VOICE;
-		PermitCmd.botPerms = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
+		this.helpPath = "bot.voice.permit.help";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "mention", bot.getMsg("bot.voice.permit.option_description"))
+			new OptionData(OptionType.STRING, "mention", bot.getLocaleUtil().getText("bot.voice.permit.option_description"))
 				.setRequired(true)
 		);
+		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
 		this.bot = bot;
+		this.category = CmdCategory.VOICE;
+		this.module = "voice";
+		this.mustSetup = true;
 	}
 
 	@Override
@@ -60,24 +52,6 @@ public class PermitCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				try {
-					// check access
-					bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-					// check module enabled
-						.moduleEnabled(event, MODULE)
-					// check user perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-					// check bots perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
-					// check setup
-					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event);
-					}
-				} catch (CheckException ex) {
-					hook.editOriginal(ex.getEditData()).queue();
-					return;
-				}
-
 				Mentions filMentions = event.getOption("mention", OptionMapping::getMentions);
 				sendReply(event, hook, filMentions);
 			}
@@ -97,7 +71,7 @@ public class PermitCmd extends SlashCommand {
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		String guildId = guild.getId();
+		DiscordLocale userLocale = event.getUserLocale();
 
 		List<Member> members = filMentions.getMembers();
 		List<Role> roles = filMentions.getRoles();
@@ -118,7 +92,7 @@ public class PermitCmd extends SlashCommand {
 				vc.getManager().putPermissionOverride(member, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
 				mentionStrings.add(member.getEffectiveName());
 			} catch (InsufficientPermissionException ex) {
-				hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, Permission.MANAGE_PERMISSIONS, true)).queue();
+				hook.editOriginal(bot.getEmbedUtil().getPermError(event, author, Permission.MANAGE_PERMISSIONS, true)).queue();
 				return;
 			}
 		}
@@ -129,14 +103,14 @@ public class PermitCmd extends SlashCommand {
 					vc.getManager().putPermissionOverride(role, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
 					mentionStrings.add(role.getName());
 				} catch (InsufficientPermissionException ex) {
-					hook.editOriginal(bot.getEmbedUtil().getPermError(event.getTextChannel(), author, Permission.MANAGE_PERMISSIONS, true)).queue();
+					hook.editOriginal(bot.getEmbedUtil().getPermError(event, author, Permission.MANAGE_PERMISSIONS, true)).queue();
 					return;
 				}
 		}
 
 		hook.editOriginalEmbeds(
-			bot.getEmbedUtil().getEmbed(author)
-				.setDescription(bot.getMsg(guildId, "bot.voice.permit.done", "", mentionStrings))
+			bot.getEmbedUtil().getEmbed(event)
+				.setDescription(lu.getLocalized(userLocale, "bot.voice.permit.done", "", mentionStrings))
 				.build()
 		).queue();
 	}

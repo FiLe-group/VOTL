@@ -1,16 +1,13 @@
 package bot;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
 import javax.annotation.Nonnull;
 
-import com.jagrosh.jdautilities.command.CommandClient;
-import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import bot.objects.command.CommandClient;
+import bot.objects.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import org.slf4j.LoggerFactory;
@@ -26,7 +23,6 @@ import bot.commands.voice.*;
 import bot.commands.webhook.*;
 import bot.listeners.GuildListener;
 import bot.listeners.VoiceListener;
-import bot.objects.Emotes;
 import bot.objects.constants.*;
 import ch.qos.logback.classic.Logger;
 import net.dv8tion.jda.annotations.ForRemoval;
@@ -48,7 +44,7 @@ public class App {
 
 	private static App instance;
 
-	public final String version = (App.class.getPackage().getImplementationVersion() == null) ? "DEVELOPMENT" : App.class.getPackage().getImplementationVersion();
+	public final String version = (App.class.getPackage().getImplementationVersion() == null) ? "DEVELOPMENT" : "v"+App.class.getPackage().getImplementationVersion();
 
 	public final JDA jda;
 	public final EventWaiter waiter;
@@ -65,8 +61,7 @@ public class App {
 	private EmbedUtil embedUtil;
 	private LangUtil langUtil;
 	private CheckUtil checkUtil;
-
-	public final String defaultLanguage = "en-GB";
+	private LocaleUtil localeUtil;
 
 	public App() {
 
@@ -88,9 +83,10 @@ public class App {
 		voiceListener	= new VoiceListener(this);
 
 		dbUtil		= new DBUtil(getFileManager().getFiles().get("database"));
-		messageUtil = new MessageUtil(this);
-		embedUtil 	= new EmbedUtil(this);
 		langUtil 	= new LangUtil(this);
+		localeUtil	= new LocaleUtil(this, langUtil, "en-GB", DiscordLocale.ENGLISH_UK);
+		messageUtil = new MessageUtil(this);
+		embedUtil 	= new EmbedUtil(localeUtil);
 		checkUtil	= new CheckUtil(this);
 
 		// Define a command client
@@ -209,92 +205,28 @@ public class App {
 		return checkUtil;
 	}
 
+	public LocaleUtil getLocaleUtil() {
+		return localeUtil;
+	}
+
 	public List<String> getAllModules() {
 		return List.of("voice", "webhook", "language");
 	}
 
 	@Nonnull
-	public String getLanguage(String id) {
-		String res = dbUtil.guildGetLanguage(id);
-		return (res == null ? "en-GB" : res);
+	public String getLanguage(String guildId) {
+		String res = dbUtil.guildGetLanguage(guildId);
+		return (res == null ? localeUtil.getDefaultLanguage() : res);
 	}
 
 	@ForRemoval
 	@Nonnull
-	public String getPrefix(String id) {
+	public String getPrefix(String guildId) {
 		return "/"; // default prefix
 	}
 
-	public void setLanguage(String id, String value) {
-		dbUtil.guildSetLanguage(id, value);
-	}
-
-	@Nonnull
-	public String getMsg(String id, String path, String user, String target) {
-		target = target == null ? "null" : target;
-		
-		return getMsg(id, path, user, Collections.singletonList(target));
-	}
-
-	@Nonnull
-	public String getMsg(String id, String path, String user, List<String> targets) {
-		String targetReplacement = targets.isEmpty() ? "null" : getMessageUtil().getFormattedMembers(id, targets.toArray(new String[0]));
-
-		return Objects.requireNonNull(getMsg(id, path, user)
-			.replace("{target}", targetReplacement)
-			.replace("{targets}", targetReplacement));
-	}
-
-	@Nonnull
-	public String getMsg(String id, String path, String user) {
-		return getMsg(id, path, user, true);
-	}
-
-	@Nonnull
-	public String getMsg(String id, String path, String user, boolean format) {
-		if (format)
-			user = getMessageUtil().getFormattedMembers(id, user);
-
-		return Objects.requireNonNull(getMsg(id, path).replace("{user}", user));
-	}
-
-	@Nonnull
-	public String getMsg(String path) {
-		return getMsg("0", path);
-	}
-
-	@Nonnull
-	public String getMsg(String id, String path) {
-		return Objects.requireNonNull(
-			setPlaceholders(langUtil.getString(getLanguage(id), path))
-				.replace("{prefix}", getPrefix(id))
-		);
-	}
-
-	@Nonnull
-	public String getLocale(DiscordLocale locale, String path) {
-		return setPlaceholders(langUtil.getString(locale.getLanguageName(), path));
-	}
-
-	public Map<DiscordLocale, String> getFullLocaleMap(String path) {
-		Map<DiscordLocale, String> localeMap = new HashMap<>();
-		for (DiscordLocale locale : fileManager.getLanguages()) {
-			localeMap.put(locale, getLocale(locale, path));
-		}
-		return localeMap;
-	}
-
-	@Nonnull
-	private String setPlaceholders(@Nonnull String msg) {
-		return Objects.requireNonNull(Emotes.getWithEmotes(msg)
-			.replace("{name}", "Voice of the Lord")
-			.replace("{guild_invite}", Links.DISCORD)
-			.replace("{owner_id}", fileManager.getString("config", "owner-id"))
-			.replace("{developer_name}", Constants.DEVELOPER_NAME)
-			.replace("{developer_id}", Constants.DEVELOPER_ID)
-			.replace("{bot_invite}", fileManager.getString("config", "bot-invite"))
-			.replace("{bot_version}", version)
-		);
+	public void setLanguage(String guildId, String value) {
+		dbUtil.guildSetLanguage(guildId, value);
 	}
 
 	public static void main(String[] args) {

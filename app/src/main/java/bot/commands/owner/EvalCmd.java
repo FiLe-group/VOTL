@@ -2,16 +2,14 @@ package bot.commands.owner;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.command.SlashCommand;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
 import bot.objects.constants.Constants;
-import bot.utils.exception.CheckException;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 
-import com.jagrosh.jdautilities.command.SlashCommand;
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import org.codehaus.groovy.runtime.powerassert.PowerAssertionError;
@@ -19,9 +17,8 @@ import org.codehaus.groovy.runtime.powerassert.PowerAssertionError;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -35,23 +32,12 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 	requirements = {"Be the bot's owner", "Have fck knowledge of what your're doing with it"}
 )
 public class EvalCmd extends SlashCommand {
-
-	private final App bot;
-
-	private static final boolean mustSetup = false;
-	private static final String MODULE = null;
-	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.DEV;
-
-	protected static Permission[] userPerms = new Permission[0];
-	protected static Permission[] botPerms = new Permission[0];
 	
 	public EvalCmd(App bot) {
 		this.name = "eval";
-		this.help = bot.getMsg("bot.owner.eval.help");
-		this.ownerCommand = true;
-		this.category = CmdCategory.OWNER;
+		this.helpPath = "bot.owner.eval.help";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "code", bot.getMsg("bot.owner.eval.code_description")) 
+			new OptionData(OptionType.STRING, "code", bot.getLocaleUtil().getText("bot.owner.eval.code_description")) 
 				.setRequired(true)
 			// Я блять ненавижу эту штуку
 			// Нужно переделовать через modals, но для этого нужно вначале получить комманду от пользователя
@@ -59,6 +45,10 @@ public class EvalCmd extends SlashCommand {
 			// ............пиздец
 		);
 		this.bot = bot;
+		this.category = CmdCategory.OWNER;
+		this.accessLevel = CmdAccessLevel.DEV;
+		this.ownerCommand = true;
+		this.guildOnly = false;
 	}
 
 	@Override
@@ -66,24 +56,6 @@ public class EvalCmd extends SlashCommand {
 
 		event.deferReply(true).queue(
 			hook -> {
-				try {
-					// check access
-					bot.getCheckUtil().hasAccess(event, ACCESS_LEVEL)
-					// check module enabled
-						.moduleEnabled(event, MODULE)
-					// check user perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), userPerms)
-					// check bots perms
-						.hasPermissions(event.getTextChannel(), event.getMember(), true, botPerms);
-					// check setup
-					if (mustSetup) {
-						bot.getCheckUtil().guildExists(event);
-					}
-				} catch (CheckException ex) {
-					hook.editOriginal(ex.getEditData()).queue();
-					return;
-				}
-
 				sendEvalEmbed(event, hook);
 			}
 		);
@@ -91,6 +63,8 @@ public class EvalCmd extends SlashCommand {
 	}
 
 	private void sendEvalEmbed(SlashCommandEvent event, InteractionHook hook) {
+
+		DiscordLocale userLocale = event.getUserLocale();
 
 		String args = event.getOption("code", "", OptionMapping::getAsString).trim();
 		if (args.startsWith("```") && args.endsWith("```")) {
@@ -102,6 +76,7 @@ public class EvalCmd extends SlashCommand {
 
 		Map<String, Object> variables = Map.of(
 			"bot", bot,
+			"event", event,
 			"jda", event.getJDA(),
 			"guild", (event.isFromGuild() ? event.getGuild() : null),
 			"channel", event.getChannel(),
@@ -113,35 +88,33 @@ public class EvalCmd extends SlashCommand {
 
 		long startTime = System.currentTimeMillis();
 
-		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-
 		try {
 			Object resp = shell.evaluate(args);
 			String respString = String.valueOf(resp);
 
-			hook.editOriginalEmbeds(formatEvalEmbed(event.getTextChannel(), args, respString,
-				bot.getMsg(guildId, "bot.owner.eval.time")
+			hook.editOriginalEmbeds(formatEvalEmbed(userLocale, args, respString,
+				lu.getLocalized(userLocale, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
 	 			, true)).queue();
 		} catch (PowerAssertionError | Exception ex) {
-			hook.editOriginalEmbeds(formatEvalEmbed(event.getTextChannel(), args, ex.getMessage(),
-				bot.getMsg(guildId, "bot.owner.eval.time")
+			hook.editOriginalEmbeds(formatEvalEmbed(userLocale, args, ex.getMessage(),
+				lu.getLocalized(userLocale, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
 				, false)).queue();
 		}
 	}
 
 	@SuppressWarnings("null")
-	private MessageEmbed formatEvalEmbed(TextChannel tc, String input, String output, String footer, boolean success) {		
+	private MessageEmbed formatEvalEmbed(DiscordLocale locale, String input, String output, String footer, boolean success) {		
 		EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
 			.setColor(success ? Constants.COLOR_SUCCESS : Constants.COLOR_FAILURE)
-			.addField(bot.getMsg(tc.getGuild().getId(), "bot.owner.eval.input"), String.format(
+			.addField(lu.getLocalized(locale, "bot.owner.eval.input"), String.format(
 				"```java\n"+
 					"%s\n"+
 					"```",
 				input
 				), false)
-			.addField(bot.getMsg(tc.getGuild().getId(), "bot.owner.eval.output"), String.format(
+			.addField(lu.getLocalized(locale, "bot.owner.eval.output"), String.format(
 				"```java\n"+
 					"%s\n"+
 					"```",

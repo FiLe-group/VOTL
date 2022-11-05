@@ -1,29 +1,27 @@
 package bot.utils.message;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
-import com.jagrosh.jdautilities.command.SlashCommandEvent;
-
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
-import bot.App;
+import bot.objects.command.CommandEvent;
+import bot.objects.command.MessageContextMenuEvent;
+import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.Constants;
 
 public class EmbedUtil {
 
-	private final App bot;
+	private final LocaleUtil lu;
 
-	public EmbedUtil(App bot) {
-		this.bot = bot;
+	public EmbedUtil(LocaleUtil localeUtil) {
+		this.lu = localeUtil;
 	}
 
 	@Nonnull
@@ -32,50 +30,52 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public EmbedBuilder getEmbed(Member member) {
-		return getEmbed().setFooter(
-			bot.getMsg(member.getGuild().getId(), "embed.footer", member.getUser().getAsTag(), false),
-			member.getUser().getEffectiveAvatarUrl()
-		);
+	public <T> EmbedBuilder getEmbed(T genericEvent) {
+		if (genericEvent instanceof SlashCommandEvent) {
+			return getEmbed().setFooter(
+				lu.getUserText(genericEvent, "embed.footer"),
+				((SlashCommandEvent) genericEvent).getUser().getEffectiveAvatarUrl()
+			);
+		}
+		if (genericEvent instanceof CommandEvent) {
+			return getEmbed().setFooter(
+				lu.getUserText(genericEvent, "embed.footer"),
+				((CommandEvent) genericEvent).getAuthor().getEffectiveAvatarUrl()
+			);
+		}
+		if (genericEvent instanceof MessageContextMenuEvent) {
+			return getEmbed().setFooter(
+				lu.getUserText(genericEvent, "embed.footer"),
+				((MessageContextMenuEvent) genericEvent).getUser().getEffectiveAvatarUrl()
+			);
+		}
+		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
 	}
 
 	@Nonnull
-	public EmbedBuilder getEmbed(User user) {
-		return getEmbed().setFooter(
-			bot.getMsg("0", "embed.footer", user.getAsTag(), false),
-			user.getEffectiveAvatarUrl()
-		);
-	} 
-
-	@Nonnull
-	private EmbedBuilder getErrorEmbed(Member member) {
-		return (member == null ? getEmbed() : getEmbed(member)).setColor(Constants.COLOR_FAILURE);
+	private <T> EmbedBuilder getErrorEmbed(T event) {
+		return getEmbed(event).setColor(Constants.COLOR_FAILURE);
 	}
 
 	@Nonnull
-	private EmbedBuilder getErrorEmbed(User user) {
-		return (user == null ? getEmbed() : getEmbed(user)).setColor(Constants.COLOR_FAILURE);
-	}
-
-	@Nonnull
-	public EmbedBuilder getPermErrorEmbed(Member member, Guild guild, TextChannel channel, Permission perm, boolean self) {
-		EmbedBuilder embed = getErrorEmbed(member);
+	public <T> EmbedBuilder getPermErrorEmbed(T event, TextChannel channel, Permission perm, boolean self) {
+		EmbedBuilder embed = getErrorEmbed(event);
 		String msg;
 		if (self) {
 			if (channel == null) {
-				msg = bot.getMsg(guild.getId(), "errors.missing_perms.self")
+				msg = lu.getText(event, "errors.missing_perms.self")
 					.replace("{permissions}", perm.getName());
 			} else {
-				msg = bot.getMsg(guild.getId(), "errors.missing_perms.self_channel")
+				msg = lu.getText(event, "errors.missing_perms.self_channel")
 					.replace("{permissions}", perm.getName())
 					.replace("{channel}", channel.getAsMention());
 			}
 		} else {
 			if (channel == null) {
-				msg = bot.getMsg(guild.getId(), "errors.missing_perms.other")
+				msg = lu.getText(event, "errors.missing_perms.other")
 					.replace("{permissions}", perm.getName());
 			} else {
-				msg = bot.getMsg(guild.getId(), "errors.missing_perms.other_channel")
+				msg = lu.getText(event, "errors.missing_perms.other_channel")
 					.replace("{permissions}", perm.getName())
 					.replace("{channel}", channel.getAsMention());
 			}
@@ -85,42 +85,36 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public MessageEditData getError(SlashCommandEvent event, String path) {
+	public <T> MessageEditData getError(T event, @Nonnull String path) {
 		return getError(event, path, null);
 	}
 
 	@Nonnull
-	public MessageEditData getError(SlashCommandEvent event, String path, String reason) {
-		
-		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-
-		EmbedBuilder embed = event.isFromGuild() ? getErrorEmbed(event.getMember()) : getErrorEmbed(event.getUser());
-		embed.setDescription(
-			Optional.ofNullable(event.getMember()).map(m -> bot.getMsg(guildId, path, m.getEffectiveName())).orElse(bot.getMsg(guildId, path))
-		);
+	public <T> MessageEditData getError(T event, @Nonnull String path, String reason) {
+		EmbedBuilder embedBuilder = getErrorEmbed(event)
+			.setDescription(lu.getText(event, path));
 
 		if (reason != null)
-			embed.addField(
-				bot.getMsg(guildId, "errors.title"),
+			embedBuilder.addField(
+				lu.getText(event, "errors.title"),
 				reason,
 				false
 			);
 
-		return MessageEditData.fromEmbeds(embed.build());
+		return MessageEditData.fromEmbeds(embedBuilder.build());
 	}
 
 	@Nonnull
-	public MessageEditData getPermError(TextChannel tc, Member member, Permission perm, boolean self) {
-		return getPermError(tc, member, null, perm, self);
+	public <T> MessageEditData getPermError(T event, Member member, Permission perm, boolean self) {
+		return getPermError(event, member, null, perm, self);
 	}
 
-	
-
 	@Nonnull
-	public MessageEditData getPermError(TextChannel tc, Member member, TextChannel channel, Permission perm, boolean self) {
+	public <T> MessageEditData getPermError(T event, Member member, TextChannel channel, Permission perm, boolean self) {
+		User user = member.getUser();
 		if (perm.equals(Permission.MESSAGE_SEND)) {
-			member.getUser().openPrivateChannel()
-				.flatMap(ch -> ch.sendMessage(bot.getMsg(member.getGuild().getId(), "errors.no_send_perm")))
+			user.openPrivateChannel()
+				.flatMap(ch -> ch.sendMessage(lu.getText(event, "errors.no_send_perm")))
 				.queue();
 			return MessageEditData.fromContent("PM sended");
 		}
@@ -129,18 +123,18 @@ public class EmbedUtil {
 		if (perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
 			if (channel == null) {
 				mb.setContent(
-					bot.getMsg(tc.getId(),"errors.missing_perms.self")
+					lu.getText(event, "errors.missing_perms.self")
 						.replace("{permission}", perm.getName())
 				);
 			} else {
 				mb.setContent(
-					bot.getMsg(tc.getId(),"errors.missing_perms.self_channel")
+					lu.getText(event, "errors.missing_perms.self_channel")
 						.replace("{permission}", perm.getName())
 						.replace("{channel}", channel.getAsMention())
 				);
 			}
 		} else {
-			mb.setEmbeds(getPermErrorEmbed(member, tc.getGuild(), channel, perm, self).build());
+			mb.setEmbeds(getPermErrorEmbed(event, channel, perm, self).build());
 		}
 		return mb.build();
 	}
