@@ -5,6 +5,7 @@ import java.util.Objects;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdModule;
 import bot.objects.command.SlashCommand;
 import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
@@ -30,7 +31,7 @@ public class UnlockCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
 		this.bot = bot;
 		this.category = CmdCategory.VOICE;
-		this.module = "voice";
+		this.module = CmdModule.VOICE;
 		this.mustSetup = true;
 	}
 

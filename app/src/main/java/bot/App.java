@@ -1,6 +1,5 @@
 package bot;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
@@ -208,10 +207,6 @@ public class App {
 
 	public LocaleUtil getLocaleUtil() {
 		return localeUtil;
-	}
-
-	public List<String> getAllModules() {
-		return List.of("voice", "webhook", "language");
 	}
 
 	@Nonnull

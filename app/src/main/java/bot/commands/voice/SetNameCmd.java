@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdModule;
 import bot.objects.CmdAccessLevel;
 import bot.objects.command.SlashCommand;
 import bot.objects.command.SlashCommandEvent;
@@ -44,7 +45,7 @@ public class SetNameCmd extends SlashCommand {
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.VOICE;
-		this.module = "voice";
+		this.module = CmdModule.VOICE;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 		this.mustSetup = true;
 	}

@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.CmdModule;
 import bot.objects.command.SlashCommand;
 import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
@@ -41,7 +42,7 @@ public class WebhookCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		this.bot = bot;
 		this.category = CmdCategory.WEBHOOK;
-		this.module = "webhook";
+		this.module = CmdModule.WEBHOOK;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 		this.mustSetup = true;
 	}

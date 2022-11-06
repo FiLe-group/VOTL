@@ -1,6 +1,7 @@
 package bot.commands.guild;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +14,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.CmdModule;
 import bot.objects.command.SlashCommand;
 import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
@@ -76,9 +78,9 @@ public class ModuleCmd extends SlashCommand {
 			DiscordLocale userLocale = event.getUserLocale();
 
 			StringBuilder builder = new StringBuilder();
-			List<String> disabled = getModules(guildId, false);
-			for (String module : getModules(guildId, true, false)) {
-				builder.append(format(lu.getLocalized(userLocale, "modules."+module), (disabled.contains(module) ? Constants.FAILURE : Constants.SUCCESS))).append("\n");
+			List<CmdModule> disabled = getModules(guildId, false);
+			for (CmdModule sModule : getModules(guildId, true, false)) {
+				builder.append(format(lu.getLocalized(userLocale, sModule.getPath()), (disabled.contains(sModule) ? Constants.FAILURE : Constants.SUCCESS))).append("\n");
 			}
 
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
@@ -91,8 +93,8 @@ public class ModuleCmd extends SlashCommand {
 		}
 
 		@Nonnull
-		private String format(String module, String status) {
-			return "`" + status + "` | " + module;
+		private String format(String sModule, String status) {
+			return "`" + status + "` | " + sModule;
 		}
 	}
 
@@ -121,7 +123,7 @@ public class ModuleCmd extends SlashCommand {
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(lu.getLocalized(userLocale, "bot.guild.module.disable.embed_title"));
 
-			List<String> enabled = getModules(guildId, true);
+			List<CmdModule> enabled = getModules(guildId, true);
 			if (enabled.isEmpty()) {
 				embed.setDescription(lu.getLocalized(userLocale, "bot.guild.module.disable.none"))
 					.setColor(Constants.COLOR_FAILURE);
@@ -134,8 +136,8 @@ public class ModuleCmd extends SlashCommand {
 				.setPlaceholder("Select")
 				.setRequiredRange(1, 1)
 				.addOptions(enabled.stream().map(
-					module -> {
-						return SelectOption.of(lu.getLocalized(userLocale, "modules."+module), module);
+					sModule -> {
+						return SelectOption.of(lu.getLocalized(userLocale, sModule.getPath()), sModule.toString());
 					}
 				).collect(Collectors.toList()))
 				.build();
@@ -149,14 +151,14 @@ public class ModuleCmd extends SlashCommand {
 
 							actionEvent.deferEdit().queue(
 								actionHook -> {
-									String module = actionEvent.getSelectedOptions().get(0).getValue();
-									if (bot.getDBUtil().moduleDisabled(guildId, module)) {
+									CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
+									if (bot.getDBUtil().moduleDisabled(guildId, sModule)) {
 										hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.module.disable.already")).setComponents().queue();
 										return;
 									}
-									bot.getDBUtil().moduleAdd(guildId, module);
+									bot.getDBUtil().moduleAdd(guildId, sModule);
 									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event)
-										.setTitle(lu.getLocalized(userLocale, "bot.guild.module.disable.done").replace("{module}", lu.getLocalized(userLocale, "modules."+module)))
+										.setTitle(lu.getLocalized(userLocale, "bot.guild.module.disable.done").replace("{module}", lu.getLocalized(userLocale, sModule.getPath())))
 										.setColor(Constants.COLOR_SUCCESS);
 									hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
 								}
@@ -202,7 +204,7 @@ public class ModuleCmd extends SlashCommand {
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(lu.getLocalized(userLocale, "bot.guild.module.enable.embed_title"));
 
-			List<String> enabled = getModules(guildId, false);
+			List<CmdModule> enabled = getModules(guildId, false);
 			if (enabled.isEmpty()) {
 				embed.setDescription(lu.getLocalized(userLocale, "bot.guild.module.enable.none"))
 					.setColor(Constants.COLOR_FAILURE);
@@ -215,8 +217,8 @@ public class ModuleCmd extends SlashCommand {
 				.setPlaceholder("Select")
 				.setRequiredRange(1, 1)
 				.addOptions(enabled.stream().map(
-					module -> {
-						return SelectOption.of(lu.getLocalized(userLocale, "modules."+module), module);
+					sModule -> {
+						return SelectOption.of(lu.getLocalized(userLocale, sModule.getPath()), sModule.toString());
 					}
 				).collect(Collectors.toList()))
 				.build();
@@ -230,14 +232,14 @@ public class ModuleCmd extends SlashCommand {
 
 							actionEvent.deferEdit().queue(
 								actionHook -> {
-									String module = actionEvent.getSelectedOptions().get(0).getValue();
-									if (!bot.getDBUtil().moduleDisabled(guildId, module)) {
+									CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
+									if (!bot.getDBUtil().moduleDisabled(guildId, sModule)) {
 										hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.module.enable.already")).setComponents().queue();
 										return;
 									}
-									bot.getDBUtil().moduleRemove(guildId, module);
+									bot.getDBUtil().moduleRemove(guildId, sModule);
 									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event)
-										.setTitle(lu.getLocalized(userLocale, "bot.guild.module.enable.done").replace("{module}", lu.getLocalized(userLocale, "modules."+module)))
+										.setTitle(lu.getLocalized(userLocale, "bot.guild.module.enable.done").replace("{module}", lu.getLocalized(userLocale, sModule.getPath())))
 										.setColor(Constants.COLOR_SUCCESS);
 									hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
 								}
@@ -258,17 +260,17 @@ public class ModuleCmd extends SlashCommand {
 		}
 	}
 
-	private List<String> getModules(String guildId, boolean on) {
+	private List<CmdModule> getModules(String guildId, boolean on) {
 		return getModules(guildId, false, on);
 	}
 
-	private List<String> getModules(String guildId, boolean all, boolean on) {
-		List<String> modules = new ArrayList<>(bot.getAllModules());
+	private List<CmdModule> getModules(String guildId, boolean all, boolean on) {
+		List<CmdModule> modules = new ArrayList<CmdModule>(Arrays.asList(CmdModule.values()));
 		if (all) {
 			return modules;
 		}
 
-		List<String> disabled = bot.getDBUtil().modulesGet(guildId);
+		List<CmdModule> disabled = bot.getDBUtil().modulesGet(guildId);
 		if (on) {
 			modules.removeAll(disabled);
 			return modules;

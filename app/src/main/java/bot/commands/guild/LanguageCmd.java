@@ -12,6 +12,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.CmdModule;
 import bot.objects.command.SlashCommand;
 import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
@@ -42,7 +43,7 @@ public class LanguageCmd extends SlashCommand {
 		this.children = new SlashCommand[]{new Reset(), new Set(bot.getLocaleUtil()), new Show()};
 		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.GUILD;
-		this.module = "language";
+		this.module = CmdModule.LANGUAGE;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 		this.mustSetup = true;
 	}

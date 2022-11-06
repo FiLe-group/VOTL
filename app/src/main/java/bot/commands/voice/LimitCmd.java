@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
+import bot.objects.CmdModule;
 import bot.objects.command.SlashCommand;
 import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
@@ -36,7 +37,7 @@ public class LimitCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL};
 		this.bot = bot;
 		this.category = CmdCategory.VOICE;
-		this.module = "voice";
+		this.module = CmdModule.VOICE;
 		this.mustSetup = true;
 	}
 

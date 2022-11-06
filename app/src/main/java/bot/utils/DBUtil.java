@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.LoggerFactory;
 
+import bot.objects.CmdModule;
 import ch.qos.logback.classic.Logger;
 
 public class DBUtil {
@@ -243,24 +244,24 @@ public class DBUtil {
 	}
 
 	// Module disable
-	public void moduleAdd(String guildId, String module) {
-		insert("moduleOff", new String[]{"guildId", "module"}, new Object[]{guildId, module});
+	public void moduleAdd(String guildId, CmdModule module) {
+		insert("moduleOff", new String[]{"guildId", "module"}, new Object[]{guildId, module.toString()});
 	}
 
-	public void moduleRemove(String guildId, String module) {
-		delete("moduleOff", new String[]{"guildId", "module"}, new Object[]{guildId, module});
+	public void moduleRemove(String guildId, CmdModule module) {
+		delete("moduleOff", new String[]{"guildId", "module"}, new Object[]{guildId, module.toString()});
 	}
 
-	public List<String> modulesGet(String guildId) {
+	public List<CmdModule> modulesGet(String guildId) {
 		List<Object> objs = select("moduleOff", "module", "guildId", guildId);
 		if (objs.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
+		return objs.stream().map(obj -> CmdModule.valueOf(String.valueOf(obj))).collect(Collectors.toList());
 	}
 
-	public boolean moduleDisabled(String guildId, String module) {
-		if (select("moduleOff", "guildId", new String[]{"guildId", "module"}, new Object[]{guildId, module}).isEmpty()) {
+	public boolean moduleDisabled(String guildId, CmdModule module) {
+		if (select("moduleOff", "guildId", new String[]{"guildId", "module"}, new Object[]{guildId, module.toString()}).isEmpty()) {
 			return false;
 		}
 		return true;

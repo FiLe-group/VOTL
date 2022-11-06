@@ -9,6 +9,7 @@ import bot.objects.command.SlashCommandEvent;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.CmdModule;
 import bot.objects.constants.Constants;
 import bot.utils.exception.CheckException;
 import net.dv8tion.jda.api.Permission;
@@ -108,7 +109,7 @@ public class CheckUtil {
 		return this;
 	}
 
-	public <T> CheckUtil moduleEnabled(T genericEvent, String module) throws CheckException {
+	public <T> CheckUtil moduleEnabled(T genericEvent, CmdModule module) throws CheckException {
 		if (genericEvent instanceof SlashCommandEvent) {
 			SlashCommandEvent event = (SlashCommandEvent) genericEvent;
 			return moduleEnabled(event, event.getGuild(), module);
@@ -124,7 +125,7 @@ public class CheckUtil {
 		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
 	}
 
-	private <T> CheckUtil moduleEnabled(T event, Guild guild, String module) throws CheckException {
+	private <T> CheckUtil moduleEnabled(T event, Guild guild, CmdModule module) throws CheckException {
 		if (module == null)
 			return this;
 		if (bot.getDBUtil().moduleDisabled(guild.getId(), module)) 

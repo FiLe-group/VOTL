@@ -8,6 +8,7 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.CmdModule;
 import bot.objects.command.SlashCommand;
 import bot.objects.command.SlashCommandEvent;
 import bot.objects.constants.CmdCategory;
@@ -85,7 +86,7 @@ public class SetupCmd extends SlashCommand {
 			this.name = "voice";
 			this.helpPath = "bot.guild.setup.voice";
 			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS
-			this.module = "voice";
+			this.module = CmdModule.VOICE;
 		}
 
 		@Override

@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 
 import bot.App;
 import bot.objects.CmdAccessLevel;
+import bot.objects.CmdModule;
 import bot.utils.message.LocaleUtil;
 import net.dv8tion.jda.api.Permission;
 
@@ -164,7 +165,7 @@ public abstract class Interaction
 	
 	protected boolean mustSetup = false;
 
-	protected String module = null;
+	protected CmdModule module = null;
 
 	protected CmdAccessLevel accessLevel = CmdAccessLevel.ALL;
 
@@ -180,7 +181,7 @@ public abstract class Interaction
 		return accessLevel;
 	}
 
-	public String getModule() {
+	public CmdModule getModule() {
 		return module;
 	}
 
