@@ -2,6 +2,7 @@ package bot;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 import javax.annotation.Nonnull;
@@ -44,7 +45,7 @@ public class App {
 
 	private static App instance;
 
-	public final String version = (App.class.getPackage().getImplementationVersion() == null) ? "DEVELOPMENT" : "v"+App.class.getPackage().getImplementationVersion();
+	public final String version = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
 
 	public final JDA jda;
 	public final EventWaiter waiter;
@@ -78,15 +79,15 @@ public class App {
 		}
 		
 		// Define for default
-		waiter 			= new EventWaiter();
-		guildListener 	= new GuildListener(this);
+		waiter			= new EventWaiter();
+		guildListener	= new GuildListener(this);
 		voiceListener	= new VoiceListener(this);
 
 		dbUtil		= new DBUtil(getFileManager().getFiles().get("database"));
-		langUtil 	= new LangUtil(this);
+		langUtil	= new LangUtil(this);
 		localeUtil	= new LocaleUtil(this, langUtil, "en-GB", DiscordLocale.ENGLISH_UK);
-		messageUtil = new MessageUtil(this);
-		embedUtil 	= new EmbedUtil(localeUtil);
+		messageUtil	= new MessageUtil(this);
+		embedUtil	= new EmbedUtil(localeUtil);
 		checkUtil	= new CheckUtil(this);
 
 		// Define a command client
@@ -130,8 +131,8 @@ public class App {
 			.build();
 
 		// Build
-		MemberCachePolicy policy = MemberCachePolicy.VOICE		// check if in voice
-			.or(Objects.requireNonNull(MemberCachePolicy.OWNER));						// check for owner
+		MemberCachePolicy policy = MemberCachePolicy.VOICE			// check if in voice
+			.or(Objects.requireNonNull(MemberCachePolicy.OWNER));	// check for owner
 
 		Integer retries = 4; // how many times will it try to build
 		Integer cooldown = 8; // in seconds; cooldown amount, will doubles after each retry

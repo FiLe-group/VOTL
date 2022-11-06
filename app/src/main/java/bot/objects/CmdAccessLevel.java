@@ -3,8 +3,6 @@ package bot.objects;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
-
 public enum CmdAccessLevel {
 	ALL     (0, "everyone"),
 	MOD     (1, "mod"),
@@ -15,7 +13,7 @@ public enum CmdAccessLevel {
 	private final Integer level;
 	private final String name;
 
-	private static final Map<Integer, CmdAccessLevel> lookup = new HashMap<Integer, CmdAccessLevel>();
+	public static final Map<Integer, CmdAccessLevel> lookup = new HashMap<Integer, CmdAccessLevel>();
 
 	static {
 		for (CmdAccessLevel al : CmdAccessLevel.values()) {
@@ -36,7 +34,4 @@ public enum CmdAccessLevel {
 		return name;
 	}
 
-	public CmdAccessLevel fromLevel(@Nonnull Integer input) {
-		return lookup.get(level);
-	}	
 }
