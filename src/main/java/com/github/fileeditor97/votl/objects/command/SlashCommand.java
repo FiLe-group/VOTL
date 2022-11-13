@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
@@ -291,6 +292,7 @@ public abstract class SlashCommand extends Command
 	 *
 	 * @return the built command data
 	 */
+	@SuppressWarnings("null")
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.lu = bot.getLocaleUtil();
@@ -466,7 +468,7 @@ public abstract class SlashCommand extends Command
 		else
 			front.append(" " + lu.getLocalized(userLocale, cooldownScope.errorPath));
 
-		return MessageCreateData.fromContent(front.append("!").toString());
+		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
 	}
 
 	/**

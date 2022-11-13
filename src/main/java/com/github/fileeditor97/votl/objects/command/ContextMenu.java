@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
@@ -95,6 +96,7 @@ public abstract class ContextMenu extends Interaction
 	 *
 	 * @return A String key to use when applying a cooldown.
 	 */
+	@SuppressWarnings("null")
 	public String getCooldownKey(GenericCommandInteractionEvent event)
 	{
 		switch (cooldownScope)
@@ -143,7 +145,7 @@ public abstract class ContextMenu extends Interaction
 		else
 			front.append(" " + lu.getText(event, cooldownScope.errorPath));
 		
-		return MessageCreateData.fromContent(front.append("!").toString());
+		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
 	}
 
 	/**
@@ -154,6 +156,7 @@ public abstract class ContextMenu extends Interaction
 	 *
 	 * @return the built command data
 	 */
+	@SuppressWarnings("null")
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.lu = bot.getLocaleUtil();
@@ -161,7 +164,7 @@ public abstract class ContextMenu extends Interaction
 		// Make the command data
 		CommandData data = Commands.context(getType(), name);
 
-		if (this.userPermissions == null)
+		if (this.userPermissions.length == 0)
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(this.userPermissions));

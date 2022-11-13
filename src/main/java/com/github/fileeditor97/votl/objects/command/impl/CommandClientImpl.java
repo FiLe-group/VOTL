@@ -37,7 +37,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
@@ -81,6 +80,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -222,12 +222,11 @@ public class CommandClientImpl implements CommandClient, EventListener
 							   .append(" - ").append(command.getHelp());
 					}
 				}
-				User owner = event.getJDA().getUserById(ownerId);
-				if(owner!=null)
-				{
-					builder.append("\n\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator());
-					if(serverInvite!=null)
-						builder.append(" or join ").append(serverInvite);
+				if (ownerId != null) {
+					Optional.ofNullable(event.getJDA().getUserById(ownerId)).map(owner -> 
+						builder.append("\n\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator())
+							.append(serverInvite != null ? " or join "+serverInvite : "")
+					);
 				}
 				event.replyInDm(builder.toString(), unused ->
 				{
@@ -1044,7 +1043,7 @@ public class CommandClientImpl implements CommandClient, EventListener
 			}
 
 			Request.Builder builder = new Request.Builder()
-					.post(RequestBody.create(MediaType.parse("application/json"), body.toString()))
+					.post(RequestBody.create(body.toString(), MediaType.parse("application/json")))
 					.url("https://discord.bots.gg/api/v1/bots/" + jda.getSelfUser().getId() + "/stats")
 					.header("Authorization", botsKey)
 					.header("Content-Type", "application/json");
@@ -1078,13 +1077,8 @@ public class CommandClientImpl implements CommandClient, EventListener
 				}
 			});
 		}
-		else if (jda.getShardManager() != null)
-		{
-			totalGuilds = (int) jda.getShardManager().getGuildCache().size();
-		}
-		else
-		{
-			totalGuilds = (int) jda.getGuildCache().size();
+		else {
+			totalGuilds = Optional.ofNullable(jda.getShardManager()).map(sm -> (int) sm.getGuildCache().size()).orElse((int) jda.getGuildCache().size());
 		}
 	}
 

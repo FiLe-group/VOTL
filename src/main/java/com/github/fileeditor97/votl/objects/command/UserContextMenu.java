@@ -148,11 +148,12 @@ public abstract class UserContextMenu extends ContextMenu {
 	}
 
 	@Override
+	@SuppressWarnings("null")
 	public CommandData buildCommandData() {
 		// Make the command data
 		CommandData data = Commands.user(getName());
 
-		if (this.userPermissions == null)
+		if (this.userPermissions.length == 0)
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(this.userPermissions));

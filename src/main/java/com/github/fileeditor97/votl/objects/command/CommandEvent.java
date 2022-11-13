@@ -17,6 +17,7 @@ package com.github.fileeditor97.votl.objects.command;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -930,7 +931,7 @@ public class CommandEvent
 			return;
 		try
 		{
-			event.getMessage().addReaction(Emoji.fromFormatted(reaction.replaceAll("<a?:(.+):(\\d+)>", "$1:$2"))).queue();
+			event.getMessage().addReaction(Emoji.fromFormatted(Objects.requireNonNull(reaction.replaceAll("<a?:(.+):(\\d+)>", "$1:$2")))).queue();
 		}
 		catch(PermissionException ignored) {}
 	}
@@ -940,7 +941,7 @@ public class CommandEvent
 		ArrayList<String> messages = splitMessage(message);
 		for(int i=0; i<MAX_MESSAGES && i<messages.size(); i++)
 		{
-			chan.sendMessage(messages.get(i)).queue(m -> {
+			chan.sendMessage(Objects.requireNonNull(messages.get(i))).queue(m -> {
 				if(event.isFromType(ChannelType.TEXT))
 					linkId(m);
 			});
@@ -954,7 +955,7 @@ public class CommandEvent
 		{
 			if(i+1==MAX_MESSAGES || i+1==messages.size())
 			{
-				chan.sendMessage(messages.get(i)).queue(m -> {
+				chan.sendMessage(Objects.requireNonNull(messages.get(i))).queue(m -> {
 					if(event.isFromType(ChannelType.TEXT))
 						linkId(m);
 					success.accept(m);
@@ -962,7 +963,7 @@ public class CommandEvent
 			}
 			else
 			{
-				chan.sendMessage(messages.get(i)).queue(m -> {
+				chan.sendMessage(Objects.requireNonNull(messages.get(i))).queue(m -> {
 					if(event.isFromType(ChannelType.TEXT))
 						linkId(m);
 				});
@@ -977,7 +978,7 @@ public class CommandEvent
 		{
 			if(i + 1 == MAX_MESSAGES || i + 1 == messages.size())
 			{
-				chan.sendMessage(messages.get(i)).queue(m -> {
+				chan.sendMessage(Objects.requireNonNull(messages.get(i))).queue(m -> {
 					if(event.isFromType(ChannelType.TEXT))
 						linkId(m);
 					success.accept(m);
@@ -985,7 +986,7 @@ public class CommandEvent
 			}
 			else
 			{
-				chan.sendMessage(messages.get(i)).queue(m -> {
+				chan.sendMessage(Objects.requireNonNull(messages.get(i))).queue(m -> {
 					if(event.isFromType(ChannelType.TEXT))
 						linkId(m);
 				});

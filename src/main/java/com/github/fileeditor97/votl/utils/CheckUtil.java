@@ -157,7 +157,7 @@ public class CheckUtil {
 	}
 
 	private <T> CheckUtil hasPermissions(T event, Guild guild, Member member, boolean isSelf, TextChannel channel, Permission[] permissions) throws CheckException {
-		if (permissions.length == 0)
+		if (permissions == null || permissions.length == 0)
 			return this;
 		if (guild == null || member == null)
 			return this;
