@@ -32,7 +32,7 @@ public class HelpCmd extends SlashCommand {
 
 	public HelpCmd(App bot) {
 		this.name = "help";
-		this.helpPath = "bot.help.help";
+		this.path = "bot.help";
 
 		List<OptionData> options = new ArrayList<>();
 		options.add(new OptionData(OptionType.BOOLEAN, "show", bot.getLocaleUtil().getText("misc.show_description")));

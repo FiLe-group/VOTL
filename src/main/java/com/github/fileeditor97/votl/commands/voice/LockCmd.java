@@ -28,7 +28,7 @@ public class LockCmd extends SlashCommand {
 
 	public LockCmd(App bot) {
 		this.name = "lock";
-		this.helpPath = "bot.voice.lock.help";
+		this.path = "bot.voice.lock";
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
 		this.bot = bot;
 		this.category = CmdCategory.VOICE;

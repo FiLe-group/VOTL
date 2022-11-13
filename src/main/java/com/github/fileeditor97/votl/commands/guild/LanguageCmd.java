@@ -38,7 +38,7 @@ public class LanguageCmd extends SlashCommand {
 
 	public LanguageCmd(App bot) {
 		this.name = "language";
-		this.helpPath = "bot.guild.language.help";
+		this.path = "bot.guild.language";
 		this.bot = bot;
 		this.children = new SlashCommand[]{new Reset(), new Set(bot.getLocaleUtil()), new Show()};
 		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
@@ -57,7 +57,7 @@ public class LanguageCmd extends SlashCommand {
 
 		public Reset() {
 			this.name = "reset";
-			this.helpPath = "bot.guild.language.reset.help";
+			this.path = "bot.guild.language.reset";
 		}
 
 		@Override
@@ -79,10 +79,9 @@ public class LanguageCmd extends SlashCommand {
 		@SuppressWarnings("null")
 		public Set(LocaleUtil lu) {
 			this.name = "set";
-			this.helpPath = "bot.guild.language.set.help";
+			this.path = "bot.guild.language.set";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "language", lu.getText("bot.guild.language.set.option_description"))
-					.setRequired(true)
+				new OptionData(OptionType.STRING, "language", lu.getText("bot.guild.language.set.option_description"), true)
 					.addChoices(getLangList().stream().map(
 						locale -> {
 							return new Choice(locale.getLocale(), locale.getLocale());
@@ -110,7 +109,7 @@ public class LanguageCmd extends SlashCommand {
 
 		public Show() {
 			this.name = "show";
-			this.helpPath = "bot.guild.language.show.help";
+			this.path = "bot.guild.language.show";
 		}
 
 		@Override

@@ -36,7 +36,7 @@ public class RejectCmd extends SlashCommand {
 
 	public RejectCmd(App bot) {
 		this.name = "reject";
-		this.helpPath = "bot.voice.reject.help";
+		this.path = "bot.voice.reject";
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.STRING, "mention", bot.getLocaleUtil().getText("bot.voice.reject.option_description"))
 				.setRequired(true)

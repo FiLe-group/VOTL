@@ -33,7 +33,7 @@ public class PermsCmd extends SlashCommand {
 
 	public PermsCmd(App bot) {
 		this.name = "perms";
-		this.helpPath = "bot.voice.perms.help";
+		this.path = "bot.voice.perms";
 		this.children = new SlashCommand[]{new View(), new Reset()};
 		this.bot = bot;
 		this.category = CmdCategory.VOICE;
@@ -50,7 +50,7 @@ public class PermsCmd extends SlashCommand {
 
 		public View() {
 			this.name = "view";
-			this.helpPath = "bot.voice.perms.view.help";
+			this.path = "bot.voice.perms.view";
 			this.botPermissions = new Permission[]{Permission.MANAGE_PERMISSIONS};
 		}
 
@@ -165,7 +165,7 @@ public class PermsCmd extends SlashCommand {
 
 		public Reset() {
 			this.name = "reset";
-			this.helpPath = "bot.voice.perms.reset.help";
+			this.path = "bot.voice.perms.reset";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
 		}
 

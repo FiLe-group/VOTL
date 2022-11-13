@@ -30,7 +30,7 @@ public class SetupCmd extends SlashCommand {
 
 	public SetupCmd(App bot) {
 		this.name = "setup";
-		this.helpPath = "bot.guild.setup.help";
+		this.path = "bot.guild.setup";
 		this.children = new SlashCommand[]{new Voice(), new Main()};
 		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.bot = bot;
@@ -47,7 +47,7 @@ public class SetupCmd extends SlashCommand {
 		
 		public Main() {
 			this.name = "main";
-			this.helpPath = "bot.guild.setup.main.help";
+			this.path = "bot.guild.setup.main";
 		}
 
 		@Override
@@ -84,7 +84,7 @@ public class SetupCmd extends SlashCommand {
 
 		public Voice() {
 			this.name = "voice";
-			this.helpPath = "bot.guild.setup.voice";
+			this.path = "bot.guild.setup";
 			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS
 			this.module = CmdModule.VOICE;
 		}

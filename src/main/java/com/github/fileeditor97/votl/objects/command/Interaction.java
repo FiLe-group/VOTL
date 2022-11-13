@@ -141,22 +141,44 @@ public abstract class Interaction
 	{
 		return ownerCommand;
 	}
-
-	/**
-	 * Path to the command's help String. Must by set, otherwise 
-	 */
-	@Nonnull
-	protected String helpPath = "misc.unknown";
 	
 	/**
-	 * Gets the {@link bot.commands.OtherCmdBase#helpPath OtherCmdBase.helpPath} for the Command.
+	 * Gets the help text path based on {@link Interaction#path Interaction.path}.
 	 *
-	 * @return The path for command's help String.
+	 * @return The path for command's help string in locale file.
 	 */
 	@Nonnull
 	public String getHelpPath()
 	{
-		return helpPath;
+		return path+".help";
+	}
+
+	/**
+	 * Gets the usage text path based on {@link Interaction#path Interaction.path}.
+	 *
+	 * @return The path for command's usage description string in locale file.
+	 */
+	@Nonnull
+	public String getUsagePath()
+	{
+		return path+".usage";
+	}
+
+	/**
+	 * Path to the command strings. Must by set, otherwise will display Unknown text.
+	 */
+	@Nonnull
+	protected String path = "misc.command";
+	
+	/**
+	 * Gets the {@link Interaction#path Interaction.path} for the Command.
+	 *
+	 * @return The path for command's string in locale file.
+	 */
+	@Nonnull
+	public String getPath()
+	{
+		return path;
 	}
 
 	protected App bot = null;

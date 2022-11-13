@@ -45,7 +45,7 @@ public class CommandBuilder
 {
 	@Nonnull private String name = "null";
 	@Nonnull private String help = "no help available";
-	@Nonnull private String helpPath = "misc.unknown";
+	@Nonnull private String path = "misc.command";
 	private Category category = null;
 	private String arguments = null;
 	private boolean guildOnly = true;
@@ -492,7 +492,7 @@ public class CommandBuilder
 	 */
 	public Command build(BiConsumer<Command,CommandEvent> execution)
 	{
-		return new BlankCommand(name, help, helpPath, category, arguments,
+		return new BlankCommand(name, help, path, category, arguments,
 				guildOnly, requiredRole, ownerCommand, cooldown,
 				userPermissions, botPermissions, aliases.toArray(new String[aliases.size()]),
 				children.toArray(new Command[children.size()]), helpBiConsumer, usesTopicTags,
@@ -508,7 +508,7 @@ public class CommandBuilder
 
 	private abstract class BlankCommand extends Command
 	{
-		BlankCommand(@Nonnull String name, @Nonnull String help, @Nonnull String helpPath, Category category,
+		BlankCommand(@Nonnull String name, @Nonnull String help, @Nonnull String path, Category category,
 					 String arguments, boolean guildOnly, String requiredRole,
 					 boolean ownerCommand, int cooldown, @Nonnull Permission[] userPermissions,
 					 @Nonnull Permission[] botPermissions, String[] aliases, Command[] children,
@@ -517,7 +517,7 @@ public class CommandBuilder
 		{
 			this.name = name;
 			this.help = help;
-			this.helpPath = helpPath;
+			this.path = path;
 			this.category = category;
 			this.arguments = arguments;
 			this.guildOnly = guildOnly;

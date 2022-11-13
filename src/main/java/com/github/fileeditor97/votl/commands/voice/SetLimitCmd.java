@@ -28,7 +28,7 @@ public class SetLimitCmd extends SlashCommand {
 
 	public SetLimitCmd(App bot) {
 		this.name = "setlimit";
-		this.helpPath = "bot.voice.setlimit.help";
+		this.path = "bot.voice.setlimit";
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.INTEGER, "limit", bot.getLocaleUtil().getText("bot.voice.setlimit.option_description"))
 				.setRequiredRange(0, 99)

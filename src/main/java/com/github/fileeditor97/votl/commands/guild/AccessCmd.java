@@ -32,7 +32,7 @@ public class AccessCmd extends SlashCommand {
 
 	public AccessCmd(App bot) {
 		this.name = "access";
-		this.helpPath = "bot.guild.access.help";
+		this.path = "bot.guild.access";
 		this.children = new SlashCommand[]{new AddMod(bot.getLocaleUtil()), new AddAdmin(bot.getLocaleUtil()),
 			new View(), new RemoveMod(bot.getLocaleUtil()), new RemoveAdmin(bot.getLocaleUtil())};
 		this.bot = bot;
@@ -50,7 +50,7 @@ public class AccessCmd extends SlashCommand {
 
 		public AddMod(LocaleUtil lu) {
 			this.name = "mod";
-			this.helpPath = "bot.guild.access.add.mod.help";
+			this.path = "bot.guild.access.add.mod";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.USER, "member", lu.getText("bot.guild.access.add.option_user"), true)
 			);
@@ -113,7 +113,7 @@ public class AccessCmd extends SlashCommand {
 
 		public AddAdmin(LocaleUtil lu) {
 			this.name = "admin";
-			this.helpPath = "bot.guild.access.add.admin.help";
+			this.path = "bot.guild.access.add.admin";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.USER, "member", lu.getText("bot.guild.access.add.option_user"), true)
 			);
@@ -176,7 +176,7 @@ public class AccessCmd extends SlashCommand {
 
 		public View() {
 			this.name = "view";
-			this.helpPath = "bot.guild.access.view.help";
+			this.path = "bot.guild.access.view";
 		}
 
 		@Override
@@ -251,7 +251,7 @@ public class AccessCmd extends SlashCommand {
 
 		public RemoveMod(LocaleUtil lu) {
 			this.name = "mod";
-			this.helpPath = "bot.guild.access.remove.mod.help";
+			this.path = "bot.guild.access.remove.mod";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.USER, "member", lu.getText("bot.guild.access.remove.option_user"), true)
 			);
@@ -309,7 +309,7 @@ public class AccessCmd extends SlashCommand {
 
 		public RemoveAdmin(LocaleUtil lu) {
 			this.name = "admin";
-			this.helpPath = "bot.guild.access.remove.admin.help";
+			this.path = "bot.guild.access.remove.admin";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.USER, "member", lu.getText("bot.guild.access.remove.option_user"), true)
 			);

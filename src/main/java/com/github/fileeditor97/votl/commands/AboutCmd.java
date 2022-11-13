@@ -28,7 +28,7 @@ public class AboutCmd extends SlashCommand {
 
 	public AboutCmd(App bot) {
 		this.name = "about";
-		this.helpPath = "bot.other.about.help";
+		this.path = "bot.other.about";
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.BOOLEAN, "show", bot.getLocaleUtil().getText("misc.show_description"))
 		);

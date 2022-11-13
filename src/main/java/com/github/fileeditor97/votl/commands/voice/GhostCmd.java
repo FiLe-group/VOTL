@@ -27,7 +27,7 @@ public class GhostCmd extends SlashCommand {
 
 	public GhostCmd(App bot) {
 		this.name = "ghost";
-		this.helpPath = "bot.voice.ghost.help";
+		this.path = "bot.voice.ghost";
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL};
 		this.bot = bot;
 		this.category = CmdCategory.VOICE;

@@ -24,7 +24,7 @@ public class StatusCmd extends SlashCommand {
 
 	public StatusCmd(App bot) {
 		this.name = "status";
-		this.helpPath = "bot.other.status.help";
+		this.path = "bot.other.status";
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.BOOLEAN, "show", bot.getLocaleUtil().getText("misc.show_description"))
 		);

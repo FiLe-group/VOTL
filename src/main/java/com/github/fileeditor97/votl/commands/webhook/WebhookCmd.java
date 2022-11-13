@@ -35,7 +35,7 @@ public class WebhookCmd extends SlashCommand {
 
 	public WebhookCmd(App bot) {
 		this.name = "webhook";
-		this.helpPath = "bot.webhook.help";
+		this.path = "bot.webhook";
 		this.children = new SlashCommand[]{new ShowList(bot.getLocaleUtil()), new Create(bot.getLocaleUtil()), new Select(bot.getLocaleUtil()),
 			new Remove(bot.getLocaleUtil()), new Move(bot.getLocaleUtil())};
 		this.userPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
@@ -56,7 +56,7 @@ public class WebhookCmd extends SlashCommand {
 
 		public ShowList(LocaleUtil lu) {
 			this.name = "list";
-			this.helpPath = "bot.webhook.list.help";
+			this.path = "bot.webhook.list";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.BOOLEAN, "all", lu.getText("bot.webhook.list.option_all"))
 			);
@@ -125,7 +125,7 @@ public class WebhookCmd extends SlashCommand {
 
 		public Create(LocaleUtil lu) {
 			this.name = "create";
-			this.helpPath = "bot.webhook.add.create.help";
+			this.path = "bot.webhook.add.create";
 			List<OptionData> options = new ArrayList<OptionData>();
 			options.add(new OptionData(OptionType.STRING, "name", lu.getText("bot.webhook.add.create.option_name"), true));
 			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText("bot.webhook.add.create.option_channel")));
@@ -180,7 +180,7 @@ public class WebhookCmd extends SlashCommand {
 
 		public Select(LocaleUtil lu) {
 			this.name = "select";
-			this.helpPath = "bot.webhook.add.select.help";
+			this.path = "bot.webhook.add.select";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.STRING, "id", lu.getText("bot.webhook.add.select.option_id"), true)
 			);
@@ -235,7 +235,7 @@ public class WebhookCmd extends SlashCommand {
 
 		public Remove(LocaleUtil lu) {
 			this.name = "remove";
-			this.helpPath = "bot.webhook.remove.help";
+			this.path = "bot.webhook.remove";
 			List<OptionData> options = new ArrayList<OptionData>();
 			options.add(new OptionData(OptionType.STRING, "id", lu.getText("bot.webhook.remove.option_id"), true));
 			options.add(new OptionData(OptionType.BOOLEAN, "delete", lu.getText("bot.webhook.remove.option_delete")));
@@ -303,7 +303,7 @@ public class WebhookCmd extends SlashCommand {
 
 		public Move(LocaleUtil lu) {
 			this.name = "move";
-			this.helpPath = "bot.webhook.move.help";
+			this.path = "bot.webhook.move";
 			List<OptionData> options = new ArrayList<OptionData>();
 			options.add(new OptionData(OptionType.STRING, "id", lu.getText("bot.webhook.move.option_id"), true));
 			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText("bot.webhook.move.option_channel"), true));

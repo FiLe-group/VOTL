@@ -32,7 +32,7 @@ public class LimitCmd extends SlashCommand {
 
 	public LimitCmd(App bot) {
 		this.name = "limit";
-		this.helpPath = "bot.voice.limit.help";
+		this.path = "bot.voice.limit";
 		this.children = new SlashCommand[]{new Set(bot.getLocaleUtil()), new Reset()};
 		this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL};
 		this.bot = bot;
@@ -50,7 +50,7 @@ public class LimitCmd extends SlashCommand {
 
 		public Set(LocaleUtil lu) {
 			this.name = "set";
-			this.helpPath = "bot.voice.limit.set.help";
+			this.path = "bot.voice.limit.set";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.INTEGER, "limit", lu.getText("bot.voice.limit.set.option_description"))
 					.setRequiredRange(0, 99)
@@ -79,7 +79,7 @@ public class LimitCmd extends SlashCommand {
 
 		public Reset() {
 			this.name = "reset";
-			this.helpPath = "bot.voice.limit.reset.help";
+			this.path = "bot.voice.limit.reset";
 		}
 
 		@Override

@@ -32,7 +32,7 @@ public class NameCmd extends SlashCommand {
 
 	public NameCmd(App bot) {
 		this.name = "name";
-		this.helpPath = "bot.voice.name.help";
+		this.path = "bot.voice.name";
 		this.children = new SlashCommand[]{new Set(bot.getLocaleUtil()), new Reset()};
 		this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL};
 		this.bot = bot;
@@ -50,7 +50,7 @@ public class NameCmd extends SlashCommand {
 
 		public Set(LocaleUtil lu) {
 			this.name = "set";
-			this.helpPath = "bot.voice.name.set.help";
+			this.path = "bot.voice.name.set";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.STRING, "name", lu.getText("bot.voice.name.set.option_description"))
 					.setRequired(true)
@@ -74,7 +74,7 @@ public class NameCmd extends SlashCommand {
 
 		public Reset() {
 			this.name = "reset";
-			this.helpPath = "bot.voice.name.reset.help";
+			this.path = "bot.voice.name.reset";
 		}
 
 		@Override

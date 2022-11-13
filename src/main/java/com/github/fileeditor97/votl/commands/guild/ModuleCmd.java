@@ -39,7 +39,7 @@ public class ModuleCmd extends SlashCommand {
 	
 	public ModuleCmd(App bot, EventWaiter waiter) {
 		this.name = "module";
-		this.helpPath = "bot.guild.module.help";
+		this.path = "bot.guild.module";
 		this.children = new SlashCommand[]{new Show(), new Disable(), new Enable()};
 		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.bot = bot;
@@ -59,7 +59,7 @@ public class ModuleCmd extends SlashCommand {
 
 		public Show() {
 			this.name = "show";
-			this.helpPath = "bot.guild.module.show.help";
+			this.path = "bot.guild.module.show";
 		}
 
 		@Override
@@ -102,7 +102,7 @@ public class ModuleCmd extends SlashCommand {
 
 		public Disable() {
 			this.name = "disable";
-			this.helpPath = "bot.guild.module.disable.help";
+			this.path = "bot.guild.module.disable";
 		}
 
 		@Override
@@ -183,7 +183,7 @@ public class ModuleCmd extends SlashCommand {
 
 		public Enable() {
 			this.name = "enable";
-			this.helpPath = "bot.guild.module.enable.help";
+			this.path = "bot.guild.module.enable";
 		}
 
 		@Override

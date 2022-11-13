@@ -29,7 +29,7 @@ public class ClaimCmd extends SlashCommand {
 
 	public ClaimCmd(App bot) {
 		this.name = "claim";
-		this.helpPath = "bot.voice.claim.help";
+		this.path = "bot.voice.claim";
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
 		this.bot = bot;
 		this.category = CmdCategory.VOICE;

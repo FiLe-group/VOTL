@@ -38,7 +38,7 @@ public class SetNameCmd extends SlashCommand {
 	public SetNameCmd(App bot) {
 		this.bot = bot;
 		this.name = "setname";
-		this.helpPath = "bot.voice.setname.help";
+		this.path = "bot.voice.setname";
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.STRING, "name", bot.getLocaleUtil().getText("bot.voice.setname.option_description"))
 				.setRequired(true)

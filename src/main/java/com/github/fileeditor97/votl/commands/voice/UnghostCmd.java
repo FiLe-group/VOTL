@@ -27,7 +27,7 @@ public class UnghostCmd extends SlashCommand {
 
 	public UnghostCmd(App bot) {
 		this.name = "unghost";
-		this.helpPath = "bot.voice.unghost.help";
+		this.path = "bot.voice.unghost";
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL};
 		this.bot = bot;
 		this.category = CmdCategory.VOICE;

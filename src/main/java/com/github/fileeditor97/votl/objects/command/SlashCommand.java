@@ -296,7 +296,7 @@ public abstract class SlashCommand extends Command
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.lu = bot.getLocaleUtil();
-		this.help = lu.getText(helpPath);
+		this.help = lu.getText(getHelpPath());
 		this.descriptionLocalization = lu.getFullLocaleMap(getHelpPath());
 
 		// Make the command data

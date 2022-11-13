@@ -34,7 +34,7 @@ public class EvalCmd extends SlashCommand {
 	
 	public EvalCmd(App bot) {
 		this.name = "eval";
-		this.helpPath = "bot.owner.eval.help";
+		this.path = "bot.owner.eval";
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.STRING, "code", bot.getLocaleUtil().getText("bot.owner.eval.code_description")) 
 				.setRequired(true)

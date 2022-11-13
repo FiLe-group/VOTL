@@ -36,7 +36,7 @@ public class PermitCmd extends SlashCommand {
 
 	public PermitCmd(App bot) {
 		this.name = "permit";
-		this.helpPath = "bot.voice.permit.help";
+		this.path = "bot.voice.permit";
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.STRING, "mention", bot.getLocaleUtil().getText("bot.voice.permit.option_description"))
 				.setRequired(true)

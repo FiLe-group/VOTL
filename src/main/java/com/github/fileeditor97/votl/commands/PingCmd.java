@@ -18,7 +18,7 @@ public class PingCmd extends SlashCommand {
 	
 	public PingCmd(App bot) {
 		this.name = "ping";
-		this.helpPath = "bot.other.ping.help";
+		this.path = "bot.other.ping";
 		this.bot = bot;
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
