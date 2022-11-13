@@ -48,7 +48,7 @@ jobs:
       with:
         allowUpdates: true
         # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
-        artifacts: ./app/build/lib/VOTL-*.jar
+        artifacts: ./build/lib/VOTL-*.jar
         artifactContentType: "raw"
         # Generate release notes. There needs to be a previous version for it to diff against.
         generateReleaseNotes: true
