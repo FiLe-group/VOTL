@@ -14,9 +14,10 @@ public final class Constants {
 	public static final Path DATA_PATH = Paths.get("." + SEPAR + "data");
 	public static final String LANG_DIR = SEPAR + "lang" + SEPAR;
 
-	public static final String SUCCESS = "\u2611";
-	public static final String WARNING = "\u26A0";
-	public static final String FAILURE = "\u274C";
+	public static final String SUCCESS = "\u2611"; //☑️
+	public static final String WARNING = "\u26A0"; //⚠️
+	public static final String FAILURE = "\u274C"; //❌
+	public static final String NONE    = "\u2796"; //➖
 
 	public static final Integer COLOR_DEFAULT = 0x112E51;
 	public static final Integer COLOR_SUCCESS = 0x266E35;

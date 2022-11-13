@@ -16,6 +16,7 @@ import com.github.fileeditor97.votl.commands.guild.*;
 import com.github.fileeditor97.votl.commands.owner.*;
 import com.github.fileeditor97.votl.commands.voice.*;
 import com.github.fileeditor97.votl.commands.webhook.*;
+import com.github.fileeditor97.votl.listeners.AutoCompleteListener;
 import com.github.fileeditor97.votl.listeners.GuildListener;
 import com.github.fileeditor97.votl.listeners.VoiceListener;
 import com.github.fileeditor97.votl.objects.command.CommandClient;
@@ -55,6 +56,7 @@ public class App {
 
 	private final GuildListener guildListener;
 	private final VoiceListener voiceListener;
+	private final AutoCompleteListener acListener;
 	
 	private DBUtil dbUtil;
 	private MessageUtil messageUtil;
@@ -132,6 +134,8 @@ public class App {
 		// Build
 		MemberCachePolicy policy = MemberCachePolicy.VOICE			// check if in voice
 			.or(Objects.requireNonNull(MemberCachePolicy.OWNER));	// check for owner
+		
+		acListener = new AutoCompleteListener(commandClient);
 
 		Integer retries = 4; // how many times will it try to build
 		Integer cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
@@ -150,7 +154,7 @@ public class App {
 						CacheFlag.ROLE_TAGS				// role search
 					) 
 					.setAutoReconnect(true)
-					.addEventListeners(commandClient, waiter, guildListener, voiceListener)
+					.addEventListeners(commandClient, waiter, guildListener, voiceListener, acListener)
 					.build();
 				break;
 			} catch (InvalidTokenException ex) {

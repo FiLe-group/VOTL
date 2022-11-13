@@ -12,6 +12,8 @@ import com.github.fileeditor97.votl.App;
 import com.github.fileeditor97.votl.objects.command.SlashCommand;
 import com.github.fileeditor97.votl.objects.command.SlashCommandEvent;
 import com.github.fileeditor97.votl.objects.constants.CmdCategory;
+import com.github.fileeditor97.votl.objects.constants.Constants;
+
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
@@ -41,6 +43,8 @@ public class HelpCmd extends SlashCommand {
 			.addChoice("Webhook", "webhook")
 			.addChoice("Other", "other")
 		);
+		options.add(new OptionData(OptionType.STRING, "command", bot.getLocaleUtil().getText("bot.help.command_info.help"), false, true)
+			.setRequiredLength(4, 20));
 		this.options = options;
 
 		this.bot = bot;
@@ -53,19 +57,59 @@ public class HelpCmd extends SlashCommand {
 
 		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
 			hook -> {
-				String filCat = event.getOption("category", null, OptionMapping::getAsString);
+				String findCmd = event.getOption("command", null, OptionMapping::getAsString);
 				
-				sendReply(event, hook, filCat);
+				if (findCmd != null) {
+					sendCommandHelp(event, hook, findCmd.split(" ")[0].toLowerCase());
+				} else {
+					String filCat = event.getOption("category", null, OptionMapping::getAsString);
+					sendHelp(event, hook, filCat);
+				}
 			}
 		);
 	}
 
-	/* private MessageEmbed getCommandHelpEmbed(SlashCommandEvent event) {
-		// in dev
-	} */
+	@SuppressWarnings("null")
+	private void sendCommandHelp(SlashCommandEvent event, InteractionHook hook, String findCmd) {
+
+		DiscordLocale userLocale = event.getUserLocale();
+
+		SlashCommand command = null;
+		for (SlashCommand cmd : event.getClient().getSlashCommands()) {
+			if (cmd.getName().equals(findCmd)) {
+				command = cmd;
+				break;
+			}
+		}
+
+		if (command == null) {
+			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.help.command_info.no_command", "Requested: "+findCmd)).queue();
+		} else {
+			EmbedBuilder builder = null;
+			if (event.isFromGuild()) {
+				builder = bot.getEmbedUtil().getEmbed(event);
+			} else {
+				builder = bot.getEmbedUtil().getEmbed();
+			}
+
+			builder.setTitle(lu.getLocalized(userLocale, "bot.help.command_info.title").replace("{command}", command.getName()))
+				.setDescription(lu.getLocalized(userLocale, "bot.help.command_info.value")
+					.replace("{category}", Optional.ofNullable(command.getCategory())
+						.map(cat -> lu.getLocalized(userLocale, "bot.help.command_menu.categories."+cat.getName())).orElse(Constants.NONE))
+					.replace("{owner}", command.isOwnerCommand() ? Constants.SUCCESS : Constants.FAILURE)
+					.replace("{guild}", command.isGuildOnly() ? Constants.SUCCESS : Constants.FAILURE)
+					.replace("{module}", Optional.ofNullable(command.getModule()).map(mod -> lu.getLocalized(userLocale, mod.getPath())).orElse(Constants.NONE)))
+				.addField(lu.getLocalized(userLocale, "bot.help.command_info.help_title"), lu.getLocalized(userLocale, command.getHelpPath()), false)
+				.addField(lu.getLocalized(userLocale, "bot.help.command_info.usage_title"), lu.getLocalized(userLocale, "bot.help.command_info.usage_value")
+					.replace("{command_usage}", lu.getLocalized(userLocale, command.getUsagePath())), false);
+			
+			hook.editOriginalEmbeds(builder.build()).queue();
+		}
+		
+	}
 
 	@SuppressWarnings("null")
-	private void sendReply(SlashCommandEvent event, InteractionHook hook, String filCat) {
+	private void sendHelp(SlashCommandEvent event, InteractionHook hook, String filCat) {
 
 		DiscordLocale userLocale = event.getUserLocale();
 		String prefix = "/";
