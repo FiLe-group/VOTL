@@ -33,6 +33,10 @@
 		"info": "Hey there {user}!\nMy prefix on this discord server is `/`\nRun `/help` for a list of commands.",
 		"language": "English (en)",
 		"unknown": "Unknown",
+		"command": {
+			"help": "no help available",
+			"usage": "no usage description"
+		},
 		"show_description": "information will be visible for others (default-false)"
 	},
 	"modules": {
@@ -45,18 +49,21 @@
 		"owner": {
 			"eval": {
 				"help": "Evaluates code using Groovy",
+				"usage": "/eval <code>",
 				"code_description": "Enter your code to evaluate",
 				"time": "Evaluated in {time}ms",
 				"input": "Input:",
 				"output": "Output:"
 			},
 			"shutdown": {
-				"help": "Safely shuts down the bot"
+				"help": "Safely shuts down the bot",
+				"usage": "/shutdown"
 			}
 		},
 		"guild": {
 			"language": {
 				"help": "Manage bot's localization used on this server",
+				"usage": "/language show\n... set <language>\n... reset",
 				"reset": {
 					"help": "Reset language to default"
 				},
@@ -76,6 +83,7 @@
 			},
 			"setup": {
 				"help": "Setup menu for this server",
+				"usage": "/setup main\n... voice",
 				"preview": "Preview current setting for this guild",
 				"reset": "Reset settings",
 				"main": {
@@ -87,6 +95,7 @@
 			},
 			"module": {
 				"help": "Manage modules",
+				"usage": "/module show\n... enable\n... disable",
 				"show": {
 					"help": "Show current modules status",
 					"embed": {
@@ -118,6 +127,7 @@
 			},
 			"access": {
 				"help": "Manage users (set Mod/Admin) that has access to command use",
+				"usage": "/access view\n... add mod <member>\n... add admin <member>\n... remove mod <member>\n... remove admin <member>",
 				"add": {
 					"help": "Add member as Mod/Admin",
 					"mod": {
@@ -176,17 +186,20 @@
 			},
 			"setname": {
 				"help": "Sets default name for custom voice channels",
+				"usage": "/setname <name>",
 				"option_description": "Enter string 1 <> 100 symbols",
 				"invalid_range": "Channel name must be in range from 1 to 100 symbols",
 				"done": "Successfully changed default voice channel name to `{value}`!"
 			},
 			"setlimit": {
 				"help": "Sets default user limit for custom voice channels",
+				"usage": "/setlimit <limit>",
 				"option_description": "Enter integer 0 <> 99",
 				"done": "Successfully changed default voice channel limit to `{value}`!"
 			},
 			"name": {
 				"help": "Control your VC name",
+				"usage": "/name set <name>\n... reset",
 				"reset": {
 					"help": "Reset your VC name to default"
 				},
@@ -199,6 +212,7 @@
 			},
 			"limit": {
 				"help": "Control your VC limit",
+				"usage": "/limit set <limit>\n... reset",
 				"reset": {
 					"help": "Reset your VC limit to default"
 				},
@@ -210,6 +224,7 @@
 			},
 			"claim": {
 				"help": "Claim ownership of channel once owner has left",
+				"usage": "/claim",
 				"not_in_voice": "You are not connected to any voice channel",
 				"not_custom": "You can't own this voice channel",
 				"has_owner": "The owner of this channel is in this voice channel",
@@ -217,22 +232,27 @@
 			},
 			"lock": {
 				"help": "Locks your channel for @everyone (ex. allowed users)",
+				"usage": "/lock",
 				"done": "Successfully locked your channel!"
 			},
 			"unlock": {
 				"help": "Unlocks your channel for @everyone (ex. disallowed users)",
+				"usage": "/unlock",
 				"done": "Successfully unlocked your channel!"
 			},
 			"ghost": {
 				"help": "Hides your channel for @everyone (ex. allowed users)",
+				"usage": "/ghost",
 				"done": "Successfully ghosted your channel!"
 			},
 			"unghost": {
 				"help": "Unhides your channel for @everyone",
+				"usage": "/unghost",
 				"done": "Successfully unghosted your channel!"
 			},
 			"permit": {
 				"help": "Gives the user permission to join your channel",
+				"usage": "/permit <mention/-s>",
 				"option_description": "Enter Role or Member mention/-s",
 				"invalid_args": "You didn't provided users.\nUsage: `/permit <mention member/-s or role/-s>`",
 				"not_self": "You can't add yourself or me.",
@@ -240,6 +260,7 @@
 			},
 			"reject": {
 				"help": "Withdraw the user permission to join your channel",
+				"usage": "/reject <mention/-s>",
 				"option_description": "Enter Role or Member mention/-s",
 				"invalid_args": "You didn't provided users.\nUsage: `/reject <mention member/-s or role/-s>`",
 				"not_self": "You can't remove yourself or me.",
@@ -247,6 +268,7 @@
 			},
 			"perms": {
 				"help": "View/Reset voice channel permissions",
+				"usage": "/perms view\n... reset",
 				"view": {
 					"help": "View voice channel permissions",
 					"embed": {
@@ -269,6 +291,7 @@
 		},
 		"webhook": {
 			"help": "Module for managing webhooks",
+			"usage": "/webhook list [all?]\n... move <id><channel>\n... add select <id>\n... add create <name>[channel]\n... remove <id>[delete?]",
 			"list": {
 				"help": "Shows added webhooks to bot's list",
 				"option_all": "Show all webhooks in this server? (default-false)",
@@ -321,12 +344,14 @@
 		"other": {
 			"ping": {
 				"help": "Check the bot's latency",
+				"usage": "/ping",
 				"loading": "{EMOTE_TYPING} Ping: ...",
 				"info": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms",
 				"info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest} ms"
 			},
 			"about": {
 				"help": "Get basic information about the bot",
+				"usage": "/about",
 				"embed": {
 					"about_title": "About {name}!",
 					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nDeveloper - **{developer_name}**({developer_id}).",
@@ -350,6 +375,7 @@
 			},
 			"status": {
 				"help": "Gets bot's status, shard info",
+				"usage": "/status",
 				"embed": {
 					"stats_title": "Stats",
 					"stats" : {
@@ -369,16 +395,19 @@
 		},
 		"help": {
 			"help": "List all available commands the bot has or description of specific command.",
+			"usage": "/help [command][category][show?]",
 			"category_info": {
 				"help": "Shows commands in selected category"
 			},
 			"command_info": {
 				"help": "Shows information about selected command",
 				"docs": "Docs",
-				"no_command": "The provided command (`{command}`) doesn't exist!\nMake sure you typed it correctly.\n\nCategory names need to be prefixed with `cat:` (e.g. `/help cat:voice`)!",
+				"no_command": "The provided command doesn't exist!\nMake sure you typed it correctly.",
 				"title": "Command help: {command}",
+				"value": "Category: **{category}**\nIs owner command: {owner}\nGuild only command: {guild}\nModule: **{module}**",
+				"help_title": "Description",
 				"usage_title": "Usage options",
-				"usage_value": "```\n{command}\n```\n`[]` = Optional\n`<>` = Required"
+				"usage_value": "```\n{command_usage}\n```\n`[]` = Optional\n`<>` = Required"
 			},
 			"command_menu": {
 				"title": "Available commands:",
@@ -391,7 +420,7 @@
 					"title": "Categories"
 				},
 				"description": {
-					"command_value": "To get more info about a specific command run `/help [command]`.\nYou can also run `/help cat:[category]` to show the commands of a specific category.",
+					"command_value": "To get more info about a specific command run `/help command:[command]`.\nYou can also run `/help category:[category]` to show the commands of a specific category.",
 					"support_title": "*Additional help*",
 					"support_value": "If you need help with the bot, contact the owner `{owner_name}`."
 				}
