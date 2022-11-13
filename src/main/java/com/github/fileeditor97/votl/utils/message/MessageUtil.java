@@ -35,6 +35,15 @@ public class MessageUtil {
 		return "";
 	}
 
+	public String capitalize(final String str) {
+		if (str == null || str.length() == 0) {
+			return "";
+		}
+
+		final String s0 = str.substring(0, 1).toUpperCase();
+		return s0 + str.substring(1);
+	}
+
 	public Color getColor(String input) {
 		input = input.toLowerCase();
 		if (!input.equals("random") && !(input.startsWith("hex:") || input.startsWith("rgb:")))

@@ -36,8 +36,7 @@ public class EvalCmd extends SlashCommand {
 		this.name = "eval";
 		this.path = "bot.owner.eval";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "code", bot.getLocaleUtil().getText("bot.owner.eval.code_description")) 
-				.setRequired(true)
+			new OptionData(OptionType.STRING, "code", bot.getLocaleUtil().getText("bot.owner.eval.code_description"), true) 
 			// Я блять ненавижу эту штуку
 			// Нужно переделовать через modals, но для этого нужно вначале получить комманду от пользователя
 			// позже выслать форму для заполения и только потом обработать ее

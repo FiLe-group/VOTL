@@ -52,8 +52,7 @@ public class NameCmd extends SlashCommand {
 			this.name = "set";
 			this.path = "bot.voice.name.set";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "name", lu.getText("bot.voice.name.set.option_description"))
-					.setRequired(true)
+				new OptionData(OptionType.STRING, "name", lu.getText("bot.voice.name.set.option_description"), true)
 			);
 		}
 

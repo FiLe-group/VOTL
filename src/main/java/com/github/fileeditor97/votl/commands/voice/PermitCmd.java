@@ -38,8 +38,7 @@ public class PermitCmd extends SlashCommand {
 		this.name = "permit";
 		this.path = "bot.voice.permit";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "mention", bot.getLocaleUtil().getText("bot.voice.permit.option_description"))
-				.setRequired(true)
+			new OptionData(OptionType.STRING, "mention", bot.getLocaleUtil().getText("bot.voice.permit.option_description"), true)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
 		this.bot = bot;

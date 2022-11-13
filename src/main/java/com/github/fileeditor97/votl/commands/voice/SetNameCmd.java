@@ -26,22 +26,12 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 )
 public class SetNameCmd extends SlashCommand {
 	
-	/* private final App bot;
-	
-	private static final boolean mustSetup = true;
-	private static final String MODULE = "voice";
-	private static final CmdAccessLevel ACCESS_LEVEL = CmdAccessLevel.ADMIN;
-
-	protected static Permission[] userPerms = new Permission[0];
-	protected static Permission[] botPerms = new Permission[0]; */
-
 	public SetNameCmd(App bot) {
 		this.bot = bot;
 		this.name = "setname";
 		this.path = "bot.voice.setname";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "name", bot.getLocaleUtil().getText("bot.voice.setname.option_description"))
-				.setRequired(true)
+			new OptionData(OptionType.STRING, "name", bot.getLocaleUtil().getText("bot.voice.setname.option_description"), true)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.VOICE;

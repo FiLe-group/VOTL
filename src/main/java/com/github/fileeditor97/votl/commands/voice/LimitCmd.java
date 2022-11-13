@@ -52,9 +52,8 @@ public class LimitCmd extends SlashCommand {
 			this.name = "set";
 			this.path = "bot.voice.limit.set";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.INTEGER, "limit", lu.getText("bot.voice.limit.set.option_description"))
+				new OptionData(OptionType.INTEGER, "limit", lu.getText("bot.voice.limit.set.option_description"), true)
 					.setRequiredRange(0, 99)
-					.setRequired(true)
 			);
 		}
 
