@@ -10,15 +10,13 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdAccessLevel;
 import votl.objects.CmdModule;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Constants;
-
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -30,25 +28,27 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
+
 @CommandInfo(
 	name = "module",
 	usage = "/module <show / enable / disable>"
 )
-public class ModuleCmd extends SlashCommand {
+public class ModuleCmd extends CommandBase {
 	
 	private static EventWaiter waiter;
 	
 	public ModuleCmd(App bot, EventWaiter waiter) {
+		super(bot);
 		this.name = "module";
 		this.path = "bot.guild.module";
-		this.children = new SlashCommand[]{new Show(), new Disable(), new Enable()};
+		this.children = new SlashCommand[]{new Show(bot), new Disable(bot), new Enable(bot)};
 		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
-		this.bot = bot;
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.OWNER;
 		this.mustSetup = true;
 		ModuleCmd.waiter = waiter;
-		
 	}
 
 	@Override
@@ -56,9 +56,10 @@ public class ModuleCmd extends SlashCommand {
 
 	}
 
-	private class Show extends SlashCommand {
+	private class Show extends CommandBase {
 
-		public Show() {
+		public Show(App bot) {
+			super(bot);
 			this.name = "show";
 			this.path = "bot.guild.module.show";
 		}
@@ -99,9 +100,10 @@ public class ModuleCmd extends SlashCommand {
 		}
 	}
 
-	private class Disable extends SlashCommand {
+	private class Disable extends CommandBase {
 
-		public Disable() {
+		public Disable(App bot) {
+			super(bot);
 			this.name = "disable";
 			this.path = "bot.guild.module.disable";
 		}
@@ -180,9 +182,10 @@ public class ModuleCmd extends SlashCommand {
 		}
 	}
 
-	private class Enable extends SlashCommand {
+	private class Enable extends CommandBase {
 
-		public Enable() {
+		public Enable(App bot) {
+			super(bot);
 			this.name = "enable";
 			this.path = "bot.guild.module.enable";
 		}

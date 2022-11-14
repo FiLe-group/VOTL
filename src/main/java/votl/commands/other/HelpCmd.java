@@ -7,12 +7,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Constants;
-
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
@@ -22,32 +21,31 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
+
 @CommandInfo
 (
 	name = "help",
 	description = "shows help menu",
 	usage = "/help [show?][category:]"
 )
-public class HelpCmd extends SlashCommand {
+public class HelpCmd extends CommandBase {
 
 	public HelpCmd(App bot) {
+		super(bot);
 		this.name = "help";
 		this.path = "bot.help";
-
 		List<OptionData> options = new ArrayList<>();
-		options.add(new OptionData(OptionType.BOOLEAN, "show", bot.getLocaleUtil().getText("misc.show_description")));
-		options.add(new OptionData(OptionType.STRING, "category", bot.getLocaleUtil().getText("bot.help.category_info.help"))
+		options.add(new OptionData(OptionType.BOOLEAN, "show", lu.getText("misc.show_description")));
+		options.add(new OptionData(OptionType.STRING, "category", lu.getText(path+".category_info.help"))
 			.addChoice("Voice", "voice")
 			.addChoice("Guild", "guild")
 			.addChoice("Owner", "owner")
 			.addChoice("Webhook", "webhook")
-			.addChoice("Other", "other")
-		);
-		options.add(new OptionData(OptionType.STRING, "command", bot.getLocaleUtil().getText("bot.help.command_info.help"), false, true)
+			.addChoice("Other", "other"));
+		options.add(new OptionData(OptionType.STRING, "command", lu.getText(path+".command_info.help"), false, true)
 			.setRequiredLength(4, 20));
 		this.options = options;
-
-		this.bot = bot;
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
 	}

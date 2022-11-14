@@ -3,12 +3,10 @@ package votl.commands.voice;
 import java.util.Objects;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdModule;
-import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
-
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -18,19 +16,21 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
+
 @CommandInfo(
 	name = "ghost",
 	description = "Hides voice channel from @everyone",
 	usage = "/ghost",
 	requirements = "Must have created voice channel"
 )
-public class GhostCmd extends SlashCommand {
+public class GhostCmd extends CommandBase {
 
 	public GhostCmd(App bot) {
+		super(bot);
 		this.name = "ghost";
 		this.path = "bot.voice.ghost";
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL};
-		this.bot = bot;
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
 		this.mustSetup = true;

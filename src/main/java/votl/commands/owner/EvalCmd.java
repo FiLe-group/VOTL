@@ -4,18 +4,11 @@ import java.util.Collections;
 import java.util.Map;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdAccessLevel;
-import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Constants;
-
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError;
-
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -25,6 +18,13 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
+
+import org.codehaus.groovy.runtime.powerassert.PowerAssertionError;
+
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+
 @CommandInfo
 (
 	name = "Eval",
@@ -32,19 +32,19 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 	description = "Evaluates givven code.",
 	requirements = {"Be the bot's owner", "Have fck knowledge of what your're doing with it"}
 )
-public class EvalCmd extends SlashCommand {
+public class EvalCmd extends CommandBase {
 	
 	public EvalCmd(App bot) {
+		super(bot);
 		this.name = "eval";
 		this.path = "bot.owner.eval";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "code", bot.getLocaleUtil().getText("bot.owner.eval.code_description"), true) 
+			new OptionData(OptionType.STRING, "code", lu.getText(path+".code_description"), true) 
 			// Я блять ненавижу эту штуку
 			// Нужно переделовать через modals, но для этого нужно вначале получить комманду от пользователя
 			// позже выслать форму для заполения и только потом обработать ее
 			// ............пиздец
 		);
-		this.bot = bot;
 		this.category = CmdCategory.OWNER;
 		this.accessLevel = CmdAccessLevel.DEV;
 		this.ownerCommand = true;

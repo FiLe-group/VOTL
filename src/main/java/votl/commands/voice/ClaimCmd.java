@@ -4,21 +4,21 @@ import java.util.EnumSet;
 import java.util.Objects;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdModule;
-import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 @CommandInfo(
 	name = "Claim",
@@ -26,13 +26,13 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 	usage = "/claim",
 	requirements = "Must be in un-owned custom voice channel"
 )
-public class ClaimCmd extends SlashCommand {
+public class ClaimCmd extends CommandBase {
 
 	public ClaimCmd(App bot) {
+		super(bot);
 		this.name = "claim";
 		this.path = "bot.voice.claim";
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
-		this.bot = bot;
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
 		this.mustSetup = true;

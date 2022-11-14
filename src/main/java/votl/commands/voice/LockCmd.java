@@ -3,12 +3,10 @@ package votl.commands.voice;
 import java.util.Objects;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdModule;
-import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
-
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,19 +17,21 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
+
 @CommandInfo(
 	name = "lock",
 	description = "Locks voice channel for @everyone (ex. allowed one).",
 	usage = "/lock",
 	requirements = "Must have created voice channel"
 )
-public class LockCmd extends SlashCommand {
+public class LockCmd extends CommandBase {
 
 	public LockCmd(App bot) {
+		super(bot);
 		this.name = "lock";
 		this.path = "bot.voice.lock";
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
-		this.bot = bot;
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
 		this.mustSetup = true;

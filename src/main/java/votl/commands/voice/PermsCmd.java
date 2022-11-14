@@ -7,12 +7,11 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdModule;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
-
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -24,19 +23,21 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
+
 @CommandInfo(
 	name = "perms",
 	description = "View/Reset voice channel permissions",
 	usage = "/perms <select>",
 	requirements = "Must have created voice channel"
 )
-public class PermsCmd extends SlashCommand {
+public class PermsCmd extends CommandBase {
 
 	public PermsCmd(App bot) {
+		super(bot);
 		this.name = "perms";
 		this.path = "bot.voice.perms";
-		this.children = new SlashCommand[]{new View(), new Reset()};
-		this.bot = bot;
+		this.children = new SlashCommand[]{new View(bot), new Reset(bot)};
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
 		this.mustSetup = true;
@@ -47,9 +48,10 @@ public class PermsCmd extends SlashCommand {
 
 	}
 
-	private class View extends SlashCommand {
+	private class View extends CommandBase {
 
-		public View() {
+		public View(App bot) {
+			super(bot);
 			this.name = "view";
 			this.path = "bot.voice.perms.view";
 			this.botPermissions = new Permission[]{Permission.MANAGE_PERMISSIONS};
@@ -162,9 +164,10 @@ public class PermsCmd extends SlashCommand {
 		}
 	}
 
-	private class Reset extends SlashCommand {
+	private class Reset extends CommandBase {
 
-		public Reset() {
+		public Reset(App bot) {
+			super(bot);
 			this.name = "reset";
 			this.path = "bot.voice.perms.reset";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};

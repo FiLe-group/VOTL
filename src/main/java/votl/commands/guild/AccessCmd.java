@@ -6,14 +6,12 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdAccessLevel;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Constants;
-import votl.utils.message.LocaleUtil;
-
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -25,18 +23,20 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
+
 @CommandInfo(
 	name = "access",
 	usage = "/access <show / add / remove>"
 )
-public class AccessCmd extends SlashCommand {
+public class AccessCmd extends CommandBase {
 
 	public AccessCmd(App bot) {
+		super(bot);
 		this.name = "access";
 		this.path = "bot.guild.access";
-		this.children = new SlashCommand[]{new AddMod(bot.getLocaleUtil()), new AddAdmin(bot.getLocaleUtil()),
-			new View(), new RemoveMod(bot.getLocaleUtil()), new RemoveAdmin(bot.getLocaleUtil())};
-		this.bot = bot;
+		this.children = new SlashCommand[]{new AddMod(bot), new AddAdmin(bot),
+			new View(bot), new RemoveMod(bot), new RemoveAdmin(bot)};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 		this.mustSetup = true;
@@ -47,9 +47,10 @@ public class AccessCmd extends SlashCommand {
 		
 	}
 
-	private class AddMod extends SlashCommand {
+	private class AddMod extends CommandBase {
 
-		public AddMod(LocaleUtil lu) {
+		public AddMod(App bot) {
+			super(bot);
 			this.name = "mod";
 			this.path = "bot.guild.access.add.mod";
 			this.options = Collections.singletonList(
@@ -110,9 +111,10 @@ public class AccessCmd extends SlashCommand {
 		}
 	}
 
-	private class AddAdmin extends SlashCommand {
+	private class AddAdmin extends CommandBase {
 
-		public AddAdmin(LocaleUtil lu) {
+		public AddAdmin(App bot) {
+			super(bot);
 			this.name = "admin";
 			this.path = "bot.guild.access.add.admin";
 			this.options = Collections.singletonList(
@@ -173,9 +175,10 @@ public class AccessCmd extends SlashCommand {
 		}
 	}
 
-	private class View extends SlashCommand {
+	private class View extends CommandBase {
 
-		public View() {
+		public View(App bot) {
+			super(bot);
 			this.name = "view";
 			this.path = "bot.guild.access.view";
 		}
@@ -248,9 +251,10 @@ public class AccessCmd extends SlashCommand {
 		}
 	}
 
-	private class RemoveMod extends SlashCommand {
+	private class RemoveMod extends CommandBase {
 
-		public RemoveMod(LocaleUtil lu) {
+		public RemoveMod(App bot) {
+			super(bot);
 			this.name = "mod";
 			this.path = "bot.guild.access.remove.mod";
 			this.options = Collections.singletonList(
@@ -306,9 +310,10 @@ public class AccessCmd extends SlashCommand {
 		}
 	}
 
-	private class RemoveAdmin extends SlashCommand {
+	private class RemoveAdmin extends CommandBase {
 
-		public RemoveAdmin(LocaleUtil lu) {
+		public RemoveAdmin(App bot) {
+			super(bot);
 			this.name = "admin";
 			this.path = "bot.guild.access.remove.admin";
 			this.options = Collections.singletonList(

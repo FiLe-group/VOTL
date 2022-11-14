@@ -7,12 +7,10 @@ import java.util.List;
 import java.util.Objects;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdModule;
-import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
-
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -27,23 +25,25 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
+
 @CommandInfo(
 	name = "reject",
 	description = "Withdraw the user permission to join your channel.",
 	usage = "/reject <mention:user/-s role/-s>",
 	requirements = "Must have created voice channel"
 )
-public class RejectCmd extends SlashCommand {
+public class RejectCmd extends CommandBase {
 
 	public RejectCmd(App bot) {
+		super(bot);
 		this.name = "reject";
 		this.path = "bot.voice.reject";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "mention", bot.getLocaleUtil().getText("bot.voice.reject.option_description"))
+			new OptionData(OptionType.STRING, "mention", lu.getText(path+".option_description"))
 				.setRequired(true)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS};
-		this.bot = bot;
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
 		this.mustSetup = true;

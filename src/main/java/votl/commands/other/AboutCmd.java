@@ -3,13 +3,10 @@ package votl.commands.other;
 import java.util.Collections;
 
 import votl.App;
-import votl.objects.command.SlashCommand;
+import votl.commands.CommandBase;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Links;
-
-import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
@@ -19,21 +16,24 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
+
 @CommandInfo
 (
 	name = "About",
 	description = "Gets information about the bot.",
 	usage = "/about [show?]"
 )
-public class AboutCmd extends SlashCommand {
+public class AboutCmd extends CommandBase {
 
 	public AboutCmd(App bot) {
+		super(bot);
 		this.name = "about";
 		this.path = "bot.other.about";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.BOOLEAN, "show", bot.getLocaleUtil().getText("misc.show_description"))
+			new OptionData(OptionType.BOOLEAN, "show", lu.getText("misc.show_description"))
 		);
-		this.bot = bot;
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
 	}

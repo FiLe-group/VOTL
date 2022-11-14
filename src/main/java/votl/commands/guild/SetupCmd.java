@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.Objects;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdAccessLevel;
 import votl.objects.CmdModule;
 import votl.objects.command.SlashCommand;
@@ -12,13 +13,13 @@ import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Constants;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 @CommandInfo
 (
@@ -27,14 +28,14 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 	usage = "/setup <main / voice>",
 	requirements = "Have 'Manage Server' permission"
 )
-public class SetupCmd extends SlashCommand {
+public class SetupCmd extends CommandBase {
 
 	public SetupCmd(App bot) {
+		super(bot);
 		this.name = "setup";
 		this.path = "bot.guild.setup";
-		this.children = new SlashCommand[]{new Voice(), new Main()};
+		this.children = new SlashCommand[]{new Voice(bot), new Main(bot)};
 		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
-		this.bot = bot;
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 	}
@@ -44,9 +45,10 @@ public class SetupCmd extends SlashCommand {
 
 	}
 
-	private class Main extends SlashCommand {
+	private class Main extends CommandBase {
 		
-		public Main() {
+		public Main(App bot) {
+			super(bot);
 			this.name = "main";
 			this.path = "bot.guild.setup.main";
 		}
@@ -81,9 +83,10 @@ public class SetupCmd extends SlashCommand {
 		}
 	}
 
-	private class Voice extends SlashCommand {
+	private class Voice extends CommandBase {
 
-		public Voice() {
+		public Voice(App bot) {
+			super(bot);
 			this.name = "voice";
 			this.path = "bot.guild.setup";
 			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS

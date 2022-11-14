@@ -1,7 +1,7 @@
 package votl.commands.other;
 
 import votl.App;
-import votl.objects.command.SlashCommand;
+import votl.commands.CommandBase;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 
@@ -14,12 +14,12 @@ import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 	usage = "/ping",
 	requirements = "none"
 )
-public class PingCmd extends SlashCommand {
+public class PingCmd extends CommandBase {
 	
 	public PingCmd(App bot) {
+		super(bot);
 		this.name = "ping";
 		this.path = "bot.other.ping";
-		this.bot = bot;
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
 	}
@@ -31,7 +31,7 @@ public class PingCmd extends SlashCommand {
 			Long st = System.currentTimeMillis();
 			hook.getJDA().getRestPing().queue(time -> {
 				hook.editOriginal(
-					bot.getLocaleUtil().getLocalized(event.getUserLocale(), "bot.other.ping.info_full")
+					lu.getLocalized(event.getUserLocale(), "bot.other.ping.info_full")
 						.replace("{ping}", String.valueOf(System.currentTimeMillis() - st))
 						.replace("{websocket}", event.getJDA().getGatewayPing()+"")
 						.replace("{rest}", time+"")

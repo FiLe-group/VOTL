@@ -295,7 +295,6 @@ public abstract class SlashCommand extends Command
 	@SuppressWarnings("null")
 	public CommandData buildCommandData() {
 		// Set attributes
-		this.lu = bot.getLocaleUtil();
 		this.help = lu.getText(getHelpPath());
 		this.descriptionLocalization = lu.getFullLocaleMap(getHelpPath());
 
@@ -322,8 +321,6 @@ public abstract class SlashCommand extends Command
 			Map<String, SubcommandGroupData> groupData = new HashMap<>();
 			for (SlashCommand child : children) {
 				// Inherite
-				child.bot = getApp();
-				child.lu = getLocaleUtil();
 				if (child.userPermissions.length == 0) {
 					child.userPermissions = getUserPermissions();
 				}
@@ -336,7 +333,9 @@ public abstract class SlashCommand extends Command
 				if (child.module == null) {
 					child.module = getModule();
 				}
-				child.mustSetup = getMustSetup();
+				if (!child.mustSetup) {
+					child.mustSetup = getMustSetup();
+				}
 				child.help = lu.getText(child.getHelpPath());
 				
 				// Create subcommand data

@@ -1,14 +1,14 @@
 package votl.commands.owner;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
 import votl.App;
-import votl.objects.command.SlashCommand;
+import votl.commands.CommandBase;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
+
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 @CommandInfo
 (
@@ -17,12 +17,12 @@ import net.dv8tion.jda.api.entities.Activity;
 	description = "Safely shuts down the bot.",
 	requirements = {"Be the bot's owner", "Prepare for the consequences"}
 )
-public class ShutdownCmd extends SlashCommand {
+public class ShutdownCmd extends CommandBase {
 
 	public ShutdownCmd(App bot) {
+		super(bot);
 		this.name = "shutdown";
 		this.path = "bot.owner.shutdown";
-		this.bot = bot;
 		this.category = CmdCategory.OWNER;
 		this.guildOnly = false;
 		this.ownerCommand = true;

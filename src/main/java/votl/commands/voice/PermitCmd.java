@@ -7,12 +7,10 @@ import java.util.List;
 import java.util.Objects;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdModule;
-import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
-
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -27,22 +25,23 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 @CommandInfo(
 	name = "permit",
 	description = "Gives the user permission to join your channel.",
 	usage = "/permit <mention:user/-s role/-s>",
 	requirements = "Must have created voice channel"
 )
-public class PermitCmd extends SlashCommand {
+public class PermitCmd extends CommandBase {
 
 	public PermitCmd(App bot) {
+		super(bot);
 		this.name = "permit";
 		this.path = "bot.voice.permit";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "mention", bot.getLocaleUtil().getText("bot.voice.permit.option_description"), true)
+			new OptionData(OptionType.STRING, "mention", lu.getText(path+".option_description"), true)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
-		this.bot = bot;
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
 		this.mustSetup = true;

@@ -9,20 +9,20 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdAccessLevel;
 import votl.objects.CmdModule;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
-import votl.utils.message.LocaleUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.WebhookType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -32,16 +32,16 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
 @SuppressWarnings("null")
-public class WebhookCmd extends SlashCommand {
+public class WebhookCmd extends CommandBase {
 
 	public WebhookCmd(App bot) {
+		super(bot);
 		this.name = "webhook";
 		this.path = "bot.webhook";
-		this.children = new SlashCommand[]{new ShowList(bot.getLocaleUtil()), new Create(bot.getLocaleUtil()), new Select(bot.getLocaleUtil()),
-			new Remove(bot.getLocaleUtil()), new Move(bot.getLocaleUtil())};
+		this.children = new SlashCommand[]{new ShowList(bot), new Create(bot), new Select(bot),
+			new Remove(bot), new Move(bot)};
 		this.userPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		this.botPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
-		this.bot = bot;
 		this.category = CmdCategory.WEBHOOK;
 		this.module = CmdModule.WEBHOOK;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -53,13 +53,14 @@ public class WebhookCmd extends SlashCommand {
 
 	}
 
-	private class ShowList extends SlashCommand {
+	private class ShowList extends CommandBase {
 
-		public ShowList(LocaleUtil lu) {
+		public ShowList(App bot) {
+			super(bot);
 			this.name = "list";
 			this.path = "bot.webhook.list";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.BOOLEAN, "all", lu.getText("bot.webhook.list.option_all"))
+				new OptionData(OptionType.BOOLEAN, "all", lu.getText(path+".option_all"))
 			);
 		}
 
@@ -122,14 +123,15 @@ public class WebhookCmd extends SlashCommand {
 
 	}
 
-	private class Create extends SlashCommand {
+	private class Create extends CommandBase {
 
-		public Create(LocaleUtil lu) {
+		public Create(App bot) {
+			super(bot);
 			this.name = "create";
 			this.path = "bot.webhook.add.create";
 			List<OptionData> options = new ArrayList<OptionData>();
-			options.add(new OptionData(OptionType.STRING, "name", lu.getText("bot.webhook.add.create.option_name"), true));
-			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText("bot.webhook.add.create.option_channel")));
+			options.add(new OptionData(OptionType.STRING, "name", lu.getText(path+".option_name"), true));
+			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+"bot.webhook.add.create.option_channel")));
 			this.options = options;
 			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.webhook.add.help"));
 		}
@@ -177,13 +179,14 @@ public class WebhookCmd extends SlashCommand {
 		}
 	}
 
-	private class Select extends SlashCommand {
+	private class Select extends CommandBase {
 
-		public Select(LocaleUtil lu) {
+		public Select(App bot) {
+			super(bot);
 			this.name = "select";
 			this.path = "bot.webhook.add.select";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "id", lu.getText("bot.webhook.add.select.option_id"), true)
+				new OptionData(OptionType.STRING, "id", lu.getText(path+".option_id"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.webhook.add.help"));
 		}
@@ -232,14 +235,15 @@ public class WebhookCmd extends SlashCommand {
 		}
 	}
 
-	private class Remove extends SlashCommand {
+	private class Remove extends CommandBase {
 
-		public Remove(LocaleUtil lu) {
+		public Remove(App bot) {
+			super(bot);
 			this.name = "remove";
 			this.path = "bot.webhook.remove";
 			List<OptionData> options = new ArrayList<OptionData>();
-			options.add(new OptionData(OptionType.STRING, "id", lu.getText("bot.webhook.remove.option_id"), true));
-			options.add(new OptionData(OptionType.BOOLEAN, "delete", lu.getText("bot.webhook.remove.option_delete")));
+			options.add(new OptionData(OptionType.STRING, "id", lu.getText(path+".option_id"), true));
+			options.add(new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+"bot.webhook.remove.option_delete")));
 			this.options = options;
 		}
 
@@ -300,14 +304,15 @@ public class WebhookCmd extends SlashCommand {
 
 	}
 
-	private class Move extends SlashCommand {
+	private class Move extends CommandBase {
 
-		public Move(LocaleUtil lu) {
+		public Move(App bot) {
+			super(bot);
 			this.name = "move";
 			this.path = "bot.webhook.move";
 			List<OptionData> options = new ArrayList<OptionData>();
-			options.add(new OptionData(OptionType.STRING, "id", lu.getText("bot.webhook.move.option_id"), true));
-			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText("bot.webhook.move.option_channel"), true));
+			options.add(new OptionData(OptionType.STRING, "id", lu.getText(path+".option_id"), true));
+			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+"bot.webhook.move.option_channel"), true));
 			this.options = options;
 		}
 

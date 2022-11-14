@@ -9,24 +9,24 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 import votl.App;
+import votl.commands.CommandBase;
 import votl.objects.CmdAccessLevel;
 import votl.objects.CmdModule;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.utils.file.lang.LangUtil;
-import votl.utils.message.LocaleUtil;
-
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+
+import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
 @CommandInfo
 (
@@ -35,13 +35,13 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 	usage = "/language <reset / language:>",
 	requirements = "Have 'Manage server' permission"
 )
-public class LanguageCmd extends SlashCommand {
+public class LanguageCmd extends CommandBase {
 
 	public LanguageCmd(App bot) {
+		super(bot);
 		this.name = "language";
 		this.path = "bot.guild.language";
-		this.bot = bot;
-		this.children = new SlashCommand[]{new Reset(), new Set(bot.getLocaleUtil()), new Show()};
+		this.children = new SlashCommand[]{new Reset(bot), new Set(bot), new Show(bot)};
 		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.GUILD;
 		this.module = CmdModule.LANGUAGE;
@@ -54,9 +54,10 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
-	private class Reset extends SlashCommand {
+	private class Reset extends CommandBase {
 
-		public Reset() {
+		public Reset(App bot) {
+			super(bot);
 			this.name = "reset";
 			this.path = "bot.guild.language.reset";
 		}
@@ -75,10 +76,11 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
-	private class Set extends SlashCommand {
+	private class Set extends CommandBase {
 
 		@SuppressWarnings("null")
-		public Set(LocaleUtil lu) {
+		public Set(App bot) {
+			super(bot);
 			this.name = "set";
 			this.path = "bot.guild.language.set";
 			this.options = Collections.singletonList(
@@ -106,9 +108,10 @@ public class LanguageCmd extends SlashCommand {
 
 	}
 
-	private class Show extends SlashCommand {
+	private class Show extends CommandBase {
 
-		public Show() {
+		public Show(App bot) {
+			super(bot);
 			this.name = "show";
 			this.path = "bot.guild.language.show";
 		}
