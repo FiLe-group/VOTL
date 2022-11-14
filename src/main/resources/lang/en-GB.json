@@ -58,6 +58,11 @@
 			"shutdown": {
 				"help": "Safely shuts down the bot",
 				"usage": "/shutdown"
+			},
+			"invite": {
+				"help": "Get bot's invite url",
+				"usage": "/invite",
+				"value": "Here is my invite link: {bot_invite}"
 			}
 		},
 		"guild": {

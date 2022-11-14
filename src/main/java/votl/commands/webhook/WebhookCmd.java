@@ -131,7 +131,7 @@ public class WebhookCmd extends CommandBase {
 			this.path = "bot.webhook.add.create";
 			List<OptionData> options = new ArrayList<OptionData>();
 			options.add(new OptionData(OptionType.STRING, "name", lu.getText(path+".option_name"), true));
-			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+"bot.webhook.add.create.option_channel")));
+			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".option_channel")));
 			this.options = options;
 			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.webhook.add.help"));
 		}
@@ -243,7 +243,7 @@ public class WebhookCmd extends CommandBase {
 			this.path = "bot.webhook.remove";
 			List<OptionData> options = new ArrayList<OptionData>();
 			options.add(new OptionData(OptionType.STRING, "id", lu.getText(path+".option_id"), true));
-			options.add(new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+"bot.webhook.remove.option_delete")));
+			options.add(new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".option_delete")));
 			this.options = options;
 		}
 
@@ -312,7 +312,7 @@ public class WebhookCmd extends CommandBase {
 			this.path = "bot.webhook.move";
 			List<OptionData> options = new ArrayList<OptionData>();
 			options.add(new OptionData(OptionType.STRING, "id", lu.getText(path+".option_id"), true));
-			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+"bot.webhook.move.option_channel"), true));
+			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".option_channel"), true));
 			this.options = options;
 		}
 

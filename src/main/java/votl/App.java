@@ -122,6 +122,7 @@ public class App {
 				// owner
 				new ShutdownCmd(this),
 				new EvalCmd(this),
+				new InviteCmd(this),
 				// webhook
 				new WebhookCmd(this),
 				// moderation

@@ -58,6 +58,11 @@
 			"shutdown": {
 				"help": "Безопасно выключает бота",
 				"usage": "/shutdown"
+			},
+			"invite": {
+				"help": "Получить инвайт ссылку бота",
+				"usage": "/invite",
+				"value": "Вот мой инвайт: {bot_invite}"
 			}
 		},
 		"guild": {
