@@ -14,7 +14,7 @@ plugins {
 apply from: 'version.gradle'
 
 def version = loadVersion().getVersion()
-def group = 'com.github.fileeditor97.votl.App'
+def group = 'votl.App'
 
 repositories {
 	// Use Maven Central for resolving dependencies.
