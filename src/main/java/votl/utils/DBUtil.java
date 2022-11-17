@@ -8,7 +8,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import votl.objects.CmdModule;
@@ -83,9 +85,9 @@ public class DBUtil {
 	// Guild Voice
 	public void guildVoiceSetup(String guildId, String categoryId, String channelId) {
 		if (isGuildVoice(guildId)) {
-			update("guildVoice", new String[]{"categoryId", "channelId"}, new String[]{categoryId, channelId}, "guildId", guildId);
+			update("guildVoice", List.of("categoryId", "channelId"), List.of(categoryId, channelId), "guildId", guildId);
 		} else {
-			insert("guildVoice", new String[]{"guildId", "categoryId", "channelId"}, new String[]{guildId, categoryId, channelId});
+			insert("guildVoice", List.of("guildId", "categoryId", "channelId"), List.of(guildId, categoryId, channelId));
 		}
 	}
 
@@ -171,7 +173,7 @@ public class DBUtil {
 
 	// Voice Channel
 	public void channelAdd(String userId, String channelId) {
-		insert("voiceChannel", new String[]{"userId", "channelId"}, new Object[]{userId, channelId});
+		insert("voiceChannel", List.of("userId", "channelId"), List.of(userId, channelId));
 	}
 
 	public void channelRemove(String channelId) {
@@ -214,7 +216,7 @@ public class DBUtil {
 
 	// Webhook List
 	public void webhookAdd(String webhookId, String guildId, String token) {
-		insert("webhook", new String[]{"webhookId", "guildId", "token"}, new Object[]{webhookId, guildId, token});
+		insert("webhook", List.of("webhookId", "guildId", "token"), List.of(webhookId, guildId, token));
 	}
 
 	public void webhookRemove(String webhookId) {
@@ -246,11 +248,11 @@ public class DBUtil {
 
 	// Module disable
 	public void moduleAdd(String guildId, CmdModule module) {
-		insert("moduleOff", new String[]{"guildId", "module"}, new Object[]{guildId, module.toString()});
+		insert("moduleOff", List.of("guildId", "module"), List.of(guildId, module.toString()));
 	}
 
 	public void moduleRemove(String guildId, CmdModule module) {
-		delete("moduleOff", new String[]{"guildId", "module"}, new Object[]{guildId, module.toString()});
+		delete("moduleOff", List.of("guildId", "module"), List.of(guildId, module.toString()));
 	}
 
 	public List<CmdModule> modulesGet(String guildId) {
@@ -262,7 +264,7 @@ public class DBUtil {
 	}
 
 	public boolean moduleDisabled(String guildId, CmdModule module) {
-		if (select("moduleOff", "guildId", new String[]{"guildId", "module"}, new Object[]{guildId, module.toString()}).isEmpty()) {
+		if (select("moduleOff", "guildId", List.of("guildId", "module"), List.of(guildId, module.toString())).isEmpty()) {
 			return false;
 		}
 		return true;
@@ -270,15 +272,15 @@ public class DBUtil {
 
 	// Mod/Admin Access
 	public void accessAdd(String guildId, String userId, boolean admin) {
-		insert("modAccess", new String[]{"guildId", "userId", "admin"}, new Object[]{guildId, userId, (admin ? 1 : 0)});
+		insert("modAccess", List.of("guildId", "userId", "admin"), List.of(guildId, userId, (admin ? 1 : 0)));
 	}
 
 	public void accessRemove(String guildId, String userId) {
-		delete("modAccess", new String[]{"guildId", "userId"}, new Object[]{guildId, userId});
+		delete("modAccess", List.of("guildId", "userId"), List.of(guildId, userId));
 	}
 
 	public void accessChange(String guildId, String userId, boolean admin) {
-		update("modAccess", "admin", (admin ? 1 : 0), new String[]{"guildId", "userId"}, new Object[]{guildId, userId});
+		update("modAccess", "admin", (admin ? 1 : 0), List.of("guildId", "userId"), List.of(guildId, userId));
 	}
 
 	public List<String> accessAllGet(String guildId) {
@@ -290,7 +292,7 @@ public class DBUtil {
 	}
 
 	public List<String> accessModGet(String guildId) {
-		List<Object> objs = select("modAccess", "userId", new String[]{"guildId", "admin"}, new Object[]{guildId, 0});
+		List<Object> objs = select("modAccess", "userId", List.of("guildId", "admin"), List.of(guildId, 0));
 		if (objs.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -298,7 +300,7 @@ public class DBUtil {
 	}
 
 	public List<String> accessAdminGet(String guildId) {
-		List<Object> objs = select("modAccess", "userId", new String[]{"guildId", "admin"}, new Object[]{guildId, 1});
+		List<Object> objs = select("modAccess", "userId", List.of("guildId", "admin"), List.of(guildId, 1));
 		if (objs.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -306,7 +308,7 @@ public class DBUtil {
 	}
 
 	public String hasAccess(String guildId, String userId) {
-		List<Object> objs = select("modAccess", "admin", new String[]{"guildId", "userId"}, new Object[]{guildId, userId});
+		List<Object> objs = select("modAccess", "admin", List.of("guildId", "userId"), List.of(guildId, userId));
 		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
@@ -319,13 +321,13 @@ public class DBUtil {
 
 	// INSERT sql
 	private void insert(String table, String insertKey, Object insertValueObj) {
-		insert(table, new String[]{insertKey}, new Object[]{insertValueObj});
+		insert(table, List.of(insertKey), List.of(insertValueObj));
 	}
 	
-	private void insert(String table, String[] insertKeys, Object[] insertValuesObj) {
-		String[] insertValues = new String[insertValuesObj.length];
-		for (int i = 0; i<insertValuesObj.length; i++) {
-			insertValues[i] = quote(insertValuesObj[i]);
+	private void insert(final String table, final List<String> insertKeys, final List<Object> insertValuesObj) {
+		List<String> insertValues = new ArrayList<String>(insertValuesObj.size());
+		for (Object obj : insertValuesObj) {
+			insertValues.add(quote(obj));
 		}
 
 		String sql = "INSERT INTO "+table+" ("+String.join(", ", insertKeys)+") VALUES ("+String.join(", ", insertValues)+")";
@@ -339,21 +341,21 @@ public class DBUtil {
 
 	// SELECT sql
 	private List<Object> select(String table, String selectKey, String condKey, Object condValueObj) {
-		return select(table, selectKey, new String[]{condKey}, new Object[]{condValueObj});
+		return select(table, selectKey, List.of(condKey), List.of(condValueObj));
 	}
 
-	private List<Object> select(String table, String selectKey, String[] condKeys, Object[] condValuesObj) {
-		String[] condValues = new String[condValuesObj.length];
-		for (int i = 0; i<condValuesObj.length; i++) {
-			condValues[i] = quote(condValuesObj[i]);
+	private List<Object> select(final String table, final String selectKey, final List<String> condKeys, final List<Object> condValuesObj) {
+		List<String> condValues = new ArrayList<String>(condValuesObj.size());
+		for (Object obj : condValuesObj) {
+			condValues.add(quote(obj));
 		}
 
 		String sql = "SELECT * FROM "+table+" WHERE ";
-		for (int i = 0; i<condKeys.length; i++) {
+		for (int i = 0; i < condKeys.size(); i++) {
 			if (i > 0) {
 				sql += " AND ";
 			}
-			sql += condKeys[i]+"="+condValues[i];
+			sql += condKeys.get(i)+"="+condValues.get(i);
 		}
 
 		List<Object> results = new ArrayList<Object>();
@@ -369,42 +371,89 @@ public class DBUtil {
 		return results;
 	}
 
-	// UPDATE sql
-	private void update(String table, String updateKey, Object updateValueObj, String condKey, Object condValueObj) {
-		update(table, new String[]{updateKey}, new Object[]{updateValueObj}, new String[]{condKey}, new Object[]{condValueObj});
+	private List<Map<String, Object>> select(String table, List<String> selectKeys, String condKey, Object condValueObj) {
+		return select(table, selectKeys, List.of(condKey), List.of(condValueObj));
 	}
 
-	private void update(String table, String updateKey, Object updateValueObj, String[] condKeys, Object[] condValuesObj) {
-		update(table, new String[]{updateKey}, new Object[]{updateValueObj}, condKeys, condValuesObj);
-	}
-
-	private void update(String table, String[] updateKeys, Object[] updateValuesObj, String condKey, Object condValueObj) {
-		update(table, updateKeys, updateValuesObj, new String[]{condKey}, new Object[]{condValueObj});
-	}
-
-	private void update(String table, String[] updateKeys, Object[] updateValuesObj, String[] condKeys, Object[] condValuesObj) {
-		String[] updateValues = new String[updateValuesObj.length];
-		for (int i = 0; i<updateValuesObj.length; i++) {
-			updateValues[i] = quote(updateValuesObj[i]);
-		}
-		String[] condValues = new String[condValuesObj.length];
-		for (int i = 0; i<condValuesObj.length; i++) {
-			condValues[i] = quote(condValuesObj[i]);
+	private List<Map<String, Object>> select(final String table, final List<String> selectKeys, final List<String> condKeys, final List<Object> condValuesObj) {
+		List<String> condValues = new ArrayList<String>(condValuesObj.size());
+		for (Object obj : condValuesObj) {
+			condValues.add(quote(obj));
 		}
 
-		String sql = "UPDATE "+table+" SET ";
-		for (int i = 0; i<updateKeys.length; i++) {
-			if (i > 0) {
-				sql += ", ";
-			}
-			sql += updateKeys[i]+"="+updateValues[i];
-		}
-		sql += " WHERE ";
-		for (int i = 0; i<condKeys.length; i++) {
+		String sql = "SELECT * FROM "+table+" WHERE ";
+		for (int i = 0; i < condKeys.size(); i++) {
 			if (i > 0) {
 				sql += " AND ";
 			}
-			sql += condKeys[i]+"="+condValues[i];
+			sql += condKeys.get(i)+"="+condValues.get(i);
+		}
+
+		List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
+
+		try (Connection conn = connect();
+		PreparedStatement st = conn.prepareStatement(sql)) {
+			ResultSet rs = st.executeQuery();
+			List<String> keys = new ArrayList<>();
+			
+			if (selectKeys.size() == 0) {
+				for (int i = 1; i<=rs.getMetaData().getColumnCount(); i++) {
+					keys.add(rs.getMetaData().getColumnName(i));
+				}
+			} else {
+				keys = selectKeys;
+			}
+
+			Map<String, Object> banDataTemp = keys.stream().collect(HashMap::new, (m,v)->m.put(v, null), HashMap::putAll);
+			while (rs.next()) {
+				Map<String, Object> banData = banDataTemp;
+				for (String key : keys) {
+					banData.put(key, rs.getObject(key));
+				}
+				results.add(banData);
+			}
+		} catch (SQLException ex) {
+			logger.warn("DB: Error at SELECT\nrequest: {}", sql, ex);
+		}
+		return results;
+	}
+
+	// UPDATE sql
+	private void update(String table, String updateKey, Object updateValueObj, String condKey, Object condValueObj) {
+		update(table, List.of(updateKey), List.of(updateValueObj), List.of(condKey), List.of(condValueObj));
+	}
+
+	private void update(String table, String updateKey, Object updateValueObj, List<String> condKeys, List<Object> condValuesObj) {
+		update(table, List.of(updateKey), List.of(updateValueObj), condKeys, condValuesObj);
+	}
+
+	private void update(String table, List<String> updateKeys, List<Object> updateValuesObj, String condKey, Object condValueObj) {
+		update(table, updateKeys, updateValuesObj, List.of(condKey), List.of(condValueObj));
+	}
+
+	private void update(final String table, final List<String> updateKeys, final List<Object> updateValuesObj, final List<String> condKeys, final List<Object> condValuesObj) {
+		List<String> updateValues = new ArrayList<String>(updateValuesObj.size());
+		for (Object obj : updateValuesObj) {
+			updateValues.add(quote(obj));
+		}
+		List<String> condValues = new ArrayList<String>(condValuesObj.size());
+		for (Object obj : condValuesObj) {
+			condValues.add(quote(obj));
+		}
+
+		String sql = "UPDATE "+table+" SET ";
+		for (int i = 0; i<updateKeys.size(); i++) {
+			if (i > 0) {
+				sql += ", ";
+			}
+			sql += updateKeys.get(i)+"="+updateValues.get(i);
+		}
+		sql += " WHERE ";
+		for (int i = 0; i<condKeys.size(); i++) {
+			if (i > 0) {
+				sql += " AND ";
+			}
+			sql += condKeys.get(i)+"="+condValues.get(i);
 		}
 
 		try (Connection conn = connect();
@@ -417,21 +466,21 @@ public class DBUtil {
 
 	// DELETE sql
 	private void delete(String table, String condKey, Object condValueObj) {
-		delete(table, new String[]{condKey}, new Object[]{condValueObj});
+		delete(table, List.of(condKey), List.of(condValueObj));
 	}
 
-	private void delete(String table, String[] condKeys, Object[] condValuesObj) {
-		String[] condValues = new String[condValuesObj.length];
-		for (int i = 0; i<condValuesObj.length; i++) {
-			condValues[i] = quote(condValuesObj[i]);
+	private void delete(final String table, final List<String> condKeys, final List<Object> condValuesObj) {
+		List<String> condValues = new ArrayList<String>(condValuesObj.size());
+		for (Object obj : condValuesObj) {
+			condValues.add(quote(obj));
 		}
 
 		String sql = "DELETE FROM "+table+" WHERE ";
-		for (int i = 0; i<condKeys.length; i++) {
+		for (int i = 0; i<condKeys.size(); i++) {
 			if (i > 0) {
 				sql += " AND ";
 			}
-			sql += condKeys[i]+"="+condValues[i];
+			sql += condKeys.get(i)+"="+condValues.get(i);
 		}
 
 		try (Connection conn = connect();
