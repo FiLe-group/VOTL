@@ -39,7 +39,7 @@ jobs:
       with:
         name: Package
         path: |
-          ./app/build/lib/VOTL-*
+          ./build/lib/VOTL-*
     - name: Create Release
       if: "!contains( env.version , 'SNAPSHOT')"
       # You may pin to the exact commit or the version.

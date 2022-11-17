@@ -13,11 +13,11 @@ public enum CmdAccessLevel {
 	private final Integer level;
 	private final String name;
 
-	public static final Map<Integer, CmdAccessLevel> lookup = new HashMap<Integer, CmdAccessLevel>();
+	private static final Map<Integer, CmdAccessLevel> BY_LEVEL = new HashMap<Integer, CmdAccessLevel>();
 
 	static {
 		for (CmdAccessLevel al : CmdAccessLevel.values()) {
-			lookup.put(al.getLevel(), al);
+			BY_LEVEL.put(al.getLevel(), al);
 		}
 	}
 
@@ -32,6 +32,10 @@ public enum CmdAccessLevel {
 
 	public String getName() {
 		return name;
+	}
+
+	public static CmdAccessLevel byLevel(Integer level) {
+		return BY_LEVEL.get(level);
 	}
 
 }

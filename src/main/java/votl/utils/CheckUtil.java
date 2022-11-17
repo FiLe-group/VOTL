@@ -63,6 +63,10 @@ public class CheckUtil {
 		return CmdAccessLevel.ALL;
 	}
 
+	public Boolean hasHigherAccess(CommandClient client, Member who, Member than) {
+		return getAccessLevel(client, who).getLevel() > getAccessLevel(client, than).getLevel();
+	}
+
 	public <T> CheckUtil hasAccess(T genericEvent, CmdAccessLevel accessLevel) throws CheckException {
 		if (genericEvent instanceof SlashCommandEvent) {
 			SlashCommandEvent event = (SlashCommandEvent) genericEvent;
