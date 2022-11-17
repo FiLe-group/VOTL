@@ -14,6 +14,7 @@
 		"guild_not_setup": "Guild was not setup-ed! Check `/help` for setup command",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and that I have sufficient permissions!",
 		"title": "Error",
+		"additional": "Additional info:",
 		"unknown": "Something went wrong! {EMOTE_WARNING}\nReport this error to bot's Owner/Developer!",
 		"command": {
 			"not_owner": "Only an owner may run this command.",
@@ -50,6 +51,7 @@
 		"voice": "Voice category",
 		"webhook": "Webhook commands",
 		"language": "Language commands",
+		"moderation": "Moderation category",
 		"module_disabled": "This command(module) is disabled."
 	},
 	"bot": {
@@ -351,6 +353,37 @@
 			},
 			"check": {
 
+			}
+		},
+		"moderation": {
+			"ban": {
+				"help": "Ban member of this server",
+				"usage": "/ban <@member> [duration] [reason] [delete?]",
+				"option_user": "Mention user/member to be banned from this guild",
+				"option_time": "Temporaty ban member (Example: 2h, 2w5d (week, day, hour, minute) | Default: permament)",
+				"option_reason": "Ban reason (Default: *none*)",
+				"option_delete": "Delete messages past 2 days? (Default: true)",
+				"no_reason": "*Not provided*",
+				"not_found": "User not found or input error",
+				"not_self": "You can not ban yourself or this me... (for good)",
+				"already_banned": "Mentioned user is already banned on this server.",
+				"higher_access": "Mentioned member has higher access than you.",
+				"ban_abort": "Could not ban mentioned member.",
+				"ban_success": "{EMOTE_CHECK} **{user_tag} was banned {duration}!** | {reason}"
+			},
+			"unban": {
+				"help": "Unban banned user on this server",
+				"usage": "",
+				"option_user": "",
+				"option_reasom": ""
+			},
+			"case": {
+				"help": "",
+				"usage": "",
+				"short_title": "Ban info",
+				"short_info": "*Username:* `{username}`\n*Ban reason:* `{reason}`",
+				"permanently": "permanently",
+				"temporary": "until {time}"
 			}
 		},
 		"other": {

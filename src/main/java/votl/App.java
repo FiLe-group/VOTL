@@ -7,6 +7,7 @@ import java.util.Random;
 import javax.annotation.Nonnull;
 
 import votl.commands.guild.*;
+import votl.commands.moderation.*;
 import votl.commands.other.*;
 import votl.commands.owner.*;
 import votl.commands.voice.*;
@@ -126,7 +127,7 @@ public class App {
 				// webhook
 				new WebhookCmd(this),
 				// moderation
-				// ... ban/unban
+				new BanCmd(this),
 				// other
 				new PingCmd(this),
 				new AboutCmd(this),
