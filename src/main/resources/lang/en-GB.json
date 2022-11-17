@@ -26,6 +26,13 @@
 			"guild": "in this server",
 			"shard": "on this shard",
 			"global": "globally"
+		},
+		"formatter": {
+			"no_time_provided": "No time provided using pattern",
+			"except_seconds": "Provided time can not be specified in seconds",
+			"no_multip": "Could not get time multiplication from given character",
+			"parse_long": "Could not parse provided time due to owerflow or other error",
+			"long_overflow": "Provided time too big, long overflow"
 		}
 	},
 	"misc": {
