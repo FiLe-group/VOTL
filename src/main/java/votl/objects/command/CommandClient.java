@@ -374,6 +374,13 @@ public interface CommandClient
 	String forcedGuildId();
 
 	/**
+	 * Returns list of guild IDs, which will have owner commands
+	 * 
+	 * @return A possibly-empty list devGuildIds in the builder
+	 */
+	String[] devGuildIds();
+
+	/**
 	 * Gets the time this {@link com.jagrosh.jdautilities.command.CommandClient CommandClient}
 	 * implementation was created.
 	 *
@@ -585,4 +592,16 @@ public interface CommandClient
 	 * @param serverId The server to upsert interactions for
 	 */
 	void upsertInteractions(JDA jda, String serverId);
+
+	/**
+	 * Upserts all interactions to the provided server.
+	 * <br>This runs after the {@link net.dv8tion.jda.api.events.session.ReadyEvent ReadyEvent} has been fired
+	 * if {@link #isManualUpsert()} is {@code false}.
+	 * <br>If {@code null} is passed for the server, commands will upsert globally.
+	 * <b>This may take up to an hour.</b>
+	 *
+	 * @param jda The JDA instance to use
+	 * @param devServerIds Developer/Owner server ids to have owner commands be upserted
+	 */
+	void upsertInteractions(JDA jda, String[] devServerIds);
 }

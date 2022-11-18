@@ -134,6 +134,7 @@ public class App {
 				new HelpCmd(this),
 				new StatusCmd(this)
 			)
+			.setDevGuildIds("934462716121321472")
 			.build();
 
 		// Build

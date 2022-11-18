@@ -228,7 +228,7 @@ public abstract class SlashCommand extends Command
 			}
 		}
 
-		// run
+		// execute
 		try {
 			execute(event);
 		} catch(Throwable t) {

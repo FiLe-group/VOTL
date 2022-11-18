@@ -65,7 +65,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+//import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -128,6 +128,7 @@ public class CommandClientImpl implements CommandClient, EventListener
 	private final ArrayList<ContextMenu> contextMenus;
 	private final HashMap<String, Integer> contextMenuIndex;
 	private final String forcedGuildId;
+	private final String[] devGuildIds;
 	private final boolean manualUpsert;
 	private final String success;
 	private final String warning;
@@ -148,7 +149,7 @@ public class CommandClientImpl implements CommandClient, EventListener
 	private int totalGuilds;
 
 	public CommandClientImpl(String ownerId, String[] coOwnerIds, String prefix, String altprefix, String[] prefixes, Function<MessageReceivedEvent, String> prefixFunction, Function<MessageReceivedEvent, Boolean> commandPreProcessFunction, BiFunction<MessageReceivedEvent, Command, Boolean> commandPreProcessBiFunction, Activity activity, OnlineStatus status, String serverInvite,
-							 String success, String warning, String error, String carbonKey, String botsKey, ArrayList<Command> commands, ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus, String forcedGuildId, boolean manualUpsert,
+							 String success, String warning, String error, String carbonKey, String botsKey, ArrayList<Command> commands, ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus, String forcedGuildId, String[] devGuildIds, boolean manualUpsert,
 							 boolean useHelp, boolean shutdownAutomatically, Consumer<CommandEvent> helpConsumer, String helpWord, ScheduledExecutorService executor,
 							 int linkedCacheSize, AnnotatedModuleCompiler compiler)
 	{
@@ -197,6 +198,7 @@ public class CommandClientImpl implements CommandClient, EventListener
 		this.contextMenus = new ArrayList<>();
 		this.contextMenuIndex = new HashMap<>();
 		this.forcedGuildId = forcedGuildId;
+		this.devGuildIds = devGuildIds==null || devGuildIds.length==0 ? null : devGuildIds;
 		this.manualUpsert = manualUpsert;
 		this.cooldowns = new HashMap<>();
 		this.uses = new HashMap<>();
@@ -295,6 +297,12 @@ public class CommandClientImpl implements CommandClient, EventListener
 	public String forcedGuildId()
 	{
 		return forcedGuildId;
+	}
+
+	@Override
+	public String[] devGuildIds()
+	{
+		return devGuildIds;
 	}
 
 	@Override
@@ -656,7 +664,12 @@ public class CommandClientImpl implements CommandClient, EventListener
 	@Override
 	public void upsertInteractions(JDA jda)
 	{
-		upsertInteractions(jda, forcedGuildId);
+		if (devGuildIds == null) {
+			upsertInteractions(jda, forcedGuildId);
+		} else {
+			upsertInteractions(jda, devGuildIds);
+		}
+		
 	}
 
 	@Override
@@ -665,20 +678,20 @@ public class CommandClientImpl implements CommandClient, EventListener
 		// Get all commands
 		List<CommandData> data = new ArrayList<>();
 		List<SlashCommand> slashCommands = getSlashCommands();
-		Map<String, SlashCommand> slashCommandMap = new HashMap<>();
+		//Map<String, SlashCommand> slashCommandMap = new HashMap<>();
 		List<ContextMenu> contextMenus = getContextMenus();
-		Map<String, ContextMenu> contextMenuMap = new HashMap<>();
+		//Map<String, ContextMenu> contextMenuMap = new HashMap<>();
 
 		// Build the command and privilege data
 		for (SlashCommand command : slashCommands)
 		{
 			data.add(command.buildCommandData());
-			slashCommandMap.put(command.getName(), command);
+			//slashCommandMap.put(command.getName(), command);
 		}
 
 		for (ContextMenu menu : contextMenus) {
 			data.add(menu.buildCommandData());
-			contextMenuMap.put(menu.getName(), menu);
+			//contextMenuMap.put(menu.getName(), menu);
 		}
 
 		// Upsert the commands
@@ -694,13 +707,63 @@ public class CommandClientImpl implements CommandClient, EventListener
 			// Upsert the commands + their privileges
 			server.updateCommands().addCommands(data)
 				.queue(
-					priv -> LOG.debug("Successfully added " + commands.size() + " slash commands and " + contextMenus.size() + " menus to server " + server.getName()),
+					priv -> LOG.debug("Successfully added " + slashCommands.size() + " slash commands and " + contextMenus.size() + " menus to server " + server.getName()),
 					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?" + error)
 				);
 		}
 		else
 			jda.updateCommands().addCommands(data)
 				.queue(commands -> LOG.debug("Successfully added " + commands.size() + " slash commands!"));
+	}
+
+	@Override
+	public void upsertInteractions(JDA jda, String[] serverIds) {
+		// Get all commands
+		List<CommandData> data = new ArrayList<>();
+		List<CommandData> dataDev = new ArrayList<>();
+		List<SlashCommand> slashCommands = getSlashCommands();
+		//Map<String, SlashCommand> slashCommandMap = new HashMap<>();
+		List<ContextMenu> contextMenus = getContextMenus();
+		//Map<String, ContextMenu> contextMenuMap = new HashMap<>();
+
+		// Build the command and privilege data
+		for (SlashCommand command : slashCommands)
+		{
+			if (!command.isOwnerCommand()) {
+				data.add(command.buildCommandData());
+			} else {
+				dataDev.add(command.buildCommandData());
+			}
+			//slashCommandMap.put(command.getName(), command);
+		}
+		for (ContextMenu menu : contextMenus) {
+			data.add(menu.buildCommandData());
+			//contextMenuMap.put(menu.getName(), menu);
+		}
+
+		jda.updateCommands().addCommands(data)
+			.queue(commands -> LOG.debug("Successfully added " + commands.size() + " slash commands globally!"));
+
+		// Upsert the commands
+		for (String serverId : serverIds) {
+			// Attempt to retrieve the provided guild
+			if (serverId == null) {
+				LOG.error("One of the specified developer guild id is null! Check provided values.");
+				return;
+			}
+			Guild server = jda.getGuildById(serverId);
+			if (server == null)
+			{
+				LOG.error("Specified forced guild is null! Slash Commands will NOT be added! Is the bot added?");
+				return;
+			}
+			// Upsert the commands + their privileges
+			server.updateCommands().addCommands(dataDev)
+				.queue(
+					priv -> LOG.debug("Successfully added " + dataDev.size() + " slash commands to server " + server.getName()),
+					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?" + error)
+				);
+		}
 	}
 
 	private void onMessageReceived(MessageReceivedEvent event)

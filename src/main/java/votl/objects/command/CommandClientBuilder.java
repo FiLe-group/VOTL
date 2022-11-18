@@ -62,6 +62,7 @@ public class CommandClientBuilder
 	private final LinkedList<SlashCommand> slashCommands = new LinkedList<>();
 	private final LinkedList<ContextMenu> contextMenus = new LinkedList<>();
 	private String forcedGuildId = null;
+	private String[] devGuildIds;
 	private boolean manualUpsert = false;
 	private CommandListener listener;
 	private boolean useHelp = true;
@@ -83,7 +84,7 @@ public class CommandClientBuilder
 	public CommandClient build()
 	{
 		CommandClient client = new CommandClientImpl(ownerId, coOwnerIds, prefix, altprefix, prefixes, prefixFunction, commandPreProcessFunction, commandPreProcessBiFunction, activity, status, serverInvite,
-													 success, warning, error, carbonKey, botsKey, new ArrayList<>(commands), new ArrayList<>(slashCommands), new ArrayList<>(contextMenus), forcedGuildId, manualUpsert, useHelp,
+													 success, warning, error, carbonKey, botsKey, new ArrayList<>(commands), new ArrayList<>(slashCommands), new ArrayList<>(contextMenus), forcedGuildId, devGuildIds, manualUpsert, useHelp,
 													 shutdownAutomatically, helpConsumer, helpWord, executor, linkedCacheSize, compiler);
 		if(listener!=null)
 			client.setListener(listener);
@@ -494,6 +495,32 @@ public class CommandClientBuilder
 	public CommandClientBuilder forceGuildOnly(long guildId)
 	{
 		this.forcedGuildId = String.valueOf(guildId);
+		return this;
+	}
+
+	/**
+	 * Set owner/developer Guild that will have access to owner set SlashCommands.
+	 * By default all SlashCommands/ContextMenus will be added globally (except if used {@link CommandClientBuilder#forceGuildOnly forceGuildOnly})
+	 *
+	 * @param guildIds the guild IDs.
+	 * @return This Builder
+	 */
+	public CommandClientBuilder setDevGuildIds(String... guildIds)
+	{
+		this.devGuildIds = guildIds;
+		return this;
+	}
+
+	/**
+	 * Set owner/developer Guild that will have access to owner set SlashCommands.
+	 * By default all SlashCommands/ContextMenus will be added globally (except if used {@link CommandClientBuilder#forceGuildOnly forceGuildOnly})
+	 *
+	 * @param guildIds the guild IDs.
+	 * @return This Builder
+	 */
+	public CommandClientBuilder setDevGuildIds(long... guildIds)
+	{
+		this.devGuildIds = Arrays.stream(guildIds).mapToObj(String::valueOf).toArray(String[]::new);;
 		return this;
 	}
 
