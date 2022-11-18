@@ -391,8 +391,8 @@
 				"help": "Check the bot's latency",
 				"usage": "/ping",
 				"loading": "{EMOTE_TYPING} Ping: ...",
-				"info": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms",
-				"info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest} ms"
+				"info": "{EMOTE_PING} Ping: {ping} ms",
+				"info_full": "{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest} ms"
 			},
 			"about": {
 				"help": "Get basic information about the bot",
