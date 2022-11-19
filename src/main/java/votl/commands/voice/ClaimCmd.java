@@ -50,7 +50,7 @@ public class ClaimCmd extends CommandBase {
 		}
 
 		AudioChannel ac = author.getVoiceState().getChannel();
-		if (!bot.getDBUtil().isVoiceChannelExists(ac.getId())) {
+		if (!bot.getDBUtil().voice.existsChannel(ac.getId())) {
 			editError(event, "bot.voice.claim.not_custom");
 			return;
 		}
@@ -59,7 +59,7 @@ public class ClaimCmd extends CommandBase {
 		DiscordLocale userLocale = event.getUserLocale();
 
 		VoiceChannel vc = guild.getVoiceChannelById(ac.getId());
-		guild.retrieveMemberById(bot.getDBUtil().channelGetUser(vc.getId())).queue(
+		guild.retrieveMemberById(bot.getDBUtil().voice.getUser(vc.getId())).queue(
 			owner -> {
 				for (Member vcMember : vc.getMembers()) {
 					if (vcMember == owner) {
@@ -75,7 +75,7 @@ public class ClaimCmd extends CommandBase {
 					editPermError(event, author, ex.getPermission(), true);
 					return;
 				}
-				bot.getDBUtil().channelSetUser(author.getId(), vc.getId());
+				bot.getDBUtil().voice.setUser(author.getId(), vc.getId());
 				
 				editHookEmbed(event, 
 					bot.getEmbedUtil().getEmbed(event)

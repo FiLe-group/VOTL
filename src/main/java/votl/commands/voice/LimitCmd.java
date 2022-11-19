@@ -75,7 +75,7 @@ public class LimitCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Integer filLimit = Optional.ofNullable(bot.getDBUtil().guildVoiceGetLimit(Objects.requireNonNull(event.getGuild()).getId())).orElse(0);
+			Integer filLimit = Optional.ofNullable(bot.getDBUtil().guildVoice.getLimit(Objects.requireNonNull(event.getGuild()).getId())).orElse(0);
 			sendReply(event, filLimit);
 		}
 
@@ -87,7 +87,7 @@ public class LimitCmd extends CommandBase {
 		Member member = Objects.requireNonNull(event.getMember());
 		String memberId = member.getId();
 
-		if (!bot.getDBUtil().isVoiceChannel(memberId)) {
+		if (!bot.getDBUtil().voice.existsUser(memberId)) {
 			createError(event, "errors.no_channel");
 			return;
 		}
@@ -95,13 +95,13 @@ public class LimitCmd extends CommandBase {
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		DiscordLocale userLocale = event.getUserLocale();
 
-		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(memberId));
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(memberId));
 		vc.getManager().setUserLimit(filLimit).queue();
 		
-		if (!bot.getDBUtil().isUser(memberId)) {
-			bot.getDBUtil().userAdd(memberId);
+		if (!bot.getDBUtil().user.equals(memberId)) {
+			bot.getDBUtil().user.add(memberId);
 		}
-		bot.getDBUtil().userSetLimit(memberId, filLimit);
+		bot.getDBUtil().user.setLimit(memberId, filLimit);
 
 		createReplyEmbed(event, 
 			bot.getEmbedUtil().getEmbed(event)

@@ -27,16 +27,16 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
-		String masterVoiceID = bot.getDBUtil().guildVoiceGetChannel(event.getGuild().getId());
+		String masterVoiceID = bot.getDBUtil().guildVoice.getChannel(event.getGuild().getId());
 		AudioChannelUnion channelJoined = event.getChannelJoined();
 		if (channelJoined != null && channelJoined.getId().equals(masterVoiceID)) {
 			handleVoiceCreate(event.getGuild(), event.getMember());
 		}
 
 		AudioChannelUnion channelLeft = event.getChannelLeft();
-		if (channelLeft != null && bot.getDBUtil().isVoiceChannelExists(channelLeft.getId()) && channelLeft.getMembers().isEmpty()) {
+		if (channelLeft != null && bot.getDBUtil().guildVoice.exists(channelLeft.getId()) && channelLeft.getMembers().isEmpty()) {
 			channelLeft.delete().queueAfter(500, TimeUnit.MILLISECONDS);
-			bot.getDBUtil().channelRemove(channelLeft.getId());
+			bot.getDBUtil().voice.remove(channelLeft.getId());
 		}
 	}
 
@@ -45,17 +45,17 @@ public class VoiceListener extends ListenerAdapter {
 		String userID = member.getId();
 		DiscordLocale guildLocale = guild.getLocale();
 
-		if (bot.getDBUtil().isVoiceChannel(userID)) {
+		if (bot.getDBUtil().voice.existsUser(userID)) {
 			member.getUser().openPrivateChannel()
 				.queue(channel -> channel.sendMessage(lu.getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue());
 			return;
 		}
-		String CategoryID = bot.getDBUtil().guildVoiceGetCategory(guildId);
+		String CategoryID = bot.getDBUtil().guildVoice.getChannel(guildId);
 		if (CategoryID == null) return;
-		String channelName = bot.getDBUtil().userGetName(userID);
-		Integer channelLimit = bot.getDBUtil().userGetLimit(userID);
-		String defaultChannelName = bot.getDBUtil().guildVoiceGetName(guildId);
-		Integer defaultChannelLimit = bot.getDBUtil().guildVoiceGetLimit(guildId);
+		String channelName = bot.getDBUtil().user.getName(userID);
+		Integer channelLimit = bot.getDBUtil().user.getLimit(userID);
+		String defaultChannelName = bot.getDBUtil().guildVoice.getName(guildId);
+		Integer defaultChannelLimit = bot.getDBUtil().guildVoice.getLimit(guildId);
 		String name = null;
 		Integer limit = null;
 		if (channelName == null) {
@@ -82,7 +82,7 @@ public class VoiceListener extends ListenerAdapter {
 			.addMemberPermissionOverride(member.getIdLong(), EnumSet.of(Permission.MANAGE_CHANNEL), null)
 			.queue(
 				channel -> {
-					bot.getDBUtil().channelAdd(userID, channel.getId());
+					bot.getDBUtil().voice.add(userID, channel.getId());
 					guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS);
 				}
 			);

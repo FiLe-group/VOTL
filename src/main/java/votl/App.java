@@ -18,6 +18,7 @@ import votl.objects.command.CommandClientBuilder;
 import votl.objects.constants.Constants;
 import votl.objects.constants.Links;
 import votl.utils.*;
+import votl.utils.database.DBUtil;
 import votl.utils.file.FileManager;
 import votl.utils.file.lang.LangUtil;
 import votl.utils.message.*;
@@ -221,7 +222,7 @@ public class App {
 
 	@Nonnull
 	public String getLanguage(String guildId) {
-		String res = dbUtil.guildGetLanguage(guildId);
+		String res = dbUtil.guild.getLanguage(guildId);
 		return (res == null ? localeUtil.getDefaultLanguage() : res);
 	}
 
@@ -232,7 +233,7 @@ public class App {
 	}
 
 	public void setLanguage(String guildId, String value) {
-		dbUtil.guildSetLanguage(guildId, value);
+		dbUtil.guild.setLanguage(guildId, value);
 	}
 
 	public static void main(String[] args) {

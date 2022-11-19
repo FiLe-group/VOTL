@@ -47,7 +47,7 @@ public class SetLimitCmd extends CommandBase {
 		String guildId = Objects.requireNonNull(event.getGuild()).getId();
 		DiscordLocale userLocale = event.getUserLocale();
 
-		bot.getDBUtil().guildVoiceSetLimit(guildId, filLimit);
+		bot.getDBUtil().guildVoice.setLimit(guildId, filLimit);
 
 		createReplyEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)

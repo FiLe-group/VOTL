@@ -41,7 +41,7 @@ public class GhostCmd extends CommandBase {
 
 		Member member = Objects.requireNonNull(event.getMember());
 
-		if (!bot.getDBUtil().isVoiceChannel(member.getId())) {
+		if (!bot.getDBUtil().voice.existsUser(member.getId())) {
 			createError(event, "errors.no_channel");
 			return;
 		}
@@ -49,7 +49,7 @@ public class GhostCmd extends CommandBase {
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		DiscordLocale userLocale = event.getUserLocale();
 
-		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(member.getId()));
 		try {
 			vc.upsertPermissionOverride(guild.getPublicRole()).deny(Permission.VIEW_CHANNEL).queue();
 		} catch (InsufficientPermissionException ex) {

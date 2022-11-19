@@ -129,7 +129,7 @@ public class LanguageCmd extends CommandBase {
 			return;
 		}
 
-		bot.getDBUtil().guildSetLanguage(guildId, language);
+		bot.getDBUtil().guild.setLanguage(guildId, language);
 
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
 			.setColor(bot.getMessageUtil().getColor("rgb:0,200,30"))

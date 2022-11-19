@@ -77,15 +77,15 @@ public class AccessCmd extends CommandBase {
 							editError(event, "bot.guild.access.add.is_higher");
 							return;
 						}
-						String access = bot.getDBUtil().hasAccess(guildId, member.getId());
+						String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
 						if (access != null && access.equals("mod")) {
 							editError(event, "bot.guild.access.add.mod.already");
 							return;
 						}
 						if (access != null && access.equals("admin")) {
-							bot.getDBUtil().accessChange(guildId, member.getId(), false);
+							bot.getDBUtil().access.update(guildId, member.getId(), false);
 						} else {
-							bot.getDBUtil().accessAdd(guildId, member.getId(), false);
+							bot.getDBUtil().access.add(guildId, member.getId(), false);
 						}
 
 						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
@@ -139,15 +139,15 @@ public class AccessCmd extends CommandBase {
 							editError(event, "bot.guild.access.add.is_higher");
 							return;
 						}
-						String access = bot.getDBUtil().hasAccess(guildId, member.getId());
+						String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
 						if (access != null && access.equals("admin")) {
 							editError(event, "bot.guild.access.add.admin.already");
 							return;
 						}
 						if (access != null && access.equals("mod")) {
-							bot.getDBUtil().accessChange(guildId, member.getId(), true);
+							bot.getDBUtil().access.update(guildId, member.getId(), true);
 						} else {
-							bot.getDBUtil().accessAdd(guildId, member.getId(), true);
+							bot.getDBUtil().access.add(guildId, member.getId(), true);
 						}
 
 						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
@@ -182,8 +182,8 @@ public class AccessCmd extends CommandBase {
 			String guildId = guild.getId();
 			DiscordLocale userLocale = event.getUserLocale();
 			
-			String[] modsId = bot.getDBUtil().accessModGet(guildId).toArray(new String[0]);
-			String[] adminsId = bot.getDBUtil().accessAdminGet(guildId).toArray(new String[0]);
+			String[] modsId = bot.getDBUtil().access.getMods(guildId).toArray(new String[0]);
+			String[] adminsId = bot.getDBUtil().access.getAdmins(guildId).toArray(new String[0]);
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(lu.getLocalized(userLocale, "bot.guild.access.view.embed.title"));
@@ -268,12 +268,12 @@ public class AccessCmd extends CommandBase {
 							editError(event, "bot.guild.access.remove.is_higher");
 							return;
 						}
-						String access = bot.getDBUtil().hasAccess(guildId, member.getId());
+						String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
 						if (access == null || access.equals("admin")) {
 							editError(event, "bot.guild.access.remove.mod.has_no_access");
 							return;
 						}
-						bot.getDBUtil().accessRemove(guildId, member.getId());
+						bot.getDBUtil().access.remove(guildId, member.getId());
 
 						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 							.setDescription(lu.getText(event, "bot.guild.access.remove.mod.done").replace("{member}", member.getAsMention()))
@@ -325,12 +325,12 @@ public class AccessCmd extends CommandBase {
 							editError(event, "bot.guild.access.remove.is_higher");
 							return;
 						}
-						String access = bot.getDBUtil().hasAccess(guildId, member.getId());
+						String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
 						if (access == null || access.equals("mod")) {
 							editError(event, "bot.guild.access.remove.admin.has_no_access");
 							return;
 						}
-						bot.getDBUtil().accessRemove(guildId, member.getId());
+						bot.getDBUtil().access.remove(guildId, member.getId());
 
 						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
 							.setDescription(lu.getText(event, "bot.guild.access.remove.admin.done").replace("{member}", member.getAsMention()))

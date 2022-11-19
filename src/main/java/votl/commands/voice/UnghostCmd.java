@@ -41,7 +41,7 @@ public class UnghostCmd extends CommandBase {
 		Member member = Objects.requireNonNull(event.getMember());
 		String memberId = member.getId();
 
-		if (!bot.getDBUtil().isVoiceChannel(memberId)) {
+		if (!bot.getDBUtil().voice.existsUser(memberId)) {
 			createError(event, "errors.no_channel");
 			return;
 		}
@@ -49,7 +49,7 @@ public class UnghostCmd extends CommandBase {
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		DiscordLocale userLocale = event.getUserLocale();
 
-		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(memberId));
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(memberId));
 		try {
 			vc.upsertPermissionOverride(guild.getPublicRole()).clear(Permission.VIEW_CHANNEL).queue();
 		} catch (InsufficientPermissionException ex) {

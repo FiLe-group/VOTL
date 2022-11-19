@@ -64,7 +64,7 @@ public class PermsCmd extends CommandBase {
 			Member author = Objects.requireNonNull(event.getMember());
 			String authorId = author.getId();
 
-			if (!bot.getDBUtil().isVoiceChannel(authorId)) {
+			if (!bot.getDBUtil().voice.existsUser(authorId)) {
 				editError(event, "errors.no_channel");
 				return;
 			}
@@ -72,7 +72,7 @@ public class PermsCmd extends CommandBase {
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			DiscordLocale userLocale = event.getUserLocale();
 			
-			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(authorId));
+			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(authorId));
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(lu.getLocalized(userLocale, "bot.voice.perms.view.embed.title").replace("{channel}", vc.getName()))
@@ -169,7 +169,7 @@ public class PermsCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			Member member = Objects.requireNonNull(event.getMember());
 
-			if (!bot.getDBUtil().isVoiceChannel(member.getId())) {
+			if (!bot.getDBUtil().voice.existsUser(member.getId())) {
 				createError(event, "errors.no_channel");
 				return;
 			}
@@ -177,7 +177,7 @@ public class PermsCmd extends CommandBase {
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			DiscordLocale userLocale = event.getUserLocale();
 
-			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(member.getId()));
+			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(member.getId()));
 			try {
 				vc.getManager().sync().queue();
 			} catch (InsufficientPermissionException ex) {

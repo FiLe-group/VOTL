@@ -81,7 +81,7 @@ public class WebhookCmd extends CommandBase {
 				// If there is any webhook and only saved in DB are to be shown
 				if (!listAll) {
 					// Keeps only saved in DB type Webhook objects
-					List<String> regWebhookIDs = bot.getDBUtil().webhookGetIds(guildId);
+					List<String> regWebhookIDs = bot.getDBUtil().webhook.getIds(guildId);
 						
 					webhooks = webhooks.stream().filter(wh -> regWebhookIDs.contains(wh.getId())).collect(Collectors.toList());
 				}
@@ -140,7 +140,7 @@ public class WebhookCmd extends CommandBase {
 				// DYK, guildChannel doesn't have WebhookContainer! no shit
 				guild.getTextChannelById(channel.getId()).createWebhook(setName).queue(
 					webhook -> {
-						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
+						bot.getDBUtil().webhook.add(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 						createReplyEmbed(event,
 							bot.getEmbedUtil().getEmbed(event).setDescription(
 								lu.getText(event, "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
@@ -175,10 +175,10 @@ public class WebhookCmd extends CommandBase {
 			try {
 				event.getJDA().retrieveWebhookById(Objects.requireNonNull(webhookId)).queue(
 					webhook -> {
-						if (bot.getDBUtil().webhookExists(webhookId)) {
+						if (bot.getDBUtil().webhook.exists(webhookId)) {
 							createError(event, "bot.webhook.add.select.error_registered");
 						} else {
-							bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
+							bot.getDBUtil().webhook.add(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 							createReplyEmbed(event,
 								bot.getEmbedUtil().getEmbed(event).setDescription(
 									lu.getText(event, "bot.webhook.add.select.done").replace("{webhook_name}", webhook.getName())
@@ -218,14 +218,14 @@ public class WebhookCmd extends CommandBase {
 			try {
 				event.getJDA().retrieveWebhookById(webhookId).queue(
 					webhook -> {
-						if (!bot.getDBUtil().webhookExists(webhookId)) {
+						if (!bot.getDBUtil().webhook.exists(webhookId)) {
 							createError(event, "bot.webhook.remove.error_not_registered");
 						} else {
 							if (webhook.getGuild().equals(guild)) {
 								if (delete) {
 									webhook.delete(webhook.getToken()).queue();
 								}
-								bot.getDBUtil().webhookRemove(webhookId);
+								bot.getDBUtil().webhook.remove(webhookId);
 								createReplyEmbed(event,
 									bot.getEmbedUtil().getEmbed(event).setDescription(
 										lu.getText(event, "bot.webhook.remove.done").replace("{webhook_name}", webhook.getName())
@@ -274,7 +274,7 @@ public class WebhookCmd extends CommandBase {
 
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
-					if (bot.getDBUtil().webhookExists(webhookId)) {
+					if (bot.getDBUtil().webhook.exists(webhookId)) {
 						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).queue(
 							wm -> {
 								createReplyEmbed(event,

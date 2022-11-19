@@ -20,7 +20,7 @@ public class GuildListener extends ListenerAdapter {
 	public void onGuildJoin(@Nonnull GuildJoinEvent event) {
 		String guildId = event.getGuild().getId();
 		// check if not exists in DB and adds it
-		if (bot.getDBUtil().guildAdd(guildId)) {
+		if (bot.getDBUtil().guild.add(guildId)) {
 			bot.getLogger().info("Automatically added guild '"+event.getGuild().getName()+"'("+guildId+") to db");
 		}
 		bot.getLogger().info("Joined guild '"+event.getGuild().getName()+"'("+guildId+")");
@@ -29,9 +29,9 @@ public class GuildListener extends ListenerAdapter {
 	@Override
 	public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
 		String guildId = event.getGuild().getId();
-		if (bot.getDBUtil().isGuild(guildId) || bot.getDBUtil().isGuildVoice(guildId)) {
+		if (bot.getDBUtil().guild.exists(guildId) || bot.getDBUtil().guildVoice.exists(guildId)) {
 			//deletes from db guild and guildSettings
-			bot.getDBUtil().guildRemove(guildId);
+			bot.getDBUtil().guild.remove(guildId);
 			bot.getLogger().info("Automatically removed guild '"+event.getGuild().getName()+"'("+guildId+") from db");
 		}
 		bot.getLogger().info("Left guild '"+event.getGuild().getName()+"'("+guildId+")");

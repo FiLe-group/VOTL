@@ -55,7 +55,7 @@ public class RejectCmd extends CommandBase {
 		Member author = Objects.requireNonNull(event.getMember());
 		String authorId = author.getId();
 
-		if (!bot.getDBUtil().isVoiceChannel(authorId)) {
+		if (!bot.getDBUtil().voice.existsUser(authorId)) {
 			editError(event, "errors.no_channel");
 			return;
 		}
@@ -69,7 +69,7 @@ public class RejectCmd extends CommandBase {
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		DiscordLocale userLocale = event.getUserLocale();
 
-		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(authorId));
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(authorId));
 
 		List<Member> members = filMentions.getMembers();
 		List<Role> roles = filMentions.getRoles();

@@ -52,7 +52,7 @@ public class SetNameCmd extends CommandBase {
 		String guildId = Objects.requireNonNull(event.getGuild()).getId();
 		DiscordLocale userLocale = event.getUserLocale();
 
-		bot.getDBUtil().guildVoiceSetName(guildId, filName);
+		bot.getDBUtil().guildVoice.setName(guildId, filName);
 
 		createReplyEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)

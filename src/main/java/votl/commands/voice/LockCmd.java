@@ -41,7 +41,7 @@ public class LockCmd extends CommandBase {
 		Member member = Objects.requireNonNull(event.getMember());
 		String memberId = member.getId();
 
-		if (!bot.getDBUtil().isVoiceChannel(memberId)) {
+		if (!bot.getDBUtil().voice.existsUser(memberId)) {
 			createError(event, "errors.no_channel");
 			return;
 		}
@@ -49,7 +49,7 @@ public class LockCmd extends CommandBase {
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		DiscordLocale userLocale = event.getUserLocale();
 
-		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(memberId));
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(memberId));
 		try {
 			vc.upsertPermissionOverride(guild.getPublicRole()).deny(Permission.VOICE_CONNECT).queue();
 		} catch (InsufficientPermissionException ex) {

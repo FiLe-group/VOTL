@@ -53,7 +53,7 @@ public class PermitCmd extends CommandBase {
 		Member author = Objects.requireNonNull(event.getMember());
 		String authorId = author.getId();
 
-		if (!bot.getDBUtil().isVoiceChannel(authorId)) {
+		if (!bot.getDBUtil().voice.existsUser(authorId)) {
 			editError(event, "errors.no_channel");
 			return;
 		}
@@ -79,7 +79,7 @@ public class PermitCmd extends CommandBase {
 		}
 
 		List<String> mentionStrings = new ArrayList<>();
-		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(authorId));
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(authorId));
 
 		for (Member member : members) {
 			try {

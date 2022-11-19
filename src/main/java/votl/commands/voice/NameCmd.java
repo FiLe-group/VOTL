@@ -75,7 +75,7 @@ public class NameCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			String filName = Optional.ofNullable(
-				bot.getDBUtil().guildVoiceGetName(Objects.requireNonNull(event.getGuild()).getId())
+				bot.getDBUtil().guildVoice.getName(Objects.requireNonNull(event.getGuild()).getId())
 			).orElse(
 				lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name", Objects.requireNonNull(event.getMember()).getUser().getName(), false)
 			);
@@ -95,7 +95,7 @@ public class NameCmd extends CommandBase {
 		Member member = Objects.requireNonNull(event.getMember());
 		String memberId = member.getId();
 
-		if (!bot.getDBUtil().isVoiceChannel(memberId)) {
+		if (!bot.getDBUtil().voice.existsUser(memberId)) {
 			createError(event, "errors.no_channel");
 			return;
 		}
@@ -103,13 +103,13 @@ public class NameCmd extends CommandBase {
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		DiscordLocale userLocale = event.getUserLocale();
 
-		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().channelGetChannel(memberId));
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(memberId));
 		vc.getManager().setName(filName).queue();
 
-		if (!bot.getDBUtil().isUser(memberId)) {
-			bot.getDBUtil().userAdd(memberId);
+		if (!bot.getDBUtil().user.exists(memberId)) {
+			bot.getDBUtil().user.add(memberId);
 		}
-		bot.getDBUtil().userSetName(memberId, filName);
+		bot.getDBUtil().user.setName(memberId, filName);
 
 		createReplyEmbed(event, 
 			bot.getEmbedUtil().getEmbed(event)

@@ -51,7 +51,7 @@ public class CheckUtil {
 			return CmdAccessLevel.OWNER;
 		
 		Guild guild = Objects.requireNonNull(member.getGuild());
-		String access = bot.getDBUtil().hasAccess(guild.getId(), member.getId());
+		String access = bot.getDBUtil().access.hasAccess(guild.getId(), member.getId());
 		// Has either mod or admin access
 		if (access != null) {
 			// Has admin access
@@ -108,7 +108,7 @@ public class CheckUtil {
 	private <T> CheckUtil guildExists(T event, Guild guild, boolean mustSetup) throws CheckException {
 		if (!mustSetup)
 			return this;
-		if (!bot.getDBUtil().isGuild(guild.getId()))
+		if (!bot.getDBUtil().guild.exists(guild.getId()))
 			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		return this;
 	}
@@ -132,7 +132,7 @@ public class CheckUtil {
 	private <T> CheckUtil moduleEnabled(T event, Guild guild, CmdModule module) throws CheckException {
 		if (module == null)
 			return this;
-		if (bot.getDBUtil().moduleDisabled(guild.getId(), module)) 
+		if (bot.getDBUtil().module.isDisabled(guild.getId(), module)) 
 			throw new CheckException(bot.getEmbedUtil().getError(event, "modules.module_disabled"));
 		return this;
 	}

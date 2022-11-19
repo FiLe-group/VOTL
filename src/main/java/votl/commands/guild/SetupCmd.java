@@ -57,7 +57,7 @@ public class SetupCmd extends CommandBase {
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
 
-			if (bot.getDBUtil().guildAdd(guildId)) {
+			if (bot.getDBUtil().guild.add(guildId)) {
 				createReplyEmbed(event, 
 					bot.getEmbedUtil().getEmbed(event)
 						.setDescription(lu.getText(event, "bot.guild.setup.main.done"))
@@ -96,7 +96,7 @@ public class SetupCmd extends CommandBase {
 			String guildId = guild.getId();
 			DiscordLocale userLocale = event.getUserLocale();
 
-			if (bot.getDBUtil().guildAdd(guildId)) {
+			if (bot.getDBUtil().guild.add(guildId)) {
 				bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
 			}
 
@@ -110,7 +110,7 @@ public class SetupCmd extends CommandBase {
 									.addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
 									.queue(
 										channel -> {
-											bot.getDBUtil().guildVoiceSetup(guildId, category.getId(), channel.getId());
+											bot.getDBUtil().guildVoice.setup(guildId, category.getId(), channel.getId());
 											bot.getLogger().info("Voice setup done in guild `"+guild.getName()+"'("+guildId+")");
 											editHookEmbed(event, 
 												bot.getEmbedUtil().getEmbed(event)

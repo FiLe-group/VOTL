@@ -144,11 +144,11 @@ public class ModuleCmd extends CommandBase {
 							actionEvent.deferEdit().queue(
 								actionHook -> {
 									CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
-									if (bot.getDBUtil().moduleDisabled(guildId, sModule)) {
+									if (bot.getDBUtil().module.isDisabled(guildId, sModule)) {
 										hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.guild.module.disable.already")).setComponents().queue();
 										return;
 									}
-									bot.getDBUtil().moduleAdd(guildId, sModule);
+									bot.getDBUtil().module.add(guildId, sModule);
 									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event)
 										.setTitle(lu.getLocalized(userLocale, "bot.guild.module.disable.done").replace("{module}", lu.getLocalized(userLocale, sModule.getPath())))
 										.setColor(Constants.COLOR_SUCCESS);
@@ -220,11 +220,11 @@ public class ModuleCmd extends CommandBase {
 							actionEvent.deferEdit().queue(
 								actionHook -> {
 									CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
-									if (!bot.getDBUtil().moduleDisabled(guildId, sModule)) {
+									if (!bot.getDBUtil().module.isDisabled(guildId, sModule)) {
 										hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.guild.module.enable.already")).setComponents().queue();
 										return;
 									}
-									bot.getDBUtil().moduleRemove(guildId, sModule);
+									bot.getDBUtil().module.remove(guildId, sModule);
 									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event)
 										.setTitle(lu.getLocalized(userLocale, "bot.guild.module.enable.done").replace("{module}", lu.getLocalized(userLocale, sModule.getPath())))
 										.setColor(Constants.COLOR_SUCCESS);
@@ -257,7 +257,7 @@ public class ModuleCmd extends CommandBase {
 			return modules;
 		}
 
-		List<CmdModule> disabled = bot.getDBUtil().modulesGet(guildId);
+		List<CmdModule> disabled = bot.getDBUtil().module.getDisabled(guildId);
 		if (on) {
 			modules.removeAll(disabled);
 			return modules;
