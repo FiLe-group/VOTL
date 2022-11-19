@@ -116,6 +116,22 @@ public class DBBase {
 		return results;
 	}
 
+	protected Object selectLast(final String table, final String selectKey) {
+		String sql = "SELECT * "+table+" ORDER BY banId DESC LIMIT 1";
+
+		Object result = null;
+		try (Connection conn = util.connect();
+		PreparedStatement st = conn.prepareStatement(sql)) {
+			ResultSet rs = st.executeQuery();
+			while (rs.next()) {
+				result = rs.getObject(selectKey);
+			}
+		} catch (SQLException ex) {
+			util.logger.warn("DB: Error at SELECT\nrequest: {}", sql, ex);
+		}
+		return result;
+	}
+
 	// UPDATE sql
 	protected void update(String table, String updateKey, Object updateValueObj, String condKey, Object condValueObj) {
 		update(table, List.of(updateKey), List.of(updateValueObj), List.of(condKey), List.of(condValueObj));

@@ -21,6 +21,12 @@ public class BanManager extends DBBase {
 			List.of(userId, userName, modId, modName, guildId, reason, timeStart.toString(), duration.toString(), (synced ? 1 : 0)));
 	}
 
+	// get last ban's ID
+	public String lastId() {
+		Object data = selectLast("ban", "banId");
+		return String.valueOf(data);
+	}
+
 	// remove existing ban
 	public void remove(String banId) {
 		delete("ban", "banId", banId);
@@ -36,7 +42,8 @@ public class BanManager extends DBBase {
 		update("ban", "duration", duration, "banId", banId);
 	}
 
-	public Map<String, Object> banGetInfo(String banId) {
+	// get ban info
+	public Map<String, Object> getInfo(String banId) {
 		List<Map<String, Object>> banDataList = select("ban", List.of(), "banId", banId);
 		if (banDataList.isEmpty() || banDataList.get(0) == null) {
 			return Collections.emptyMap();
@@ -45,7 +52,7 @@ public class BanManager extends DBBase {
 	}
 
 	// get all bans in guild
-	public List<Map<String, Object>> banGetGuildAll(String guildId) {
+	public List<Map<String, Object>> getGuildAll(String guildId) {
 		List<Map<String, Object>> banDataList = select("ban", List.of(), "guildId", guildId);
 		if (banDataList.isEmpty() || banDataList.get(0) == null) {
 			return Collections.emptyList();
@@ -54,7 +61,7 @@ public class BanManager extends DBBase {
 	}
 
 	// get all bans in guild by mod
-	public List<Map<String, Object>> banGetGuildMod(String guildId, String modId) {
+	public List<Map<String, Object>> getGuildMod(String guildId, String modId) {
 		List<Map<String, Object>> banDataList = select("ban", List.of(), List.of("guildId", "modId"), List.of(guildId, modId));
 		if (banDataList.isEmpty() || banDataList.get(0) == null) {
 			return Collections.emptyList();
@@ -63,7 +70,7 @@ public class BanManager extends DBBase {
 	}
 
 	// get all bans in guild for user
-	public List<Map<String, Object>> banGetGuildUser(String guildId, String userId) {
+	public List<Map<String, Object>> getGuildUser(String guildId, String userId) {
 		List<Map<String, Object>> banDataList = select("ban", List.of(), List.of("guildId", "userId"), List.of(guildId, userId));
 		if (banDataList.isEmpty() || banDataList.get(0) == null) {
 			return Collections.emptyList();
@@ -72,7 +79,7 @@ public class BanManager extends DBBase {
 	}
 
 	// get ban start time and duration
-	public Map<String, Object> banGetTime(String banId) {
+	public Map<String, Object> getTime(String banId) {
 		List<Map<String, Object>> banDataList = select("ban", List.of("timeStart", "duration"), "banId", banId);
 		if (banDataList.isEmpty() || banDataList.get(0) == null) {
 			return Collections.emptyMap();
@@ -81,7 +88,7 @@ public class BanManager extends DBBase {
 	}
 
 	// is ban active
-	public boolean banIsActive(String banId) {
+	public boolean isActive(String banId) {
 		List<Object> objs = select("ban", "active", "banId", banId);
 		if (objs.isEmpty() || objs.get(0) == null) {
 			return false;
@@ -93,12 +100,12 @@ public class BanManager extends DBBase {
 	}
 
 	// set ban in-active
-	public void banSetInactive(String banId) {
+	public void setInactive(String banId) {
 		update("ban", "active", 0, "banId", banId);
 	}
 
 	// is ban synced
-	public boolean banIsSynced(String banId) {
+	public boolean isSynced(String banId) {
 		List<Object> objs = select("ban", "synced", "banId", banId);
 		if (objs.isEmpty() || objs.get(0) == null) {
 			return false;
@@ -110,7 +117,7 @@ public class BanManager extends DBBase {
 	}
 
 	// set ban synced
-	public void banSetSynced(String banId) {
+	public void setSynced(String banId) {
 		update("ban", "synced", 1, "banId", banId);
 	}
 }
