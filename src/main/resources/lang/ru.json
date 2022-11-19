@@ -287,7 +287,7 @@
 					"help": "Просмотр разрешений голосового канала",
 					"embed": {
 						"title": "Разрешения канала `{channel}`",
-						"field": "**Кто | Видит | Подключаться**",
+						"field": "**Видеть? | Заходить? | Кто**",
 						"everyone": "Everyone",
 						"roles": "**Роли:**",
 						"members": "**Участники:**",
@@ -367,7 +367,7 @@
 				"already_banned": "Упомянутый пользователь уже забанен на этом сервере.",
 				"higher_access": "Упомянутый участник имеет доступ выше, чем у вас.",
 				"ban_abort": "Не удалось забанить указанного участника.",
-				"ban_success": "{EMOTE_CHECK} **{user_tag} был забанен {duration}!** | {reason}"
+				"ban_success": "**{user_tag} был забанен {duration}!** | {reason}"
 			},
 			"unban": {
 				"help": "Разбанить пользователя на этом сервере",
@@ -389,8 +389,8 @@
 				"help": "Проверить задержку бота",
 				"usage": "/ping",
 				"loading": "{EMOTE_TYPING} Пинг: ...",
-				"info": "{EMOTE_PING} Пинг: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms",
-				"info_full": "{EMOTE_PING} Ping: {ping} ms\n{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest} ms"
+				"info": "{EMOTE_PING} Пинг: {ping} мс",
+				"info_full": "{EMOTE_CLOUD} Websocket: {websocket} мс\n{EMOTE_DOWNLOAD} RestAction: {rest} мс"
 			},
 			"about": {
 				"help": "Получить основную информацию о боте",
@@ -459,6 +459,7 @@
 					"owner": "Разработка",
 					"guild": "Серверные",
 					"webhook": "Вебхук",
+					"moderation": "Модерация",
 					"other": "Прочие",
 					"title": "Категории"
 				},

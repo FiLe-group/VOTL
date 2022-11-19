@@ -82,16 +82,16 @@ public class App {
 		}
 		
 		// Define for default
-		waiter			= new EventWaiter();
-		guildListener	= new GuildListener(this);
-		voiceListener	= new VoiceListener(this);
-
 		dbUtil		= new DBUtil(getFileManager().getFiles().get("database"));
 		langUtil	= new LangUtil(this);
 		localeUtil	= new LocaleUtil(this, langUtil, "en-GB", DiscordLocale.ENGLISH_UK);
 		messageUtil	= new MessageUtil(this);
 		embedUtil	= new EmbedUtil(localeUtil);
 		checkUtil	= new CheckUtil(this);
+
+		waiter			= new EventWaiter();
+		guildListener	= new GuildListener(this);
+		voiceListener	= new VoiceListener(this);
 
 		// Define a command client
 		CommandClient commandClient = new CommandClientBuilder()

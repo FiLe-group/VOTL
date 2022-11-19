@@ -287,7 +287,7 @@
 					"help": "View voice channel permissions",
 					"embed": {
 						"title": "Channel permissions for `{channel}`",
-						"field": "**Holder | Can View | Can Join**",
+						"field": "**Can View | Can Join | Holder**",
 						"everyone": "Everyone",
 						"roles": "**Roles:**",
 						"members": "**Members:**",
@@ -369,7 +369,7 @@
 				"already_banned": "Mentioned user is already banned on this server.",
 				"higher_access": "Mentioned member has higher access than you.",
 				"ban_abort": "Could not ban mentioned member.",
-				"ban_success": "{EMOTE_CHECK} **{user_tag} was banned {duration}!** | {reason}"
+				"ban_success": "**{user_tag} was banned {duration}!** | {reason}"
 			},
 			"unban": {
 				"help": "Unban banned user on this server",
@@ -461,6 +461,7 @@
 					"owner": "Owner",
 					"guild": "Guild",
 					"webhook": "Webhook",
+					"moderation": "Moderation",
 					"other": "Other",
 					"title": "Categories"
 				},
