@@ -20,9 +20,7 @@ import votl.utils.file.lang.LangUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -64,14 +62,7 @@ public class LanguageCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-
-			event.deferReply(true).queue(
-				hook -> {
-					String defaultLang = lu.getDefaultLanguage();
-					sendReply(event, hook, defaultLang);
-				}
-			);
-
+			sendReply(event, lu.getDefaultLanguage());
 		}
 
 	}
@@ -93,17 +84,11 @@ public class LanguageCmd extends CommandBase {
 			);
 		}
 
-		@Override
 		@SuppressWarnings("null")
+		@Override
 		protected void execute(SlashCommandEvent event) {
-
-			event.deferReply(true).queue(
-				hook -> {
-					String lang = event.getOption("language", lu.getDefaultLanguage(), OptionMapping::getAsString);
-					sendReply(event, hook, lang);
-				}
-			);
-
+			String lang = event.optString("kanguage", lu.getDefaultLanguage());
+			sendReply(event, lang);
 		}
 
 	}
@@ -118,26 +103,18 @@ public class LanguageCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-
-			event.deferReply(true).queue(
-				hook -> {
-					DiscordLocale userLocale = event.getUserLocale();
-					MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
-						.setTitle(lu.getLocalized(userLocale, "bot.guild.language.show.embed.title"))
-						.setDescription(lu.getLocalized(userLocale, "bot.guild.language.show.embed.value"))
-						.addField(lu.getLocalized(userLocale, "bot.guild.language.show.embed.field"), getLanguages(), false)
-						.build();
-
-					hook.editOriginalEmbeds(embed).queue();
-				}
-			);
-
+			DiscordLocale userLocale = event.getUserLocale();
+			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
+				.setTitle(lu.getLocalized(userLocale, "bot.guild.language.show.embed.title"))
+				.setDescription(lu.getLocalized(userLocale, "bot.guild.language.show.embed.value"))
+				.addField(lu.getLocalized(userLocale, "bot.guild.language.show.embed.field"), getLanguages(), false)
+				.build();
+			createReplyEmbed(event, embed);
 		}
 
 	}
 
-	private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String language) {
-
+	private void sendReply(SlashCommandEvent event, @Nonnull String language) {
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 		DiscordLocale userLocale = event.getUserLocale();
 
@@ -148,7 +125,7 @@ public class LanguageCmd extends CommandBase {
 				.setDescription(lu.getLocalized(userLocale, "bot.guild.language.embed.available_lang_value"))
 				.addField(lu.getLocalized(userLocale, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
 				.build();
-			hook.editOriginalEmbeds(embed).queue();
+			createReplyEmbed(event, embed);
 			return;
 		}
 
@@ -158,7 +135,7 @@ public class LanguageCmd extends CommandBase {
 			.setColor(bot.getMessageUtil().getColor("rgb:0,200,30"))
 			.setDescription(lu.getLocalized(userLocale, "bot.guild.language.done").replace("{language}", language))
 			.build();
-		hook.editOriginalEmbeds(embed).queue();
+		createReplyEmbed(event, embed);
 	}
 
 	private List<DiscordLocale> getLangList(){

@@ -16,8 +16,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -60,15 +58,10 @@ public class NameCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-
-			event.deferReply(true).queue(
-				hook -> {
-					String filName = event.getOption("name", "", OptionMapping::getAsString).trim();
-					sendReply(event, hook, filName);
-				}
-			);
-
+			String filName = event.optString("name");
+			sendReply(event, filName);
 		}
+
 	}
 
 	private class Reset extends CommandBase {
@@ -81,28 +74,21 @@ public class NameCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-
-			event.deferReply(true).queue(
-				hook -> {
-					String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-					String filName = Optional.ofNullable(
-						bot.getDBUtil().guildVoiceGetName(guildId)
-					).orElse(
-						lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name", Objects.requireNonNull(event.getMember()).getUser().getName(), false)
-					);
-
-					sendReply(event, hook, filName);
-				}
+			String filName = Optional.ofNullable(
+				bot.getDBUtil().guildVoiceGetName(Objects.requireNonNull(event.getGuild()).getId())
+			).orElse(
+				lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name", Objects.requireNonNull(event.getMember()).getUser().getName(), false)
 			);
-
+			sendReply(event, filName);
 		}
+
 	}
 
 	@SuppressWarnings("null")
-	private void sendReply(SlashCommandEvent event, InteractionHook hook, String filName) {
+	private void sendReply(SlashCommandEvent event, String filName) {
 
 		if (filName.isEmpty() || filName.length() > 100) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.name.invalid_range")).queue();
+			createError(event, "bot.voice.name.invalid_range");
 			return;
 		}
 
@@ -110,7 +96,7 @@ public class NameCmd extends CommandBase {
 		String memberId = member.getId();
 
 		if (!bot.getDBUtil().isVoiceChannel(memberId)) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
+			createError(event, "errors.no_channel");
 			return;
 		}
 
@@ -125,10 +111,10 @@ public class NameCmd extends CommandBase {
 		}
 		bot.getDBUtil().userSetName(memberId, filName);
 
-		hook.editOriginalEmbeds(
+		createReplyEmbed(event, 
 			bot.getEmbedUtil().getEmbed(event)
 				.setDescription(lu.getLocalized(userLocale, "bot.voice.name.done").replace("{value}", filName))
 				.build()
-		).queue();
+		);
 	}
 }

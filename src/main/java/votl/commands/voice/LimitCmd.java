@@ -16,8 +16,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -61,19 +59,10 @@ public class LimitCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-
-			event.deferReply(true).queue(
-				hook -> {
-					try {
-						Integer filLimit = event.getOption("limit", 0, OptionMapping::getAsInt);
-						sendReply(event, hook, filLimit);
-					} catch (Exception e) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.request_error", e.toString())).queue();
-					}
-				}
-			);
-
+			Integer filLimit = event.optInteger("limit");
+			sendReply(event, filLimit);
 		}
+
 	}
 
 	private class Reset extends CommandBase {
@@ -86,25 +75,20 @@ public class LimitCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-
-			event.deferReply(true).queue(
-				hook -> {
-					Integer filLimit = Optional.ofNullable(bot.getDBUtil().guildVoiceGetLimit(Objects.requireNonNull(event.getGuild()).getId())).orElse(0);
-					sendReply(event, hook, filLimit);
-				}
-			);
-
+			Integer filLimit = Optional.ofNullable(bot.getDBUtil().guildVoiceGetLimit(Objects.requireNonNull(event.getGuild()).getId())).orElse(0);
+			sendReply(event, filLimit);
 		}
+
 	}
 
 	@SuppressWarnings("null")
-	private void sendReply(SlashCommandEvent event, InteractionHook hook, Integer filLimit) {
+	private void sendReply(SlashCommandEvent event, Integer filLimit) {
 
 		Member member = Objects.requireNonNull(event.getMember());
 		String memberId = member.getId();
 
 		if (!bot.getDBUtil().isVoiceChannel(memberId)) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
+			createError(event, "errors.no_channel");
 			return;
 		}
 
@@ -119,10 +103,10 @@ public class LimitCmd extends CommandBase {
 		}
 		bot.getDBUtil().userSetLimit(memberId, filLimit);
 
-		hook.editOriginalEmbeds(
+		createReplyEmbed(event, 
 			bot.getEmbedUtil().getEmbed(event)
 				.setDescription(lu.getLocalized(userLocale, "bot.voice.limit.done").replace("{value}", filLimit.toString()))
 				.build()
-		).queue();
+		);
 	}
 }

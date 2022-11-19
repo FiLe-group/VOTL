@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
@@ -38,30 +37,21 @@ public class ClaimCmd extends CommandBase {
 		this.mustSetup = true;
 	}
 
+	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
-
-		event.deferReply(true).queue(
-			hook -> {
-				sendReply(event, hook);
-			}
-		);
-
-	}
-
-	@SuppressWarnings("null")
-	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
+		event.deferReply(true).queue();
 
 		Member author = Objects.requireNonNull(event.getMember());
 
 		if (!author.getVoiceState().inAudioChannel()) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_in_voice")).queue();
+			editError(event, "bot.voice.claim.not_in_voice");
 			return;
 		}
 
 		AudioChannel ac = author.getVoiceState().getChannel();
 		if (!bot.getDBUtil().isVoiceChannelExists(ac.getId())) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.claim.not_custom")).queue();
+			editError(event, "bot.voice.claim.not_custom");
 			return;
 		}
 
@@ -73,7 +63,7 @@ public class ClaimCmd extends CommandBase {
 			owner -> {
 				for (Member vcMember : vc.getMembers()) {
 					if (vcMember == owner) {
-						hook.editOriginal(lu.getLocalized(userLocale, "bot.voice.claim.has_owner")).queue();
+						editHook(event, lu.getLocalized(userLocale, "bot.voice.claim.has_owner"));
 						return;
 					}
 				}
@@ -82,21 +72,20 @@ public class ClaimCmd extends CommandBase {
 					vc.getManager().removePermissionOverride(owner).queue();
 					vc.getManager().putPermissionOverride(author, EnumSet.of(Permission.MANAGE_CHANNEL), null).queue();
 				} catch (InsufficientPermissionException ex) {
-					hook.editOriginal(bot.getEmbedUtil().getPermError(event, author, ex.getPermission(), true)).queue();
+					editPermError(event, author, ex.getPermission(), true);
 					return;
 				}
 				bot.getDBUtil().channelSetUser(author.getId(), vc.getId());
 				
-				hook.editOriginalEmbeds(
+				editHookEmbed(event, 
 					bot.getEmbedUtil().getEmbed(event)
 						.setDescription(lu.getLocalized(userLocale, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
 						.build()
-				).queue();
+				);
 			}, failure -> {
-				hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.unknown", failure.getMessage())).queue();
+				editError(event, "errors.unknown", failure.getMessage());
 			}
 		);
-
-		
 	}
+
 }

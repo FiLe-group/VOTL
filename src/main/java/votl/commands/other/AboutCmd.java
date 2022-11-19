@@ -11,8 +11,6 @@ import votl.objects.constants.Links;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -38,20 +36,9 @@ public class AboutCmd extends CommandBase {
 		this.guildOnly = false;
 	}
 
+	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
-
-		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
-			hook -> {
-				sendReply(event, hook);
-			}
-		);
-
-	}
-
-	@SuppressWarnings("null")
-	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
-
 		DiscordLocale userLocale = event.getUserLocale();
 		EmbedBuilder builder = null;
 
@@ -105,7 +92,8 @@ public class AboutCmd extends CommandBase {
 				),
 				true
 			);
-
-		hook.editOriginalEmbeds(builder.build()).queue();
+		
+		createReplyEmbed(event, event.isFromGuild() ? !event.optBoolean("show", false) : false, builder.build());
 	}
+
 }

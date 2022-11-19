@@ -16,8 +16,6 @@ import votl.objects.constants.Constants;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -44,7 +42,7 @@ public class HelpCmd extends CommandBase {
 			.addChoice("Webhook", "webhook")
 			.addChoice("Other", "other"));
 		options.add(new OptionData(OptionType.STRING, "command", lu.getText(path+".command_info.help"), false, true)
-			.setRequiredLength(4, 20));
+			.setRequiredLength(3, 20));
 		this.options = options;
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
@@ -52,24 +50,20 @@ public class HelpCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply(event.isFromGuild() ? !event.optBoolean("show", false) : false).queue();
 
-		event.deferReply(event.isFromGuild() ? !event.getOption("show", false, OptionMapping::getAsBoolean) : false).queue(
-			hook -> {
-				String findCmd = event.getOption("command", null, OptionMapping::getAsString);
+		String findCmd = event.optString("command");
 				
-				if (findCmd != null) {
-					sendCommandHelp(event, hook, findCmd.split(" ")[0].toLowerCase());
-				} else {
-					String filCat = event.getOption("category", null, OptionMapping::getAsString);
-					sendHelp(event, hook, filCat);
-				}
-			}
-		);
+		if (findCmd != null) {
+			sendCommandHelp(event, findCmd.split(" ")[0].toLowerCase());
+		} else {
+			String filCat = event.optString("category");
+			sendHelp(event, filCat);
+		}
 	}
 
 	@SuppressWarnings("null")
-	private void sendCommandHelp(SlashCommandEvent event, InteractionHook hook, String findCmd) {
-
+	private void sendCommandHelp(SlashCommandEvent event, String findCmd) {
 		DiscordLocale userLocale = event.getUserLocale();
 
 		SlashCommand command = null;
@@ -81,7 +75,7 @@ public class HelpCmd extends CommandBase {
 		}
 
 		if (command == null) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.help.command_info.no_command", "Requested: "+findCmd)).queue();
+			editError(event, "bot.help.command_info.no_command", "Requested: "+findCmd);
 		} else {
 			EmbedBuilder builder = null;
 			if (event.isFromGuild()) {
@@ -101,13 +95,13 @@ public class HelpCmd extends CommandBase {
 				.addField(lu.getLocalized(userLocale, "bot.help.command_info.usage_title"), lu.getLocalized(userLocale, "bot.help.command_info.usage_value")
 					.replace("{command_usage}", lu.getLocalized(userLocale, command.getUsagePath())), false);
 			
-			hook.editOriginalEmbeds(builder.build()).queue();
+			editHookEmbed(event, builder.build());
 		}
 		
 	}
 
 	@SuppressWarnings("null")
-	private void sendHelp(SlashCommandEvent event, InteractionHook hook, String filCat) {
+	private void sendHelp(SlashCommandEvent event, String filCat) {
 
 		DiscordLocale userLocale = event.getUserLocale();
 		String prefix = "/";
@@ -160,6 +154,6 @@ public class HelpCmd extends CommandBase {
 			builder.addField(fieldTitle, fieldValue.toString(), false);
 		}
 		
-		hook.editOriginalEmbeds(builder.build()).queue();
+		editHookEmbed(event, builder.build());
 	}
 }

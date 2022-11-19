@@ -3,8 +3,6 @@ package votl.commands.guild;
 import java.util.Collections;
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
-
 import votl.App;
 import votl.commands.CommandBase;
 import votl.objects.CmdAccessLevel;
@@ -17,8 +15,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
@@ -61,54 +57,51 @@ public class AccessCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					Member targetMember = Objects.requireNonNull(event.getOption("member", OptionMapping::getAsMember));
-					sendReply(event, hook, targetMember);
-				}
-			);
+			event.deferReply(true).queue();
+
+			Member targetMember = event.optMember("member");
+			if (targetMember == null) {
+				editError(event, "bot.guild.access.add.no_member");
+			} else {
+				Member author = Objects.requireNonNull(event.getMember());
+				Guild guild = Objects.requireNonNull(event.getGuild());
+				String guildId = guild.getId();
+
+				guild.retrieveMember(targetMember).queue(
+					member -> {
+						if (member.equals(author) || member.getUser().isBot()) {
+							editError(event, "bot.guild.access.add.not_self");
+							return;
+						}
+						if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
+							editError(event, "bot.guild.access.add.is_higher");
+							return;
+						}
+						String access = bot.getDBUtil().hasAccess(guildId, member.getId());
+						if (access != null && access.equals("mod")) {
+							editError(event, "bot.guild.access.add.mod.already");
+							return;
+						}
+						if (access != null && access.equals("admin")) {
+							bot.getDBUtil().accessChange(guildId, member.getId(), false);
+						} else {
+							bot.getDBUtil().accessAdd(guildId, member.getId(), false);
+						}
+
+						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
+							.setDescription(lu.getText(event, "bot.guild.access.add.mod.done").replace("{member}", member.getAsMention()))
+							.setColor(Constants.COLOR_SUCCESS);
+						editHookEmbed(event, embed.build());
+					},
+					error -> {
+						// remake to specify error response - not in this guild or user does not exist
+						// add errors - UNKNOWN_MEMBER & UNKNOWN_USER
+						editError(event, "bot.guild.access.add.no_member");
+					}
+				);
+			}
 		}
 
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull Member targetMember) {
-			Member author = Objects.requireNonNull(event.getMember());
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
-			DiscordLocale userLocale = event.getUserLocale();
-
-			guild.retrieveMember(targetMember).queue(
-				member -> {
-					if (member.equals(author) || member.getUser().isBot()) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.add.not_self")).queue();
-						return;
-					}
-					if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.add.is_higher")).queue();
-						return;
-					}
-					String access = bot.getDBUtil().hasAccess(guildId, member.getId());
-					if (access != null && access.equals("mod")) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.add.mod.already")).queue();
-						return;
-					}
-					if (access != null && access.equals("admin")) {
-						bot.getDBUtil().accessChange(guildId, member.getId(), false);
-					} else {
-						bot.getDBUtil().accessAdd(guildId, member.getId(), false);
-					}
-
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getLocalized(userLocale, "bot.guild.access.add.mod.done").replace("{member}", member.getAsMention()))
-						.setColor(Constants.COLOR_SUCCESS);
-					hook.editOriginalEmbeds(embed.build()).queue();
-				},
-				error -> {
-					// remake to specify error response - not in this guild or user does not exist
-					// add errors - UNKNOWN_MEMBER & UNKNOWN_USER
-					hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.add.no_member")).queue();
-				}
-			);
-			
-		}
 	}
 
 	private class AddAdmin extends CommandBase {
@@ -126,53 +119,50 @@ public class AccessCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					Member targetMember = Objects.requireNonNull(event.getOption("member", OptionMapping::getAsMember));
-					sendReply(event, hook, targetMember);
-				}
-			);
+			event.deferReply(true).queue();
+
+			Member targetMember = event.optMember("member");
+			if (targetMember == null) {
+				editError(event, "bot.guild.access.add.no_member");
+			} else {
+				Member author = Objects.requireNonNull(event.getMember());
+				Guild guild = Objects.requireNonNull(event.getGuild());
+				String guildId = guild.getId();
+
+				guild.retrieveMember(targetMember).queue(
+					member -> {
+						if (member.equals(author) || member.getUser().isBot()) {
+							editError(event, "bot.guild.access.add.not_self");
+							return;
+						}
+						if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
+							editError(event, "bot.guild.access.add.is_higher");
+							return;
+						}
+						String access = bot.getDBUtil().hasAccess(guildId, member.getId());
+						if (access != null && access.equals("admin")) {
+							editError(event, "bot.guild.access.add.admin.already");
+							return;
+						}
+						if (access != null && access.equals("mod")) {
+							bot.getDBUtil().accessChange(guildId, member.getId(), true);
+						} else {
+							bot.getDBUtil().accessAdd(guildId, member.getId(), true);
+						}
+
+						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
+							.setDescription(lu.getText(event, "bot.guild.access.add.admin.done").replace("{member}", member.getAsMention()))
+							.setColor(Constants.COLOR_SUCCESS);
+							editHookEmbed(event, embed.build());
+
+					}, 
+					failure -> {
+						editError(event, "bot.guild.access.add.no_member");
+					}
+				);
+			}
 		}
 
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull Member targetMember) {
-			Member author = Objects.requireNonNull(event.getMember());
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
-			DiscordLocale userLocale = event.getUserLocale();
-
-			guild.retrieveMember(targetMember).queue(
-				member -> {
-					if (member.equals(author) || member.getUser().isBot()) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.add.not_self")).queue();
-						return;
-					}
-					if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.add.is_higher")).queue();
-						return;
-					}
-					String access = bot.getDBUtil().hasAccess(guildId, member.getId());
-					if (access != null && access.equals("admin")) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.add.admin.already")).queue();
-						return;
-					}
-					if (access != null && access.equals("mod")) {
-						bot.getDBUtil().accessChange(guildId, member.getId(), true);
-					} else {
-						bot.getDBUtil().accessAdd(guildId, member.getId(), true);
-					}
-
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getLocalized(userLocale, "bot.guild.access.add.admin.done").replace("{member}", member.getAsMention()))
-						.setColor(Constants.COLOR_SUCCESS);
-					hook.editOriginalEmbeds(embed.build()).queue();
-
-				}, 
-				failure -> {
-					hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.add.no_member")).queue();
-				}
-			);
-
-		}
 	}
 
 	private class View extends CommandBase {
@@ -183,17 +173,10 @@ public class AccessCmd extends CommandBase {
 			this.path = "bot.guild.access.view";
 		}
 
+		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					sendReply(event, hook);
-				}
-			);
-		}
-
-		@SuppressWarnings("null")
-		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
+			event.deferReply(true).queue();
 
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
@@ -206,14 +189,14 @@ public class AccessCmd extends CommandBase {
 				.setTitle(lu.getLocalized(userLocale, "bot.guild.access.view.embed.title"));
 
 			if (adminsId.length == 0 && modsId.length == 0) {
-				hook.editOriginalEmbeds(
+				editHookEmbed(event, 
 					embedBuilder.setDescription(
 						lu.getLocalized(userLocale, "bot.guild.access.view.embed.none_found")
 					).build()
-				).queue();
+				);
 				return;
 			}
-			
+
 			StringBuilder sb = new StringBuilder();
 			// Admins
 			sb.append(lu.getLocalized(userLocale, "bot.guild.access.view.embed.admin")).append("\n");
@@ -240,15 +223,15 @@ public class AccessCmd extends CommandBase {
 								}
 							}
 							embedBuilder.setDescription(sb);
-							hook.editOriginalEmbeds(embedBuilder.build()).queue();
+							editHookEmbed(event, embedBuilder.build());
 							guild.pruneMemberCache();
 						}
 					);
 					
 				}
 			);
-
 		}
+
 	}
 
 	private class RemoveMod extends CommandBase {
@@ -265,49 +248,46 @@ public class AccessCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					Member targetMember = Objects.requireNonNull(event.getOption("member", OptionMapping::getAsMember));
-					sendReply(event, hook, targetMember);
-				}
-			);
+			event.deferReply(true).queue();
+
+			Member targetMember = event.optMember("member");
+			if (targetMember == null) {
+				editError(event, "bot.guild.access.add.no_member");
+			} else {
+				Member author = Objects.requireNonNull(event.getMember());
+				Guild guild = Objects.requireNonNull(event.getGuild());
+				String guildId = guild.getId();
+
+				guild.retrieveMember(targetMember).queue(
+					member -> {
+						if (member.equals(author) || member.getUser().isBot()) {
+							editError(event, "bot.guild.access.remove.not_self");
+							return;
+						}
+						if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
+							editError(event, "bot.guild.access.remove.is_higher");
+							return;
+						}
+						String access = bot.getDBUtil().hasAccess(guildId, member.getId());
+						if (access == null || access.equals("admin")) {
+							editError(event, "bot.guild.access.remove.mod.has_no_access");
+							return;
+						}
+						bot.getDBUtil().accessRemove(guildId, member.getId());
+
+						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
+							.setDescription(lu.getText(event, "bot.guild.access.remove.mod.done").replace("{member}", member.getAsMention()))
+							.setColor(Constants.COLOR_SUCCESS);
+							editHookEmbed(event, embed.build());
+
+					}, 
+					failure -> {
+						editError(event, "bot.guild.access.remove.no_member");
+					}
+				);
+			}
 		}
 
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull Member targetMember) {
-			Member author = Objects.requireNonNull(event.getMember());
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
-			DiscordLocale userLocale = event.getUserLocale();
-
-			guild.retrieveMember(targetMember).queue(
-				member -> {
-					if (member.equals(author) || member.getUser().isBot()) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.remove.not_self")).queue();
-						return;
-					}
-					if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.remove.is_higher")).queue();
-						return;
-					}
-					String access = bot.getDBUtil().hasAccess(guildId, member.getId());
-					if (access == null || access.equals("admin")) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.remove.mod.has_no_access")).queue();
-						return;
-					}
-					bot.getDBUtil().accessRemove(guildId, member.getId());
-
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getLocalized(userLocale, "bot.guild.access.remove.mod.done").replace("{member}", member.getAsMention()))
-						.setColor(Constants.COLOR_SUCCESS);
-					hook.editOriginalEmbeds(embed.build()).queue();
-
-				}, 
-				failure -> {
-					hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.remove.no_member")).queue();
-				}
-			);
-
-		}
 	}
 
 	private class RemoveAdmin extends CommandBase {
@@ -325,48 +305,45 @@ public class AccessCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					Member targetMember = Objects.requireNonNull(event.getOption("member", OptionMapping::getAsMember));
-					sendReply(event, hook, targetMember);
-				}
-			);
+			event.deferReply(true).queue();
+
+			Member targetMember = event.optMember("member");
+			if (targetMember == null) {
+				editError(event, "bot.guild.access.add.no_member");
+			} else {
+				Member author = Objects.requireNonNull(event.getMember());
+				Guild guild = Objects.requireNonNull(event.getGuild());
+				String guildId = guild.getId();
+
+				guild.retrieveMember(targetMember).queue(
+					member -> {
+						if (member.equals(author) || member.getUser().isBot()) {
+							editError(event, "bot.guild.access.remove.not_self");
+							return;
+						}
+						if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
+							editError(event, "bot.guild.access.remove.is_higher");
+							return;
+						}
+						String access = bot.getDBUtil().hasAccess(guildId, member.getId());
+						if (access == null || access.equals("mod")) {
+							editError(event, "bot.guild.access.remove.admin.has_no_access");
+							return;
+						}
+						bot.getDBUtil().accessRemove(guildId, member.getId());
+
+						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
+							.setDescription(lu.getText(event, "bot.guild.access.remove.admin.done").replace("{member}", member.getAsMention()))
+							.setColor(Constants.COLOR_SUCCESS);
+							editHookEmbed(event, embed.build());
+
+					}, 
+					failure -> {
+						editError(event, "bot.guild.access.remove.no_member");
+					}
+				);
+			}
 		}
 
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull Member targetMember) {
-			Member author = Objects.requireNonNull(event.getMember());
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
-			DiscordLocale userLocale = event.getUserLocale();
-
-			guild.retrieveMember(targetMember).queue(
-				member -> {
-					if (member.equals(author) || member.getUser().isBot()) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.remove.not_self")).queue();
-						return;
-					}
-					if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.remove.is_higher")).queue();
-						return;
-					}
-					String access = bot.getDBUtil().hasAccess(guildId, member.getId());
-					if (access == null || access.equals("mod")) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.remove.admin.has_no_access")).queue();
-						return;
-					}
-					bot.getDBUtil().accessRemove(guildId, member.getId());
-
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getLocalized(userLocale, "bot.guild.access.remove.admin.done").replace("{member}", member.getAsMention()))
-						.setColor(Constants.COLOR_SUCCESS);
-					hook.editOriginalEmbeds(embed.build()).queue();
-
-				}, 
-				failure -> {
-					hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.access.remove.no_member")).queue();
-				}
-			);
-
-		}
 	}
 }

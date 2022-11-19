@@ -30,7 +30,7 @@ public class ShutdownCmd extends CommandBase {
 	
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.reply("Shutting down...").setEphemeral(true).queue();
+		createReply(event, "Shutting down...");
 		event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Shutting down..."));
 		bot.getLogger().info("Shutting down, by '" + event.getUser().getName() + "'");
 		event.getJDA().shutdown();

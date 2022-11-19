@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
@@ -36,23 +35,14 @@ public class GhostCmd extends CommandBase {
 		this.mustSetup = true;
 	}
 
+	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
-
-		event.deferReply(true).queue(
-			hook -> {
-				sendReply(event, hook);
-			}
-		);
-	}
-
-	@SuppressWarnings("null")
-	private void sendReply(SlashCommandEvent event, InteractionHook hook) {
 
 		Member member = Objects.requireNonNull(event.getMember());
 
 		if (!bot.getDBUtil().isVoiceChannel(member.getId())) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
+			createError(event, "errors.no_channel");
 			return;
 		}
 
@@ -63,14 +53,15 @@ public class GhostCmd extends CommandBase {
 		try {
 			vc.upsertPermissionOverride(guild.getPublicRole()).deny(Permission.VIEW_CHANNEL).queue();
 		} catch (InsufficientPermissionException ex) {
-			hook.editOriginal(bot.getEmbedUtil().getPermError(event, member, ex.getPermission(), true)).queue();
+			createPermError(event, member, ex.getPermission(), true);
 			return;
 		}
 
-		hook.editOriginalEmbeds(
+		createReplyEmbed(event, 
 			bot.getEmbedUtil().getEmbed(event)
 				.setDescription(lu.getLocalized(userLocale, "bot.voice.ghost.done"))
 				.build()
-		).queue();
+		);
 	}
+
 }

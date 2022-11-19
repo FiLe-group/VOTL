@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import votl.App;
 import votl.commands.CommandBase;
 import votl.objects.CmdAccessLevel;
@@ -25,8 +23,6 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
@@ -66,20 +62,13 @@ public class WebhookCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					Boolean listAll = event.getOption("all", false, OptionMapping::getAsBoolean);
-
-					sendReply(event, hook, listAll);
-				}
-			);
-		}
-
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, boolean listAll) {
+			event.deferReply(true).queue();
 
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
 			DiscordLocale userLocale = event.getUserLocale();
+
+			Boolean listAll = event.optBoolean("all", false);
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(lu.getLocalized(userLocale, "bot.webhook.list.embed.title"));
@@ -116,9 +105,8 @@ public class WebhookCmd extends CommandBase {
 					embedBuilder.addField(title, text.toString(), false);
 				}
 
-				hook.editOriginalEmbeds(embedBuilder.build()).queue();
+				editHookEmbed(event, embedBuilder.build());
 			});
-
 		}
 
 	}
@@ -138,45 +126,34 @@ public class WebhookCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					String name = event.getOption("name", "Dafault name", OptionMapping::getAsString).trim();
-					GuildChannel channel = event.getOption("channel", event.getGuildChannel(), OptionMapping::getAsChannel);
-
-					sendReply(event, hook, name, channel);
-				}
-			);
-		}
-
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, String name, GuildChannel channel) {
-
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			DiscordLocale userLocale = event.getUserLocale();
 
-			if (name.isEmpty() || name.length() > 100) {
-				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.webhook.add.create.invalid_range")).queue();
+			String setName = event.optString("name", "Default name").trim();
+			GuildChannel channel = event.optGuildChannel("channel", event.getGuildChannel());
+
+			if (setName.isEmpty() || setName.length() > 100) {
+				createError(event, "bot.webhook.add.create.invalid_range");
 				return;
 			}
 
 			try {
 				// DYK, guildChannel doesn't have WebhookContainer! no shit
-				guild.getTextChannelById(channel.getId()).createWebhook(name).queue(
+				guild.getTextChannelById(channel.getId()).createWebhook(setName).queue(
 					webhook -> {
 						bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
-						hook.editOriginalEmbeds(
+						createReplyEmbed(event,
 							bot.getEmbedUtil().getEmbed(event).setDescription(
-								lu.getLocalized(userLocale, "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
+								lu.getText(event, "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
 							).build()
-						).queue();
+						);
 					}
 				);
 			} catch (PermissionException ex) {
-				hook.editOriginal(
-					bot.getEmbedUtil().getPermError(event, event.getMember(), ex.getPermission(), true)
-				).queue();
+				createPermError(event, event.getMember(), ex.getPermission(), true);
 				ex.printStackTrace();
 			}
 		}
+
 	}
 
 	private class Select extends CommandBase {
@@ -193,46 +170,30 @@ public class WebhookCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					String webhookId = event.getOption("id", "0", OptionMapping::getAsString).trim();
-					
-					sendReply(event, hook, webhookId);
-				}
-			);
-		}
-
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String webhookId) {
-
-			DiscordLocale userLocale = event.getUserLocale();
+			String webhookId = event.optString("id", "0").trim();
 
 			try {
 				event.getJDA().retrieveWebhookById(Objects.requireNonNull(webhookId)).queue(
 					webhook -> {
 						if (bot.getDBUtil().webhookExists(webhookId)) {
-							hook.editOriginal(
-								bot.getEmbedUtil().getError(event, "bot.webhook.add.select.error_registered")
-							).queue();
+							createError(event, "bot.webhook.add.select.error_registered");
 						} else {
 							bot.getDBUtil().webhookAdd(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
-							hook.editOriginalEmbeds(
+							createReplyEmbed(event,
 								bot.getEmbedUtil().getEmbed(event).setDescription(
-									lu.getLocalized(userLocale, "bot.webhook.add.select.done").replace("{webhook_name}", webhook.getName())
+									lu.getText(event, "bot.webhook.add.select.done").replace("{webhook_name}", webhook.getName())
 								).build()
-							).queue();
+							);
 						}
 					}, failure -> {
-						hook.editOriginal(
-							bot.getEmbedUtil().getError(event, "bot.webhook.add.select.error_not_found", failure.getMessage())
-						).queue();
+						createError(event, "bot.webhook.add.select.error_not_found", failure.getMessage());
 					}
 				);
 			} catch (IllegalArgumentException ex) {
-				hook.editOriginal(
-					bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_found", ex.getMessage())
-				).queue();
+				createError(event, "bot.webhook.remove.error_not_found", ex.getMessage());
 			}
 		}
+
 	}
 
 	private class Remove extends CommandBase {
@@ -249,56 +210,39 @@ public class WebhookCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					String webhookId = event.getOption("id", "0", OptionMapping::getAsString).trim();
-					Boolean delete = event.getOption("delete", false, OptionMapping::getAsBoolean);
-
-					sendReply(event, hook, webhookId, delete);
-				}
-			);
-		}
-
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String webhookId, Boolean delete) {
-
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			DiscordLocale userLocale = event.getUserLocale();
+
+			String webhookId = event.optString("id", "0").trim();
+			Boolean delete = event.optBoolean("delete", false); 
 
 			try {
 				event.getJDA().retrieveWebhookById(webhookId).queue(
 					webhook -> {
 						if (!bot.getDBUtil().webhookExists(webhookId)) {
-							hook.editOriginal(
-								bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_registered")
-							).queue();
+							createError(event, "bot.webhook.remove.error_not_registered");
 						} else {
 							if (webhook.getGuild().equals(guild)) {
 								if (delete) {
 									webhook.delete(webhook.getToken()).queue();
 								}
 								bot.getDBUtil().webhookRemove(webhookId);
-								hook.editOriginalEmbeds(
+								createReplyEmbed(event,
 									bot.getEmbedUtil().getEmbed(event).setDescription(
-										lu.getLocalized(userLocale, "bot.webhook.remove.done").replace("{webhook_name}", webhook.getName())
+										lu.getText(event, "bot.webhook.remove.done").replace("{webhook_name}", webhook.getName())
 									).build()
-								).queue();
+								);
 							} else {
-								hook.editOriginal(
-									bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_guild", String.format("Selected webhook guild: %s", webhook.getGuild().getName()))
-								).queue();
+								createError(event, "bot.webhook.remove.error_not_guild", 
+									String.format("Selected webhook guild: %s", webhook.getGuild().getName()));
 							}
 						}
 					},
 					failure -> {
-						hook.editOriginal(
-							bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_found", failure.getMessage())
-						).queue();
+						createError(event, "bot.webhook.remove.error_not_found", failure.getMessage());
 					}
 				);
 			} catch (IllegalArgumentException ex) {
-				hook.editOriginal(
-					bot.getEmbedUtil().getError(event, "bot.webhook.remove.error_not_found", ex.getMessage())
-				).queue();
+				createError(event, "bot.webhook.remove.error_not_found", ex.getMessage());
 			}
 		}
 
@@ -318,23 +262,13 @@ public class WebhookCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					String webhookId = event.getOption("id", OptionMapping::getAsString).trim();
-					GuildChannel channel = event.getOption("channel", OptionMapping::getAsChannel);
-
-					sendReply(event, hook, webhookId, channel);
-				}
-			);
-		}
-
-		private void sendReply(SlashCommandEvent event, InteractionHook hook, @Nonnull String webhookId, GuildChannel channel) {
-
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			DiscordLocale userLocale = event.getUserLocale();
+
+			String webhookId = event.optString("id", "0").trim();
+			GuildChannel channel = event.optGuildChannel("channel");
 
 			if (!channel.getType().equals(ChannelType.TEXT)) {
-				hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.webhook.move.error_channel", "Selected channel is not Text Channel")).queue();
+				createError(event, "bot.webhook.move.error_channel", "Selected channel is not Text Channel");
 				return;
 			}
 
@@ -343,31 +277,26 @@ public class WebhookCmd extends CommandBase {
 					if (bot.getDBUtil().webhookExists(webhookId)) {
 						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).queue(
 							wm -> {
-								hook.editOriginalEmbeds(
+								createReplyEmbed(event,
 									bot.getEmbedUtil().getEmbed(event).setDescription(
-										lu.getLocalized(userLocale, "bot.webhook.move.done")
+										lu.getText(event, "bot.webhook.move.done")
 											.replace("{webhook_name}", webhook.getName())
 											.replace("{channel}", channel.getName())
 									).build()
-								).queue();
+								);
 							},
 							failure -> {
-								hook.editOriginal(
-									bot.getEmbedUtil().getError(event, "errors.unknown", failure.getMessage())
-								).queue();
+								createError(event, "errors.unknown", failure.getMessage());
 							}
 						);
 					} else {
-						hook.editOriginal(
-							bot.getEmbedUtil().getError(event, "bot.webhook.move.error_not_registered")
-						).queue();
+						createError(event, "bot.webhook.move.error_not_registered");
 					}
 				}, failure -> {
-					hook.editOriginal(
-						bot.getEmbedUtil().getError(event, "bot.webhook.move.error_not_found", failure.getMessage())
-					).queue();
+					createError(event, "bot.webhook.move.error_not_found", failure.getMessage());
 				}
 			);
 		}
+
 	}
 }

@@ -1,7 +1,7 @@
 package votl.commands.voice;
 
 import java.util.Collections;
-import java.util.Optional;
+import java.util.Objects;
 
 import votl.App;
 import votl.commands.CommandBase;
@@ -12,8 +12,6 @@ import votl.objects.constants.CmdCategory;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -41,34 +39,26 @@ public class SetNameCmd extends CommandBase {
 		this.mustSetup = true;
 	}
 
+	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
-
-		event.deferReply(true).queue(
-			hook -> {
-				String filName = event.getOption("name", "Default name", OptionMapping::getAsString).trim();
-				sendReply(event, hook, filName);
-			}
-		);
-
-	}
-
-	private void sendReply(SlashCommandEvent event, InteractionHook hook, String filName) {
+		String filName = event.optString("name", "Default name"); // REDO
 
 		if (filName.isEmpty() || filName.length() > 100) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.setname.invalid_range")).queue();
+			createError(event, "bot.voice.setname.invalid_range");
 			return;
 		}
 
-		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
+		String guildId = Objects.requireNonNull(event.getGuild()).getId();
 		DiscordLocale userLocale = event.getUserLocale();
 
 		bot.getDBUtil().guildVoiceSetName(guildId, filName);
 
-		hook.editOriginalEmbeds(
+		createReplyEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
 				.setDescription(lu.getLocalized(userLocale, "bot.voice.setname.done").replace("{value}", filName))
 				.build()
-		).queue();
+		);
 	}
+
 }

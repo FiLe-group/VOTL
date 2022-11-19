@@ -21,7 +21,6 @@ import net.dv8tion.jda.api.entities.PermissionOverride;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
@@ -57,23 +56,16 @@ public class PermsCmd extends CommandBase {
 			this.botPermissions = new Permission[]{Permission.MANAGE_PERMISSIONS};
 		}
 
+		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					sendReply(event, hook);
-				}
-			);
-		}
-
-		@SuppressWarnings("null")
-		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
+			event.deferReply(true).queue();
 
 			Member author = Objects.requireNonNull(event.getMember());
 			String authorId = author.getId();
 
 			if (!bot.getDBUtil().isVoiceChannel(authorId)) {
-				hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
+				editError(event, "errors.no_channel");
 				return;
 			}
 
@@ -142,10 +134,9 @@ public class PermsCmd extends CommandBase {
 						}
 					}
 
-					hook.editOriginalEmbeds(embedBuilder2.build()).queue();
+					editHookEmbed(event, embedBuilder2.build());
 				}
 			);
-
 		}
 
 		private String contains(PermissionOverride override, Permission perm) {
@@ -160,7 +151,7 @@ public class PermsCmd extends CommandBase {
 
 		@Nonnull
 		private String formatHolder(String holder, String view, String join) {
-			return "`" + holder + "` | " + view + " | " + join;
+			return "`" + view + "` | `" + join + "` | `" + holder + "`";
 		}
 	}
 
@@ -173,22 +164,13 @@ public class PermsCmd extends CommandBase {
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
 		}
 
+		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					sendReply(event, hook);
-				}
-			);
-		}
-
-		@SuppressWarnings("null")
-		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
-
 			Member member = Objects.requireNonNull(event.getMember());
 
 			if (!bot.getDBUtil().isVoiceChannel(member.getId())) {
-				hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
+				createError(event, "errors.no_channel");
 				return;
 			}
 
@@ -199,15 +181,16 @@ public class PermsCmd extends CommandBase {
 			try {
 				vc.getManager().sync().queue();
 			} catch (InsufficientPermissionException ex) {
-				hook.editOriginal(bot.getEmbedUtil().getPermError(event, member, ex.getPermission(), true)).queue();
+				createPermError(event, member, ex.getPermission(), true);
 				return;
 			}
 
-			hook.editOriginalEmbeds(
+			createReplyEmbed(event,
 				bot.getEmbedUtil().getEmbed(event)
 					.setDescription(lu.getLocalized(userLocale, "bot.voice.perms.reset.done"))
 					.build()
-			).queue();
+			);
 		}
+
 	}
 }

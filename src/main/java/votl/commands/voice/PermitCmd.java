@@ -20,8 +20,6 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -47,26 +45,22 @@ public class PermitCmd extends CommandBase {
 		this.mustSetup = true;
 	}
 
+	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
-
-		event.deferReply(true).queue(
-			hook -> {
-				Mentions filMentions = event.getOption("mention", OptionMapping::getMentions);
-				sendReply(event, hook, filMentions);
-			}
-		);
-
-	}
-
-	@SuppressWarnings("null")
-	private void sendReply(SlashCommandEvent event, InteractionHook hook, Mentions filMentions) {
+		event.deferReply(true).queue();
 
 		Member author = Objects.requireNonNull(event.getMember());
 		String authorId = author.getId();
 
 		if (!bot.getDBUtil().isVoiceChannel(authorId)) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.no_channel")).queue();
+			editError(event, "errors.no_channel");
+			return;
+		}
+
+		Mentions filMentions = event.optMentions("mention");
+		if (filMentions == null) {
+			editError(event, "bot.voice.permit.invalid_args");
 			return;
 		}
 
@@ -76,11 +70,11 @@ public class PermitCmd extends CommandBase {
 		List<Member> members = filMentions.getMembers();
 		List<Role> roles = filMentions.getRoles();
 		if (members.isEmpty() & roles.isEmpty()) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.permit.invalid_args")).queue();
+			editError(event, "bot.voice.permit.invalid_args");
 			return;
 		}
 		if (members.contains(author) || members.contains(guild.getSelfMember())) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.voice.permit.not_self")).queue();
+			editError(event, "bot.voice.permit.not_self");
 			return;
 		}
 
@@ -92,7 +86,7 @@ public class PermitCmd extends CommandBase {
 				vc.getManager().putPermissionOverride(member, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
 				mentionStrings.add(member.getEffectiveName());
 			} catch (InsufficientPermissionException ex) {
-				hook.editOriginal(bot.getEmbedUtil().getPermError(event, author, Permission.MANAGE_PERMISSIONS, true)).queue();
+				editPermError(event, author, Permission.MANAGE_PERMISSIONS, true);
 				return;
 			}
 		}
@@ -103,15 +97,16 @@ public class PermitCmd extends CommandBase {
 					vc.getManager().putPermissionOverride(role, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null).queue();
 					mentionStrings.add(role.getName());
 				} catch (InsufficientPermissionException ex) {
-					hook.editOriginal(bot.getEmbedUtil().getPermError(event, author, Permission.MANAGE_PERMISSIONS, true)).queue();
+					editPermError(event, author, Permission.MANAGE_PERMISSIONS, true);
 					return;
 				}
 		}
 
-		hook.editOriginalEmbeds(
+		editHookEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
 				.setDescription(lu.getLocalized(userLocale, "bot.voice.permit.done", "", mentionStrings))
 				.build()
-		).queue();
+		);
 	}
+
 }

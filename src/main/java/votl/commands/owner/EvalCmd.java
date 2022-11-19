@@ -13,8 +13,6 @@ import votl.objects.constants.Constants;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -53,20 +51,15 @@ public class EvalCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-
-		event.deferReply(true).queue(
-			hook -> {
-				sendEvalEmbed(event, hook);
-			}
-		);
-
-	}
-
-	private void sendEvalEmbed(SlashCommandEvent event, InteractionHook hook) {
+		event.deferReply(true).queue();
 
 		DiscordLocale userLocale = event.getUserLocale();
 
-		String args = event.getOption("code", "", OptionMapping::getAsString).trim();
+		String args = event.optString("code");
+		if (args == null) {
+			return;
+		}
+		args = args.trim();
 		if (args.startsWith("```") && args.endsWith("```")) {
 			if (args.startsWith("```java")) {
 				args = args.substring(4);
@@ -77,6 +70,7 @@ public class EvalCmd extends CommandBase {
 		Map<String, Object> variables = Map.of(
 			"bot", bot,
 			"event", event,
+			"hook", event.getHook(),
 			"jda", event.getJDA(),
 			"guild", (event.isFromGuild() ? event.getGuild() : null),
 			"channel", event.getChannel(),
@@ -92,15 +86,15 @@ public class EvalCmd extends CommandBase {
 			Object resp = shell.evaluate(args);
 			String respString = String.valueOf(resp);
 
-			hook.editOriginalEmbeds(formatEvalEmbed(userLocale, args, respString,
+			editHookEmbed(event, formatEvalEmbed(userLocale, args, respString,
 				lu.getLocalized(userLocale, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
-	 			, true)).queue();
+	 			, true));
 		} catch (PowerAssertionError | Exception ex) {
-			hook.editOriginalEmbeds(formatEvalEmbed(userLocale, args, ex.getMessage(),
+			editHookEmbed(event,formatEvalEmbed(userLocale, args, ex.getMessage(),
 				lu.getLocalized(userLocale, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
-				, false)).queue();
+				, false));
 		}
 	}
 

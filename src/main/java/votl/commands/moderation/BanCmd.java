@@ -23,7 +23,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -58,34 +57,33 @@ public class BanCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply(true).queue();
 		
-		event.deferReply(true).queue(hook -> {
-			User targetUser = event.optUser("user");
-			String time = event.optString("time");
-			String reason = event.optString("reason", lu.getText(event, path+".no_reason"));
-			Boolean delete = event.optBoolean("delete", true);
+		User targetUser = event.optUser("user");
+		String time = event.optString("time");
+		String reason = event.optString("reason", lu.getText(event, path+".no_reason"));
+		Boolean delete = event.optBoolean("delete", true);
 
-			sendReply(event, hook, targetUser, time, reason, delete);
-		});
+		sendReply(event, targetUser, time, reason, delete);
 	}
 
 	@SuppressWarnings("null")
-	private void sendReply(SlashCommandEvent event, InteractionHook hook, User tu, String time, String reason, Boolean delete) {
+	private void sendReply(SlashCommandEvent event, User tu, String time, String reason, Boolean delete) {
 		DiscordLocale userLocale = event.getUserLocale();
 		Guild guild = Objects.requireNonNull(event.getGuild());
 
-		if (tu.equals(null)) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, path+".not_found")).queue();
+		if (tu == null) {
+			editError(event, path+".not_found");
 			return;
 		}
 		if (event.getUser().equals(tu) || event.getJDA().getSelfUser().equals(tu)) {
-			hook.editOriginal(bot.getEmbedUtil().getError(event, path+".not_self")).queue();
+			editError(event, path+".not_self");
 			return;
 		}
 
 		guild.retrieveBan(tu).queue(
 			ban -> {
-				hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(event)
+				editHookEmbed(event, bot.getEmbedUtil().getEmbed(event)
 					.setColor(Constants.COLOR_WARNING)
 					.setDescription(lu.getLocalized(userLocale, path+".already_banned"))
 					.addField(lu.getLocalized(userLocale, "bot.moderation.case.short_title"), lu.getLocalized(userLocale, "bot.moderation.case.short_info")
@@ -93,7 +91,7 @@ public class BanCmd extends CommandBase {
 						.replace("{reason}", ban.getReason())
 						, false)
 					.build()
-				).queue();
+				);
 			},
 			failure -> {
 				if (failure.getMessage().startsWith("10026")) {
@@ -101,7 +99,7 @@ public class BanCmd extends CommandBase {
 						Member tm = event.optMember("user");
 						Member mod = event.getMember();
 						if (Objects.nonNull(tm) && bot.getCheckUtil().hasHigherAccess(event.getClient(), tm, mod)) {
-							hook.editOriginal(bot.getEmbedUtil().getError(event, path+".higher_access")).queue();
+							editError(event, path+".higher_access");
 						} else {
 							Duration duration = bot.getMessageUtil().getDuration(time, false);
 
@@ -111,7 +109,7 @@ public class BanCmd extends CommandBase {
 								bot.getDBUtil().banAdd(tu.getId(), tu.getAsTag(), mod.getId(), mod.getUser().getAsTag(),
 									guild.getId(), reason, Timestamp.from(Instant.now()), duration, false);
 								// OR HERE ... just do it
-								hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(event)
+								editHookEmbed(event, bot.getEmbedUtil().getEmbed(event)
 									.setColor(Constants.COLOR_SUCCESS)
 									.setDescription(lu.getLocalized(userLocale, path+".ban_success")
 										.replace("{user_tag}", tu.getAsTag())
@@ -121,17 +119,17 @@ public class BanCmd extends CommandBase {
 										)
 										.replace("{reason}", reason))
 									.build()
-								).queue();
+								);
 							} else {
-								hook.editOriginal(bot.getEmbedUtil().getError(event, path+".ban_abort")).queue();
+								editError(event, path+".ban_abort");
 							}
 						}
 					} catch (FormatterException ex) {
-						hook.editOriginal(bot.getEmbedUtil().getError(event, ex.getPath())).queue();
+						editError(event, ex.getPath());
 					}
 				} else {
 					bot.getLogger().warn(failure.getMessage());
-					hook.editOriginal(bot.getEmbedUtil().getError(event, "errors.unknown", failure.getMessage())).queue();
+					editError(event, "errors.unknown", failure.getMessage());
 				}
 			});
 		

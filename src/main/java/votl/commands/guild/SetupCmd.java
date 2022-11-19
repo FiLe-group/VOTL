@@ -17,7 +17,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
@@ -55,32 +54,27 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					Guild guild = Objects.requireNonNull(event.getGuild());
-					String guildId = guild.getId();
-					DiscordLocale userLocale = event.getUserLocale();
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildId = guild.getId();
 
-					if (bot.getDBUtil().guildAdd(guildId)) {
-						hook.editOriginalEmbeds(
-							bot.getEmbedUtil().getEmbed(event)
-								.setDescription(lu.getLocalized(userLocale, "bot.guild.setup.main.done"))
-								.setColor(Constants.COLOR_SUCCESS)
-								.build()
-						).queue();
-						bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
-					} else {
-						hook.editOriginalEmbeds(
-							bot.getEmbedUtil().getEmbed(event)
-								.setDescription(lu.getLocalized(userLocale, "bot.guild.setup.main.exists"))
-								.setColor(Constants.COLOR_WARNING)
-								.build()
-						).queue();
-					}
-					
-				}
-			);
+			if (bot.getDBUtil().guildAdd(guildId)) {
+				createReplyEmbed(event, 
+					bot.getEmbedUtil().getEmbed(event)
+						.setDescription(lu.getText(event, "bot.guild.setup.main.done"))
+						.setColor(Constants.COLOR_SUCCESS)
+						.build()
+				);
+				bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
+			} else {
+				createReplyEmbed(event, 
+					bot.getEmbedUtil().getEmbed(event)
+						.setDescription(lu.getText(event, "bot.guild.setup.main.exists"))
+						.setColor(Constants.COLOR_WARNING)
+						.build()
+				);
+			}
 		}
+
 	}
 
 	private class Voice extends CommandBase {
@@ -93,17 +87,10 @@ public class SetupCmd extends CommandBase {
 			this.module = CmdModule.VOICE;
 		}
 
+		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					sendReply(event, hook);
-				}
-			);
-		}
-
-		@SuppressWarnings("null")
-		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
+			event.deferReply(true).queue();
 
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
@@ -125,30 +112,24 @@ public class SetupCmd extends CommandBase {
 										channel -> {
 											bot.getDBUtil().guildVoiceSetup(guildId, category.getId(), channel.getId());
 											bot.getLogger().info("Voice setup done in guild `"+guild.getName()+"'("+guildId+")");
-											hook.editOriginalEmbeds(
+											editHookEmbed(event, 
 												bot.getEmbedUtil().getEmbed(event)
 													.setDescription(lu.getLocalized(userLocale, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
 													.setColor(Constants.COLOR_SUCCESS)
 													.build()
-											).queue();
+											);
 										}
 									);
 							} catch (InsufficientPermissionException ex) {
-								hook.editOriginal(
-									bot.getEmbedUtil().getPermError(event, event.getMember(), ex.getPermission(), true)
-								).queue();
+								editPermError(event, event.getMember(), ex.getPermission(), true);
 							}
 						}
 					);
 			} catch (InsufficientPermissionException ex) {
-				hook.editOriginal(
-					bot.getEmbedUtil().getPermError(event, event.getMember(), ex.getPermission(), true)
-				).queue();
+				editPermError(event, event.getMember(), ex.getPermission(), true);
 				ex.printStackTrace();
 			}
-			
 		}
 
 	}
-
 }

@@ -27,16 +27,14 @@ public class PingCmd extends CommandBase {
 	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(true).queue(hook -> {
-			Long st = System.currentTimeMillis();
-			hook.getJDA().getRestPing().queue(time -> {
-				hook.editOriginal(
-					lu.getLocalized(event.getUserLocale(), "bot.other.ping.info_full")
-						.replace("{ping}", String.valueOf(System.currentTimeMillis() - st))
-						.replace("{websocket}", event.getJDA().getGatewayPing()+"")
-						.replace("{rest}", time+"")
-				).queue();
-			});	
-		});
+		createReply(event, lu.getText(event, path+".loading"));
+
+		event.getJDA().getRestPing().queue(time -> {
+			editHook(event,
+				lu.getText(event, "bot.other.ping.info_full")
+					.replace("{websocket}", event.getJDA().getGatewayPing()+"")
+					.replace("{rest}", time+"")
+			);
+		});	
 	}
 }

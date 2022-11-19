@@ -13,6 +13,7 @@ import votl.App;
 import votl.commands.CommandBase;
 import votl.objects.CmdAccessLevel;
 import votl.objects.CmdModule;
+import votl.objects.Emotes;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
@@ -64,25 +65,19 @@ public class ModuleCmd extends CommandBase {
 			this.path = "bot.guild.module.show";
 		}
 
+		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					sendReply(event, hook);
-				}	
-			);
-		}
-
-		@SuppressWarnings("null")
-		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
-
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 			DiscordLocale userLocale = event.getUserLocale();
 
 			StringBuilder builder = new StringBuilder();
 			List<CmdModule> disabled = getModules(guildId, false);
 			for (CmdModule sModule : getModules(guildId, true, false)) {
-				builder.append(format(lu.getLocalized(userLocale, sModule.getPath()), (disabled.contains(sModule) ? Constants.FAILURE : Constants.SUCCESS))).append("\n");
+				builder.append(
+					format(lu.getLocalized(userLocale, sModule.getPath()),
+					(disabled.contains(sModule) ? Emotes.CROSS_C : Emotes.CHECK_C))
+				).append("\n");
 			}
 
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
@@ -90,14 +85,14 @@ public class ModuleCmd extends CommandBase {
 				.setDescription(lu.getLocalized(userLocale, "bot.guild.module.show.embed.value"))
 				.addField(lu.getLocalized(userLocale, "bot.guild.module.show.embed.field"), builder.toString(), false)
 				.build();
-
-			hook.editOriginalEmbeds(embed).queue();
+			createReplyEmbed(event, embed);
 		}
 
 		@Nonnull
-		private String format(String sModule, String status) {
-			return "`" + status + "` | " + sModule;
+		private String format(String sModule, Emotes emote) {
+			return emote.getEmote() + " | " + sModule;
 		}
+
 	}
 
 	private class Disable extends CommandBase {
@@ -108,17 +103,11 @@ public class ModuleCmd extends CommandBase {
 			this.path = "bot.guild.module.disable";
 		}
 
+		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					sendReply(event, hook);
-				}
-			);
-		}
-
-		@SuppressWarnings("null")
-		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
+			event.deferReply(true).queue();
+			InteractionHook hook = event.getHook();
 
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 			DiscordLocale userLocale = event.getUserLocale();
@@ -130,7 +119,7 @@ public class ModuleCmd extends CommandBase {
 			if (enabled.isEmpty()) {
 				embed.setDescription(lu.getLocalized(userLocale, "bot.guild.module.disable.none"))
 					.setColor(Constants.COLOR_FAILURE);
-				hook.editOriginalEmbeds(embed.build()).queue();
+				editHookEmbed(event, embed.build());
 				return;
 			}
 
@@ -156,7 +145,7 @@ public class ModuleCmd extends CommandBase {
 								actionHook -> {
 									CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
 									if (bot.getDBUtil().moduleDisabled(guildId, sModule)) {
-										hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.module.disable.already")).setComponents().queue();
+										hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.guild.module.disable.already")).setComponents().queue();
 										return;
 									}
 									bot.getDBUtil().moduleAdd(guildId, sModule);
@@ -178,8 +167,8 @@ public class ModuleCmd extends CommandBase {
 					);
 				}
 			);
-
 		}
+
 	}
 
 	private class Enable extends CommandBase {
@@ -190,17 +179,11 @@ public class ModuleCmd extends CommandBase {
 			this.path = "bot.guild.module.enable";
 		}
 
+		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue(
-				hook -> {
-					sendReply(event, hook);
-				}
-			);
-		}
-
-		@SuppressWarnings("null")
-		private void sendReply(SlashCommandEvent event, InteractionHook hook) {
+			event.deferReply(true).queue();
+			InteractionHook hook = event.getHook();
 
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
 			DiscordLocale userLocale = event.getUserLocale();
@@ -212,7 +195,7 @@ public class ModuleCmd extends CommandBase {
 			if (enabled.isEmpty()) {
 				embed.setDescription(lu.getLocalized(userLocale, "bot.guild.module.enable.none"))
 					.setColor(Constants.COLOR_FAILURE);
-				hook.editOriginalEmbeds(embed.build()).queue();
+				editHookEmbed(event, embed.build());
 				return;
 			}
 
@@ -238,7 +221,7 @@ public class ModuleCmd extends CommandBase {
 								actionHook -> {
 									CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
 									if (!bot.getDBUtil().moduleDisabled(guildId, sModule)) {
-										hook.editOriginal(bot.getEmbedUtil().getError(event, "bot.guild.module.enable.already")).setComponents().queue();
+										hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.guild.module.enable.already")).setComponents().queue();
 										return;
 									}
 									bot.getDBUtil().moduleRemove(guildId, sModule);
@@ -260,8 +243,8 @@ public class ModuleCmd extends CommandBase {
 					);
 				}
 			);
-
 		}
+
 	}
 
 	private List<CmdModule> getModules(String guildId, boolean on) {
