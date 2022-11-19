@@ -12,10 +12,11 @@ import votl.objects.constants.Constants;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class EmbedUtil {
 
@@ -59,7 +60,7 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public <T> EmbedBuilder getPermErrorEmbed(T event, TextChannel channel, Permission perm, boolean self) {
+	private <T> EmbedBuilder getPermErrorEmbed(T event, TextChannel channel, Permission perm, boolean self) {
 		EmbedBuilder embed = getErrorEmbed(event);
 		String msg;
 		if (self) {
@@ -86,12 +87,12 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public <T> MessageEditData getError(T event, @Nonnull String path) {
+	public <T> MessageEmbed getError(T event, @Nonnull String path) {
 		return getError(event, path, null);
 	}
 
 	@Nonnull
-	public <T> MessageEditData getError(T event, @Nonnull String path, String reason) {
+	public <T> MessageEmbed getError(T event, @Nonnull String path, String reason) {
 		EmbedBuilder embedBuilder = getErrorEmbed(event)
 			.setDescription(lu.getText(event, path));
 
@@ -102,24 +103,24 @@ public class EmbedUtil {
 				false
 			);
 
-		return MessageEditData.fromEmbeds(embedBuilder.build());
+		return embedBuilder.build();
 	}
 
 	@Nonnull
-	public <T> MessageEditData getPermError(T event, Member member, Permission perm, boolean self) {
-		return getPermError(event, member, null, perm, self);
+	public <T> MessageCreateData createPermError(T event, Member member, Permission perm, boolean self) {
+		return createPermError(event, member, null, perm, self);
 	}
 
 	@Nonnull
-	public <T> MessageEditData getPermError(T event, Member member, TextChannel channel, Permission perm, boolean self) {
+	public <T> MessageCreateData createPermError(T event, Member member, TextChannel channel, Permission perm, boolean self) {
 		User user = member.getUser();
 		if (perm.equals(Permission.MESSAGE_SEND)) {
 			user.openPrivateChannel()
 				.flatMap(ch -> ch.sendMessage(lu.getText(event, "errors.no_send_perm")))
 				.queue();
-			return MessageEditData.fromContent("PM sended");
+			return MessageCreateData.fromContent("No send message perm"); //useles?
 		}
-		MessageEditBuilder mb = new MessageEditBuilder();
+		MessageCreateBuilder mb = new MessageCreateBuilder();
 
 		if (perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
 			if (channel == null) {
@@ -139,5 +140,5 @@ public class EmbedUtil {
 		}
 		return mb.build();
 	}
-	
+
 }

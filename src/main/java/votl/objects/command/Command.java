@@ -16,6 +16,7 @@
 package votl.objects.command;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -362,6 +363,10 @@ public abstract class Command extends Interaction
 	public boolean isHidden()
 	{
 		return hidden;
+	}
+
+	private void terminate(CommandEvent event, @Nonnull MessageEmbed embed) {
+		terminate(event, MessageCreateData.fromEmbeds(embed));
 	}
 
 	private void terminate(CommandEvent event, @Nonnull MessageEditData message) {

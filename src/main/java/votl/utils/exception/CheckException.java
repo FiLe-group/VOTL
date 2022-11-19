@@ -2,26 +2,32 @@ package votl.utils.exception;
 
 import javax.annotation.Nonnull;
 
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 public class CheckException extends Exception {
 
 	@Nonnull
-	private MessageEditData msg;
+	private MessageCreateData data;
 	
-	public CheckException(@Nonnull MessageEditData msg) {
+	public CheckException(@Nonnull MessageEmbed embed) {
 		super();
-		this.msg = msg;
+		this.data = MessageCreateData.fromEmbeds(embed);
+	}
+
+	public CheckException(@Nonnull MessageCreateData data) {
+		super();
+		this.data = data;
 	}
 
 	@Nonnull
-	public MessageEditData getEditData() {
-		return msg;
+	public MessageCreateData getEditData() {
+		return data;
 	}
 
 	@Nonnull
-	public MessageCreateData getCreateData() {
-		return MessageCreateData.fromEditData(msg);
+	public MessageEditData getCreateData() {
+		return MessageEditData.fromCreateData(data);
 	}
 }

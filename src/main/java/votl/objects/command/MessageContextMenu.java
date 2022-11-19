@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 
 import votl.utils.exception.CheckException;
 
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -100,6 +101,10 @@ public abstract class MessageContextMenu extends ContextMenu
 	 *         The {@link MessageContextMenuEvent} that triggered this menu.
 	 */
 	protected abstract void execute(MessageContextMenuEvent event);
+
+	private void terminate(MessageContextMenuEvent event, @Nonnull MessageEmbed embed) {
+		terminate(event, MessageCreateData.fromEmbeds(embed));
+	}
 
 	private void terminate(MessageContextMenuEvent event, @Nonnull MessageEditData message) {
 		terminate(event, MessageCreateData.fromEditData(message));

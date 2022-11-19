@@ -15,6 +15,7 @@
  */
 package votl.objects.command;
 
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
@@ -392,6 +393,10 @@ public abstract class SlashCommand extends Command
 	public SlashCommand[] getChildren()
 	{
 		return children;
+	}
+
+	private void terminate(SlashCommandEvent event, @Nonnull MessageEmbed embed, CommandClient client) {
+		terminate(event, MessageCreateData.fromEmbeds(embed), client);
 	}
 
 	private void terminate(SlashCommandEvent event, @Nonnull MessageEditData message, CommandClient client) {

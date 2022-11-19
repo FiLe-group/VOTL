@@ -17,6 +17,7 @@ package votl.objects.command;
 
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Mentions;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -102,6 +103,27 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	public boolean optBoolean(@Nonnull String key, boolean defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsBoolean);
+	}
+
+	/**
+	 * Gets the provided Option Key as a int value, or returns {@code 0} if the option cannot be found.
+	 *
+	 * @param key   The option we want
+	 * @return The provided option, or 0 if the option is not present
+	 */
+	public int optInteger(@Nonnull String key) {
+		return optInteger(key, 0);
+	}
+
+	/**
+	 * Gets the provided Option Key as a int value, or returns the default one if the option cannot be found.
+	 *
+	 * @param key          The option we want
+	 * @param defaultValue The fallback option in case of the absence of the option value
+	 * @return The provided option, or the default value if the option is not present
+	 */
+	public int optInteger(@Nonnull String key, int defaultValue) {
+		return getOption(key, defaultValue, OptionMapping::getAsInt);
 	}
 
 	/**
@@ -226,6 +248,17 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	@Contract("_, !null -> !null")
 	public IMentionable optMentionable(@Nonnull String key, @Nullable IMentionable defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsMentionable);
+	}
+
+	/**
+	 * Gets the provided Option Key as a Mentions value, or return {@code null} if the there were no mentions or the options cannot be found.
+	 * 
+	 * @param key  The option we want
+	 * @return The provided options, or null if they are no mentions or option is not present
+	 */
+	@Nullable
+	public Mentions optMentions(@Nonnull String key) {
+		return getOption(key, null, OptionMapping::getMentions);
 	}
 
 	/**

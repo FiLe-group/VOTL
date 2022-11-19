@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class CheckUtil {
 
@@ -167,20 +167,20 @@ public class CheckUtil {
 		if (guild == null || member == null)
 			return this;
 
-		MessageEditData msg = null;
+		MessageCreateData msg = null;
 		if (isSelf) {
 			Member self = guild.getSelfMember();
 			if (channel == null) {
 				for (Permission perm : permissions) {
 					if (!self.hasPermission(perm)) {
-						msg = bot.getEmbedUtil().getPermError(event, member, perm, true);
+						msg = bot.getEmbedUtil().createPermError(event, member, perm, true);
 						break;
 					}
 				}
 			} else {
 				for (Permission perm : permissions) {
 					if (!self.hasPermission(channel, perm)) {
-						msg = bot.getEmbedUtil().getPermError(event, member, channel, perm, true);
+						msg = bot.getEmbedUtil().createPermError(event, member, channel, perm, true);
 						break;
 					}
 				}
@@ -189,14 +189,14 @@ public class CheckUtil {
 			if (channel == null) {
 				for (Permission perm : permissions) {
 					if (!member.hasPermission(perm)) {
-						msg = bot.getEmbedUtil().getPermError(event, member, perm, false);
+						msg = bot.getEmbedUtil().createPermError(event, member, perm, false);
 						break;
 					}
 				}
 			} else {
 				for (Permission perm : permissions) {
 					if (!member.hasPermission(channel, perm)) {
-						msg = bot.getEmbedUtil().getPermError(event, member, channel, perm, false);
+						msg = bot.getEmbedUtil().createPermError(event, member, channel, perm, false);
 						break;
 					}
 				}
