@@ -22,12 +22,12 @@ public class CheckException extends Exception {
 	}
 
 	@Nonnull
-	public MessageCreateData getEditData() {
+	public MessageCreateData getCreateData() {
 		return data;
 	}
 
 	@Nonnull
-	public MessageEditData getCreateData() {
+	public MessageEditData getEditData() {
 		return MessageEditData.fromCreateData(data);
 	}
 }

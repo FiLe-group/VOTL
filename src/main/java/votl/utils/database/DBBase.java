@@ -117,7 +117,7 @@ public class DBBase {
 	}
 
 	protected Object selectLast(final String table, final String selectKey) {
-		String sql = "SELECT * "+table+" ORDER BY banId DESC LIMIT 1";
+		String sql = "SELECT * FROM "+table+" ORDER BY banId DESC LIMIT 1";
 
 		Object result = null;
 		try (Connection conn = util.connect();
@@ -207,6 +207,10 @@ public class DBBase {
 
 	private String quote(Object value) {
 		// Convert to string and replace '(single quote) with ''(2 single quotes) for sql
+		String str = String.valueOf(value);
+		if (str == "NULL") {
+			return str;
+		}
 		return "'" + String.valueOf(value).replaceAll("'", "''") + "'"; // smt's -> 'smt''s'
 	}
 

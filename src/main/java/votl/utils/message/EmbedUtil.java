@@ -14,7 +14,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
@@ -60,7 +60,7 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	private <T> EmbedBuilder getPermErrorEmbed(T event, TextChannel channel, Permission perm, boolean self) {
+	private <T> EmbedBuilder getPermErrorEmbed(T event, GuildChannel channel, Permission perm, boolean self) {
 		EmbedBuilder embed = getErrorEmbed(event);
 		String msg;
 		if (self) {
@@ -112,7 +112,7 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public <T> MessageCreateData createPermError(T event, Member member, TextChannel channel, Permission perm, boolean self) {
+	public <T> MessageCreateData createPermError(T event, Member member, GuildChannel channel, Permission perm, boolean self) {
 		User user = member.getUser();
 		if (perm.equals(Permission.MESSAGE_SEND)) {
 			user.openPrivateChannel()

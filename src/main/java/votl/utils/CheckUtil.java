@@ -16,7 +16,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class CheckUtil {
@@ -145,7 +145,7 @@ public class CheckUtil {
 		return hasPermissions(genericEvent, isSelf, null, permissions);
 	}
 
-	public <T> CheckUtil hasPermissions(T genericEvent, boolean isSelf, TextChannel channel, Permission[] permissions) throws CheckException {
+	public <T> CheckUtil hasPermissions(T genericEvent, boolean isSelf, GuildChannel channel, Permission[] permissions) throws CheckException {
 		if (genericEvent instanceof SlashCommandEvent) {
 			SlashCommandEvent event = (SlashCommandEvent) genericEvent;
 			return hasPermissions(event, event.getGuild(), event.getMember(), isSelf, channel, permissions);
@@ -161,7 +161,7 @@ public class CheckUtil {
 		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
 	}
 
-	private <T> CheckUtil hasPermissions(T event, Guild guild, Member member, boolean isSelf, TextChannel channel, Permission[] permissions) throws CheckException {
+	private <T> CheckUtil hasPermissions(T event, Guild guild, Member member, boolean isSelf, GuildChannel channel, Permission[] permissions) throws CheckException {
 		if (permissions == null || permissions.length == 0)
 			return this;
 		if (guild == null || member == null)

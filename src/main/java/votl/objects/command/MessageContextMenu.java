@@ -25,7 +25,6 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 public abstract class MessageContextMenu extends ContextMenu
 {
@@ -104,10 +103,6 @@ public abstract class MessageContextMenu extends ContextMenu
 
 	private void terminate(MessageContextMenuEvent event, @Nonnull MessageEmbed embed) {
 		terminate(event, MessageCreateData.fromEmbeds(embed));
-	}
-
-	private void terminate(MessageContextMenuEvent event, @Nonnull MessageEditData message) {
-		terminate(event, MessageCreateData.fromEditData(message));
 	}
 
 	private void terminate(MessageContextMenuEvent event, MessageCreateData message) {

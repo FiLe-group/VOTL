@@ -98,7 +98,7 @@ public class LimitCmd extends CommandBase {
 		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(memberId));
 		vc.getManager().setUserLimit(filLimit).queue();
 		
-		if (!bot.getDBUtil().user.equals(memberId)) {
+		if (!bot.getDBUtil().user.exists(memberId)) {
 			bot.getDBUtil().user.add(memberId);
 		}
 		bot.getDBUtil().user.setLimit(memberId, filLimit);

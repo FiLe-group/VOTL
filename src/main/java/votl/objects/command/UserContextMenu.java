@@ -25,7 +25,6 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 /**
  * <h2><b>User Context Menus In JDA-Chewtils</b></h2>
@@ -140,10 +139,6 @@ public abstract class UserContextMenu extends ContextMenu {
 
 	private void terminate(UserContextMenuEvent event, @Nonnull MessageEmbed embed) {
 		terminate(event, MessageCreateData.fromEmbeds(embed));
-	}
-
-	private void terminate(UserContextMenuEvent event, @Nonnull MessageEditData message) {
-		terminate(event, MessageCreateData.fromEditData(message));
 	}
 
 	private void terminate(UserContextMenuEvent event, MessageCreateData message) {

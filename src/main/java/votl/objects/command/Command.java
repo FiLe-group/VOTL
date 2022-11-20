@@ -20,7 +20,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -367,10 +366,6 @@ public abstract class Command extends Interaction
 
 	private void terminate(CommandEvent event, @Nonnull MessageEmbed embed) {
 		terminate(event, MessageCreateData.fromEmbeds(embed));
-	}
-
-	private void terminate(CommandEvent event, @Nonnull MessageEditData message) {
-		terminate(event, MessageCreateData.fromEditData(message));
 	}
 
 	private void terminate(CommandEvent event, MessageCreateData message)

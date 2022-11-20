@@ -22,7 +22,6 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -397,10 +396,6 @@ public abstract class SlashCommand extends Command
 
 	private void terminate(SlashCommandEvent event, @Nonnull MessageEmbed embed, CommandClient client) {
 		terminate(event, MessageCreateData.fromEmbeds(embed), client);
-	}
-
-	private void terminate(SlashCommandEvent event, @Nonnull MessageEditData message, CommandClient client) {
-		terminate(event, MessageCreateData.fromEditData(message), client);
 	}
 
 	private void terminate(SlashCommandEvent event, MessageCreateData message, CommandClient client) {
