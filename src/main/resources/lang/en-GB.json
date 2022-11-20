@@ -186,6 +186,33 @@
 						"none": "*None*"
 					}
 				}
+			},
+			"log": {
+				"help": "Log moderation command use",
+				"usage": "/log setup [channel]\n...manage",
+				"setup": {
+					"help": "Setup log channel",
+					"option_channel": "Select channel where to log actions",
+					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
+					"as_log": "This channel is selected as a log channel for performed moderation actions.",
+					"done": "Successfully set {channel} as log channel!"
+				},
+				"manage": {
+					"help": "Manage current logging setting",
+					"title": "Currently logging",
+					"none": "*None*\n\n*Use `/log setup` to setup logging*",
+					"button_change": "Change channel",
+					"button_remove": "Remove logging",
+					"menu_channel": "Select new channel",
+					"select_channel": "Select new channel, which will be used for logging",
+					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
+					"as_log": "This channel is selected as a log channel for performed moderation actions.",
+					"done": "Successfully set {channel} as log channel!",
+					"removed": "Log channel for bans was removed"
+				},
+				"types": {
+					"ban": "Ban actions"
+				}
 			}
 		},
 		"voice": {
@@ -349,7 +376,7 @@
 				"error_not_registered": "Selected webhook is not registered.",
 				"error_not_found": "Couldn't find webhook by entered ID.",
 				"error_not_guild": "Selected webhook is not from this guild.",
-				"done": "Successfulluy removed webhook `{webhook_name}`!"
+				"done": "Successfully removed webhook `{webhook_name}`!"
 			},
 			"check": {
 

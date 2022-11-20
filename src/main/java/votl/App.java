@@ -60,6 +60,8 @@ public class App {
 	private final GuildListener guildListener;
 	private final VoiceListener voiceListener;
 	private final AutoCompleteListener acListener;
+
+	private final LogListener logListener;
 	
 	private DBUtil dbUtil;
 	private MessageUtil messageUtil;
@@ -93,6 +95,7 @@ public class App {
 		waiter			= new EventWaiter();
 		guildListener	= new GuildListener(this);
 		voiceListener	= new VoiceListener(this);
+		logListener		= new LogListener(this);
 
 		// Define a command client
 		CommandClient commandClient = new CommandClientBuilder()
@@ -121,6 +124,7 @@ public class App {
 				new SetupCmd(this),
 				new ModuleCmd(this, waiter),
 				new AccessCmd(this),
+				new LogCmd(this, waiter),
 				// owner
 				new ShutdownCmd(this),
 				new EvalCmd(this),
@@ -218,6 +222,10 @@ public class App {
 
 	public LocaleUtil getLocaleUtil() {
 		return localeUtil;
+	}
+
+	public LogListener getLogListener() {
+		return logListener;
 	}
 
 	@Nonnull
