@@ -43,7 +43,7 @@ public class BanCmd extends CommandBase {
 		List<OptionData> options = new ArrayList<>();
 		options.add(new OptionData(OptionType.USER, "user", lu.getText(path+".option_user"), true));
 		options.add(new OptionData(OptionType.STRING, "time", lu.getText(path+".option_time")));
-		options.add(new OptionData(OptionType.STRING, "reason", lu.getText(path+".option_reason")));
+		options.add(new OptionData(OptionType.STRING, "reason", lu.getText(path+".option_reason")).setMaxLength(400));
 		options.add(new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".option_delete")));
 		this.options = options;
 		this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
@@ -104,18 +104,25 @@ public class BanCmd extends CommandBase {
 							Duration duration = bot.getMessageUtil().getDuration(time, false);
 
 							if (Objects.isNull(tm) || guild.getSelfMember().canInteract(tm)) {
-								guild.ban(tu, (delete ? 2 : 0), TimeUnit.DAYS);
-								// SYNC BAN HERE
-								bot.getDBUtil().banAdd(tu.getId(), tu.getAsTag(), mod.getId(), mod.getUser().getAsTag(),
+								// perform ban
+								guild.ban(tu, (delete ? 2 : 0), TimeUnit.DAYS).reason(reason).queue();
+								// get new caseId/banId
+								Integer banId = 1 + bot.getDBUtil().ban.lastId();
+								// add info to db
+								bot.getDBUtil().ban.add(banId, tu.getId(), tu.getAsTag(), mod.getId(), mod.getUser().getAsTag(),
 									guild.getId(), reason, Timestamp.from(Instant.now()), duration, false);
-								// OR HERE ... just do it
+								// log ban
+								bot.getLogListener().onBan(event, tu, mod, banId);
+								// sync, maybe?
+								
+								// send promt asking user for ban sync (if available)
 								editHookEmbed(event, bot.getEmbedUtil().getEmbed(event)
 									.setColor(Constants.COLOR_SUCCESS)
 									.setDescription(lu.getLocalized(userLocale, path+".ban_success")
 										.replace("{user_tag}", tu.getAsTag())
 										.replace("{duration}", duration.isZero() ? lu.getLocalized(userLocale, "bot.moderation.case.permanently") : 
 											lu.getLocalized(userLocale, "bot.moderation.case.temporary")
-												.replace("{time}", bot.getMessageUtil().formatTime(Instant.now().plus(duration)))
+												.replace("{time}", bot.getMessageUtil().formatTime(Instant.now().plus(duration), true))
 										)
 										.replace("{reason}", reason))
 									.build()

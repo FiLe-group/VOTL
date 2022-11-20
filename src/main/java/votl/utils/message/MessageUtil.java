@@ -34,12 +34,20 @@ public class MessageUtil {
 		this.lu = bot.getLocaleUtil();
 	}
 
-	public String formatTime(TemporalAccessor time) {
+	public String formatTime(TemporalAccessor time, Boolean full) {
+
 		if (time != null) {
+			if (full) {
+				return String.format(
+					"%s (%s)",
+					TimeFormat.DATE_TIME_SHORT.format(time),
+					TimeFormat.RELATIVE.format(time)
+				);
+			}
 			return String.format(
-				"%s (%s)",
-				TimeFormat.DATE_TIME_SHORT.format(time),
-				TimeFormat.RELATIVE.format(time)
+				"%s %s",
+				TimeFormat.DATE_SHORT.format(time),
+				TimeFormat.TIME_SHORT.format(time)
 			);
 		}
 		return "";

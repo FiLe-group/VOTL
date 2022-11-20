@@ -22,12 +22,12 @@ import votl.objects.constants.Constants;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
@@ -124,7 +124,7 @@ public class ModuleCmd extends CommandBase {
 			}
 
 			embed.setDescription(lu.getLocalized(userLocale, "bot.guild.module.disable.embed_value"));
-			SelectMenu menu = SelectMenu.create("disable-module")
+			StringSelectMenu menu = StringSelectMenu.create("disable-module")
 				.setPlaceholder("Select")
 				.setRequiredRange(1, 1)
 				.addOptions(enabled.stream().map(
@@ -134,39 +134,34 @@ public class ModuleCmd extends CommandBase {
 				).collect(Collectors.toList()))
 				.build();
 
-			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(
-				sendHook -> {
-					waiter.waitForEvent(
-						SelectMenuInteractionEvent.class,
-						e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(sendHook.getId()),
-						actionEvent -> {
+			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(msg -> {
+				waiter.waitForEvent(
+					StringSelectInteractionEvent.class,
+					e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(msg.getId()),
+					actionEvent -> {
 
-							actionEvent.deferEdit().queue(
-								actionHook -> {
-									CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
-									if (bot.getDBUtil().module.isDisabled(guildId, sModule)) {
-										hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.guild.module.disable.already")).setComponents().queue();
-										return;
-									}
-									bot.getDBUtil().module.add(guildId, sModule);
-									EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event)
-										.setTitle(lu.getLocalized(userLocale, "bot.guild.module.disable.done").replace("{module}", lu.getLocalized(userLocale, sModule.getPath())))
-										.setColor(Constants.COLOR_SUCCESS);
-									hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
-								}
-							);
-
-						},
-						30,
-						TimeUnit.SECONDS,
-						() -> {
-							hook.editOriginalComponents(
-								ActionRow.of(menu.createCopy().setPlaceholder(lu.getLocalized(userLocale, "bot.guild.module.enable.timed_out")).setDisabled(true).build())
-							).queue();
+						actionEvent.deferEdit().queue();
+						CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
+						if (bot.getDBUtil().module.isDisabled(guildId, sModule)) {
+							hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.guild.module.disable.already")).setComponents().queue();
+							return;
 						}
-					);
-				}
-			);
+						bot.getDBUtil().module.add(guildId, sModule);
+						EmbedBuilder editEmbed = bot.getEmbedUtil().getEmbed(event)
+							.setTitle(lu.getLocalized(userLocale, "bot.guild.module.disable.done").replace("{module}", lu.getLocalized(userLocale, sModule.getPath())))
+							.setColor(Constants.COLOR_SUCCESS);
+						hook.editOriginalEmbeds(editEmbed.build()).setComponents().queue();
+
+					},
+					30,
+					TimeUnit.SECONDS,
+					() -> {
+						hook.editOriginalComponents(
+							ActionRow.of(menu.createCopy().setPlaceholder(lu.getLocalized(userLocale, "bot.guild.module.enable.timed_out")).setDisabled(true).build())
+						).queue();
+					}
+				);
+			});
 		}
 
 	}
@@ -200,7 +195,7 @@ public class ModuleCmd extends CommandBase {
 			}
 
 			embed.setDescription(lu.getLocalized(userLocale, "bot.guild.module.enable.embed_value"));
-			SelectMenu menu = SelectMenu.create("enable-module")
+			StringSelectMenu menu = StringSelectMenu.create("enable-module")
 				.setPlaceholder("Select")
 				.setRequiredRange(1, 1)
 				.addOptions(enabled.stream().map(
@@ -213,7 +208,7 @@ public class ModuleCmd extends CommandBase {
 			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(
 				sendHook -> {
 					waiter.waitForEvent(
-						SelectMenuInteractionEvent.class,
+						StringSelectInteractionEvent.class,
 						e -> e.getComponentId().equals("enable-module") && e.getMessageId().equals(sendHook.getId()),
 						actionEvent -> {
 

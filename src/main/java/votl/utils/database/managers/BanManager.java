@@ -16,15 +16,18 @@ public class BanManager extends DBBase {
 	}
 
 	// add new ban
-	public void add(String userId, String userName, String modId, String modName, String guildId, String reason, Timestamp timeStart, Duration duration, boolean synced) {
-		insert("ban", List.of("userId", "userNickname", "modId", "modNickname", "guildId", "reason", "timeStart", "duration", "synced"),
-			List.of(userId, userName, modId, modName, guildId, reason, timeStart.toString(), duration.toString(), (synced ? 1 : 0)));
+	public void add(Integer banId, String userId, String userName, String modId, String modName, String guildId, String reason, Timestamp timeStart, Duration duration, boolean synced) {
+		insert("ban", List.of("banId", "userId", "userNickname", "modId", "modNickname", "guildId", "reason", "timeStart", "duration", "synced"),
+			List.of(banId, userId, userName, modId, modName, guildId, reason, timeStart.toString(), duration.toString(), (synced ? 1 : 0)));
 	}
 
 	// get last ban's ID
-	public String lastId() {
+	public Integer lastId() {
 		Object data = selectLast("ban", "banId");
-		return String.valueOf(data);
+		if (data == null) {
+			return 0;
+		}
+		return Integer.parseInt(data.toString());
 	}
 
 	// remove existing ban
