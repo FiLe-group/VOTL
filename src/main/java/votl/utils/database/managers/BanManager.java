@@ -31,22 +31,22 @@ public class BanManager extends DBBase {
 	}
 
 	// remove existing ban
-	public void remove(String banId) {
+	public void remove(Integer banId) {
 		delete("ban", "banId", banId);
 	}
 
 	// update ban reason
-	public void updateReason(String banId, String reason) {
+	public void updateReason(Integer banId, String reason) {
 		update("ban", "reason", reason, "banId", banId);
 	}
 
 	// update ban duration
-	public void updateDuration(String banId, Integer duration) {
+	public void updateDuration(Integer banId, Integer duration) {
 		update("ban", "duration", duration, "banId", banId);
 	}
 
 	// get ban info
-	public Map<String, Object> getInfo(String banId) {
+	public Map<String, Object> getInfo(Integer banId) {
 		List<Map<String, Object>> banDataList = select("ban", List.of(), "banId", banId);
 		if (banDataList.isEmpty() || banDataList.get(0) == null) {
 			return Collections.emptyMap();
@@ -82,7 +82,7 @@ public class BanManager extends DBBase {
 	}
 
 	// get ban start time and duration
-	public Map<String, Object> getTime(String banId) {
+	public Map<String, Object> getTime(Integer banId) {
 		List<Map<String, Object>> banDataList = select("ban", List.of("timeStart", "duration"), "banId", banId);
 		if (banDataList.isEmpty() || banDataList.get(0) == null) {
 			return Collections.emptyMap();
@@ -91,7 +91,7 @@ public class BanManager extends DBBase {
 	}
 
 	// is ban active
-	public boolean isActive(String banId) {
+	public boolean isActive(Integer banId) {
 		List<Object> objs = select("ban", "active", "banId", banId);
 		if (objs.isEmpty() || objs.get(0) == null) {
 			return false;
@@ -103,12 +103,12 @@ public class BanManager extends DBBase {
 	}
 
 	// set ban in-active
-	public void setInactive(String banId) {
+	public void setInactive(Integer banId) {
 		update("ban", "active", 0, "banId", banId);
 	}
 
 	// is ban synced
-	public boolean isSynced(String banId) {
+	public boolean isSynced(Integer banId) {
 		List<Object> objs = select("ban", "synced", "banId", banId);
 		if (objs.isEmpty() || objs.get(0) == null) {
 			return false;
@@ -120,7 +120,7 @@ public class BanManager extends DBBase {
 	}
 
 	// set ban synced
-	public void setSynced(String banId) {
+	public void setSynced(Integer banId) {
 		update("ban", "synced", 1, "banId", banId);
 	}
 }

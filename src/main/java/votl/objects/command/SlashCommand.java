@@ -190,16 +190,16 @@ public abstract class SlashCommand extends Command
 
 		if (event.getChannelType() != ChannelType.PRIVATE) {
 			try {
-				// check access
-				bot.getCheckUtil().hasAccess(event, getAccessLevel())
+				// check setup
+				bot.getCheckUtil().guildExists(event, getMustSetup())
 				// check module enabled
 					.moduleEnabled(event, getModule())
 				// check user perms
 					.hasPermissions(event, getUserPermissions())
 				// check bots perms
 					.hasPermissions(event, true, getBotPermissions())
-				// check setup
-					.guildExists(event, getMustSetup());
+				// check access
+					.hasAccess(event, getAccessLevel());
 			} catch (CheckException ex) {
 				terminate(event, ex.getCreateData(), client);
 				return;

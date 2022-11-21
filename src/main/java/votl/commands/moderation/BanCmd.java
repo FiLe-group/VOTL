@@ -68,7 +68,7 @@ public class BanCmd extends CommandBase {
 	}
 
 	@SuppressWarnings("null")
-	private void sendReply(SlashCommandEvent event, User tu, String time, String reason, Boolean delete) {
+	private void sendReply(SlashCommandEvent event, User tu, String time, String sReason, Boolean delete) {
 		DiscordLocale userLocale = event.getUserLocale();
 		Guild guild = Objects.requireNonNull(event.getGuild());
 
@@ -86,7 +86,7 @@ public class BanCmd extends CommandBase {
 				editHookEmbed(event, bot.getEmbedUtil().getEmbed(event)
 					.setColor(Constants.COLOR_WARNING)
 					.setDescription(lu.getLocalized(userLocale, path+".already_banned"))
-					.addField(lu.getLocalized(userLocale, "bot.moderation.case.short_title"), lu.getLocalized(userLocale, "bot.moderation.case.short_info")
+					.addField(lu.getLocalized(userLocale, "bot.moderation.embeds.ban.short_title"), lu.getLocalized(userLocale, "bot.moderation.embeds.ban.short_info")
 						.replace("{username}", ban.getUser().getAsTag())
 						.replace("{reason}", ban.getReason())
 						, false)
@@ -101,11 +101,12 @@ public class BanCmd extends CommandBase {
 						if (Objects.nonNull(tm) && bot.getCheckUtil().hasHigherAccess(event.getClient(), tm, mod)) {
 							editError(event, path+".higher_access");
 						} else {
-							Duration duration = bot.getMessageUtil().getDuration(time, false);
+							Duration duration = bot.getFormatUtil().getDuration(time, false);
 
 							if (Objects.isNull(tm) || guild.getSelfMember().canInteract(tm)) {
 								// perform ban
-								guild.ban(tu, (delete ? 2 : 0), TimeUnit.DAYS).reason(reason).queue();
+								guild.ban(tu, (delete ? 2 : 0), TimeUnit.DAYS).reason(sReason).queue();
+								String reason = sReason == null ? lu.getText(event, path+".no_reason") : sReason;
 								// get new caseId/banId
 								Integer banId = 1 + bot.getDBUtil().ban.lastId();
 								// add info to db
@@ -120,8 +121,8 @@ public class BanCmd extends CommandBase {
 									.setColor(Constants.COLOR_SUCCESS)
 									.setDescription(lu.getLocalized(userLocale, path+".ban_success")
 										.replace("{user_tag}", tu.getAsTag())
-										.replace("{duration}", duration.isZero() ? lu.getLocalized(userLocale, "bot.moderation.case.permanently") : 
-											lu.getLocalized(userLocale, "bot.moderation.case.temporary")
+										.replace("{duration}", duration.isZero() ? lu.getLocalized(userLocale, "bot.moderation.embeds.permanently") : 
+											lu.getLocalized(userLocale, "bot.moderation.embeds.temporary")
 												.replace("{time}", bot.getMessageUtil().formatTime(Instant.now().plus(duration), true))
 										)
 										.replace("{reason}", reason))
