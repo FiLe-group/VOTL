@@ -69,6 +69,8 @@ public class App {
 	private LangUtil langUtil;
 	private CheckUtil checkUtil;
 	private LocaleUtil localeUtil;
+	private FormatUtil formatUtil;
+	private LogUtil logUtil;
 
 	public App() {
 
@@ -91,6 +93,8 @@ public class App {
 		messageUtil	= new MessageUtil(this);
 		embedUtil	= new EmbedUtil(localeUtil);
 		checkUtil	= new CheckUtil(this);
+		formatUtil	= new FormatUtil();
+		logUtil		= new LogUtil(this);
 
 		waiter			= new EventWaiter();
 		guildListener	= new GuildListener(this);
@@ -222,6 +226,14 @@ public class App {
 
 	public LocaleUtil getLocaleUtil() {
 		return localeUtil;
+	}
+
+	public FormatUtil getFormatUtil() {
+		return formatUtil;
+	}
+
+	public LogUtil getLogUtil() {
+		return logUtil;
 	}
 
 	public LogListener getLogListener() {
