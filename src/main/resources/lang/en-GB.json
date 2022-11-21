@@ -400,15 +400,38 @@
 			},
 			"unban": {
 				"help": "Unban banned user on this server",
-				"usage": "",
-				"option_user": "",
-				"option_reasom": ""
+				"usage": "/unban <user ID> [reason]",
+				"option_user": "Enter ID/mention of user to be unbanned in this guild",
+				"option_reason": "Unban reason (Default: *none*)",
+				"no_reason": "*Not provided*",
+				"not_found": "User not found or input error",
+				"not_self": "You can not interact with yourself or me",
+				"no_ban": "Specified user is not banned in this guild",
+				"unban_success": "**{user_tag} was unbanned!** | {reason}"
 			},
 			"case": {
-				"help": "",
-				"usage": "",
-				"short_title": "Ban info",
-				"short_info": "*Username:* `{username}`\n*Ban reason:* `{reason}`",
+				"help": "View information about logged ban",
+				"usage": "/case <case ID>",
+				"option_id": "Enter case ID",
+				"not_found": "Could not find case(ban) by specified ID"
+			},
+			"embeds": {
+				"ban": {
+					"short_title": "Ban info",
+					"short_info": "*Username:* `{username}`\n*Ban reason:* `{reason}`",
+					"title": "Case {case_id} | Ban | {user_tag}",
+					"user": "User",
+					"mod": "Moderator",
+					"duration": "Duration",
+					"reason": "Ban Reason"
+				},
+				"unban": {
+					"title": "Unban | {user_tag}",
+					"user": "User",
+					"mod": "Moderator",
+					"ban_reason": "Banned for",
+					"reason": "Unban Reason"
+				},
 				"permanently": "permanently",
 				"temporary": "until {time}"
 			}
