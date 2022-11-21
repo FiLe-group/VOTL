@@ -137,6 +137,8 @@ public class App {
 				new WebhookCmd(this),
 				// moderation
 				new BanCmd(this),
+				new UnbanCmd(this),
+				new CaseCmd(this),
 				// other
 				new PingCmd(this),
 				new AboutCmd(this),
