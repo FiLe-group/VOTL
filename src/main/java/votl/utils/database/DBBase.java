@@ -102,13 +102,13 @@ public class DBBase {
 				keys = selectKeys;
 			}
 
-			Map<String, Object> banDataTemp = keys.stream().collect(HashMap::new, (m,v)->m.put(v, null), HashMap::putAll);
+			Map<String, Object> dataTemp = keys.stream().collect(HashMap::new, (m,v)->m.put(v, null), HashMap::putAll);
 			while (rs.next()) {
-				Map<String, Object> banData = banDataTemp;
+				Map<String, Object> data = dataTemp;
 				for (String key : keys) {
-					banData.put(key, rs.getObject(key));
+					data.put(key, rs.getObject(key));
 				}
-				results.add(banData);
+				results.add(data);
 			}
 		} catch (SQLException ex) {
 			util.logger.warn("DB: Error at SELECT\nrequest: {}", sql, ex);

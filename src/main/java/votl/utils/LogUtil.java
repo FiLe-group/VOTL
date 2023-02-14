@@ -21,6 +21,8 @@ public class LogUtil {
 	private final App bot;
 	private final LocaleUtil lu;
 
+	private final String path = "bot.moderation.embeds.";
+
 	public LogUtil(App bot) {
 		this.bot = bot;
 		this.lu = bot.getLocaleUtil();
@@ -38,19 +40,18 @@ public class LogUtil {
 			Duration.parse(banMap.get("duration").toString()), banMap.get("reason").toString(), formatUser);
 	}
 
-	@SuppressWarnings("null")
 	@Nonnull
 	public MessageEmbed getBanEmbed(DiscordLocale locale, Integer banId, String userTag, String userId, String modId, Timestamp start, Duration duration, String reason, Boolean formatUser) {
 		Instant timeStart = start.toInstant();
 		Instant timeEnd = timeStart.plus(duration);
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_FAILURE)
-			.setAuthor(lu.getLocalized(locale, "bot.moderation.embeds.ban.title").replace("{case_id}", banId.toString()).replace("{user_tag}", userTag))
-			.addField(lu.getLocalized(locale, "bot.moderation.embeds.ban.user"), (formatUser ? String.format("<@%s>", userId) : userTag), true)
-			.addField(lu.getLocalized(locale, "bot.moderation.embeds.ban.mod"), String.format("<@%s>", modId), true)
-			.addField(lu.getLocalized(locale, "bot.moderation.embeds.ban.duration"), duration.isZero() ? lu.getLocalized(locale, "bot.moderation.embeds.permanently") : 
-				lu.getLocalized(locale, "bot.moderation.embeds.temporary")
+			.setAuthor(lu.getLocalized(locale, path+"ban.title").replace("{case_id}", banId.toString()).replace("{user_tag}", userTag))
+			.addField(lu.getLocalized(locale, path+"ban.user"), (formatUser ? String.format("<@%s>", userId) : userTag), true)
+			.addField(lu.getLocalized(locale, path+"ban.mod"), String.format("<@%s>", modId), true)
+			.addField(lu.getLocalized(locale, path+"ban.duration"), duration.isZero() ? lu.getLocalized(locale, path+"permanently") : 
+				lu.getLocalized(locale, path+"temporary")
 					.replace("{time}", bot.getMessageUtil().formatTime(timeEnd, false)), true)
-			.addField(lu.getLocalized(locale, "bot.moderation.embeds.ban.reason"), reason, true)
+			.addField(lu.getLocalized(locale, path+"ban.reason"), reason, true)
 			.setFooter("ID: "+userId)
 			.setTimestamp(timeStart)
 			.build();
@@ -61,15 +62,14 @@ public class LogUtil {
 		return getUnbanEmbed(locale, banData.getUser().getAsTag(), banData.getUser().getId(), mod.getAsMention(), banData.getReason(), reason);
 	}
 
-	@SuppressWarnings("null")
 	@Nonnull
 	public MessageEmbed getUnbanEmbed(DiscordLocale locale, String userTag, String userId, String modMention, String banReason, String reason) {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
-			.setAuthor(lu.getLocalized(locale, "bot.moderation.embeds.unban.title").replace("{user_tag}", userTag))
-			.addField(lu.getLocalized(locale, "bot.moderation.embeds.unban.user"), String.format("<@%s>", userId), true)
-			.addField(lu.getLocalized(locale, "bot.moderation.embeds.unban.mod"), modMention, true)
-			.addField(lu.getLocalized(locale, "bot.moderation.embeds.unban.ban_reason"), (banReason!=null ? banReason : ""), true)
-			.addField(lu.getLocalized(locale, "bot.moderation.embeds.unban.reason"), reason, true)
+			.setAuthor(lu.getLocalized(locale, path+"unban.title").replace("{user_tag}", userTag))
+			.addField(lu.getLocalized(locale, path+"unban.user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"unban.mod"), modMention, true)
+			.addField(lu.getLocalized(locale, path+"unban.ban_reason"), (banReason!=null ? banReason : ""), true)
+			.addField(lu.getLocalized(locale, path+"unban.reason"), reason, true)
 			.setFooter("ID: "+userId)
 			.setTimestamp(Instant.now())
 			.build();

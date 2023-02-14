@@ -102,7 +102,7 @@
 				"reset": "Reset settings",
 				"main": {
 					"help": "Setup main function (without touching other modules)",
-					"done": "**Setup done!**\nBot is ready for use on this server.",
+					"done": "**Setup done!**\nBot is ready for use on this server.\n\n*Recomended: setup log channel using `/log setup`*",
 					"exists": "Bot is already configured on this server.\nIf you belive there is an error, contact developer in `/help`"
 				},
 				"voice": "Setup custom voice channel module"

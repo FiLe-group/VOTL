@@ -52,7 +52,7 @@ public class LogListener {
 			return;
 		}
 
-		MessageEmbed embed = logUtil.getBanEmbed(bot.getLocaleUtil().getGuildLocale(event.getGuild()), ban, true);
+		MessageEmbed embed = logUtil.getBanEmbed(event.getGuildLocale(), ban, true);
 		
 		channel.sendMessageEmbeds(embed).queue();
 	}
