@@ -96,7 +96,6 @@ public abstract class ContextMenu extends Interaction
 	 *
 	 * @return A String key to use when applying a cooldown.
 	 */
-	@SuppressWarnings("null")
 	public String getCooldownKey(GenericCommandInteractionEvent event)
 	{
 		switch (cooldownScope)
@@ -156,7 +155,6 @@ public abstract class ContextMenu extends Interaction
 	 *
 	 * @return the built command data
 	 */
-	@SuppressWarnings("null")
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.lu = bot.getLocaleUtil();

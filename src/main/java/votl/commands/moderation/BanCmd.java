@@ -67,7 +67,6 @@ public class BanCmd extends CommandBase {
 		sendReply(event, targetUser, time, reason, delete);
 	}
 
-	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, User tu, String time, String sReason, Boolean delete) {
 		DiscordLocale userLocale = event.getUserLocale();
 		Guild guild = Objects.requireNonNull(event.getGuild());

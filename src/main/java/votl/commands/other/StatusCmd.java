@@ -32,7 +32,6 @@ public class StatusCmd extends CommandBase {
 		this.guildOnly = false;
 	}
 
-	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		DiscordLocale userLocale = event.getUserLocale();

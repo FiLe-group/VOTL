@@ -36,14 +36,12 @@ public class LocaleUtil {
 	}
 
 	@Nonnull
-	@SuppressWarnings("null")
 	public String getDefaultLanguage() {
 		return defaultLanguage;
 	}
 
 	@Nonnull
-	@SuppressWarnings("null")
-	public DiscordLocale getGuildLocale(@Nullable Guild guild) {
+	private DiscordLocale getGuildLocale(@Nullable Guild guild) {
 		return (guild == null ? defaultLocale : guild.getLocale());
 	}
 

@@ -84,7 +84,6 @@ public class NameCmd extends CommandBase {
 
 	}
 
-	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, String filName) {
 
 		if (filName.isEmpty() || filName.length() > 100) {

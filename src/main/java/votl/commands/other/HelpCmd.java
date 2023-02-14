@@ -62,7 +62,6 @@ public class HelpCmd extends CommandBase {
 		}
 	}
 
-	@SuppressWarnings("null")
 	private void sendCommandHelp(SlashCommandEvent event, String findCmd) {
 		DiscordLocale userLocale = event.getUserLocale();
 
@@ -100,7 +99,6 @@ public class HelpCmd extends CommandBase {
 		
 	}
 
-	@SuppressWarnings("null")
 	private void sendHelp(SlashCommandEvent event, String filCat) {
 
 		DiscordLocale userLocale = event.getUserLocale();

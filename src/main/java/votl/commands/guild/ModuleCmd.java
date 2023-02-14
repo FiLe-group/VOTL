@@ -65,7 +65,6 @@ public class ModuleCmd extends CommandBase {
 			this.path = "bot.guild.module.show";
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
@@ -103,7 +102,6 @@ public class ModuleCmd extends CommandBase {
 			this.path = "bot.guild.module.disable";
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
@@ -174,7 +172,6 @@ public class ModuleCmd extends CommandBase {
 			this.path = "bot.guild.module.enable";
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();

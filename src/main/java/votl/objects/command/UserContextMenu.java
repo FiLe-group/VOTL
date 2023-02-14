@@ -149,7 +149,6 @@ public abstract class UserContextMenu extends ContextMenu {
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public CommandData buildCommandData() {
 		// Make the command data
 		CommandData data = Commands.user(getName());

@@ -30,7 +30,7 @@ dependencies {
 	implementation 'com.google.guava:guava:31.1-jre'
 
 	// JDA library
-	implementation 'net.dv8tion:JDA:5.0.0-alpha.22'					// JDA library
+	implementation 'net.dv8tion:JDA:5.0.0-beta.3'					// JDA library
 	implementation 'ch.qos.logback:logback-classic:1.4.5'			// Logging (required by JDA)
 
 	// Chewtils extentions
@@ -39,10 +39,10 @@ dependencies {
 
 	// Tools
 	implementation 'com.jayway.jsonpath:json-path:2.7.0'			// json path-er
-	implementation 'org.xerial:sqlite-jdbc:3.39.4.1'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.40.1.0'				// sqlite database
 
 	// Eval
-	implementation 'org.apache.groovy:groovy:4.0.6'					// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:4.0.9'					// Groovy - code evaluation
 
 	// Chewtils commands
 	implementation 'org.json:json:20220924'

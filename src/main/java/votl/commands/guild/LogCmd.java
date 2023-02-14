@@ -72,7 +72,6 @@ public class LogCmd extends CommandBase {
 			);
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			GuildChannel channel = null;
@@ -111,7 +110,6 @@ public class LogCmd extends CommandBase {
 			this.path = "bot.guild.log.manage";
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();

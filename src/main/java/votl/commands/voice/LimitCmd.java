@@ -81,7 +81,6 @@ public class LimitCmd extends CommandBase {
 
 	}
 
-	@SuppressWarnings("null")
 	private void sendReply(SlashCommandEvent event, Integer filLimit) {
 
 		Member member = Objects.requireNonNull(event.getMember());

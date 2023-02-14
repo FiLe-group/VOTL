@@ -69,7 +69,6 @@ public class LanguageCmd extends CommandBase {
 
 	private class Set extends CommandBase {
 
-		@SuppressWarnings("null")
 		public Set(App bot) {
 			super(bot);
 			this.name = "set";
@@ -84,7 +83,6 @@ public class LanguageCmd extends CommandBase {
 			);
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			String lang = event.optString("kanguage", lu.getDefaultLanguage());

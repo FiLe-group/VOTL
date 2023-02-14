@@ -113,7 +113,6 @@ public abstract class MessageContextMenu extends ContextMenu
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public CommandData buildCommandData() {
 		// Make the command data
 		CommandData data = Commands.message(getName());

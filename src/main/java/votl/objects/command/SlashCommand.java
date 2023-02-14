@@ -292,7 +292,6 @@ public abstract class SlashCommand extends Command
 	 *
 	 * @return the built command data
 	 */
-	@SuppressWarnings("null")
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.help = lu.getText(getHelpPath());
@@ -313,6 +312,10 @@ public abstract class SlashCommand extends Command
 		if (!getDescriptionLocalization().isEmpty()) {
 			//Add localizations
 			data.setDescriptionLocalizations(getDescriptionLocalization());
+		}
+		// Add if NSFW command
+		if (nsfwOnly) {
+			data.setNSFW(true);
 		}
 
 		// Check for children

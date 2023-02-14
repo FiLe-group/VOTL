@@ -39,7 +39,6 @@ public class SetNameCmd extends CommandBase {
 		this.mustSetup = true;
 	}
 
-	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		String filName = event.optString("name", "Default name"); // REDO

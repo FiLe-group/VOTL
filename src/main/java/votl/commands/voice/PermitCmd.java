@@ -45,7 +45,6 @@ public class PermitCmd extends CommandBase {
 		this.mustSetup = true;
 	}
 
-	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		event.deferReply(true).queue();

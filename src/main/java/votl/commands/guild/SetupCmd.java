@@ -87,7 +87,6 @@ public class SetupCmd extends CommandBase {
 			this.module = CmdModule.VOICE;
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();

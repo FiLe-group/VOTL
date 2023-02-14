@@ -56,7 +56,6 @@ public class PermsCmd extends CommandBase {
 			this.botPermissions = new Permission[]{Permission.MANAGE_PERMISSIONS};
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
@@ -164,7 +163,6 @@ public class PermsCmd extends CommandBase {
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Member member = Objects.requireNonNull(event.getMember());

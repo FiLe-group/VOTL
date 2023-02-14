@@ -35,7 +35,6 @@ public class LockCmd extends CommandBase {
 		this.mustSetup = true;
 	}
 
-	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		Member member = Objects.requireNonNull(event.getMember());

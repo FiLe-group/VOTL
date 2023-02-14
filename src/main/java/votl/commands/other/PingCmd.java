@@ -24,7 +24,6 @@ public class PingCmd extends CommandBase {
 		this.guildOnly = false;
 	}
 
-	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		createReply(event, lu.getText(event, path+".loading"));

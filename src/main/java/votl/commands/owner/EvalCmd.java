@@ -98,7 +98,6 @@ public class EvalCmd extends CommandBase {
 		}
 	}
 
-	@SuppressWarnings("null")
 	private MessageEmbed formatEvalEmbed(DiscordLocale locale, String input, String output, String footer, boolean success) {		
 		EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
 			.setColor(success ? Constants.COLOR_SUCCESS : Constants.COLOR_FAILURE)

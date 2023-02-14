@@ -16,7 +16,6 @@ public class InviteCmd extends CommandBase {
 		this.ownerCommand = true;
 	}
 
-	@SuppressWarnings("null")
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		createReply(event, lu.getLocalized(event.getUserLocale(), path+".value")

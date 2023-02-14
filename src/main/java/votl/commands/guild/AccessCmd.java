@@ -173,7 +173,6 @@ public class AccessCmd extends CommandBase {
 			this.path = "bot.guild.access.view";
 		}
 
-		@SuppressWarnings("null")
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();

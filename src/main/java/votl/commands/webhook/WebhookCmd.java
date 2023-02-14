@@ -27,7 +27,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
-@SuppressWarnings("null")
 public class WebhookCmd extends CommandBase {
 
 	public WebhookCmd(App bot) {
