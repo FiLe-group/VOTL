@@ -29,6 +29,7 @@ public class DBBase {
 		}
 
 		String sql = "INSERT INTO "+table+" ("+String.join(", ", insertKeys)+") VALUES ("+String.join(", ", insertValues)+")";
+		util.logger.debug(sql);
 		try (Connection conn = util.connect();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
@@ -57,6 +58,7 @@ public class DBBase {
 		}
 
 		List<Object> results = new ArrayList<Object>();
+		util.logger.debug(sql);
 		try (Connection conn = util.connect();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
@@ -89,6 +91,7 @@ public class DBBase {
 
 		List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
 
+		util.logger.debug(sql);
 		try (Connection conn = util.connect();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
@@ -102,9 +105,8 @@ public class DBBase {
 				keys = selectKeys;
 			}
 
-			Map<String, Object> dataTemp = keys.stream().collect(HashMap::new, (m,v)->m.put(v, null), HashMap::putAll);
 			while (rs.next()) {
-				Map<String, Object> data = dataTemp;
+				Map<String, Object> data = new HashMap<>();
 				for (String key : keys) {
 					data.put(key, rs.getObject(key));
 				}
@@ -117,9 +119,10 @@ public class DBBase {
 	}
 
 	protected Object selectLast(final String table, final String selectKey) {
-		String sql = "SELECT * FROM "+table+" ORDER BY banId DESC LIMIT 1";
+		String sql = "SELECT * FROM "+table+" ORDER BY "+selectKey+" DESC LIMIT 1";
 
 		Object result = null;
+		util.logger.debug(sql);
 		try (Connection conn = util.connect();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
@@ -170,6 +173,7 @@ public class DBBase {
 			sql += condKeys.get(i)+"="+condValues.get(i);
 		}
 
+		util.logger.debug(sql);
 		try (Connection conn = util.connect();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
@@ -197,6 +201,7 @@ public class DBBase {
 			sql += condKeys.get(i)+"="+condValues.get(i);
 		}
 
+		util.logger.debug(sql);
 		try (Connection conn = util.connect();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();

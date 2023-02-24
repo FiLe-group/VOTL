@@ -28,7 +28,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 				.filter(cmd -> cmd.getName().contains(value))
 				.map(cmd -> new Command.Choice(cmd.getName(), cmd.getName()))
 				.collect(Collectors.toList());
-			if (choices != null) {
+			if (choices != null && choices.size() <= 25) {
 				event.replyChoices(choices).queue();
 			}
 		}

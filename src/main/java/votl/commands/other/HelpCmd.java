@@ -40,6 +40,7 @@ public class HelpCmd extends CommandBase {
 			.addChoice("Guild", "guild")
 			.addChoice("Owner", "owner")
 			.addChoice("Webhook", "webhook")
+			.addChoice("Moderation", "moderation")
 			.addChoice("Other", "other"));
 		options.add(new OptionData(OptionType.STRING, "command", lu.getText(path+".command_info.help"), false, true)
 			.setRequiredLength(3, 20));
@@ -132,7 +133,7 @@ public class HelpCmd extends CommandBase {
 					fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.categories."+category.getName());
 					fieldValue = new StringBuilder();
 				}
-				fieldValue.append("`").append(prefix).append(prefix==null?" ":"").append(command.getName())
+				fieldValue.append("`").append(prefix==null?" ":prefix).append(command.getName())
 					.append(command.getArguments()==null ? "`" : " "+command.getArguments()+"`")
 					.append(" - ").append(command.getDescriptionLocalization().get(userLocale))
 					// REMAKE to support CommandBase and getLocalized help

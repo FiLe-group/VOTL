@@ -38,7 +38,7 @@
 	},
 	"misc": {
 		"and": "and",
-		"info": "Hey there {user}!\nMy prefix on this discord server is `/`\nRun `/help` for a list of commands.",
+		"info": "Hey there {user}!\nMy prefix on this discord server is `{prefix}`\nRun `{prefix}help` for a list of commands.",
 		"language": "English (en)",
 		"unknown": "Unknown",
 		"command": {

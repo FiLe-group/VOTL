@@ -23,7 +23,6 @@ import votl.utils.file.FileManager;
 import votl.utils.file.lang.LangUtil;
 import votl.utils.message.*;
 
-import net.dv8tion.jda.annotations.ForRemoval;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -246,12 +245,6 @@ public class App {
 	public String getLanguage(String guildId) {
 		String res = dbUtil.guild.getLanguage(guildId);
 		return (res == null ? localeUtil.getDefaultLanguage() : res);
-	}
-
-	@ForRemoval
-	@Nonnull
-	public String getPrefix(String guildId) {
-		return "/"; // default prefix
 	}
 
 	public void setLanguage(String guildId, String value) {

@@ -102,7 +102,7 @@ public class LocaleUtil {
 	private String setPlaceholders(@Nonnull String msg) {
 		return Objects.requireNonNull(Emotes.getWithEmotes(msg)
 			.replace("{name}", "Voice of the Lord")
-			.replace("{prefix", "/")
+			.replace("{prefix}", "/")
 			.replace("{guild_invite}", Links.DISCORD)
 			.replace("{owner_id}", bot.getFileManager().getString("config", "owner-id"))
 			.replace("{developer_name}", Constants.DEVELOPER_NAME)
