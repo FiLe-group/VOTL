@@ -51,7 +51,7 @@ public class EmbedUtil {
 				((MessageContextMenuEvent) genericEvent).getUser().getEffectiveAvatarUrl()
 			);
 		}
-		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
+		throw new IllegalArgumentException("Passed argument is not supported Event. Received: "+genericEvent.getClass());
 	}
 
 	@Nonnull

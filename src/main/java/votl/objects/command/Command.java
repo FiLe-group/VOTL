@@ -16,6 +16,8 @@
 package votl.objects.command;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -201,16 +203,19 @@ public abstract class Command extends Interaction
 
 		if (event.getChannelType() != ChannelType.PRIVATE) {
 			try {
-				// check access
-				bot.getCheckUtil().hasAccess(event, getAccessLevel())
-				// check module enabled
-					.moduleEnabled(event, getModule())
-				// check user perms
-					.hasPermissions(event, getUserPermissions())
-				// check bots perms
-					.hasPermissions(event, true, getBotPermissions())
+				Guild guild = event.getGuild();
+				Member author = event.getMember();
+				bot.getCheckUtil()
 				// check setup
-					.guildExists(event, getMustSetup());
+					.guildExists(event, guild, getMustSetup())
+				// check module enabled
+					.moduleEnabled(event, guild, getModule())
+				// check access
+					.hasAccess(event, client, author, getAccessLevel())
+				// check user perms
+					.hasPermissions(event, guild, author, getUserPermissions())
+				// check bots perms
+					.hasPermissions(event, guild, author, true, getBotPermissions());
 			} catch (CheckException ex) {
 				terminate(event, ex.getCreateData());
 				return;

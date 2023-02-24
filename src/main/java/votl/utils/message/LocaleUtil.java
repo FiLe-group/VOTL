@@ -127,7 +127,7 @@ public class LocaleUtil {
 		if (genericEvent instanceof MessageContextMenuEvent) {
 			return getLocalized(((MessageContextMenuEvent) genericEvent).getUserLocale(), path);
 		}
-		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
+		throw new IllegalArgumentException("Passed argument is not supported Event. Received: "+genericEvent.getClass());
 	}
 
 	@Nonnull
@@ -164,6 +164,6 @@ public class LocaleUtil {
 			MessageContextMenuEvent event = (MessageContextMenuEvent) genericEvent;
 			return getLocalized(event.getUserLocale(), path, event.getUser().getAsTag(), targets, format);
 		}
-		throw new IllegalArgumentException("Argument passed is not supported event. Received: "+genericEvent.getClass());
+		throw new IllegalArgumentException("Passed argument is not supported Event. Received: "+genericEvent.getClass());
 	} 
 }

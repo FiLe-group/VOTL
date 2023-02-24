@@ -41,7 +41,7 @@ public class LogListener {
 		}
 		
 		try {
-			bot.getCheckUtil().hasPermissions(event, true, channel, new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
+			bot.getCheckUtil().hasPermissions(event, event.getGuild(), event.getMember(), true, channel, new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
 		} catch (CheckException ex) {
 			return;
 		}
@@ -70,7 +70,7 @@ public class LogListener {
 		}
 
 		try {
-			bot.getCheckUtil().hasPermissions(event, true, channel, new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
+			bot.getCheckUtil().hasPermissions(event, event.getGuild(), event.getMember(), true, channel, new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
 		} catch (CheckException ex) {
 			return;
 		}

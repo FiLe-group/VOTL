@@ -85,7 +85,8 @@ public class LogCmd extends CommandBase {
 				return;
 			}
 			try {
-				bot.getCheckUtil().hasPermissions(event, true, channel, new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
+				bot.getCheckUtil().hasPermissions(event, event.getGuild(), event.getMember(), true, channel,
+					new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
 			} catch (CheckException ex) {
 				createReply(event, ex.getCreateData());
 				return;
@@ -164,7 +165,8 @@ public class LogCmd extends CommandBase {
 											hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".no_channel")).setComponents().queue();
 										} else {
 											try {
-												bot.getCheckUtil().hasPermissions(event, true, channel, new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
+												bot.getCheckUtil().hasPermissions(event, event.getGuild(), event.getMember(), true, channel,
+													new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
 												TextChannel newTc = (TextChannel) channel;
 												EmbedBuilder builder3 = bot.getEmbedUtil().getEmbed(event)
 													.setColor(Constants.COLOR_SUCCESS);

@@ -18,7 +18,8 @@ package votl.objects.command;
 import javax.annotation.Nonnull;
 
 import votl.utils.exception.CheckException;
-
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
@@ -72,6 +73,9 @@ public abstract class UserContextMenu extends ContextMenu {
 	 *         The UserContextMenuEvent that triggered this Context Menu
 	 */
 	public final void run(UserContextMenuEvent event) {
+		// client 
+		final CommandClient client = event.getClient();
+
 		// owner check
 		if(ownerCommand && !(event.isOwner())) {
 			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"));
@@ -81,26 +85,29 @@ public abstract class UserContextMenu extends ContextMenu {
 		// cooldown check, ignoring owner
 		if (cooldown>0 && !(event.isOwner())) {
 			String key = getCooldownKey(event);
-			int remaining = event.getClient().getRemainingCooldown(key);
+			int remaining = client.getRemainingCooldown(key);
 			if (remaining>0) {
 				terminate(event, getCooldownError(event, event.getGuild(), remaining));
 				return;
 			}
-			else event.getClient().applyCooldown(key, cooldown);
+			else client.applyCooldown(key, cooldown);
 		}
 
 		if (event.getChannelType() != ChannelType.PRIVATE) {
 			try {
-				// check access
-				bot.getCheckUtil().hasAccess(event, getAccessLevel())
-				// check module enabled
-					.moduleEnabled(event, getModule())
-				// check user perms
-					.hasPermissions(event, getUserPermissions())
-				// check bots perms
-					.hasPermissions(event, true, getBotPermissions())
+				Guild guild = event.getGuild();
+				Member author = event.getMember();
+				bot.getCheckUtil()
 				// check setup
-					.guildExists(event, getMustSetup());
+					.guildExists(event, guild, getMustSetup())
+				// check module enabled
+					.moduleEnabled(event, guild, getModule())
+				// check access
+					.hasAccess(event, client, author, getAccessLevel())
+				// check user perms
+					.hasPermissions(event, guild, author, getUserPermissions())
+				// check bots perms
+					.hasPermissions(event, guild, author, true, getBotPermissions());
 			} catch (CheckException ex) {
 				terminate(event, ex.getCreateData());
 				return;
@@ -114,17 +121,17 @@ public abstract class UserContextMenu extends ContextMenu {
 		try {
 			execute(event);
 		} catch(Throwable t) {
-			if (event.getClient().getListener() != null)
+			if (client.getListener() != null)
 			{
-				event.getClient().getListener().onUserContextMenuException(event, this, t);
+				client.getListener().onUserContextMenuException(event, this, t);
 				return;
 			}
 			// otherwise we rethrow
 			throw t;
 		}
 
-		if (event.getClient().getListener() != null)
-			event.getClient().getListener().onCompletedUserContextMenu(event, this);
+		if (client.getListener() != null)
+		client.getListener().onCompletedUserContextMenu(event, this);
 	}
 
 	/**
