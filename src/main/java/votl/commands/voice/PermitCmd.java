@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.entities.Mentions;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -64,7 +63,6 @@ public class PermitCmd extends CommandBase {
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		DiscordLocale userLocale = event.getUserLocale();
 
 		List<Member> members = filMentions.getMembers();
 		List<Role> roles = filMentions.getRoles();
@@ -103,7 +101,7 @@ public class PermitCmd extends CommandBase {
 
 		editHookEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getLocalized(userLocale, "bot.voice.permit.done", "", mentionStrings))
+				.setDescription(lu.getUserText(event, "bot.voice.permit.done", mentionStrings))
 				.build()
 		);
 	}

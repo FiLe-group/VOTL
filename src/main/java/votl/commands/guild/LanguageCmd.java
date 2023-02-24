@@ -74,7 +74,7 @@ public class LanguageCmd extends CommandBase {
 			this.name = "set";
 			this.path = "bot.guild.language.set";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "language", lu.getText("bot.guild.language.set.option_description"), true)
+				new OptionData(OptionType.STRING, "language", lu.getText(path+".option_description"), true)
 					.addChoices(getLangList().stream().map(
 						locale -> {
 							return new Choice(locale.getLocale(), locale.getLocale());
@@ -101,11 +101,10 @@ public class LanguageCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			DiscordLocale userLocale = event.getUserLocale();
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
-				.setTitle(lu.getLocalized(userLocale, "bot.guild.language.show.embed.title"))
-				.setDescription(lu.getLocalized(userLocale, "bot.guild.language.show.embed.value"))
-				.addField(lu.getLocalized(userLocale, "bot.guild.language.show.embed.field"), getLanguages(), false)
+				.setTitle(lu.getText(event, path+".embed.title"))
+				.setDescription(lu.getText(event, path+".embed.value"))
+				.addField(lu.getText(event, path+".embed.field"), getLanguages(), false)
 				.build();
 			createReplyEmbed(event, embed);
 		}
@@ -114,14 +113,13 @@ public class LanguageCmd extends CommandBase {
 
 	private void sendReply(SlashCommandEvent event, @Nonnull String language) {
 		String guildId = Optional.ofNullable(event.getGuild()).map(g -> g.getId()).orElse("0");
-		DiscordLocale userLocale = event.getUserLocale();
 
 		// fail-safe
 		if (DiscordLocale.from(language).equals(DiscordLocale.UNKNOWN)) {
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
-				.setTitle(lu.getLocalized(userLocale, "bot.guild.language.embed.available_lang_title"))
-				.setDescription(lu.getLocalized(userLocale, "bot.guild.language.embed.available_lang_value"))
-				.addField(lu.getLocalized(userLocale, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
+				.setTitle(lu.getText(event, "bot.guild.language.embed.available_lang_title"))
+				.setDescription(lu.getText(event, "bot.guild.language.embed.available_lang_value"))
+				.addField(lu.getText(event, "bot.guild.language.embed.available_lang_field"), getLanguages(), false)
 				.build();
 			createReplyEmbed(event, embed);
 			return;
@@ -131,7 +129,7 @@ public class LanguageCmd extends CommandBase {
 
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
 			.setColor(bot.getMessageUtil().getColor("rgb:0,200,30"))
-			.setDescription(lu.getLocalized(userLocale, "bot.guild.language.done").replace("{language}", language))
+			.setDescription(lu.getText(event, "bot.guild.language.done").replace("{language}", language))
 			.build();
 		createReplyEmbed(event, embed);
 	}

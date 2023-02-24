@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -77,7 +76,7 @@ public class NameCmd extends CommandBase {
 			String filName = Optional.ofNullable(
 				bot.getDBUtil().guildVoice.getName(Objects.requireNonNull(event.getGuild()).getId())
 			).orElse(
-				lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name", Objects.requireNonNull(event.getMember()).getUser().getName(), false)
+				lu.getUserText(event, "bot.voice.listener.default_name", false)
 			);
 			sendReply(event, filName);
 		}
@@ -100,7 +99,6 @@ public class NameCmd extends CommandBase {
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		DiscordLocale userLocale = event.getUserLocale();
 
 		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(memberId));
 		vc.getManager().setName(filName).queue();
@@ -112,7 +110,7 @@ public class NameCmd extends CommandBase {
 
 		createReplyEmbed(event, 
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getLocalized(userLocale, "bot.voice.name.done").replace("{value}", filName))
+				.setDescription(lu.getText(event, "bot.voice.name.done").replace("{value}", filName))
 				.build()
 		);
 	}

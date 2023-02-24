@@ -22,7 +22,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -68,7 +67,6 @@ public class BanCmd extends CommandBase {
 	}
 
 	private void sendReply(SlashCommandEvent event, User tu, String time, String sReason, Boolean delete) {
-		DiscordLocale userLocale = event.getUserLocale();
 		Guild guild = Objects.requireNonNull(event.getGuild());
 
 		if (tu == null) {
@@ -84,8 +82,8 @@ public class BanCmd extends CommandBase {
 			ban -> {
 				editHookEmbed(event, bot.getEmbedUtil().getEmbed(event)
 					.setColor(Constants.COLOR_WARNING)
-					.setDescription(lu.getLocalized(userLocale, path+".already_banned"))
-					.addField(lu.getLocalized(userLocale, "bot.moderation.embeds.ban.short_title"), lu.getLocalized(userLocale, "bot.moderation.embeds.ban.short_info")
+					.setDescription(lu.getText(event, path+".already_banned"))
+					.addField(lu.getText(event, "bot.moderation.embeds.ban.short_title"), lu.getText(event, "bot.moderation.embeds.ban.short_info")
 						.replace("{username}", ban.getUser().getAsTag())
 						.replace("{reason}", ban.getReason())
 						, false)
@@ -118,10 +116,10 @@ public class BanCmd extends CommandBase {
 								// send promt asking user for ban sync (if available)
 								editHookEmbed(event, bot.getEmbedUtil().getEmbed(event)
 									.setColor(Constants.COLOR_SUCCESS)
-									.setDescription(lu.getLocalized(userLocale, path+".ban_success")
+									.setDescription(lu.getText(event, path+".ban_success")
 										.replace("{user_tag}", tu.getAsTag())
-										.replace("{duration}", duration.isZero() ? lu.getLocalized(userLocale, "bot.moderation.embeds.permanently") : 
-											lu.getLocalized(userLocale, "bot.moderation.embeds.temporary")
+										.replace("{duration}", duration.isZero() ? lu.getText(event, "bot.moderation.embeds.permanently") : 
+											lu.getText(event, "bot.moderation.embeds.temporary")
 												.replace("{time}", bot.getMessageUtil().formatTime(Instant.now().plus(duration), true))
 										)
 										.replace("{reason}", reason))

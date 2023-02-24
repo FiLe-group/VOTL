@@ -18,7 +18,7 @@ public class InviteCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		createReply(event, lu.getLocalized(event.getUserLocale(), path+".value")
+		createReply(event, lu.getText(event, path+".value")
 			.replace("{bot_invite}", bot.getFileManager().getString("config", "bot-invite"))
 		);
 	}

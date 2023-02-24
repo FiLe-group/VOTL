@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -92,7 +91,6 @@ public class LimitCmd extends CommandBase {
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		DiscordLocale userLocale = event.getUserLocale();
 
 		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(memberId));
 		vc.getManager().setUserLimit(filLimit).queue();
@@ -104,7 +102,7 @@ public class LimitCmd extends CommandBase {
 
 		createReplyEmbed(event, 
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getLocalized(userLocale, "bot.voice.limit.done").replace("{value}", filLimit.toString()))
+				.setDescription(lu.getText(event, "bot.voice.limit.done").replace("{value}", filLimit.toString()))
 				.build()
 		);
 	}

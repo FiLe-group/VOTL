@@ -462,18 +462,17 @@ public abstract class SlashCommand extends Command
 		if (remaining <= 0)
 			return null;
 		
-		DiscordLocale userLocale = event.getUserLocale();
-		StringBuilder front = new StringBuilder(lu.getLocalized(
-			userLocale, "errors.cooldown.cooldown_left").replace("{time}", Integer.toString(remaining)
+		StringBuilder front = new StringBuilder(lu.getText(event,
+			"errors.cooldown.cooldown_left").replace("{time}", Integer.toString(remaining)
 		));
 		if (cooldownScope.equals(CooldownScope.USER))
 			{}
 		else if (cooldownScope.equals(CooldownScope.USER_GUILD) && event.getGuild()==null)
-			front.append(" " + lu.getLocalized(userLocale, CooldownScope.USER_CHANNEL.errorPath));
+			front.append(" " + lu.getText(event, CooldownScope.USER_CHANNEL.errorPath));
 		else if (cooldownScope.equals(CooldownScope.GUILD) && event.getGuild()==null)
-			front.append(" " + lu.getLocalized(userLocale, CooldownScope.CHANNEL.errorPath));
+			front.append(" " + lu.getText(event, CooldownScope.CHANNEL.errorPath));
 		else
-			front.append(" " + lu.getLocalized(userLocale, cooldownScope.errorPath));
+			front.append(" " + lu.getText(event, cooldownScope.errorPath));
 
 		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
 	}

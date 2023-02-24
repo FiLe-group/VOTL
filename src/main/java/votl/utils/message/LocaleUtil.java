@@ -141,12 +141,12 @@ public class LocaleUtil {
 	}
 
 	@Nonnull
-	public <T> String getUserText(T genericEvent, @Nonnull String path, String user, String target) {
+	public <T> String getUserText(T genericEvent, @Nonnull String path, String target) {
 		return getUserText(genericEvent, path, Collections.singletonList(target), false);
 	}
 	
 	@Nonnull
-	public <T> String getUserText(T genericEvent, @Nonnull String path, String user, List<String> targets) {
+	public <T> String getUserText(T genericEvent, @Nonnull String path, List<String> targets) {
 		return getUserText(genericEvent, path, targets, false);
 	}
 

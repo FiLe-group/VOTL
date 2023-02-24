@@ -11,7 +11,6 @@ import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -49,13 +48,12 @@ public class SetNameCmd extends CommandBase {
 		}
 
 		String guildId = Objects.requireNonNull(event.getGuild()).getId();
-		DiscordLocale userLocale = event.getUserLocale();
 
 		bot.getDBUtil().guildVoice.setName(guildId, filName);
 
 		createReplyEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getLocalized(userLocale, "bot.voice.setname.done").replace("{value}", filName))
+				.setDescription(lu.getText(event, "bot.voice.setname.done").replace("{value}", filName))
 				.build()
 		);
 	}

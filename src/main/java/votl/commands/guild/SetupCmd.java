@@ -16,7 +16,6 @@ import votl.objects.constants.Constants;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
@@ -93,19 +92,18 @@ public class SetupCmd extends CommandBase {
 
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
-			DiscordLocale userLocale = event.getUserLocale();
 
 			if (bot.getDBUtil().guild.add(guildId)) {
 				bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
 			}
 
 			try {
-				guild.createCategory(lu.getLocalized(userLocale, "bot.voice.setup.category"))
+				guild.createCategory(lu.getText(event, "bot.voice.setup.category"))
 					.addPermissionOverride(guild.getBotRole(), Arrays.asList(getBotPermissions()), null)
 					.queue(
 						category -> {
 							try {
-								category.createVoiceChannel(lu.getLocalized(userLocale, "bot.voice.setup.channel"))
+								category.createVoiceChannel(lu.getText(event, "bot.voice.setup.channel"))
 									.addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
 									.queue(
 										channel -> {
@@ -113,7 +111,7 @@ public class SetupCmd extends CommandBase {
 											bot.getLogger().info("Voice setup done in guild `"+guild.getName()+"'("+guildId+")");
 											editHookEmbed(event, 
 												bot.getEmbedUtil().getEmbed(event)
-													.setDescription(lu.getLocalized(userLocale, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
+													.setDescription(lu.getText(event, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
 													.setColor(Constants.COLOR_SUCCESS)
 													.build()
 											);

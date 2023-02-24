@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.entities.Mentions;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -66,7 +65,6 @@ public class RejectCmd extends CommandBase {
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		DiscordLocale userLocale = event.getUserLocale();
 
 		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(authorId));
 
@@ -109,7 +107,7 @@ public class RejectCmd extends CommandBase {
 
 		editHookEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getLocalized(userLocale, "bot.voice.reject.done", "", mentionStrings))
+				.setDescription(lu.getUserText(event, "bot.voice.reject.done", mentionStrings))
 				.build()
 		);
 	}

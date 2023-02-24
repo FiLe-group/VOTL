@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
@@ -46,7 +45,6 @@ public class GhostCmd extends CommandBase {
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		DiscordLocale userLocale = event.getUserLocale();
 
 		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(member.getId()));
 		try {
@@ -58,7 +56,7 @@ public class GhostCmd extends CommandBase {
 
 		createReplyEmbed(event, 
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getLocalized(userLocale, "bot.voice.ghost.done"))
+				.setDescription(lu.getText(event, "bot.voice.ghost.done"))
 				.build()
 		);
 	}

@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
@@ -55,14 +54,13 @@ public class ClaimCmd extends CommandBase {
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		DiscordLocale userLocale = event.getUserLocale();
 
 		VoiceChannel vc = guild.getVoiceChannelById(ac.getId());
 		guild.retrieveMemberById(bot.getDBUtil().voice.getUser(vc.getId())).queue(
 			owner -> {
 				for (Member vcMember : vc.getMembers()) {
 					if (vcMember == owner) {
-						editHook(event, lu.getLocalized(userLocale, "bot.voice.claim.has_owner"));
+						editHook(event, lu.getText(event, "bot.voice.claim.has_owner"));
 						return;
 					}
 				}
@@ -78,7 +76,7 @@ public class ClaimCmd extends CommandBase {
 				
 				editHookEmbed(event, 
 					bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getLocalized(userLocale, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
+						.setDescription(lu.getText(event, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
 						.build()
 				);
 			}, failure -> {

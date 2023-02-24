@@ -14,7 +14,6 @@ import votl.objects.constants.Constants;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
@@ -179,18 +178,17 @@ public class AccessCmd extends CommandBase {
 
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			String guildId = guild.getId();
-			DiscordLocale userLocale = event.getUserLocale();
 			
 			String[] modsId = bot.getDBUtil().access.getMods(guildId).toArray(new String[0]);
 			String[] adminsId = bot.getDBUtil().access.getAdmins(guildId).toArray(new String[0]);
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
-				.setTitle(lu.getLocalized(userLocale, "bot.guild.access.view.embed.title"));
+				.setTitle(lu.getText(event, "bot.guild.access.view.embed.title"));
 
 			if (adminsId.length == 0 && modsId.length == 0) {
 				editHookEmbed(event, 
 					embedBuilder.setDescription(
-						lu.getLocalized(userLocale, "bot.guild.access.view.embed.none_found")
+						lu.getText(event, "bot.guild.access.view.embed.none_found")
 					).build()
 				);
 				return;
@@ -198,24 +196,24 @@ public class AccessCmd extends CommandBase {
 
 			StringBuilder sb = new StringBuilder();
 			// Admins
-			sb.append(lu.getLocalized(userLocale, "bot.guild.access.view.embed.admin")).append("\n");
+			sb.append(lu.getText(event, "bot.guild.access.view.embed.admin")).append("\n");
 
 			guild.retrieveMembersByIds(false, adminsId).onSuccess(
 				admins -> {
 					if (admins.isEmpty()) {
-						sb.append(lu.getLocalized(userLocale, "bot.guild.access.view.embed.none")).append("\n");
+						sb.append(lu.getText(event, "bot.guild.access.view.embed.none")).append("\n");
 					}
 					for (Member admin : admins) {
 						sb.append("> " + admin.getAsMention()).append(" (`"+admin.getUser().getAsTag()+"`, "+admin.getId()+")").append("\n");
 					}
 					sb.append("\n");
 					// Mods
-					sb.append(lu.getLocalized(userLocale, "bot.guild.access.view.embed.mod")).append("\n");
+					sb.append(lu.getText(event, "bot.guild.access.view.embed.mod")).append("\n");
 
 					guild.retrieveMembersByIds(false, modsId).onSuccess(
 						mods -> {
 							if (mods.isEmpty()) {
-								sb.append(lu.getLocalized(userLocale, "bot.guild.access.view.embed.none"));
+								sb.append(lu.getText(event, "bot.guild.access.view.embed.none"));
 							} else {
 								for (Member mod : mods) {
 									sb.append("> " + mod.getAsMention()).append(" (`"+mod.getUser().getAsTag()+"`, "+mod.getId()+")").append("\n");

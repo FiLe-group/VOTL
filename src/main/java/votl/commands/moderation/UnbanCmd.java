@@ -15,7 +15,6 @@ import votl.objects.constants.Constants;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -38,7 +37,6 @@ public class UnbanCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		DiscordLocale userLocale = event.getUserLocale();
 		Guild guild = Objects.requireNonNull(event.getGuild());
 
 		User tu = event.optUser("user");
@@ -67,7 +65,7 @@ public class UnbanCmd extends CommandBase {
 			// send promt asking user for unban sync (if available)
 			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
 				.setColor(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getLocalized(userLocale, path+".unban_success")
+				.setDescription(lu.getText(event, path+".unban_success")
 					.replace("{user_tag}", tu.getAsTag())
 					.replace("{reason}", reason))
 				.build()
