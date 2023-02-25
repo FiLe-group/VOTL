@@ -7,7 +7,10 @@
  {
 	"bot-token": "",
 	"owner-id": "16-19 long ID",
-	"bot-invite": "generated link for inviting the bot"
+	"bot-invite": "generated link for inviting the bot",
+	"dev-servers": [
+		"dev server ID"
+	]
  }
  ```
 

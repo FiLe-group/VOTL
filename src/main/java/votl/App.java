@@ -62,14 +62,14 @@ public class App {
 
 	private final LogListener logListener;
 	
-	private DBUtil dbUtil;
-	private MessageUtil messageUtil;
-	private EmbedUtil embedUtil;
-	private LangUtil langUtil;
-	private CheckUtil checkUtil;
-	private LocaleUtil localeUtil;
-	private FormatUtil formatUtil;
-	private LogUtil logUtil;
+	private final DBUtil dbUtil;
+	private final MessageUtil messageUtil;
+	private final EmbedUtil embedUtil;
+	private final LangUtil langUtil;
+	private final CheckUtil checkUtil;
+	private final LocaleUtil localeUtil;
+	private final FormatUtil formatUtil;
+	private final LogUtil logUtil;
 
 	public App() {
 
@@ -144,7 +144,7 @@ public class App {
 				new HelpCmd(this),
 				new StatusCmd(this)
 			)
-			.setDevGuildIds("934462716121321472")
+			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
 			.build();
 
 		// Build
