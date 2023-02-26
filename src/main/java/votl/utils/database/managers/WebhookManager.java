@@ -21,6 +21,10 @@ public class WebhookManager extends DBBase {
 		delete("webhook", "webhookId", webhookId);
 	}
 
+	public void removeAll(String guildId) {
+		delete("webhook", "guildId", guildId);
+	}
+
 	public boolean exists(String webhookId) {
 		if (select("webhook", "webhookId", "webhookId", webhookId).isEmpty()) {
 			return false;

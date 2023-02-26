@@ -22,6 +22,10 @@ public class ModuleManager extends DBBase {
 		delete("moduleOff", List.of("guildId", "module"), List.of(guildId, module.toString()));
 	}
 
+	public void removeAll(String guildId) {
+		delete("moduleOff", "guildId", guildId);
+	}
+
 	public List<CmdModule> getDisabled(String guildId) {
 		List<Object> objs = select("moduleOff", "module", "guildId", guildId);
 		if (objs.isEmpty()) {

@@ -21,6 +21,10 @@ public class AccessManager extends DBBase {
 		delete("modAccess", List.of("guildId", "userId"), List.of(guildId, userId));
 	}
 
+	public void removeAll(String guildId) {
+		delete("modAccess", "guildId", guildId);
+	}
+
 	public void update(String guildId, String userId, boolean admin) {
 		update("modAccess", "admin", (admin ? 1 : 0), List.of("guildId", "userId"), List.of(guildId, userId));
 	}
