@@ -30,7 +30,7 @@
 		},
 		"formatter": {
 			"no_time_provided": "No time provided using pattern",
-			"except_seconds": "Provided time can not be specified in seconds",
+			"except_seconds": "Provided time can't be specified in seconds",
 			"no_multip": "Could not get time multiplication from given character",
 			"parse_long": "Could not parse provided time due to owerflow or other error",
 			"long_overflow": "Provided time too big, long overflow"
@@ -392,7 +392,7 @@
 				"option_delete": "Delete messages past 2 days? (Default: true)",
 				"no_reason": "*Not provided*",
 				"not_found": "User not found or input error",
-				"not_self": "You can not ban yourself or this me... (for good)",
+				"not_self": "You can't ban yourself or me... (for good)",
 				"already_banned": "Mentioned user is already banned on this server.",
 				"higher_access": "Mentioned member has higher access than you.",
 				"ban_abort": "Could not ban mentioned member.",
@@ -405,7 +405,7 @@
 				"option_reason": "Unban reason (Default: *none*)",
 				"no_reason": "*Not provided*",
 				"not_found": "User not found or input error",
-				"not_self": "You can not interact with yourself or me",
+				"not_self": "You can't interact with yourself or me",
 				"no_ban": "Specified user is not banned in this guild",
 				"unban_success": "**{user_tag} was unbanned!** | {reason}"
 			},
@@ -433,7 +433,87 @@
 					"reason": "Unban Reason"
 				},
 				"permanently": "permanently",
-				"temporary": "until {time}"
+				"temporary": "until {time}",
+				"group": {
+					"admin": "Action by",
+					"title": "Group '{group_name}' (#{group_id})",
+					"master": "Master ID: ",
+					"guild": "Implicated guild",
+					"created": "Created new sync group",
+					"deleted": "Deleted sync group",
+					"join": "This guild joined sync group",
+					"leave": "This guild left sync group",
+					"joined": "Guild joined your sync group",
+					"left": "Guild left your sync group",
+					"removed": "Guild was removed from your sync group",
+					"renamed": "Sync group was renamed",
+					"oldname": "Previous group name"
+				}
+			},
+			"group": {
+				"help": "Sync group settings",
+				"usage": "/group create <name>\n... delete\n... join <group ID>\n... leave\n... view <group ID>\n... rename <group ID> <name>\n... remove <group ID> <guild ID>",
+				"create": {
+					"help": "Create new sync group",
+					"option_name": "Enter name for new group",
+					"max_amount": "This guild has reached maximum amount of groups which it can be master of (max - 3).",
+					"done": "Group `{group_name}` successfully created!\n\n*Group ID: {group_id}*"
+				},
+				"delete": {
+					"help": "Delete existing group of which you're master",
+					"option_group": "Select sync group",
+					"no_group": "Couldn't find requested sync group.",
+					"done": "Group `{group_name}` successfully deleted!\n\n*Group ID: {group_id}*"
+				},
+				"join": {
+					"help": "Join existing sync group",
+					"option_id": "Enter sync group ID",
+					"max_amount": "This guild has reached maximum amount of groups it can join (max - 5).",
+					"no_group": "Couldn't find guild by entered ID.",
+					"already_exists": "This guild is already in this group.",
+					"is_master": "Can't join this group, you are it's master.",
+					"embed_title": "Confirm joining",
+					"embed_value": "**Are you sure you want to join this sync group?**\nAny bans that are made by this group master will be synced with this guild.\n\nGroup name: {group_name}\nGroup ID: `{group_id}`",
+					"button_confirm": "YES",
+					"button_abort": "NO (auto in 20 sec)",
+					"done": "Successfully joined sync group `{group_name}`.",
+					"abort": "Aborted, this guild will not join this group."
+				},
+				"leave": {
+					"help": "Leave sync group",
+					"option_group": "Select sync group",
+					"no_group": "Couldn't find requested sync group.",
+					"done": "Successfully left group `{group_name}`!\n\n*Group ID: {group_id}*"
+				},
+				"remove": {
+					"help": "Remove guild from sync group",
+					"option_group": "Select sync group",
+					"no_group": "Couldn't find requested sync group.",
+					"no_guilds": "There are no other guilds in the selected group.",
+					"embed_title": "Guild to be removed",
+					"embed_value": "Select guild from the list below to be removed from `{group_name}` sync group.",
+					"timed_out": "Timed out",
+					"done": "Successfully removed guild *{guild_name}* from group `{group_name}`."
+				},
+				"view": {
+					"help": "View information about selected group",
+					"option_mastergroup": "Select group you are the master of",
+					"option_syncgroup": "Select group that you joined",
+					"no_group": "Couldn't find requested sync group.",
+					"embed_value": "Master: {guild_name} (`{guild_id}`)\nGroup size: {size} guild/-s",
+					"embed_guilds": "Guild name | size | ID",
+					"embed_groups": "Group name | #ID",
+					"embed_master": "Controled groups",
+					"embed_sync": "Synced groups",
+					"none": "*None*"
+				},
+				"rename": {
+					"help": "Rename sync group",
+					"option_group": "Select sync group",
+					"option_name": "Enter new name for this group",
+					"no_group": "Couldn't find requested sync group.",
+					"done": "Group `{old_name}` successfully renamed to `{new_name}`!\n\n*Group ID: {group_id}*"
+				}
 			}
 		},
 		"other": {

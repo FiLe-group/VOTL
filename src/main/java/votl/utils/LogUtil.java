@@ -10,7 +10,7 @@ import javax.annotation.Nonnull;
 import votl.App;
 import votl.objects.constants.Constants;
 import votl.utils.message.LocaleUtil;
-
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Guild.Ban;
@@ -72,6 +72,103 @@ public class LogUtil {
 			.addField(lu.getLocalized(locale, path+"unban.reason"), reason, true)
 			.setFooter("ID: "+userId)
 			.setTimestamp(Instant.now())
+			.build();
+	}
+
+	@Nonnull
+	private EmbedBuilder groupLogEmbed(DiscordLocale locale, String masterId, String masterIcon, Integer groupId, String name) {
+		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
+			.setAuthor(lu.getLocalized(locale, path+"group.title").replace("{group_name}", name).replace("{group_id}", groupId.toString()), null, masterIcon)
+			.setFooter(lu.getLocalized(locale, path+"group.master")+masterId)
+			.setTimestamp(Instant.now());
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupCreationEmbed(DiscordLocale locale, String adminMention, String masterId, String masterIcon, Integer groupId, String name) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, name)
+			.setColor(Constants.COLOR_SUCCESS)
+			.setTitle(lu.getLocalized(locale, path+"group.created"))
+			.addField(lu.getLocalized(locale, path+"group.admin"), adminMention, false)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupDeletedEmbed(DiscordLocale locale, String masterId, String masterIcon, Integer groupId, String name) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, name)
+			.setColor(Constants.COLOR_FAILURE)
+			.setTitle(lu.getLocalized(locale, path+"group.deleted"))
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupDeletedMasterEmbed(DiscordLocale locale, String adminMention, String masterId, String masterIcon, Integer groupId, String name) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, name)
+			.setColor(Constants.COLOR_FAILURE)
+			.setTitle(lu.getLocalized(locale, path+"group.deleted"))
+			.addField(lu.getLocalized(locale, path+"group.admin"), adminMention, false)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupJoinEmbed(DiscordLocale locale, String adminMention, String masterId, String masterIcon, Integer groupId, String name) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, name)
+			.setColor(Constants.COLOR_SUCCESS)
+			.setTitle(lu.getLocalized(locale, path+"group.join"))
+			.addField(lu.getLocalized(locale, path+"group.admin"), adminMention, false)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupLeaveEmbed(DiscordLocale locale, String adminMention, String masterId, String masterIcon, Integer groupId, String name) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, name)
+			.setColor(Constants.COLOR_FAILURE)
+			.setTitle(lu.getLocalized(locale, path+"group.leave"))
+			.addField(lu.getLocalized(locale, path+"group.admin"), adminMention, false)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupJoinMasterEmbed(DiscordLocale locale, String masterId, String masterIcon, String targetName, String targetId, Integer groupId, String name) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, name)
+			.setColor(Constants.COLOR_SUCCESS)
+			.setTitle(lu.getLocalized(locale, path+"group.joined"))
+			.addField(lu.getLocalized(locale, path+"group.guild"), "*"+targetName+"* (`"+targetId+"`)", true)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupLeaveMasterEmbed(DiscordLocale locale, String masterId, String masterIcon, String targetName, String targetId, Integer groupId, String name) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, name)
+			.setColor(Constants.COLOR_FAILURE)
+			.setTitle(lu.getLocalized(locale, path+"group.left"))
+			.addField(lu.getLocalized(locale, path+"group.guild"), "*"+targetName+"* (`"+targetId+"`)", true)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupRemoveEmbed(DiscordLocale locale, String adminMention, String masterId, String masterIcon, String targetName, String targetId, Integer groupId, String name) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, name)
+			.setColor(Constants.COLOR_FAILURE)
+			.setTitle(lu.getLocalized(locale, path+"group.removed"))
+			.addField(lu.getLocalized(locale, path+"group.guild"), "*"+targetName+"* (`"+targetId+"`)", true)
+			.addField(lu.getLocalized(locale, path+"group.admin"), adminMention, false)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupRenamedEmbed(DiscordLocale locale, String masterId, String masterIcon, Integer groupId, String oldName, String newName) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, newName)
+			.setTitle(lu.getLocalized(locale, path+"group.renamed"))
+			.addField(lu.getLocalized(locale, path+"group.oldname"), oldName, true)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getGroupRenamedMasterEmbed(DiscordLocale locale, String adminMention, String masterId, String masterIcon, Integer groupId, String oldName, String newName) {
+		return groupLogEmbed(locale, masterId, masterIcon, groupId, newName)
+			.setTitle(lu.getLocalized(locale, path+"group.renamed"))
+			.addField(lu.getLocalized(locale, path+"group.oldname"), oldName, true)
+			.addField(lu.getLocalized(locale, path+"group.admin"), adminMention, false)
 			.build();
 	}
 

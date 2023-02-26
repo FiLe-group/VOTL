@@ -138,6 +138,7 @@ public class App {
 				new BanCmd(this),
 				new UnbanCmd(this),
 				new CaseCmd(this),
+				new GroupCmd(this, waiter),
 				// other
 				new PingCmd(this),
 				new AboutCmd(this),
@@ -151,7 +152,7 @@ public class App {
 		MemberCachePolicy policy = MemberCachePolicy.VOICE			// check if in voice
 			.or(Objects.requireNonNull(MemberCachePolicy.OWNER));	// check for owner
 		
-		acListener = new AutoCompleteListener(commandClient);
+		acListener = new AutoCompleteListener(commandClient, dbUtil);
 
 		Integer retries = 4; // how many times will it try to build
 		Integer cooldown = 8; // in seconds; cooldown amount, will doubles after each retry

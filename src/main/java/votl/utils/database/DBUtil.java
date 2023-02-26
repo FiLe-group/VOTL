@@ -7,6 +7,7 @@ import java.sql.SQLException;
 
 import votl.utils.database.managers.AccessManager;
 import votl.utils.database.managers.BanManager;
+import votl.utils.database.managers.GroupManager;
 import votl.utils.database.managers.GuildSettingsManager;
 import votl.utils.database.managers.GuildVoiceManager;
 import votl.utils.database.managers.ModuleManager;
@@ -28,6 +29,7 @@ public class DBUtil {
 	public final ModuleManager module;
 	public final AccessManager access;
 	public final BanManager ban;
+	public final GroupManager group;
 
 	protected final Logger logger = (Logger) LoggerFactory.getLogger(DBUtil.class);
 
@@ -43,6 +45,7 @@ public class DBUtil {
 		module = new ModuleManager(this);
 		access = new AccessManager(this);
 		ban = new BanManager(this);
+		group = new GroupManager(this);
 	}
 
 	protected Connection connect() {
