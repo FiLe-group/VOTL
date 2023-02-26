@@ -34,7 +34,7 @@ public class VoiceListener extends ListenerAdapter {
 		}
 
 		AudioChannelUnion channelLeft = event.getChannelLeft();
-		if (channelLeft != null && bot.getDBUtil().guildVoice.exists(channelLeft.getId()) && channelLeft.getMembers().isEmpty()) {
+		if (channelLeft != null && bot.getDBUtil().voice.existsChannel(channelLeft.getId()) && channelLeft.getMembers().isEmpty()) {
 			channelLeft.delete().queueAfter(500, TimeUnit.MILLISECONDS);
 			bot.getDBUtil().voice.remove(channelLeft.getId());
 		}
@@ -50,7 +50,7 @@ public class VoiceListener extends ListenerAdapter {
 				.queue(channel -> channel.sendMessage(lu.getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue());
 			return;
 		}
-		String CategoryID = bot.getDBUtil().guildVoice.getChannel(guildId);
+		String CategoryID = bot.getDBUtil().guildVoice.getCategory(guildId);
 		if (CategoryID == null) return;
 		String channelName = bot.getDBUtil().user.getName(userID);
 		Integer channelLimit = bot.getDBUtil().user.getLimit(userID);
@@ -79,7 +79,7 @@ public class VoiceListener extends ListenerAdapter {
 		guild.createVoiceChannel(name, guild.getCategoryById(CategoryID))
 			.setUserlimit(limit)
 			.syncPermissionOverrides()
-			.addMemberPermissionOverride(member.getIdLong(), EnumSet.of(Permission.MANAGE_CHANNEL), null)
+			.addPermissionOverride(member, EnumSet.of(Permission.MANAGE_CHANNEL), null)
 			.queue(
 				channel -> {
 					bot.getDBUtil().voice.add(userID, channel.getId());

@@ -97,7 +97,7 @@ public class LogCmd extends CommandBase {
 				.setColor(Constants.COLOR_SUCCESS);
 			
 			bot.getDBUtil().guild.setLogChannel(event.getGuild().getId(), tc.getId());
-			tc.sendMessageEmbeds(builder.setDescription(lu.getText(event, path+".as_log")).build()).queue();
+			tc.sendMessageEmbeds(builder.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log")).build()).queue();
 			createReplyEmbed(event, builder.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention())).build());
 		}
 
@@ -172,7 +172,7 @@ public class LogCmd extends CommandBase {
 													.setColor(Constants.COLOR_SUCCESS);
 												
 												bot.getDBUtil().guild.setLogChannel(event.getGuild().getId(), newTc.getId());
-												newTc.sendMessageEmbeds(builder3.setDescription(lu.getText(event, path+".as_log")).build()).queue();
+												newTc.sendMessageEmbeds(builder3.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log").replace("{type}", "All actions")).build()).queue();
 												hook.editOriginalEmbeds(builder3.setDescription(lu.getText(event, path+".done").replace("{channel}", newTc.getAsMention())).build()).setComponents().queue();
 											} catch (CheckException ex) {
 												hook.editOriginal(ex.getEditData()).queue();

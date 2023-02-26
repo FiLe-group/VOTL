@@ -52,6 +52,7 @@ public class NameCmd extends CommandBase {
 			this.path = "bot.voice.name.set";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.STRING, "name", lu.getText(path+".option_description"), true)
+					.setMaxLength(100)
 			);
 		}
 
@@ -76,7 +77,7 @@ public class NameCmd extends CommandBase {
 			String filName = Optional.ofNullable(
 				bot.getDBUtil().guildVoice.getName(Objects.requireNonNull(event.getGuild()).getId())
 			).orElse(
-				lu.getUserText(event, "bot.voice.listener.default_name", false)
+				lu.getText(event, "bot.voice.listener.default_name").replace("{user}", event.getMember().getEffectiveName())
 			);
 			sendReply(event, filName);
 		}
