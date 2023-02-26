@@ -194,7 +194,7 @@
 					"help": "Setup log channel",
 					"option_channel": "Select channel where to log actions",
 					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
-					"as_log": "This channel is selected as a log channel for performed moderation actions.",
+					"as_log": "This channel is selected as a log channel for all actions.",
 					"done": "Successfully set {channel} as log channel!"
 				},
 				"manage": {
@@ -204,14 +204,17 @@
 					"button_change": "Change channel",
 					"button_remove": "Remove logging",
 					"menu_channel": "Select new channel",
-					"select_channel": "Select new channel, which will be used for logging",
+					"select_channel": "Select new channel, which will be used for logging {type}",
 					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
-					"as_log": "This channel is selected as a log channel for performed moderation actions.",
+					"as_log": "This channel is selected as a log channel for performed {type}.",
+					"timed_out": "Timed out",
 					"done": "Successfully set {channel} as log channel!",
-					"removed": "Log channel for bans was removed"
+					"removed": "Log channels for all actions were removed."
 				},
 				"types": {
-					"ban": "Ban actions"
+					"all": "All actions",
+					"moderation": "Moderation actions",
+					"group": "Group actions"
 				}
 			}
 		},

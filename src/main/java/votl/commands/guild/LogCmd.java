@@ -1,7 +1,6 @@
 package votl.commands.guild;
 
 import java.util.Collections;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import votl.App;
@@ -16,18 +15,20 @@ import votl.utils.exception.CheckException;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu.SelectTarget;
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
@@ -77,9 +78,7 @@ public class LogCmd extends CommandBase {
 			GuildChannel channel = null;
 			try {
 				channel = event.optGuildChannel("channel");
-			} catch (IllegalStateException ex) {
-				// ha ha, exception got catched
-			}
+			} catch (IllegalStateException ex) {}
 			if (channel == null || channel.getType() != ChannelType.TEXT) {
 				createError(event, path+".no_channel");
 				return;
@@ -96,7 +95,8 @@ public class LogCmd extends CommandBase {
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed(event)
 				.setColor(Constants.COLOR_SUCCESS);
 			
-			bot.getDBUtil().guild.setLogChannel(event.getGuild().getId(), tc.getId());
+			bot.getDBUtil().guild.setModLogChannel(event.getGuild().getId(), tc.getId());
+			bot.getDBUtil().guild.setGroupLogChannel(event.getGuild().getId(), tc.getId());
 			tc.sendMessageEmbeds(builder.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log")).build()).queue();
 			createReplyEmbed(event, builder.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention())).build());
 		}
@@ -114,97 +114,131 @@ public class LogCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
-			InteractionHook hook = event.getHook();
 
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed(event)
 				.setTitle(lu.getText(event, path+".title"));
 
-			String guildId = Objects.requireNonNull(event.getGuild()).getId();
-			String channelId = bot.getDBUtil().guild.getLogChannel(guildId);
-			if (channelId == null) {
+			String guildId = event.getGuild().getId();
+			String modChannelId = bot.getDBUtil().guild.getModLogChannel(guildId);
+			String groupChannelId = bot.getDBUtil().guild.getGroupLogChannel(guildId);
+			if (modChannelId == null || groupChannelId == null) { 
 				builder.setDescription(lu.getText(event, path+".none"));
 				editHookEmbed(event, builder.build());
-			} else {
-				TextChannel tc = event.getJDA().getTextChannelById(channelId);
-				builder.setDescription(lu.getText(event, "bot.guild.log.types.ban")+" - "+(tc != null ? tc.getAsMention() : "*not found*"));
-
-				ActionRow buttons = ActionRow.of(
-					Button.of(ButtonStyle.PRIMARY, "button:change", lu.getText(event, path+".button_change")),
-					Button.of(ButtonStyle.DANGER, "button:remove", lu.getText(event, path+".button_remove"))
-				);
-				hook.editOriginalEmbeds(builder.build()).setComponents(buttons).queue(msg1 -> {
-					waiter.waitForEvent(
-						ButtonInteractionEvent.class,
-						e -> msg1.getId().equals(e.getMessageId()) && (e.getComponentId().equals("button:change") || e.getComponentId().equals("button:remove")),
-						actionButton -> {
-
-							actionButton.deferEdit().queue();
-							if (actionButton.getComponentId().equals("button:change")) {
-								EmbedBuilder builder2 = bot.getEmbedUtil().getEmbed(event)
-									.setDescription(lu.getText(event, path+".select_channel"));
-								
-								EntitySelectMenu menu = EntitySelectMenu.create("menu:channel", SelectTarget.CHANNEL)
-									.setPlaceholder(lu.getText(event, path+".menu_channel"))
-									.setRequiredRange(1, 1)
-									.build();
-								hook.editOriginalEmbeds(builder2.build()).setActionRow(menu).queue();
-								
-								waiter.waitForEvent(
-									EntitySelectInteractionEvent.class,
-									e -> msg1.getId().equals(e.getMessageId()) && e.getComponentId().equals("menu:channel"),
-									actionMenu -> {
-
-										actionMenu.deferEdit().queue();
-										GuildChannel channel = null;
-										try {
-											channel = actionMenu.getMentions().getChannels().get(0);
-										} catch (IllegalStateException ex) {
-											// catched
-										}
-										if (channel == null || channel.getType() != ChannelType.TEXT) {
-											hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".no_channel")).setComponents().queue();
-										} else {
-											try {
-												bot.getCheckUtil().hasPermissions(event, event.getGuild(), event.getMember(), true, channel,
-													new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
-												TextChannel newTc = (TextChannel) channel;
-												EmbedBuilder builder3 = bot.getEmbedUtil().getEmbed(event)
-													.setColor(Constants.COLOR_SUCCESS);
-												
-												bot.getDBUtil().guild.setLogChannel(event.getGuild().getId(), newTc.getId());
-												newTc.sendMessageEmbeds(builder3.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log").replace("{type}", "All actions")).build()).queue();
-												hook.editOriginalEmbeds(builder3.setDescription(lu.getText(event, path+".done").replace("{channel}", newTc.getAsMention())).build()).setComponents().queue();
-											} catch (CheckException ex) {
-												hook.editOriginal(ex.getEditData()).queue();
-											}
-										}
-
-									},
-									30,
-									TimeUnit.SECONDS,
-									() -> {
-										hook.editOriginalComponents(ActionRow.of(menu.asDisabled())).queue();
-									}
-								);
-							} else {
-								bot.getDBUtil().guild.setLogChannel(guildId, "NULL");
-								EmbedBuilder builder2 = bot.getEmbedUtil().getEmbed(event)
-									.setDescription(lu.getText(event, path+".removed"));
-								hook.editOriginalEmbeds(builder2.build()).setComponents().queue();
-							}
-
-						},
-						30,
-						TimeUnit.SECONDS,
-						() -> {
-							hook.editOriginalComponents(buttons.asDisabled()).queue();
-						}
-					);
-				});
-					
-					
-
+				return;
 			}
+
+			TextChannel modtc = event.getJDA().getTextChannelById(modChannelId);
+			TextChannel grouptc = event.getJDA().getTextChannelById(groupChannelId);
+			builder.appendDescription(lu.getText(event, "bot.guild.log.types.moderation")+" - "+(modtc != null ? modtc.getAsMention() : "*not found*")+"\n")
+				.appendDescription(lu.getText(event, "bot.guild.log.types.group")+" - "+(grouptc != null ? grouptc.getAsMention() : "*not found*"));
+
+			ActionRow buttons = ActionRow.of(
+				Button.of(ButtonStyle.PRIMARY, "button:change", lu.getText(event, path+".button_change")),
+				Button.of(ButtonStyle.DANGER, "button:remove", lu.getText(event, path+".button_remove"))
+			);
+			event.getHook().editOriginalEmbeds(builder.build()).setComponents(buttons).queue(msg -> {
+				waiter.waitForEvent(
+					ButtonInteractionEvent.class,
+					e -> msg.getId().equals(e.getMessageId()) && (e.getComponentId().equals("button:change") || e.getComponentId().equals("button:remove")),
+					buttonEvent -> buttonPressedAction(buttonEvent, event, msg.getId()),
+					30,
+					TimeUnit.SECONDS,
+					() -> event.getHook().editOriginalComponents(buttons.asDisabled()).queue()
+				);
+			});
+		}
+
+		private void buttonPressedAction(ButtonInteractionEvent interaction, SlashCommandEvent event, String msgId) {
+			interaction.deferEdit().queue();
+			String guildId = event.getGuild().getId();
+			String buttonPressed = interaction.getComponentId();
+
+			if (buttonPressed.equals("button:remove")) {
+				bot.getDBUtil().guild.setModLogChannel(guildId, "NULL");
+				bot.getDBUtil().guild.setGroupLogChannel(guildId, "NULL");
+				MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
+					.setDescription(lu.getText(event, path+".removed"))
+					.build();
+				event.getHook().editOriginalEmbeds(embed).setComponents().queue();
+			} else {
+				StringSelectMenu menu = StringSelectMenu.create("menu:log_type")
+					.setPlaceholder("Select which log type you wish to change")
+					.addOption(lu.getText(event, "bot.guild.log.types.moderation"), "moderation")
+					.addOption(lu.getText(event, "bot.guild.log.types.group"), "group")
+					.build();
+					event.getHook().editOriginalComponents(ActionRow.of(menu)).queue();
+
+				waiter.waitForEvent(
+					StringSelectInteractionEvent.class,
+					e -> msgId.equals(e.getMessageId()) && e.getComponentId().equals("menu:log_type"),
+					selectEvent -> buttonPressedChannel(selectEvent, event, msgId),
+					30,
+					TimeUnit.SECONDS,
+					() -> event.getHook().editOriginalComponents(ActionRow.of(
+						menu.createCopy().setPlaceholder(lu.getText(event, path+".timed_out")).setDisabled(true).build())
+					).queue()
+				);
+			}
+		}
+
+		private void buttonPressedChannel(StringSelectInteractionEvent interaction, SlashCommandEvent event, String msgId) {
+			interaction.deferEdit().queue();
+			String selectedType = interaction.getComponentId();
+
+			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
+				.setDescription(lu.getText(event, path+".select_channel").replace("{type}", lu.getText(event,"bot.guild.log.types."+selectedType)))
+				.build();
+			
+			EntitySelectMenu menu = EntitySelectMenu.create("menu:channel", SelectTarget.CHANNEL)
+				.setPlaceholder(lu.getText(event, path+".menu_channel"))
+				.setRequiredRange(1, 1)
+				.build();
+			event.getHook().editOriginalEmbeds(embed).setActionRow(menu).queue();
+			
+			waiter.waitForEvent(
+				EntitySelectInteractionEvent.class,
+				e -> msgId.equals(e.getMessageId()) && e.getComponentId().equals("menu:channel"),
+				selectEvent -> channelSelected(selectEvent, event, msgId, selectedType),
+				30,
+				TimeUnit.SECONDS,
+				() -> event.getHook().editOriginalComponents(ActionRow.of(
+					menu.createCopy().setPlaceholder(lu.getText(event, path+".timed_out")).setDisabled(true).build())
+				).queue()
+			);
+		}
+
+		private void channelSelected(EntitySelectInteractionEvent interaction, SlashCommandEvent event, String msgId, String selectedType) {
+			interaction.deferEdit().queue();
+
+			GuildChannel channel = null;
+			try {
+				channel = interaction.getMentions().getChannels().get(0);
+			} catch (IllegalStateException ex) {}
+			
+			if (channel == null || !channel.getType().equals(ChannelType.TEXT)) {
+				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".no_channel")).setComponents().queue();
+				return;
+			}
+			try {
+				bot.getCheckUtil().hasPermissions(event, event.getGuild(), event.getMember(), true, channel,
+					new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS});
+			} catch (CheckException ex) {
+				event.getHook().editOriginal(ex.getEditData()).queue();
+			}
+
+			TextChannel newTc = (TextChannel) channel;
+			EmbedBuilder builder = bot.getEmbedUtil().getEmbed(event)
+				.setColor(Constants.COLOR_SUCCESS);
+			
+			if (selectedType.equals("moderation")) {
+				bot.getDBUtil().guild.setModLogChannel(event.getGuild().getId(), newTc.getId());
+			} else if (selectedType.equals("group")) {
+				bot.getDBUtil().guild.setGroupLogChannel(event.getGuild().getId(), newTc.getId());
+			}
+			newTc.sendMessageEmbeds(builder.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log")
+				.replace("{type}", lu.getLocalized(event.getGuildLocale(),"bot.guild.log.types."+selectedType))).build()).queue();
+			event.getHook().editOriginalEmbeds(builder.setDescription(lu.getText(event, path+".done")
+				.replace("{channel}", newTc.getAsMention())).build()).setComponents().queue();
 		}
 
 	}
