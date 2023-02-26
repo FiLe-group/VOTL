@@ -43,12 +43,24 @@ public class GuildSettingsManager extends DBBase {
 		return String.valueOf(objs.get(0));
 	}
 
-	public void setLogChannel(String guildId, String channelId) {
-		update("guild", "logChannelId", channelId, "guildId", guildId);
+	public void setModLogChannel(String guildId, String channelId) {
+		update("guild", "modLogId", channelId, "guildId", guildId);
 	}
 
-	public String getLogChannel(String guildId) {
-		List<Object> objs = select("guild", "logChannelId", "guildId", guildId);
+	public void setGroupLogChannel(String guildId, String channelId) {
+		update("guild", "groupLogId", channelId, "guildId", guildId);
+	}
+
+	public String getModLogChannel(String guildId) {
+		List<Object> objs = select("guild", "modLogId", "guildId", guildId);
+		if (objs.isEmpty() || objs.get(0) == null) {
+			return null;
+		}
+		return String.valueOf(objs.get(0));
+	}
+
+	public String getGroupLogChannel(String guildId) {
+		List<Object> objs = select("guild", "groupLogId", "guildId", guildId);
 		if (objs.isEmpty() || objs.get(0) == null) {
 			return null;
 		}
