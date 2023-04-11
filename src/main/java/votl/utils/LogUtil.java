@@ -11,8 +11,10 @@ import votl.App;
 import votl.objects.constants.Constants;
 import votl.utils.message.LocaleUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Guild.Ban;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 
@@ -30,30 +32,57 @@ public class LogUtil {
 	
 	@Nonnull
 	public MessageEmbed getBanEmbed(DiscordLocale locale, Map<String, Object> banMap) {
-		return getBanEmbed(locale, banMap, false);
+		return getBanEmbed(locale, banMap, null);
 	}
 
 	@Nonnull
-	public MessageEmbed getBanEmbed(DiscordLocale locale, Map<String, Object> banMap, Boolean formatUser) {
-		return getBanEmbed(locale, Integer.parseInt(banMap.get("banId").toString()) , banMap.get("userNickname").toString(),
-			banMap.get("userId").toString(), banMap.get("modId").toString(), Timestamp.valueOf(banMap.get("timeStart").toString()),
-			Duration.parse(banMap.get("duration").toString()), banMap.get("reason").toString(), formatUser);
+	public MessageEmbed getBanEmbed(DiscordLocale locale, Map<String, Object> banMap, String userIcon) {
+		return getBanEmbed(locale, Integer.parseInt(banMap.get("banId").toString()), banMap.get("userTag").toString(),
+			banMap.get("userId").toString(), banMap.get("modTag").toString(), banMap.get("modId").toString(), Timestamp.valueOf(banMap.get("timeStart").toString()),
+			Duration.parse(banMap.get("duration").toString()), banMap.get("reason").toString(), userIcon, true)
+			.build();
 	}
 
 	@Nonnull
-	public MessageEmbed getBanEmbed(DiscordLocale locale, Integer banId, String userTag, String userId, String modId, Timestamp start, Duration duration, String reason, Boolean formatUser) {
+	private EmbedBuilder getBanEmbed(DiscordLocale locale, Integer banId, String userTag, String userId, String modTag, String modId, Timestamp start, Duration duration, String reason, String userIcon, Boolean formatMod) {
 		Instant timeStart = start.toInstant();
 		Instant timeEnd = timeStart.plus(duration);
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_FAILURE)
-			.setAuthor(lu.getLocalized(locale, path+"ban.title").replace("{case_id}", banId.toString()).replace("{user_tag}", userTag))
-			.addField(lu.getLocalized(locale, path+"ban.user"), (formatUser ? String.format("<@%s>", userId) : userTag), true)
-			.addField(lu.getLocalized(locale, path+"ban.mod"), String.format("<@%s>", modId), true)
+			.setAuthor(lu.getLocalized(locale, path+"ban.title").replace("{case_id}", banId.toString()).replace("{user_tag}", userTag), null, userIcon)
+			.addField(lu.getLocalized(locale, path+"ban.user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"ban.mod"), (formatMod ? String.format("<@%s>", modId) : modTag), true)
 			.addField(lu.getLocalized(locale, path+"ban.duration"), duration.isZero() ? lu.getLocalized(locale, path+"permanently") : 
 				lu.getLocalized(locale, path+"temporary")
 					.replace("{time}", bot.getTimeUtil().formatTime(timeEnd, false)), true)
 			.addField(lu.getLocalized(locale, path+"ban.reason"), reason, true)
 			.setFooter("ID: "+userId)
-			.setTimestamp(timeStart)
+			.setTimestamp(timeStart);
+	}
+
+	@Nonnull
+	public MessageEmbed getSyncBanEmbed(DiscordLocale locale, Guild master, User enforcer, User target, String reason) {
+		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_FAILURE)
+			.setAuthor(lu.getLocalized(locale, path+"ban.title_synced").replace("{user_tag}", target.getAsTag()), null, target.getAvatarUrl())
+			.addField(lu.getLocalized(locale, path+"ban.user"), target.getAsMention(), true)
+			.addField(lu.getLocalized(locale, path+"ban.reason"), reason, true)
+			.addField(lu.getLocalized(locale, path+"ban.master"), "`"+master.getName()+"` (#"+master.getId()+")", true)
+			.addField(lu.getLocalized(locale, path+"ban.enforcer"), enforcer.getAsTag(), true)
+			.setFooter("ID: "+target.getId())
+			.setTimestamp(Instant.now())
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getSyncUnbanEmbed(DiscordLocale locale, Guild master, User enforcer, User target, String banReason, String reason) {
+		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
+			.setAuthor(lu.getLocalized(locale, path+"unban.title_synced").replace("{user_tag}", target.getAsTag()), null, target.getAvatarUrl())
+			.addField(lu.getLocalized(locale, path+"unban.user"), target.getAsMention(), true)
+			.addField(lu.getLocalized(locale, path+"unban.ban_reason"), (banReason!=null ? banReason : "-"), true)
+			.addField(lu.getLocalized(locale, path+"unban.reason"), reason, true)
+			.addField(lu.getLocalized(locale, path+"unban.master"), "`"+master.getName()+"` (#"+master.getId()+")", true)
+			.addField(lu.getLocalized(locale, path+"unban.enforcer"), enforcer.getAsTag(), true)
+			.setFooter("ID: "+target.getId())
+			.setTimestamp(Instant.now())
 			.build();
 	}
 

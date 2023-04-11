@@ -41,13 +41,13 @@ public class LogListener {
 		}
 
 		Map<String, Object> ban = db.ban.getInfo(banId);
-		if (ban.isEmpty()) {
+		if (ban.isEmpty() || ban == null) {
 			bot.getLogger().warn("That is not supposed to happen... Ban ID: %s", banId);
 			return;
 		}
 
 		try {
-			MessageEmbed embed = logUtil.getBanEmbed(event.getGuildLocale(), ban, true);
+			MessageEmbed embed = logUtil.getBanEmbed(event.getGuildLocale(), ban, target.getAvatarUrl());
 			channel.sendMessageEmbeds(embed).queue();
 		} catch (InsufficientPermissionException ex) {
 			return;
@@ -261,10 +261,46 @@ public class LogListener {
 		}
 	}
 
-	// To be done
-	public void onAutoUnban(SlashCommandEvent event, User target, Integer banId) {}
 
-	public void onSyncBan(SlashCommandEvent event, User target) {}
+	public void onSyncBan(SlashCommandEvent event, Guild guild, User target, String reason) {
+		String guildId = Objects.requireNonNull(guild).getId();
+
+		String channelId = db.guild.getModLogChannel(guildId);
+		if (channelId == null) {
+			return;
+		}
+		TextChannel channel = event.getJDA().getTextChannelById(channelId);
+		if (channel == null) {
+			return;
+		}
+
+		try {
+			MessageEmbed embed = logUtil.getSyncBanEmbed(guild.getLocale(), event.getGuild(), event.getUser(), target, reason);
+			channel.sendMessageEmbeds(embed).queue();
+		} catch (InsufficientPermissionException ex) {
+			return;
+		}
+	}
+
+	public void onSyncUnban(SlashCommandEvent event, Guild guild, User target, String banReason, String reason) {
+		String guildId = Objects.requireNonNull(guild).getId();
+
+		String channelId = db.guild.getModLogChannel(guildId);
+		if (channelId == null) {
+			return;
+		}
+		TextChannel channel = event.getJDA().getTextChannelById(channelId);
+		if (channel == null) {
+			return;
+		}
+
+		try {
+			MessageEmbed embed = logUtil.getSyncUnbanEmbed(guild.getLocale(), event.getGuild(), event.getUser(), target, banReason, reason);
+			channel.sendMessageEmbeds(embed).queue();
+		} catch (InsufficientPermissionException ex) {
+			return;
+		}
+	}
 
 	public void onSyncUnban(SlashCommandEvent event, User target) {}
 

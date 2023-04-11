@@ -390,28 +390,68 @@
 			"ban": {
 				"help": "Ban member of this server",
 				"usage": "/ban <@member> [duration] [reason] [delete?]",
-				"option_user": "Mention user/member to be banned from this guild",
-				"option_time": "Temporaty ban member (Example: 2h, 2w5d (week, day, hour, minute) | Default: permament)",
-				"option_reason": "Ban reason (Default: *none*)",
-				"option_delete": "Delete messages past 2 days? (Default: true)",
+				"option_user": "Mention user/member to be banned from this server",
+				"option_time": "Temporaty ban member (Example: 2h, 2w5d (week, day, hour, minute) | 0)",
+				"option_reason": "Ban reason (*none*)",
+				"option_delete": "Delete messages past 10 hours? (true)",
+				"option_dm": "Send DM to the uwser about their ban? (true)",
 				"no_reason": "*Not provided*",
 				"not_found": "User not found or input error",
 				"not_self": "You can't ban yourself or me... (for good)",
 				"already_banned": "Mentioned user is already banned on this server.",
+				"already_temp": "Mentioned user is already temporary banned on this server.\n** See `/case {id}`**\n\n*You can change that ban duration using `/duration`*",
 				"higher_access": "Mentioned member has higher access than you.",
 				"ban_abort": "Could not ban mentioned member.",
-				"ban_success": "**{user_tag} was banned {duration}!** | {reason}"
+				"ban_success": "**{user_tag} was banned {duration}!** | {reason}",
+				"sync": {
+					"title": "**Sync this ban?**\nSelect groups bellow.",
+					"value": "Select group/-s",
+					"done": "Ban synced with **{count}**/{max_count} servers!"
+				}
 			},
 			"unban": {
 				"help": "Unban banned user on this server",
 				"usage": "/unban <user ID> [reason]",
-				"option_user": "Enter ID/mention of user to be unbanned in this guild",
+				"option_user": "Enter ID/mention of user to be unbanned in this server",
 				"option_reason": "Unban reason (Default: *none*)",
 				"no_reason": "*Not provided*",
 				"not_found": "User not found or input error",
 				"not_self": "You can't interact with yourself or me",
-				"no_ban": "Specified user is not banned in this guild",
-				"unban_success": "**{user_tag} was unbanned!** | {reason}"
+				"no_ban": "Specified user is not banned in this server",
+				"unban_success": "**{user_tag} was unbanned!** | {reason}",
+				"sync": {
+					"title": "**Sync this unban?**\nSelect groups bellow.",
+					"value": "Select group/-s",
+					"done": "Unban synced with **{count}**/{max_count} servers!"
+				}
+			},
+			"sync": {
+				"help": "Sync moderation action with group servers",
+				"usage": "/sync ban <case ID> <group ID>\n... unban <user ID> <group ID>",
+				"ban": {
+					"help": "Sync permament ban with group servers",
+					"option_case": "Enter case ID",
+					"option_group": "Select the group you are master of",
+					"not_found": "Could not find case(ban) by specified ID.",
+					"expirable_ban": "Specified ban is not permament or has expired.",
+					"no_group": "Couldn't find group by entered ID.",
+					"embed_title": "Are you sure you want to ban this user from synced server?",
+					"button_confirm": "YES",
+					"no_guilds": "Couldn't sync this ban, as there are no synced servers in selected group.",
+					"done": "Ban synced with **{count}**/{max_count} servers!"
+				},
+				"unban": {
+					"help": "Sync unban with group servers",
+					"option_member": "Enter member ID or ping them",
+					"option_group": "Select the group you are master of",
+					"not_found": "Could not find member by specified ID.\nUser **must** be unbaned here and joined this server.",
+					"not_self":"You can't interact with yourself or me.",
+					"no_group": "Couldn't find group by entered ID.",
+					"embed_title": "Are you sure you want to unban this user on all synced server?",
+					"button_confirm": "YES",
+					"no_guilds": "There are no other servers in the selected group.",
+					"done": "Unban synced with **{count}**/{max_count} servers!"
+				}
 			},
 			"case": {
 				"help": "View information about logged ban",
@@ -427,14 +467,20 @@
 					"user": "User",
 					"mod": "Moderator",
 					"duration": "Duration",
-					"reason": "Ban Reason"
+					"reason": "Ban Reason",
+					"title_synced": "Synced Ban | {user_tag}",
+					"master": "Master server",
+					"enforcer": "Done by"
 				},
 				"unban": {
 					"title": "Unban | {user_tag}",
 					"user": "User",
 					"mod": "Moderator",
 					"ban_reason": "Banned for",
-					"reason": "Unban Reason"
+					"reason": "Unban Reason",
+					"title_synced": "Synced Unban | {user_tag}",
+					"master": "Master server",
+					"enforcer": "Done by"
 				},
 				"permanently": "permanently",
 				"temporary": "until {time}",

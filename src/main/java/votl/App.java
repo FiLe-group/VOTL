@@ -135,8 +135,9 @@ public class App {
 				// webhook
 				new WebhookCmd(this),
 				// moderation
-				new BanCmd(this),
-				new UnbanCmd(this),
+				new BanCmd(this, waiter),
+				new UnbanCmd(this, waiter),
+				new SyncCmd(this, waiter),
 				new CaseCmd(this),
 				new GroupCmd(this, waiter),
 				// other
