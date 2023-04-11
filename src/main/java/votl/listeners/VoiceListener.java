@@ -35,25 +35,25 @@ public class VoiceListener extends ListenerAdapter {
 
 		AudioChannelUnion channelLeft = event.getChannelLeft();
 		if (channelLeft != null && bot.getDBUtil().voice.existsChannel(channelLeft.getId()) && channelLeft.getMembers().isEmpty()) {
-			channelLeft.delete().queueAfter(500, TimeUnit.MILLISECONDS);
+			channelLeft.delete().reason("Custom channel, empty").queueAfter(500, TimeUnit.MILLISECONDS);
 			bot.getDBUtil().voice.remove(channelLeft.getId());
 		}
 	}
 
 	private void handleVoiceCreate(Guild guild, Member member) {
 		String guildId = guild.getId();
-		String userID = member.getId();
+		String userId = member.getId();
 		DiscordLocale guildLocale = guild.getLocale();
 
-		if (bot.getDBUtil().voice.existsUser(userID)) {
+		if (bot.getDBUtil().voice.existsUser(userId)) {
 			member.getUser().openPrivateChannel()
 				.queue(channel -> channel.sendMessage(lu.getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue());
 			return;
 		}
 		String CategoryID = bot.getDBUtil().guildVoice.getCategory(guildId);
 		if (CategoryID == null) return;
-		String channelName = bot.getDBUtil().user.getName(userID);
-		Integer channelLimit = bot.getDBUtil().user.getLimit(userID);
+		String channelName = bot.getDBUtil().user.getName(userId);
+		Integer channelLimit = bot.getDBUtil().user.getLimit(userId);
 		String defaultChannelName = bot.getDBUtil().guildVoice.getName(guildId);
 		Integer defaultChannelLimit = bot.getDBUtil().guildVoice.getLimit(guildId);
 		String name = null;
@@ -77,12 +77,13 @@ public class VoiceListener extends ListenerAdapter {
 			limit = channelLimit;
 		}
 		guild.createVoiceChannel(name, guild.getCategoryById(CategoryID))
+			.reason(member.getUser().getAsTag()+" custom channel")
 			.setUserlimit(limit)
 			.syncPermissionOverrides()
 			.addPermissionOverride(member, EnumSet.of(Permission.MANAGE_CHANNEL), null)
 			.queue(
 				channel -> {
-					bot.getDBUtil().voice.add(userID, channel.getId());
+					bot.getDBUtil().voice.add(userId, channel.getId());
 					guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS);
 				}
 			);

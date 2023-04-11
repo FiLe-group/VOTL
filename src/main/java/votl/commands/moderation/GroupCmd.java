@@ -8,7 +8,15 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import votl.App;
+import votl.commands.CommandBase;
+import votl.objects.CmdAccessLevel;
+import votl.objects.CmdModule;
+import votl.objects.command.CooldownScope;
+import votl.objects.command.SlashCommand;
+import votl.objects.command.SlashCommandEvent;
+import votl.objects.constants.CmdCategory;
+import votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -23,15 +31,8 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
-import votl.App;
-import votl.commands.CommandBase;
-import votl.objects.CmdAccessLevel;
-import votl.objects.CmdModule;
-import votl.objects.command.CooldownScope;
-import votl.objects.command.SlashCommand;
-import votl.objects.command.SlashCommandEvent;
-import votl.objects.constants.CmdCategory;
-import votl.objects.constants.Constants;
+
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 public class GroupCmd extends CommandBase {
 	
@@ -60,7 +61,7 @@ public class GroupCmd extends CommandBase {
 			this.path = "bot.moderation.group.create";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.STRING, "name", lu.getText(path+".option_name"), true)
-					.setMaxLength(120)
+					.setMaxLength(100)
 			);
 			this.cooldownScope = CooldownScope.GUILD;
 			this.cooldown = 60;

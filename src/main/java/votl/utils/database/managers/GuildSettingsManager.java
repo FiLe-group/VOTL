@@ -25,9 +25,7 @@ public class GuildSettingsManager extends DBBase {
 	}
 
 	public boolean exists(String guildId) {
-		if (select("guild", "guildId", "guildId", guildId).isEmpty()) {
-			return false;
-		}
+		if (select("guild", "guildId", "guildId", guildId).isEmpty()) return false;
 		return true;
 	}
 
@@ -37,9 +35,7 @@ public class GuildSettingsManager extends DBBase {
 
 	public String getLanguage(String guildId) {
 		List<Object> objs = select("guild", "language", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 
@@ -53,17 +49,13 @@ public class GuildSettingsManager extends DBBase {
 
 	public String getModLogChannel(String guildId) {
 		List<Object> objs = select("guild", "modLogId", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 
 	public String getGroupLogChannel(String guildId) {
 		List<Object> objs = select("guild", "groupLogId", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 

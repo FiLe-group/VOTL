@@ -68,7 +68,7 @@ public class App {
 	private final LangUtil langUtil;
 	private final CheckUtil checkUtil;
 	private final LocaleUtil localeUtil;
-	private final FormatUtil formatUtil;
+	private final TimeUtil timeUtil;
 	private final LogUtil logUtil;
 
 	public App() {
@@ -92,7 +92,7 @@ public class App {
 		messageUtil	= new MessageUtil(this);
 		embedUtil	= new EmbedUtil(localeUtil);
 		checkUtil	= new CheckUtil(this);
-		formatUtil	= new FormatUtil();
+		timeUtil	= new TimeUtil();
 		logUtil		= new LogUtil(this);
 
 		waiter			= new EventWaiter();
@@ -154,11 +154,7 @@ public class App {
 		
 		acListener = new AutoCompleteListener(commandClient, dbUtil);
 
-		Integer retries = 4; // how many times will it try to build
-		Integer cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
-		while (true) {
-			try {
-				setJda = JDABuilder.createLight(fileManager.getString("config", "bot-token"))
+		JDABuilder jdaBuilder = JDABuilder.createLight(fileManager.getString("config", "bot-token"))
 					.setEnabledIntents(
 						GatewayIntent.GUILD_MEMBERS,				// required for updating member profiles and ChunkingFilter
 						GatewayIntent.GUILD_VOICE_STATES			// required for CF VOICE_STATE and policy VOICE
@@ -171,8 +167,13 @@ public class App {
 						CacheFlag.ROLE_TAGS				// role search
 					) 
 					.setAutoReconnect(true)
-					.addEventListeners(commandClient, waiter, guildListener, voiceListener, acListener)
-					.build();
+			.addEventListeners(commandClient, waiter, guildListener, voiceListener, acListener);
+
+		Integer retries = 4; // how many times will it try to build
+		Integer cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
+		while (true) {
+			try {
+				setJda = jdaBuilder.build();
 				break;
 			} catch (InvalidTokenException ex) {
 				logger.error("Login failed due to Token", ex);
@@ -230,8 +231,8 @@ public class App {
 		return localeUtil;
 	}
 
-	public FormatUtil getFormatUtil() {
-		return formatUtil;
+	public TimeUtil getTimeUtil() {
+		return timeUtil;
 	}
 
 	public LogUtil getLogUtil() {

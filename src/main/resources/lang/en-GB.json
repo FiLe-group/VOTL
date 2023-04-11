@@ -11,7 +11,7 @@
 		},
 		"no_send_perm": "I have no permission to send messages in your channel. Pls fix!",
 		"no_channel": "You don't own/has any voice channel.",
-		"guild_not_setup": "Guild was not setup-ed! Check `/help` for setup command",
+		"guild_not_setup": "Server is not configured! Check `/help` for setup command.",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and that I have sufficient permissions!",
 		"title": "Error",
 		"additional": "Additional info:",
@@ -82,14 +82,14 @@
 					"help": "Reset language to default"
 				},
 				"set": {
-					"help": "Set language for guild",
+					"help": "Set language for this server",
 					"option_description": "Enter selected language"
 				},
 				"show": {
 					"help": "Shows all available languages",
 					"embed": {
 						"title": "Available languages",
-						"value": "*Use `/language set <language>` to set chosen language in this guild*\n**OR**\n*Type `/language reset` to set language to default(en-GB).*",
+						"value": "*Use `/language set <language>` to set chosen language in this server*\n**OR**\n*Type `/language reset` to set language to default(en-GB).*",
 						"field": "Language list:"
 					}
 				},
@@ -98,7 +98,7 @@
 			"setup": {
 				"help": "Setup menu for this server",
 				"usage": "/setup main\n... voice",
-				"preview": "Preview current setting for this guild",
+				"preview": "Preview current setting for this server",
 				"reset": "Reset settings",
 				"main": {
 					"help": "Setup main function (without touching other modules)",
@@ -155,7 +155,7 @@
 						"done": "Successfully asigned {member} Admin access!"
 					},
 					"option_user": "Mention member",
-					"no_member": "Couldn't find mentioned member, either they left guild or not existent!",
+					"no_member": "Couldn't find mentioned member, either they left server or not existent!",
 					"not_self": "You can't add yourself or any bot.",
 					"is_higher": "Mentioned user has higher or same access as yours"
 				},
@@ -172,7 +172,7 @@
 						"done": "Successfully removed from {member} Admin access!"
 					},
 					"option_user": "Mention member",
-					"no_member": "Couldn't find mentioned member, either they left guild or not existent!",
+					"no_member": "Couldn't find mentioned member, either they left server or not existent!",
 					"not_self": "You can't remove yourself or any bot.",
 					"is_higher": "Mentioned user has higher or same access as yours"
 				},
@@ -203,6 +203,7 @@
 					"none": "*None*\n\n*Use `/log setup` to setup logging*",
 					"button_change": "Change channel",
 					"button_remove": "Remove logging",
+					"menu_type": "Select which log type you wish to change",
 					"menu_channel": "Select new channel",
 					"select_channel": "Select new channel, which will be used for logging {type}",
 					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
@@ -378,7 +379,7 @@
 				"option_delete": "Also delete webhook? (default-false)",
 				"error_not_registered": "Selected webhook is not registered.",
 				"error_not_found": "Couldn't find webhook by entered ID.",
-				"error_not_guild": "Selected webhook is not from this guild.",
+				"error_not_guild": "Selected webhook is not from this server.",
 				"done": "Successfully removed webhook `{webhook_name}`!"
 			},
 			"check": {
@@ -441,14 +442,14 @@
 					"admin": "Action by",
 					"title": "Group '{group_name}' (#{group_id})",
 					"master": "Master ID: ",
-					"guild": "Implicated guild",
+					"guild": "Implicated server",
 					"created": "Created new sync group",
 					"deleted": "Deleted sync group",
-					"join": "This guild joined sync group",
-					"leave": "This guild left sync group",
-					"joined": "Guild joined your sync group",
-					"left": "Guild left your sync group",
-					"removed": "Guild was removed from your sync group",
+					"join": "This server joined sync group",
+					"leave": "This server left sync group",
+					"joined": "Server joined your sync group",
+					"left": "Server left your sync group",
+					"removed": "Server was removed from your sync group",
 					"renamed": "Sync group was renamed",
 					"oldname": "Previous group name"
 				}
@@ -459,7 +460,7 @@
 				"create": {
 					"help": "Create new sync group",
 					"option_name": "Enter name for new group",
-					"max_amount": "This guild has reached maximum amount of groups which it can be master of (max - 3).",
+					"max_amount": "This server has reached maximum amount of groups which it can be master of (max - 3).",
 					"done": "Group `{group_name}` successfully created!\n\n*Group ID: {group_id}*"
 				},
 				"delete": {
@@ -471,16 +472,16 @@
 				"join": {
 					"help": "Join existing sync group",
 					"option_id": "Enter sync group ID",
-					"max_amount": "This guild has reached maximum amount of groups it can join (max - 5).",
-					"no_group": "Couldn't find guild by entered ID.",
-					"already_exists": "This guild is already in this group.",
+					"max_amount": "This server has reached maximum amount of groups it can join (max - 5).",
+					"no_group": "Couldn't find group by entered ID.",
+					"already_exists": "This server is already in this group.",
 					"is_master": "Can't join this group, you are it's master.",
 					"embed_title": "Confirm joining",
-					"embed_value": "**Are you sure you want to join this sync group?**\nAny bans that are made by this group master will be synced with this guild.\n\nGroup name: {group_name}\nGroup ID: `{group_id}`",
+					"embed_value": "**Are you sure you want to join this sync group?**\nAny bans that are made by this group master will be synced with this server.\n\nGroup name: {group_name}\nGroup ID: `{group_id}`",
 					"button_confirm": "YES",
 					"button_abort": "NO (auto in 20 sec)",
 					"done": "Successfully joined sync group `{group_name}`.",
-					"abort": "Aborted, this guild will not join this group."
+					"abort": "Aborted, this server will not join this group."
 				},
 				"leave": {
 					"help": "Leave sync group",
@@ -489,22 +490,22 @@
 					"done": "Successfully left group `{group_name}`!\n\n*Group ID: {group_id}*"
 				},
 				"remove": {
-					"help": "Remove guild from sync group",
+					"help": "Remove server from sync group",
 					"option_group": "Select sync group",
 					"no_group": "Couldn't find requested sync group.",
-					"no_guilds": "There are no other guilds in the selected group.",
-					"embed_title": "Guild to be removed",
-					"embed_value": "Select guild from the list below to be removed from `{group_name}` sync group.",
+					"no_guilds": "There are no other servers in the selected group.",
+					"embed_title": "Server to be removed",
+					"embed_value": "Select server from the list below to be removed from `{group_name}` sync group.",
 					"timed_out": "Timed out",
-					"done": "Successfully removed guild *{guild_name}* from group `{group_name}`."
+					"done": "Successfully removed server *{guild_name}* from group `{group_name}`."
 				},
 				"view": {
 					"help": "View information about selected group",
 					"option_mastergroup": "Select group you are the master of",
 					"option_syncgroup": "Select group that you joined",
 					"no_group": "Couldn't find requested sync group.",
-					"embed_value": "Master: {guild_name} (`{guild_id}`)\nGroup size: {size} guild/-s",
-					"embed_guilds": "Guild name | size | ID",
+					"embed_value": "Master: {guild_name} (`{guild_id}`)\nGroup size: {size} server/-s",
+					"embed_guilds": "Server name | size | ID",
 					"embed_groups": "Group name | #ID",
 					"embed_master": "Controled groups",
 					"embed_sync": "Synced groups",
@@ -557,13 +558,13 @@
 				"embed": {
 					"stats_title": "Stats",
 					"stats" : {
-						"guilds": "{value} Guilds",
+						"guilds": "{value} Servers",
 						"shard": "Shard {this}/{all}"
 					},
 					"shard_title": "This shard",
 					"shard": {
 						"users": "Cached users {value}",
-						"guilds": "Guilds joined {value}",
+						"guilds": "Servers found {value}",
 						"text_channels": "{value} Text Channels",
 						"voice_channels": "{value} Voice Channels"
 					},
@@ -582,7 +583,7 @@
 				"docs": "Docs",
 				"no_command": "The provided command doesn't exist!\nMake sure you typed it correctly.",
 				"title": "Command help: {command}",
-				"value": "Category: **{category}**\nIs owner command: {owner}\nGuild only command: {guild}\nModule: **{module}**",
+				"value": "Category: **{category}**\nIs owner command: {owner}\nServer only command: {guild}\nModule: **{module}**",
 				"help_title": "Description",
 				"usage_title": "Usage options",
 				"usage_value": "```\n{command_usage}\n```\n`[]` = Optional\n`<>` = Required"
@@ -592,7 +593,7 @@
 				"categories": {
 					"voice": "Voice",
 					"owner": "Owner",
-					"guild": "Guild",
+					"guild": "Server",
 					"webhook": "Webhook",
 					"moderation": "Moderation",
 					"other": "Other",

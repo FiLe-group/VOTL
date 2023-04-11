@@ -13,9 +13,7 @@ public class GuildVoiceManager extends DBBase {
 
 	
 	public boolean exists(String guildId) {
-		if (select("guildVoice", "guildId", "guildId", guildId).isEmpty()) {
-			return false;
-		}
+		if (select("guildVoice", "guildId", "guildId", guildId).isEmpty()) return false;
 		return true;
 	}
 
@@ -37,33 +35,25 @@ public class GuildVoiceManager extends DBBase {
 
 	public String getCategory(String guildId) {
 		List<Object> objs = select("guildVoice", "categoryId", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 
 	public String getChannel(String guildId) {
 		List<Object> objs = select("guildVoice", "channelId", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 
 	public String getName(String guildId) {
 		List<Object> objs = select("guildVoice", "defaultName", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 
 	public Integer getLimit(String guildId) {
 		List<Object> objs = select("guildVoice", "defaultLimit", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return Integer.parseInt(String.valueOf(objs.get(0)));
 	}
 

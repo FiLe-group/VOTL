@@ -21,9 +21,7 @@ public class GroupManager extends DBBase {
 
     public Integer lastId() {
         Object data = selectLast("groupMaster", "groupId");
-        if (data == null) {
-            return 0;
-        }
+        if (data == null) return 0;
         return Integer.parseInt(data.toString());
     }
 
@@ -41,25 +39,19 @@ public class GroupManager extends DBBase {
 
     public String getMaster(Integer groupId) {
         List<Object> data = select("groupMaster", "masterId", "groupId", groupId);
-        if (data.isEmpty() || data.get(0) == null) {
-            return null;
-        }
+        if (data.isEmpty() || data.get(0) == null) return null;
         return data.get(0).toString();
     }
 
     public List<Map<String, Object>> getMasterGroups(String masterId) {
         List<Map<String, Object>> data = select("groupMaster", List.of("groupId", "name"), "masterId", masterId);
-        if (data.isEmpty() || data.get(0) == null) {
-            return Collections.emptyList();
-        }
+        if (data.isEmpty() || data.get(0) == null) return Collections.emptyList();
         return data;
     }
 
     public String getName(Integer groupId) {
         List<Object> data = select("groupMaster", "name", "groupId", groupId);
-        if (data.isEmpty() || data.get(0) == null) {
-            return null;
-        }
+        if (data.isEmpty() || data.get(0) == null) return null;
         return data.get(0).toString();
     }
 
@@ -78,17 +70,13 @@ public class GroupManager extends DBBase {
 
     public List<String> getGroupGuildIds(Integer groupId) {
         List<Object> data = select("groupSync", "guildId", "groupId", groupId);
-        if (data.isEmpty() || data.get(0) == null) {
-            return Collections.emptyList();
-        }
+        if (data.isEmpty() || data.get(0) == null) return Collections.emptyList();
         return data.stream().map(obj -> obj.toString()).collect(Collectors.toList());
     }
 
     public List<Integer> getGuildGroups(String guildId) {
         List<Object> data = select("groupSync", "groupId", "guildId", guildId);
-        if (data.isEmpty() || data.get(0) == null) {
-            return Collections.emptyList();
-        }
+        if (data.isEmpty() || data.get(0) == null) return Collections.emptyList();
         return data.stream().map(obj -> (Integer) obj).collect(Collectors.toList());
     }
 

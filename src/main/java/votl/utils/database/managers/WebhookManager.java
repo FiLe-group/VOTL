@@ -26,25 +26,19 @@ public class WebhookManager extends DBBase {
 	}
 
 	public boolean exists(String webhookId) {
-		if (select("webhook", "webhookId", "webhookId", webhookId).isEmpty()) {
-			return false;
-		}
+		if (select("webhook", "webhookId", "webhookId", webhookId).isEmpty()) return false;
 		return true;
 	}
 
 	public String getToken(String webhookId) {
 		List<Object> objs = select("webhook", "token", "webhookId", webhookId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 
 	public List<String> getIds(String guildId) {
 		List<Object> objs = select("webhook", "webhookId", "guildId", guildId);
-		if (objs.isEmpty()) {
-			return Collections.emptyList();
-		}
+		if (objs.isEmpty()) return Collections.emptyList();
 		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
 	}
 

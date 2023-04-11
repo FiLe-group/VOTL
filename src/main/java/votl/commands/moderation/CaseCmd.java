@@ -40,16 +40,14 @@ public class CaseCmd extends CommandBase {
 	
 	@Override
 	protected void execute(SlashCommandEvent event) {
-
 		Map<String, Object> banData = bot.getDBUtil().ban.getInfo(event.optInteger("id", 0));
-		if (banData.isEmpty()) {
+		if (banData.isEmpty() || !event.getGuild().getId().equals(banData.get("guildId").toString())) {
 			createError(event, path+".not_found");
 			return;
 		}
 		MessageEmbed embed = bot.getLogUtil().getBanEmbed(event.getUserLocale(), banData);
 
 		createReplyEmbed(event, embed);
-		
 	}
 
 }

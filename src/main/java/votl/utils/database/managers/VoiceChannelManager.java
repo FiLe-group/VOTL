@@ -27,9 +27,7 @@ public class VoiceChannelManager extends DBBase {
 	}
 
 	public boolean existsChannel(String channelId) {
-		if (select("voiceChannel", "channelId", "channelId", channelId).isEmpty()) {
-			return false;
-		}
+		if (select("voiceChannel", "channelId", "channelId", channelId).isEmpty()) return false;
 		return true;
 	}
 
@@ -39,17 +37,13 @@ public class VoiceChannelManager extends DBBase {
 
 	public String getChannel(String userId) {
 		List<Object> objs = select("voiceChannel", "channelId", "userId", userId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 
 	public String getUser(String channelId) {
 		List<Object> objs = select("voiceChannel", "userId", "channelId", channelId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 

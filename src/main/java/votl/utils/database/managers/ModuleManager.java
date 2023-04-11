@@ -28,16 +28,12 @@ public class ModuleManager extends DBBase {
 
 	public List<CmdModule> getDisabled(String guildId) {
 		List<Object> objs = select("moduleOff", "module", "guildId", guildId);
-		if (objs.isEmpty()) {
-			return Collections.emptyList();
-		}
+		if (objs.isEmpty()) return Collections.emptyList();
 		return objs.stream().map(obj -> CmdModule.valueOf(String.valueOf(obj))).collect(Collectors.toList());
 	}
 
 	public boolean isDisabled(String guildId, CmdModule module) {
-		if (select("moduleOff", "guildId", List.of("guildId", "module"), List.of(guildId, module.toString())).isEmpty()) {
-			return false;
-		}
+		if (select("moduleOff", "guildId", List.of("guildId", "module"), List.of(guildId, module.toString())).isEmpty()) return false;
 		return true;
 	}
 

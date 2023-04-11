@@ -28,8 +28,8 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu.SelectTarget;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.doc.standard.CommandInfo;
@@ -162,7 +162,7 @@ public class LogCmd extends CommandBase {
 				event.getHook().editOriginalEmbeds(embed).setComponents().queue();
 			} else {
 				StringSelectMenu menu = StringSelectMenu.create("menu:log_type")
-					.setPlaceholder("Select which log type you wish to change")
+					.setPlaceholder(lu.getText(event, path+".menu_type"))
 					.addOption(lu.getText(event, "bot.guild.log.types.moderation"), "moderation")
 					.addOption(lu.getText(event, "bot.guild.log.types.group"), "group")
 					.build();
@@ -171,7 +171,7 @@ public class LogCmd extends CommandBase {
 				waiter.waitForEvent(
 					StringSelectInteractionEvent.class,
 					e -> msgId.equals(e.getMessageId()) && e.getComponentId().equals("menu:log_type"),
-					selectEvent -> buttonPressedChannel(selectEvent, event, msgId),
+					selectEvent -> typeSelected(selectEvent, event, msgId),
 					30,
 					TimeUnit.SECONDS,
 					() -> event.getHook().editOriginalComponents(ActionRow.of(
@@ -181,7 +181,7 @@ public class LogCmd extends CommandBase {
 			}
 		}
 
-		private void buttonPressedChannel(StringSelectInteractionEvent interaction, SlashCommandEvent event, String msgId) {
+		private void typeSelected(StringSelectInteractionEvent interaction, SlashCommandEvent event, String msgId) {
 			interaction.deferEdit().queue();
 			String selectedType = interaction.getComponentId();
 

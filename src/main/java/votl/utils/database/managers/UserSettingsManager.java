@@ -20,9 +20,7 @@ public class UserSettingsManager extends DBBase {
 	}
 
 	public boolean exists(String userId) {
-		if (select("user", "userId", "userId", userId).isEmpty()) {
-			return false;
-		}
+		if (select("user", "userId", "userId", userId).isEmpty()) return false;
 		return true;
 	}
 
@@ -36,17 +34,13 @@ public class UserSettingsManager extends DBBase {
 
 	public String getName(String userId) {
 		List<Object> objs = select("user", "voiceName", "userId", userId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return String.valueOf(objs.get(0));
 	}
 
 	public Integer getLimit(String userId) {
 		List<Object> objs = select("user", "voiceLimit", "userId", userId);
-		if (objs.isEmpty() || objs.get(0) == null) {
-			return null;
-		}
+		if (objs.isEmpty() || objs.get(0) == null) return null;
 		return Integer.parseInt(String.valueOf(objs.get(0)));
 	}
 

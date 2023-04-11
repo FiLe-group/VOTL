@@ -56,7 +56,7 @@ public class EmbedUtil {
 
 	@Nonnull
 	private <T> EmbedBuilder getErrorEmbed(T event) {
-		return getEmbed(event).setColor(Constants.COLOR_FAILURE);
+		return getEmbed(event).setColor(Constants.COLOR_FAILURE).setTitle(lu.getText(event, "errors.title"));
 	}
 
 	@Nonnull
@@ -98,7 +98,7 @@ public class EmbedUtil {
 
 		if (reason != null)
 			embedBuilder.addField(
-				lu.getText(event, "errors.title"),
+				lu.getText(event, "errors.additional"),
 				reason,
 				false
 			);
@@ -118,7 +118,7 @@ public class EmbedUtil {
 			user.openPrivateChannel()
 				.flatMap(ch -> ch.sendMessage(lu.getText(event, "errors.no_send_perm")))
 				.queue();
-			return MessageCreateData.fromContent("No send message perm"); //useles?
+			return MessageCreateData.fromContent("No MESSAGE_SEND perm"); //useles?
 		}
 		MessageCreateBuilder mb = new MessageCreateBuilder();
 

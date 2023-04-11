@@ -63,12 +63,12 @@ public class LogUtil {
 	}
 
 	@Nonnull
-	public MessageEmbed getUnbanEmbed(DiscordLocale locale, String userTag, String userId, String modMention, String banReason, String reason) {
+	private MessageEmbed getUnbanEmbed(DiscordLocale locale, String userTag, String userId, String modMention, String banReason, String reason) {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
 			.setAuthor(lu.getLocalized(locale, path+"unban.title").replace("{user_tag}", userTag))
 			.addField(lu.getLocalized(locale, path+"unban.user"), String.format("<@%s>", userId), true)
 			.addField(lu.getLocalized(locale, path+"unban.mod"), modMention, true)
-			.addField(lu.getLocalized(locale, path+"unban.ban_reason"), (banReason!=null ? banReason : ""), true)
+			.addField(lu.getLocalized(locale, path+"unban.ban_reason"), (banReason!=null ? banReason : "-"), true)
 			.addField(lu.getLocalized(locale, path+"unban.reason"), reason, true)
 			.setFooter("ID: "+userId)
 			.setTimestamp(Instant.now())

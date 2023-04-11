@@ -137,7 +137,7 @@ public class WebhookCmd extends CommandBase {
 
 			try {
 				// DYK, guildChannel doesn't have WebhookContainer! no shit
-				guild.getTextChannelById(channel.getId()).createWebhook(setName).queue(
+				guild.getTextChannelById(channel.getId()).createWebhook(setName).reason("By "+event.getUser().getAsTag()).queue(
 					webhook -> {
 						bot.getDBUtil().webhook.add(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 						createReplyEmbed(event,
@@ -222,7 +222,7 @@ public class WebhookCmd extends CommandBase {
 						} else {
 							if (webhook.getGuild().equals(guild)) {
 								if (delete) {
-									webhook.delete(webhook.getToken()).queue();
+									webhook.delete(webhook.getToken()).reason("By "+event.getUser().getAsTag()).queue();
 								}
 								bot.getDBUtil().webhook.remove(webhookId);
 								createReplyEmbed(event,
@@ -274,7 +274,7 @@ public class WebhookCmd extends CommandBase {
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
 					if (bot.getDBUtil().webhook.exists(webhookId)) {
-						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).queue(
+						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).reason("By "+event.getUser().getAsTag()).queue(
 							wm -> {
 								createReplyEmbed(event,
 									bot.getEmbedUtil().getEmbed(event).setDescription(
