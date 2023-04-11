@@ -41,7 +41,6 @@ jobs:
         path: |
           ./build/lib/VOTL-*
     - name: Create Release
-      if: "!contains( env.version , 'SNAPSHOT')"
       # You may pin to the exact commit or the version.
       # uses: ncipollo/release-action@40bb172bd05f266cf9ba4ff965cb61e9ee5f6d01
       uses: ncipollo/release-action@v1.12.0
@@ -53,9 +52,9 @@ jobs:
         # Generate release notes. There needs to be a previous version for it to diff against.
         generateReleaseNotes: true
         # Optionally marks this release as prerelease. Set to true to enable.
-        # prerelease: false
+        prerelease: (contains( env.version , 'SNAPSHOT'))
         # Indicates if existing release artifacts should be replaced. Defaults to true.
-        replacesArtifacts: true
+        replacesArtifacts: false
         # An optional tag for the release. If this is omitted the git ref will be used (if it is a tag).
         tag: ${{ env.version }}
         # The Github token.
