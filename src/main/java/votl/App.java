@@ -3,6 +3,9 @@ package votl;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
@@ -17,6 +20,7 @@ import votl.objects.command.CommandClient;
 import votl.objects.command.CommandClientBuilder;
 import votl.objects.constants.Constants;
 import votl.objects.constants.Links;
+import votl.services.ExpiryCheck;
 import votl.utils.*;
 import votl.utils.database.DBUtil;
 import votl.utils.file.FileManager;
@@ -62,6 +66,9 @@ public class App {
 
 	private final LogListener logListener;
 	
+	private final ScheduledExecutorService executorService;
+	private final ExpiryCheck expiryCheck;
+	
 	private final DBUtil dbUtil;
 	private final MessageUtil messageUtil;
 	private final EmbedUtil embedUtil;
@@ -100,12 +107,16 @@ public class App {
 		voiceListener	= new VoiceListener(this);
 		logListener		= new LogListener(this);
 
+		executorService = new ScheduledThreadPoolExecutor(2, r -> new Thread(r, "votl"));
+		expiryCheck		= new ExpiryCheck(this);
+
 		// Define a command client
 		CommandClient commandClient = new CommandClientBuilder()
 			.setOwnerId(fileManager.getString("config", "owner-id"))
 			.setServerInvite(Links.DISCORD)
 			.setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.FAILURE)
 			.useHelpBuilder(false)
+			.setScheduleExecutor(executorService)
 			.setStatus(OnlineStatus.ONLINE)
 			.setActivity(Activity.watching("/help"))
 			.addSlashCommands(
@@ -139,6 +150,8 @@ public class App {
 				new UnbanCmd(this, waiter),
 				new SyncCmd(this, waiter),
 				new CaseCmd(this),
+				new ReasonCmd(this),
+				new DurationCmd(this),
 				new GroupCmd(this, waiter),
 				// other
 				new PingCmd(this),
@@ -156,18 +169,18 @@ public class App {
 		acListener = new AutoCompleteListener(commandClient, dbUtil);
 
 		JDABuilder jdaBuilder = JDABuilder.createLight(fileManager.getString("config", "bot-token"))
-					.setEnabledIntents(
-						GatewayIntent.GUILD_MEMBERS,				// required for updating member profiles and ChunkingFilter
-						GatewayIntent.GUILD_VOICE_STATES			// required for CF VOICE_STATE and policy VOICE
-					)
-					.setMemberCachePolicy(policy)
-					.setChunkingFilter(ChunkingFilter.ALL)		// chunk all guilds
-					.enableCache(
-						CacheFlag.VOICE_STATE,			// required for policy VOICE
-						CacheFlag.MEMBER_OVERRIDES,		// channel permission overrides
-						CacheFlag.ROLE_TAGS				// role search
-					) 
-					.setAutoReconnect(true)
+			.setEnabledIntents(
+				GatewayIntent.GUILD_MEMBERS,				// required for updating member profiles and ChunkingFilter
+				GatewayIntent.GUILD_VOICE_STATES			// required for CF VOICE_STATE and policy VOICE
+			)
+			.setMemberCachePolicy(policy)
+			.setChunkingFilter(ChunkingFilter.ALL)		// chunk all guilds
+			.enableCache(
+				CacheFlag.VOICE_STATE,			// required for policy VOICE
+				CacheFlag.MEMBER_OVERRIDES,		// channel permission overrides
+				CacheFlag.ROLE_TAGS				// role search
+			) 
+			.setAutoReconnect(true)
 			.addEventListeners(commandClient, waiter, guildListener, voiceListener, acListener);
 
 		Integer retries = 4; // how many times will it try to build
@@ -195,7 +208,8 @@ public class App {
 				}
 			}
 		}
-		
+
+		executorService.scheduleWithFixedDelay(() -> expiryCheck.checkUnbans(), 5, 15, TimeUnit.MINUTES);
 
 		this.jda = setJda;
 	}

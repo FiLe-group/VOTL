@@ -457,6 +457,23 @@
 				"option_id": "Введите case ID",
 				"not_found": "Не удалось найти case(бан) по указанному ID"
 			},
+			"reason": {
+				"help": "Изменить причину бана",
+				"usage": "/reason <case ID> <reason>",
+				"option_id": "Введите case ID",
+				"option_reason": "Введите новую причину",
+				"not_found": "Не удалось найти case(бан) по указанному ID",
+				"done": "Причина бана (Case {id}) успешно изменена:\n```{reason}```"
+			},
+			"duration": {
+				"help": "Изменить длительность бана",
+				"usage": "/duration <case ID> <duration>",
+				"option_id": "Введите case ID",
+				"option_time": "Временно забанить участника (Пример: 2h, 2w5d (week, day, hour, minute) | Дефолт: навсегда)",
+				"not_found": "Не удалось найти case(бан) по указанному ID",
+				"is_expired": "Указанное наказание истекло.",
+				"done": "Длительность бана (Case {id}) успешно изменена на: {duration}"
+			},
 			"embeds": {
 				"ban": {
 					"short_title": "Информация о бане",
@@ -479,6 +496,20 @@
 					"title_synced": "Синхрон. разбан | {user_tag}",
 					"master": "Основной сервер",
 					"enforcer": "Сделано"
+				},
+				"change": {
+					"reason": "Case {case_id} | Причина изменена | {user_tag}",
+					"duration": "Case {case_id} | Длительность изменена | {user_tag}",
+					"user": "Пользователь",
+					"mod": "Модератор"
+				},
+				"expired": {
+					"unban": {
+						"title": "Бан истёк | {user_tag}",
+						"user": "Пользователь",
+						"ban_reason": "Забанен за",
+						"duration": "Длительность"
+					}
 				},
 				"permanently": "навсегда",
 				"temporary": "до {time}",

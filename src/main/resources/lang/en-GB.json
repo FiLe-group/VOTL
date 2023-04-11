@@ -459,6 +459,23 @@
 				"option_id": "Enter case ID",
 				"not_found": "Could not find case(ban) by specified ID"
 			},
+			"reason": {
+				"help": "Change ban reason",
+				"usage": "/reason <case ID> <reason>",
+				"option_id": "Enter case ID",
+				"option_reason": "Enter new reason",
+				"not_found": "Could not find case(ban) by specified ID",
+				"done": "Successfully changed ban (Case {id}) reason to:\n```{reason}```"
+			},
+			"duration": {
+				"help": "Change ban duration",
+				"usage": "/duration <case ID> <duration>",
+				"option_id": "Enter case ID",
+				"option_time": "Enter new duration (Example: 2h, 2w5d (week, day, hour, minute) | 0)",
+				"not_found": "Could not find case(ban) by specified ID",
+				"is_expired": "Specified case has expired.",
+				"done": "Successfully changed ban (Case {id}) duration to: {duration}"
+			},
 			"embeds": {
 				"ban": {
 					"short_title": "Ban info",
@@ -481,6 +498,20 @@
 					"title_synced": "Synced Unban | {user_tag}",
 					"master": "Master server",
 					"enforcer": "Done by"
+				},
+				"change": {
+					"reason": "Case {case_id} | Reason changed | {user_tag}",
+					"duration": "Case {case_id} | Duration changed | {user_tag}",
+					"user": "User",
+					"mod": "Moderator"
+				},
+				"expired": {
+					"unban": {
+						"title": "Ban expired | {user_tag}",
+						"user": "User",
+						"ban_reason": "Banned for",
+						"duration": "Duration"
+					}
 				},
 				"permanently": "permanently",
 				"temporary": "until {time}",

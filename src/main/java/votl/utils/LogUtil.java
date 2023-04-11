@@ -105,6 +105,46 @@ public class LogUtil {
 	}
 
 	@Nonnull
+	public MessageEmbed getAutoUnbanEmbed(DiscordLocale locale, Map<String, Object> banMap) {
+		return getAutoUnbanEmbed(locale, banMap.get("userTag").toString(), banMap.get("userId").toString(), banMap.get("reason").toString(), Duration.parse(banMap.get("duration").toString()));
+	}
+
+	@Nonnull
+	private MessageEmbed getAutoUnbanEmbed(DiscordLocale locale, String userTag, String userId, String banReason, Duration duration) {
+		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
+			.setAuthor(lu.getLocalized(locale, path+"unban.title").replace("{user_tag}", userTag))
+			.addField(lu.getLocalized(locale, path+"unban.user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"unban.ban_reason"), (banReason!=null ? banReason : "-"), true)
+			.addField(lu.getLocalized(locale, path+"ban.duration"), bot.getTimeUtil().durationToString(duration), true)
+			.setFooter("ID: "+userId)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getReasonChangeEmbed(DiscordLocale locale, Integer caseId, String userTag, String userId, String modId, String oldReason, String newReason) {
+		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
+			.setAuthor(lu.getLocalized(locale, path+"change.reason").replace("{case_id}", caseId.toString()).replace("{user_tag}", userTag))
+			.setDescription("🔴 ~~"+oldReason+"~~\n\n🟢 "+newReason)
+			.addField(lu.getLocalized(locale, path+"change.user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"change.mod"), String.format("<@%s>", modId), true)
+			.setFooter("ID: "+userId)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getDurationChangeEmbed(DiscordLocale locale, Integer caseId, String userTag, String userId, String modId, Instant timeStart, Duration oldDuration, String newTime) {
+		String oldTime = oldDuration.isZero() ? lu.getLocalized(locale, path+"permanently") : lu.getLocalized(locale, path+"temporary")
+			.replace("{time}", bot.getTimeUtil().formatTime(timeStart.plus(oldDuration), false));
+		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
+			.setAuthor(lu.getLocalized(locale, path+"change.reason").replace("{case_id}", caseId.toString()).replace("{user_tag}", userTag))
+			.setDescription("🔴 ~~"+oldTime+"~~\n\n🟢 "+newTime)
+			.addField(lu.getLocalized(locale, path+"change.user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"change.mod"), String.format("<@%s>", modId), true)
+			.setFooter("ID: "+userId)
+			.build();
+	}
+
+	@Nonnull
 	private EmbedBuilder groupLogEmbed(DiscordLocale locale, String masterId, String masterIcon, Integer groupId, String name) {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
 			.setAuthor(lu.getLocalized(locale, path+"group.title").replace("{group_name}", name).replace("{group_id}", groupId.toString()), null, masterIcon)

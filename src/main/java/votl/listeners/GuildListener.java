@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -89,5 +90,13 @@ public class GuildListener extends ListenerAdapter {
 
 		bot.getLogger().info("Automatically removed guild '"+event.getGuild().getName()+"'("+guildId+") from db.");
 		bot.getLogger().info("Left guild '"+event.getGuild().getName()+"'("+guildId+")");
+	}
+
+	@Override
+	public void onGuildUnban(@Nonnull GuildUnbanEvent event) {
+		Map<String, Object> banData = db.ban.getMemberExpirable(event.getUser().getId(), event.getGuild().getId());
+		if (!banData.isEmpty()) {
+			db.ban.setInactive(Integer.valueOf(banData.get("badId").toString()));
+		}
 	}
 }
