@@ -29,6 +29,7 @@ public enum Emotes {
 	POWER       ("power",       "960101627136737280", false),
 	ADDUSER     ("adduser",     "960101846687551508", false),
 	REMOVEUSER  ("removeuser",  "960101868577648640", false),
+	NONE		("none",        "1095073050657034321", false),
 	CHECK_C		("color_check", "1043105156700577842", false),
 	CROSS_C		("color_cross", "1043105216133865522", false),
 	WARNING_C	("color_warning", "1043105732347834428", false);

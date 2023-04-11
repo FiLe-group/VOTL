@@ -24,6 +24,6 @@ public final class Constants {
 	public static final Integer COLOR_FAILURE = 0xB31E22;
 	public static final Integer COLOR_WARNING = 0xFDB81E;
 
-	public static final String DEVELOPER_NAME = "GreenLord#0593";
+	public static final String DEVELOPER_TAG = "GreenLord#0593";
 	public static final String DEVELOPER_ID = "369062521719488524";
 }

@@ -1,13 +1,9 @@
-/*
- * User Manual available at https://docs.gradle.org/7.3.3/userguide/building_java_projects.html
- */
-
 plugins {
 	id 'java'
 	// Apply the application plugin to add support for building a CLI application in Java.
 	id 'application'
 	// ShadowJar
-	id 'com.github.johnrengelman.shadow' version '7.1.2'
+	id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 // Getting version
@@ -30,22 +26,22 @@ dependencies {
 	implementation 'com.google.guava:guava:31.1-jre'
 
 	// JDA library
-	implementation 'net.dv8tion:JDA:5.0.0-beta.4'					// JDA library
-	implementation 'ch.qos.logback:logback-classic:1.4.5'			// Logging (required by JDA)
+	implementation 'net.dv8tion:JDA:5.0.0-beta.8'					// JDA library
+	implementation 'ch.qos.logback:logback-classic:1.4.6'			// Logging (required by JDA)
 
 	// Chewtils extentions
 	implementation 'pw.chew:jda-chewtils-commons:2.0-SNAPSHOT'		// Commons Package
 	implementation 'pw.chew:jda-chewtils-doc:2.0-SNAPSHOT'			// Documentation Package (future implementation)
 
 	// Tools
-	implementation 'com.jayway.jsonpath:json-path:2.7.0'			// json path-er
-	implementation 'org.xerial:sqlite-jdbc:3.40.1.0'				// sqlite database
+	implementation 'com.jayway.jsonpath:json-path:2.8.0'			// json path-er
+	implementation 'org.xerial:sqlite-jdbc:3.41.2.1'				// sqlite database
 
 	// Eval
-	implementation 'org.apache.groovy:groovy:4.0.9'					// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:4.0.11'				// Groovy - code evaluation
 
 	// Chewtils commands
-	implementation 'org.json:json:20220924'
+	implementation 'org.json:json:20230227'
 
 }
 
@@ -57,7 +53,7 @@ sourceSets {
 // jar's Manifest
 jar {
 	manifest {
-		attributes 'Implementation-Title': 'Gradle start script',
+		attributes 'Implementation-Title': 'Gradle script',
 				   'Implementation-Version': version,
 				   'Implementation-Vendor': 'FiLe group',
 				   'Main-Class': group

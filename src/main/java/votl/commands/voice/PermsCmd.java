@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import votl.App;
 import votl.commands.CommandBase;
 import votl.objects.CmdModule;
+import votl.objects.Emotes;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
@@ -83,7 +84,7 @@ public class PermsCmd extends CommandBase {
 			String view = contains(publicOverride, Permission.VIEW_CHANNEL);
 			String join = contains(publicOverride, Permission.VOICE_CONNECT);
 			
-			embedBuilder = embedBuilder.appendDescription("> " + formatHolder(lu.getLocalized(userLocale, "bot.voice.perms.view.embed.everyone"), view, join))
+			embedBuilder = embedBuilder.appendDescription(formatHolder(lu.getLocalized(userLocale, "bot.voice.perms.view.embed.everyone"), view, join))
 				.appendDescription("\n\n" + lu.getLocalized(userLocale, "bot.voice.perms.view.embed.roles") + "\n");
 
 			//Roles
@@ -102,7 +103,7 @@ public class PermsCmd extends CommandBase {
 					view = contains(ov, Permission.VIEW_CHANNEL);
 					join = contains(ov, Permission.VOICE_CONNECT);
 
-					embedBuilder.appendDescription("> " + formatHolder(ov.getRole().getName(), view, join) + "\n");
+					embedBuilder.appendDescription(formatHolder(ov.getRole().getName(), view, join) + "\n");
 				}
 			}
 			embedBuilder.appendDescription("\n" + lu.getLocalized(userLocale, "bot.voice.perms.view.embed.members") + "\n");
@@ -129,7 +130,7 @@ public class PermsCmd extends CommandBase {
 							String join2 = contains(ov, Permission.VOICE_CONNECT);
 
 							Member find = members.stream().filter(m -> m.getId().equals(ov.getId())).findFirst().get(); 
-							embedBuilder2.appendDescription("> " + formatHolder(find.getEffectiveName(), view2, join2) + "\n");
+							embedBuilder2.appendDescription(formatHolder(find.getEffectiveName(), view2, join2) + "\n");
 						}
 					}
 
@@ -141,16 +142,16 @@ public class PermsCmd extends CommandBase {
 		private String contains(PermissionOverride override, Permission perm) {
 			if (override != null) {
 				if (override.getAllowed().contains(perm))
-					return "✅";
+					return Emotes.CHECK_C.getEmote();
 				else if (override.getDenied().contains(perm))
-					return "❌";
+					return Emotes.CROSS_C.getEmote();
 			}
-			return "▪️";
+			return Emotes.NONE.getEmote();
 		}
 
 		@Nonnull
 		private String formatHolder(String holder, String view, String join) {
-			return "`" + view + "` | `" + join + "` | `" + holder + "`";
+			return "> " + view + " | " + join + " | `" + holder + "`";
 		}
 	}
 

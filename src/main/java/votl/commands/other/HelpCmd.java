@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import votl.App;
 import votl.commands.CommandBase;
+import votl.objects.Emotes;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
@@ -88,8 +89,8 @@ public class HelpCmd extends CommandBase {
 				.setDescription(lu.getLocalized(userLocale, "bot.help.command_info.value")
 					.replace("{category}", Optional.ofNullable(command.getCategory())
 						.map(cat -> lu.getLocalized(userLocale, "bot.help.command_menu.categories."+cat.getName())).orElse(Constants.NONE))
-					.replace("{owner}", command.isOwnerCommand() ? Constants.SUCCESS : Constants.FAILURE)
-					.replace("{guild}", command.isGuildOnly() ? Constants.SUCCESS : Constants.FAILURE)
+					.replace("{owner}", command.isOwnerCommand() ? Emotes.CHECK_C.getEmote() : Emotes.CROSS_C.getEmote())
+					.replace("{guild}", command.isGuildOnly() ? Emotes.CHECK_C.getEmote() : Emotes.CROSS_C.getEmote())
 					.replace("{module}", Optional.ofNullable(command.getModule()).map(mod -> lu.getLocalized(userLocale, mod.getPath())).orElse(Constants.NONE)))
 				.addField(lu.getLocalized(userLocale, "bot.help.command_info.help_title"), lu.getLocalized(userLocale, command.getHelpPath()), false)
 				.addField(lu.getLocalized(userLocale, "bot.help.command_info.usage_title"), lu.getLocalized(userLocale, "bot.help.command_info.usage_value")
