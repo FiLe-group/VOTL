@@ -202,16 +202,24 @@ public abstract class Command extends Interaction
 		}
 
 		if (event.getChannelType() != ChannelType.PRIVATE) {
+			Guild guild = event.getGuild();
+			Member author = event.getMember();
+			if (mustSetup) {
+				try {
+					bot.getCheckUtil()
+					// check setup
+						.guildExists(event, guild)
+					// check module enabled
+						.moduleEnabled(event, guild, getModule())
+					// check access
+						.hasAccess(event, client, author, getAccessLevel());
+				} catch (CheckException ex) {
+					terminate(event, ex.getCreateData());
+					return;
+				}
+			}
 			try {
-				Guild guild = event.getGuild();
-				Member author = event.getMember();
 				bot.getCheckUtil()
-				// check setup
-					.guildExists(event, guild, getMustSetup())
-				// check module enabled
-					.moduleEnabled(event, guild, getModule())
-				// check access
-					.hasAccess(event, client, author, getAccessLevel())
 				// check user perms
 					.hasPermissions(event, guild, author, getUserPermissions())
 				// check bots perms

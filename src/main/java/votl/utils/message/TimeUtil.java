@@ -1,6 +1,7 @@
-package votl.utils;
+package votl.utils.message;
 
 import java.time.Duration;
+import java.time.temporal.TemporalAccessor;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -10,12 +11,14 @@ import javax.annotation.Nullable;
 
 import votl.utils.exception.FormatterException;
 
-public class FormatUtil {
+import net.dv8tion.jda.api.utils.TimeFormat;
+
+public class TimeUtil {
 
 	private final Pattern timePatternFull = Pattern.compile("^(([0-9]+)([smhdw]{1}))+$", Pattern.CASE_INSENSITIVE);
 	private final Pattern timePattern = Pattern.compile("([0-9]+)([smhdw]{1})", Pattern.CASE_INSENSITIVE);
 	
-	public FormatUtil() {}
+	public TimeUtil() {}
 
 	private enum TimeFormats{
 		SECONDS('s', 1),
@@ -59,7 +62,7 @@ public class FormatUtil {
 	 * but they are quite inconvinient, as we want to
 	 * use both duration(h m s) and period(w d).
 	 */
-	public Duration getDuration(String text, boolean allowSeconds) throws FormatterException {
+	public Duration stringToDuration(String text, boolean allowSeconds) throws FormatterException {
 		if (text == null || text.isEmpty()) {
 			return Duration.ZERO;
 		}
@@ -85,11 +88,53 @@ public class FormatUtil {
 			} catch (NumberFormatException ex) {
 				throw new FormatterException("errors.formatter.parse_long");
 			} catch (ArithmeticException ex) {
-				throw new FormatterException("errors.formatter.long_owerflow");
+				throw new FormatterException("errors.formatter.long_overflow");
 			}
 		}
 		
 		return Duration.ofSeconds(time);
+	}
+
+	public String durationToString(Duration duration) {
+		if (duration.isZero()) {
+			return "0 seconds";
+		}
+
+		StringBuffer buffer = new StringBuffer();
+		Long days = duration.toDaysPart();
+		if (days >= 7) {
+			Integer weeks = Math.floorMod(days, 7);
+			buffer.append(weeks+" weeks ");
+			days -= weeks*7;
+		}
+		if (days > 0) buffer.append(duration.toDays()+" days ");
+		
+		Integer value = duration.toHoursPart();
+		if (value > 0) buffer.append(value+" hours ");
+		value = duration.toMinutesPart();
+		if (value > 0) buffer.append(value+" minutes ");
+		value = duration.toSecondsPart();
+		if (value > 0) buffer.append(value+" seconds");
+
+		return buffer.toString();
+	}
+
+	public String formatTime(TemporalAccessor time, Boolean full) {
+		if (time != null) {
+			if (full) {
+				return String.format(
+					"%s (%s)",
+					TimeFormat.DATE_TIME_SHORT.format(time),
+					TimeFormat.RELATIVE.format(time)
+				);
+			}
+			return String.format(
+				"%s %s",
+				TimeFormat.DATE_SHORT.format(time),
+				TimeFormat.TIME_SHORT.format(time)
+			);
+		}
+		return "";
 	}
 
 }

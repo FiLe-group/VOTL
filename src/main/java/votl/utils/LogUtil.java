@@ -50,7 +50,7 @@ public class LogUtil {
 			.addField(lu.getLocalized(locale, path+"ban.mod"), String.format("<@%s>", modId), true)
 			.addField(lu.getLocalized(locale, path+"ban.duration"), duration.isZero() ? lu.getLocalized(locale, path+"permanently") : 
 				lu.getLocalized(locale, path+"temporary")
-					.replace("{time}", bot.getMessageUtil().formatTime(timeEnd, false)), true)
+					.replace("{time}", bot.getTimeUtil().formatTime(timeEnd, false)), true)
 			.addField(lu.getLocalized(locale, path+"ban.reason"), reason, true)
 			.setFooter("ID: "+userId)
 			.setTimestamp(timeStart)

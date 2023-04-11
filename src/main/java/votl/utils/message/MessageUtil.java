@@ -2,14 +2,12 @@ package votl.utils.message;
 
 import java.awt.Color;
 import java.text.DecimalFormat;
-import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.Random;
 
 import votl.App;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.utils.TimeFormat;
 
 public class MessageUtil {
 
@@ -21,24 +19,6 @@ public class MessageUtil {
 	public MessageUtil(App bot) {
 		this.random = bot.getRandom();
 		this.lu = bot.getLocaleUtil();
-	}
-
-	public String formatTime(TemporalAccessor time, Boolean full) {
-		if (time != null) {
-			if (full) {
-				return String.format(
-					"%s (%s)",
-					TimeFormat.DATE_TIME_SHORT.format(time),
-					TimeFormat.RELATIVE.format(time)
-				);
-			}
-			return String.format(
-				"%s %s",
-				TimeFormat.DATE_SHORT.format(time),
-				TimeFormat.TIME_SHORT.format(time)
-			);
-		}
-		return "";
 	}
 
 	public String capitalize(final String str) {

@@ -6,6 +6,7 @@ import votl.App;
 import votl.objects.CmdAccessLevel;
 import votl.objects.CmdModule;
 import votl.objects.command.CommandClient;
+import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.Constants;
 import votl.utils.exception.CheckException;
 
@@ -64,15 +65,20 @@ public class CheckUtil {
 		return getAccessLevel(client, who).getLevel() > getAccessLevel(client, than).getLevel();
 	}
 
+	public Boolean hasAccess(SlashCommandEvent event, CmdAccessLevel accessLevel) {
+		if (getAccessLevel(event.getClient(), event.getMember()).getLevel() >= accessLevel.getLevel()) {
+			return true;
+		}
+		return false;
+	}
+
 	public <T> CheckUtil hasAccess(T event, CommandClient client, Member member, CmdAccessLevel accessLevel) throws CheckException {
 		if (accessLevel.getLevel() > getAccessLevel(client, member).getLevel())
 			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.low_access_level", "Access: "+accessLevel.getName()));
 		return this;
 	}
 
-	public <T> CheckUtil guildExists(T event, Guild guild, boolean mustSetup) throws CheckException {
-		if (!mustSetup)
-			return this;
+	public <T> CheckUtil guildExists(T event, Guild guild) throws CheckException {
 		if (!bot.getDBUtil().guild.exists(guild.getId()))
 			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
 		return this;
