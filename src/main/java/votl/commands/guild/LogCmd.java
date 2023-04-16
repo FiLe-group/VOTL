@@ -32,14 +32,7 @@ import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu.S
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
-@CommandInfo
-(
-	name = "log",
-	description = "Manage guild's log settings",
-	usage = "/log setup|remove|manage"
-)
 public class LogCmd extends CommandBase {
 
 	private static EventWaiter waiter;

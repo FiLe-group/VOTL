@@ -5,15 +5,6 @@ import votl.commands.CommandBase;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo
-(
-	name = "Ping",
-	description = "Checks the bot's latency.",
-	usage = "/ping",
-	requirements = "none"
-)
 public class PingCmd extends CommandBase {
 	
 	public PingCmd(App bot) {

@@ -14,14 +14,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "SetName",
-	description = "Sets default name for custom's voice channels.",
-	usage = "/setname <name:String from 1 to 100>",
-	requirements = "Have 'Manage server' permission"
-)
 public class SetNameCmd extends CommandBase {
 	
 	public SetNameCmd(App bot) {

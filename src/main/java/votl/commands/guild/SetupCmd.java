@@ -17,15 +17,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo
-(
-	name = "setup",
-	description = "Setup menu for this server.",
-	usage = "/setup <main / voice>",
-	requirements = "Have 'Manage Server' permission"
-)
 public class SetupCmd extends CommandBase {
 
 	public SetupCmd(App bot) {

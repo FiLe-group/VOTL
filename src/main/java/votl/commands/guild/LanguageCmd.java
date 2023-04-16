@@ -24,15 +24,6 @@ import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo
-(
-	name = "language",
-	description = "Set language for guild.",
-	usage = "/language <reset / language:>",
-	requirements = "Have 'Manage server' permission"
-)
 public class LanguageCmd extends CommandBase {
 
 	public LanguageCmd(App bot) {

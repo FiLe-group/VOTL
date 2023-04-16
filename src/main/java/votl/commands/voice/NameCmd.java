@@ -18,14 +18,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "Name",
-	description = "Sets name for your channel.",
-	usage = "/name <name:String>",
-	requirements = "Must have created voice channel"
-)
 public class NameCmd extends CommandBase {
 
 	public NameCmd(App bot) {

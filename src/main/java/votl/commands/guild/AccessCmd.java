@@ -18,12 +18,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "access",
-	usage = "/access <show / add / remove>"
-)
 public class AccessCmd extends CommandBase {
 
 	public AccessCmd(App bot) {

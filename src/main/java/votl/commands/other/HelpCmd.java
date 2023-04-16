@@ -20,14 +20,6 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo
-(
-	name = "help",
-	description = "shows help menu",
-	usage = "/help [show?][category:]"
-)
 public class HelpCmd extends CommandBase {
 
 	public HelpCmd(App bot) {

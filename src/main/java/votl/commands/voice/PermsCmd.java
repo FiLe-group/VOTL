@@ -23,14 +23,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "perms",
-	description = "View/Reset voice channel permissions",
-	usage = "/perms <select>",
-	requirements = "Must have created voice channel"
-)
 public class PermsCmd extends CommandBase {
 
 	public PermsCmd(App bot) {

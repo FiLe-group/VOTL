@@ -22,14 +22,6 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "reject",
-	description = "Withdraw the user permission to join your channel.",
-	usage = "/reject <mention:user/-s role/-s>",
-	requirements = "Must have created voice channel"
-)
 public class RejectCmd extends CommandBase {
 
 	public RejectCmd(App bot) {

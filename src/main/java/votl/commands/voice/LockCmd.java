@@ -14,14 +14,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "lock",
-	description = "Locks voice channel for @everyone (ex. allowed one).",
-	usage = "/lock",
-	requirements = "Must have created voice channel"
-)
 public class LockCmd extends CommandBase {
 
 	public LockCmd(App bot) {

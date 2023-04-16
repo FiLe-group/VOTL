@@ -22,13 +22,6 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-@CommandInfo(
-	name = "permit",
-	description = "Gives the user permission to join your channel.",
-	usage = "/permit <mention:user/-s role/-s>",
-	requirements = "Must have created voice channel"
-)
 public class PermitCmd extends CommandBase {
 
 	public PermitCmd(App bot) {

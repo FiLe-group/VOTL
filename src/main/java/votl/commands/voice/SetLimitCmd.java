@@ -14,14 +14,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "SetLimit",
-	description = "Sets default user limit for server's voice channels.",
-	usage = "/setlimit <limit:Integer from 0 to 99>",
-	requirements = "Have 'Manage server' permission"
-)
 public class SetLimitCmd extends CommandBase {
 
 	public SetLimitCmd(App bot) {

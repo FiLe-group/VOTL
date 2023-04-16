@@ -18,14 +18,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "Limit",
-	description = "Sets limit for your channel.",
-	usage = "/limit <limit:Integer from 0 to 99>",
-	requirements = "Must have created voice channel"
-)
 public class LimitCmd extends CommandBase {
 
 	public LimitCmd(App bot) {

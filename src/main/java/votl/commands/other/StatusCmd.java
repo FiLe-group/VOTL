@@ -12,13 +12,6 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "status",
-	description = "Gets bot's status.",
-	usage = "/status [show?]"
-)
 public class StatusCmd extends CommandBase {
 
 	public StatusCmd(App bot) {

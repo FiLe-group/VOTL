@@ -16,14 +16,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo
-(
-	name = "reason",
-	description = "change case reason",
-	usage = "/reason <caseId> <newReason>"
-)
 public class ReasonCmd extends CommandBase {
 	
 	public ReasonCmd(App bot) {

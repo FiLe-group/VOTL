@@ -15,14 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
-@CommandInfo
-(
-	name = "About",
-	description = "Gets information about the bot.",
-	usage = "/about [show?]"
-)
 public class AboutCmd extends CommandBase {
 
 	public AboutCmd(App bot) {

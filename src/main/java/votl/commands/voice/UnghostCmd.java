@@ -14,14 +14,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "unghost",
-	description = "Unhide voice channel from @everyone",
-	usage = "/unghost",
-	requirements = "Must have created voice channel"
-)
 public class UnghostCmd extends CommandBase {
 
 	public UnghostCmd(App bot) {

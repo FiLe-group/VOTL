@@ -16,20 +16,11 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
 import org.codehaus.groovy.runtime.powerassert.PowerAssertionError;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 
-@CommandInfo
-(
-	name = "Eval",
-	usage = "/eval <code:>",
-	description = "Evaluates givven code.",
-	requirements = {"Be the bot's owner", "Have fck knowledge of what your're doing with it"}
-)
 public class EvalCmd extends CommandBase {
 	
 	public EvalCmd(App bot) {

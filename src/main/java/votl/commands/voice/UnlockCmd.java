@@ -14,14 +14,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "unlock",
-	description = "Unlocks voice channel for @everyone (ex. disallowed users).",
-	usage = "/unlock",
-	requirements = "Must have created voice channel"
-)
 public class UnlockCmd extends CommandBase {
 
 	public UnlockCmd(App bot) {

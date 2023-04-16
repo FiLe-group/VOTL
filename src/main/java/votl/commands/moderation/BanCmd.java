@@ -34,14 +34,7 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
 
-@CommandInfo
-(
-	name = "ban",
-	description = "ban guild member on server",
-	usage = "/ban <@member>[time:][reason:][delete?]"
-)
 public class BanCmd extends CommandBase {
 
 	private EventWaiter waiter;

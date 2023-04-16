@@ -14,14 +14,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo
-(
-	name = "case",
-	description = "view ban info by case ID",
-	usage = "/case <caseId>"
-)
 public class CaseCmd extends CommandBase {
 
 	public CaseCmd(App bot) {

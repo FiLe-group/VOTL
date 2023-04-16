@@ -31,7 +31,6 @@ dependencies {
 
 	// Chewtils extentions
 	implementation 'pw.chew:jda-chewtils-commons:2.0-SNAPSHOT'		// Commons Package
-	implementation 'pw.chew:jda-chewtils-doc:2.0-SNAPSHOT'			// Documentation Package (future implementation)
 
 	// Tools
 	implementation 'com.jayway.jsonpath:json-path:2.8.0'			// json path-er
@@ -42,7 +41,6 @@ dependencies {
 
 	// Chewtils commands
 	implementation 'org.json:json:20230227'
-
 }
 
 // Changes builded libraries directory from 'libs' to 'lib'

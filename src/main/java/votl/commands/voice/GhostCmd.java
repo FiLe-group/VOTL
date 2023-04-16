@@ -14,14 +14,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "ghost",
-	description = "Hides voice channel from @everyone",
-	usage = "/ghost",
-	requirements = "Must have created voice channel"
-)
 public class GhostCmd extends CommandBase {
 
 	public GhostCmd(App bot) {

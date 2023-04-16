@@ -16,14 +16,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
-import com.jagrosh.jdautilities.doc.standard.CommandInfo;
-
-@CommandInfo(
-	name = "Claim",
-	description = "Claim ownership of channel once owner has left.",
-	usage = "/claim",
-	requirements = "Must be in un-owned custom voice channel"
-)
 public class ClaimCmd extends CommandBase {
 
 	public ClaimCmd(App bot) {
