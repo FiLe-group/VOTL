@@ -41,6 +41,7 @@ dependencies {
 
 	// Chewtils commands
 	implementation 'org.json:json:20230227'
+	implementation 'net.minidev:json-smart:2.4.10'
 }
 
 // Changes builded libraries directory from 'libs' to 'lib'
