@@ -143,6 +143,7 @@ public class App {
 				new ShutdownCmd(this),
 				new EvalCmd(this),
 				new InviteCmd(this),
+				new GenerateListCmd(this),
 				// webhook
 				new WebhookCmd(this),
 				// moderation

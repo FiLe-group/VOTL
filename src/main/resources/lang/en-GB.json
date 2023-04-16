@@ -72,6 +72,11 @@
 				"help": "Get bot's invite url",
 				"usage": "invite",
 				"value": "Here is my invite link: {bot_invite}"
+			},
+			"generate": {
+				"help": "Generates json file with information about all bot's public commands",
+				"usage": "generate",
+				"error": "Unknown error, see below."
 			}
 		},
 		"guild": {
@@ -451,7 +456,7 @@
 				},
 				"unban": {
 					"help": "Sync unban with group servers",
-					"unban": "unban <@User | ID> <master group>",
+					"usage": "unban <@User | ID> <master group>",
 					"option_member": "Enter member ID or ping them",
 					"option_group": "Select the group you are master of",
 					"not_found": "Could not find member by specified ID.\nUser **must** be unbaned here and joined this server.",
