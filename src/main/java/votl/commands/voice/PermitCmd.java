@@ -29,7 +29,7 @@ public class PermitCmd extends CommandBase {
 		this.name = "permit";
 		this.path = "bot.voice.permit";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "mention", lu.getText(path+".option_description"), true)
+			new OptionData(OptionType.STRING, "mention", lu.getText(path+".option_mention"), true)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
 		this.category = CmdCategory.VOICE;
@@ -51,7 +51,7 @@ public class PermitCmd extends CommandBase {
 
 		Mentions filMentions = event.optMentions("mention");
 		if (filMentions == null) {
-			editError(event, "bot.voice.permit.invalid_args");
+			editError(event, path+".invalid_args");
 			return;
 		}
 
@@ -60,11 +60,11 @@ public class PermitCmd extends CommandBase {
 		List<Member> members = filMentions.getMembers();
 		List<Role> roles = filMentions.getRoles();
 		if (members.isEmpty() & roles.isEmpty()) {
-			editError(event, "bot.voice.permit.invalid_args");
+			editError(event, path+".invalid_args");
 			return;
 		}
 		if (members.contains(author) || members.contains(guild.getSelfMember())) {
-			editError(event, "bot.voice.permit.not_self");
+			editError(event, path+".not_self");
 			return;
 		}
 
@@ -94,7 +94,7 @@ public class PermitCmd extends CommandBase {
 
 		editHookEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getUserText(event, "bot.voice.permit.done", mentionStrings))
+				.setDescription(lu.getUserText(event, path+".done", mentionStrings))
 				.build()
 		);
 	}

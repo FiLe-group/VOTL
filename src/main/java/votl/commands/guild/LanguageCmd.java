@@ -65,7 +65,7 @@ public class LanguageCmd extends CommandBase {
 			this.name = "set";
 			this.path = "bot.guild.language.set";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "language", lu.getText(path+".option_description"), true)
+				new OptionData(OptionType.STRING, "language", lu.getText(path+".option_language"), true)
 					.addChoices(getLangList().stream().map(
 						locale -> {
 							return new Choice(locale.getLocale(), locale.getLocale());

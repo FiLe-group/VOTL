@@ -21,7 +21,7 @@ public class SetLimitCmd extends CommandBase {
 		this.name = "setlimit";
 		this.path = "bot.voice.setlimit";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.INTEGER, "limit", lu.getText(path+".option_description"), true)
+			new OptionData(OptionType.INTEGER, "limit", lu.getText(path+".option_limit"), true)
 				.setRequiredRange(0, 99)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
@@ -41,7 +41,7 @@ public class SetLimitCmd extends CommandBase {
 
 		createReplyEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, "bot.voice.setlimit.done").replace("{value}", filLimit.toString()))
+				.setDescription(lu.getText(event, path+".done").replace("{value}", filLimit.toString()))
 				.build()
 		);
 	}

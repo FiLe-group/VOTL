@@ -21,7 +21,7 @@ public class SetNameCmd extends CommandBase {
 		this.name = "setname";
 		this.path = "bot.voice.setname";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "name", lu.getText(path+".option_description"), true)
+			new OptionData(OptionType.STRING, "name", lu.getText(path+".option_name"), true)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.VOICE;
@@ -35,7 +35,7 @@ public class SetNameCmd extends CommandBase {
 		String filName = event.optString("name", "Default name"); // REDO
 
 		if (filName.isEmpty() || filName.length() > 100) {
-			createError(event, "bot.voice.setname.invalid_range");
+			createError(event, path+".invalid_range");
 			return;
 		}
 
@@ -45,7 +45,7 @@ public class SetNameCmd extends CommandBase {
 
 		createReplyEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, "bot.voice.setname.done").replace("{value}", filName))
+				.setDescription(lu.getText(event, path+".done").replace("{value}", filName))
 				.build()
 		);
 	}

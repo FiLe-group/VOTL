@@ -48,7 +48,7 @@ public class UnlockCmd extends CommandBase {
 
 		createReplyEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, "bot.voice.unlock.done"))
+				.setDescription(lu.getText(event, path+".done"))
 				.build()
 		);
 	}

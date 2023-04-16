@@ -58,7 +58,7 @@
 		"owner": {
 			"eval": {
 				"help": "Evaluates code using Groovy",
-				"usage": "/eval <code>",
+				"usage": "eval <code>",
 				"code_description": "Enter your code to evaluate",
 				"time": "Evaluated in {time}ms",
 				"input": "Input:",
@@ -66,27 +66,29 @@
 			},
 			"shutdown": {
 				"help": "Safely shuts down the bot",
-				"usage": "/shutdown"
+				"usage": "shutdown"
 			},
 			"invite": {
 				"help": "Get bot's invite url",
-				"usage": "/invite",
+				"usage": "invite",
 				"value": "Here is my invite link: {bot_invite}"
 			}
 		},
 		"guild": {
 			"language": {
 				"help": "Manage bot's localization used on this server",
-				"usage": "/language show\n... set <language>\n... reset",
 				"reset": {
-					"help": "Reset language to default"
+					"help": "Reset language to default",
+					"usage": "reset"
 				},
 				"set": {
 					"help": "Set language for this server",
-					"option_description": "Enter selected language"
+					"usage": "set <language>",
+					"option_language": "Enter selected language"
 				},
 				"show": {
 					"help": "Shows all available languages",
+					"usage": "show",
 					"embed": {
 						"title": "Available languages",
 						"value": "*Use `/language set <language>` to set chosen language in this server*\n**OR**\n*Type `/language reset` to set language to default(en-GB).*",
@@ -97,21 +99,25 @@
 			},
 			"setup": {
 				"help": "Setup menu for this server",
-				"usage": "/setup main\n... voice",
-				"preview": "Preview current setting for this server",
-				"reset": "Reset settings",
 				"main": {
 					"help": "Setup main function (without touching other modules)",
+					"usage": "main",
 					"done": "**Setup done!**\nBot is ready for use on this server.\n\n*Recomended: setup log channel using `/log setup`*",
 					"exists": "Bot is already configured on this server.\nIf you belive there is an error, contact developer in `/help`"
 				},
-				"voice": "Setup custom voice channel module"
+				"voice": {
+					"help": "Setup custom voice channel module",
+					"usage": "voice",
+					"category": "Voice Channels",
+					"channel": "★ Join to create",
+					"done": "Successfully created channel {channel}! Setup is done."
+				}
 			},
 			"module": {
 				"help": "Manage modules",
-				"usage": "/module show\n... enable\n... disable",
 				"show": {
 					"help": "Show current modules status",
+					"usage": "show",
 					"embed": {
 						"title": "Module status",
 						"value": "*To enable/disable a module use `/module enable` or `/module disable`*",
@@ -120,9 +126,10 @@
 				},
 				"disable": {
 					"help": "Disable module",
-					"option_description": "Enter selected module",
+					"usage": "disable",
 					"embed_title": "Disable module",
 					"embed_value": "Select module from list bellow to be disabled.",
+					"select": "Select module",
 					"none": "__All modules are already disabled!__",
 					"timed_out": "Timed out",
 					"already": "Module already disabled!",
@@ -130,9 +137,10 @@
 				},
 				"enable": {
 					"help": "Enable module",
-					"option_description": "Enter selected module",
+					"usage": "enable",
 					"embed_title": "Enable module",
 					"embed_value": "Select module from list bellow to be enabled.",
+					"select": "Select module",
 					"none": "__All modules are already enabled!__",
 					"timed_out": "Timed out",
 					"already": "Module already enabled!",
@@ -141,16 +149,17 @@
 			},
 			"access": {
 				"help": "Manage users (set Mod/Admin) that has access to command use",
-				"usage": "/access view\n... add mod <member>\n... add admin <member>\n... remove mod <member>\n... remove admin <member>",
 				"add": {
 					"help": "Add member as Mod/Admin",
 					"mod": {
 						"help": "Add user as a Mod",
+						"usage": "add mod <@Member | ID>",
 						"already": "Member already has Mod access!",
 						"done": "Successfully asigned {member} Mod access!"
 					},
 					"admin": {
 						"help": "Add user as an Admin",
+						"usage": "add admin <@Member | ID>",
 						"already": "Member already has Admin access!",
 						"done": "Successfully asigned {member} Admin access!"
 					},
@@ -163,11 +172,13 @@
 					"help": "Remove member from Mod/Admin",
 					"mod": {
 						"help": "Remove user from Mod",
+						"usage": "remove mod <@Member | ID>",
 						"has_no_access": "Mentioned member is not a Mod.",
 						"done": "Successfully removed from {member} Mod access!"
 					},
 					"admin": {
 						"help": "Remove user from Admin",
+						"usage": "remove admin <@Member | ID>",
 						"has_no_access": "Mentioned member is not an Admin.",
 						"done": "Successfully removed from {member} Admin access!"
 					},
@@ -178,6 +189,7 @@
 				},
 				"view": {
 					"help": "View who has access",
+					"usage": "view",
 					"embed": {
 						"title": "Members with access",
 						"none_found": "*None of the members has Mod or Admin access*",
@@ -189,9 +201,9 @@
 			},
 			"log": {
 				"help": "Log moderation command use",
-				"usage": "/log setup [channel]\n...manage",
 				"setup": {
 					"help": "Setup log channel",
+					"usage": "setup <#Channel>",
 					"option_channel": "Select channel where to log actions",
 					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
 					"as_log": "This channel is selected as a log channel for all actions.",
@@ -199,6 +211,7 @@
 				},
 				"manage": {
 					"help": "Manage current logging setting",
+					"usage": "manage",
 					"title": "Currently logging",
 					"none": "*None*\n\n*Use `/log setup` to setup logging*",
 					"button_change": "Change channel",
@@ -224,52 +237,49 @@
 				"cooldown": "Creating voice channels too quickly, wait a bit!",
 				"default_name": "{user}'s channel"
 			},
-			"setup": {
-				"category": "Voice Channels",
-				"channel": "★ Join to create",
-				"done": "Successfully created channel {channel}! Setup is done."
-			},
 			"setname": {
 				"help": "Sets default name for custom voice channels",
-				"usage": "/setname <name>",
-				"option_description": "Enter string 1 <> 100 symbols",
+				"usage": "setname <name>",
+				"option_name": "Enter string 1 <> 100 symbols",
 				"invalid_range": "Channel name must be in range from 1 to 100 symbols",
 				"done": "Successfully changed default voice channel name to `{value}`!"
 			},
 			"setlimit": {
 				"help": "Sets default user limit for custom voice channels",
-				"usage": "/setlimit <limit>",
-				"option_description": "Enter integer 0 <> 99",
+				"usage": "setlimit <limit>",
+				"option_limit": "Enter integer 0 <> 99",
 				"done": "Successfully changed default voice channel limit to `{value}`!"
 			},
 			"name": {
 				"help": "Control your VC name",
-				"usage": "/name set <name>\n... reset",
 				"reset": {
-					"help": "Reset your VC name to default"
+					"help": "Reset your VC name to default",
+					"usage": "reset"
 				},
 				"set": {
 					"help": "Set your VC name",
-					"option_description": "Enter string 1 <> 100 symbols",
+					"usage": "set <name>",
+					"option_name": "Enter string 1 <> 100 symbols",
 					"invalid_range": "Channel name must be in range from 1 to 100 symbols"
 				},
 				"done": "Successfully changed your's channel name to `{value}`!"
 			},
 			"limit": {
 				"help": "Control your VC limit",
-				"usage": "/limit set <limit>\n... reset",
 				"reset": {
-					"help": "Reset your VC limit to default"
+					"help": "Reset your VC limit to default",
+					"usage": "reset"
 				},
 				"set": {
 					"help": "Set your VC limit",
-					"option_description": "Enter integer 0 <> 99"
+					"usage": "set <limit>",
+					"option_limit": "Enter integer 0 <> 99"
 				},
 				"done": "Successfully changed your's channel limit to `{value}`!"
 			},
 			"claim": {
 				"help": "Claim ownership of channel once owner has left",
-				"usage": "/claim",
+				"usage": "claim",
 				"not_in_voice": "You are not connected to any voice channel",
 				"not_custom": "You can't own this voice channel",
 				"has_owner": "The owner of this channel is in this voice channel",
@@ -277,45 +287,45 @@
 			},
 			"lock": {
 				"help": "Locks your channel for @everyone (ex. allowed users)",
-				"usage": "/lock",
+				"usage": "lock",
 				"done": "Successfully locked your channel!"
 			},
 			"unlock": {
 				"help": "Unlocks your channel for @everyone (ex. disallowed users)",
-				"usage": "/unlock",
+				"usage": "unlock",
 				"done": "Successfully unlocked your channel!"
 			},
 			"ghost": {
 				"help": "Hides your channel for @everyone (ex. allowed users)",
-				"usage": "/ghost",
+				"usage": "ghost",
 				"done": "Successfully ghosted your channel!"
 			},
 			"unghost": {
 				"help": "Unhides your channel for @everyone",
-				"usage": "/unghost",
+				"usage": "unghost",
 				"done": "Successfully unghosted your channel!"
 			},
 			"permit": {
 				"help": "Gives the user permission to join your channel",
-				"usage": "/permit <mention/-s>",
-				"option_description": "Enter Role or Member mention/-s",
-				"invalid_args": "You didn't provided users.\nUsage: `/permit <mention member/-s or role/-s>`",
+				"usage": "permit <@Role | @Member ...>",
+				"option_mention": "Enter Role or Member mention/-s",
+				"invalid_args": "You didn't mention role/-s or any member/-s.",
 				"not_self": "You can't add yourself or me.",
 				"done": "Successfully permited {targets} to connect to your channel!"
 			},
 			"reject": {
 				"help": "Withdraw the user permission to join your channel",
-				"usage": "/reject <mention/-s>",
-				"option_description": "Enter Role or Member mention/-s",
-				"invalid_args": "You didn't provided users.\nUsage: `/reject <mention member/-s or role/-s>`",
+				"usage": "reject <@Role | @Member ...>",
+				"option_mention": "Enter Role or Member mention/-s",
+				"invalid_args": "You didn't mention role/-s or any member/-s.",
 				"not_self": "You can't remove yourself or me.",
 				"done": "Successfully rejected {targets} from connecting to your channel!"
 			},
 			"perms": {
 				"help": "View/Reset voice channel permissions",
-				"usage": "/perms view\n... reset",
 				"view": {
 					"help": "View voice channel permissions",
+					"usage": "view",
 					"embed": {
 						"title": "Channel permissions for `{channel}`",
 						"field": "**Can View | Can Join | Holder**",
@@ -327,18 +337,16 @@
 				},
 				"reset": {
 					"help": "Reset voice channel permissions to default (sync with category)",
+					"usage": "reset",
 					"done": "Successfully synced channel permissions with category!"
 				}
-			},
-			"reset": {
-				"help": "Resets user voice settings to default values"
 			}
 		},
 		"webhook": {
 			"help": "Module for managing webhooks",
-			"usage": "/webhook list [all?]\n... move <id><channel>\n... add select <id>\n... add create <name>[channel]\n... remove <id>[delete?]",
 			"list": {
 				"help": "Shows added webhooks to bot's list",
+				"usage": "list [show all webhooks?]",
 				"option_all": "Show all webhooks in this server? (default-false)",
 				"embed": {
 					"title": "Webhooks",
@@ -349,6 +357,7 @@
 			},
 			"move": {
 				"help": "Move registered webhook to another channel",
+				"usage": "move <webhook ID> <#Channel>",
 				"option_id": "Enter ID of registered webhook",
 				"option_channel": "Choose the channel to move webhook to",
 				"error_not_registered": "Selected webhook is not registered.",
@@ -360,6 +369,7 @@
 				"help": "Add webhook to the bot's DB",
 				"create": {
 					"help": "Create new webhook to be registered",
+					"usage": "add create <name> [#Channel]",
 					"option_name": "Choose name for new webhook",
 					"option_channel": "Choose channel in which create webhook (default-this channel)",
 					"invalid_range": "Webhook's name must be in range from 2 to 100 symbols",
@@ -367,6 +377,7 @@
 				},
 				"select": {
 					"help": "Select existing webhook to be registered",
+					"usage": "add select <webhook ID>",
 					"option_id": "Enter ID of existing webhook",
 					"error_registered": "Selected webhook is already registered in bot's DB!",
 					"error_not_found": "Couldn't find webhook by entered ID.",
@@ -375,26 +386,24 @@
 			},
 			"remove": {
 				"help": "Removes registered webhook",
+				"usage": "remove <webhook ID> [delete it?]",
 				"option_id": "Enter ID of registered webhook",
 				"option_delete": "Also delete webhook? (default-false)",
 				"error_not_registered": "Selected webhook is not registered.",
 				"error_not_found": "Couldn't find webhook by entered ID.",
 				"error_not_guild": "Selected webhook is not from this server.",
 				"done": "Successfully removed webhook `{webhook_name}`!"
-			},
-			"check": {
-
 			}
 		},
 		"moderation": {
 			"ban": {
 				"help": "Ban member of this server",
-				"usage": "/ban <@member> [duration] [reason] [delete?]",
-				"option_user": "Mention user/member to be banned from this server",
-				"option_time": "Temporaty ban member (Example: 2h, 2w5d (week, day, hour, minute) | 0)",
+				"usage": "ban <@User | Tag | ID> [duration] [reason] [purge messages?] [dm user?]",
+				"option_user": "Mention user to be banned from this server",
+				"option_time": "Temporaty ban user (Example: 2h, 2w5d (week, day, hour, minute) | 0)",
 				"option_reason": "Ban reason (*none*)",
 				"option_delete": "Delete messages past 10 hours? (true)",
-				"option_dm": "Send DM to the uwser about their ban? (true)",
+				"option_dm": "Send user DM informing about the ban? (true)",
 				"no_reason": "*Not provided*",
 				"not_found": "User not found or input error",
 				"not_self": "You can't ban yourself or me... (for good)",
@@ -411,7 +420,7 @@
 			},
 			"unban": {
 				"help": "Unban banned user on this server",
-				"usage": "/unban <user ID> [reason]",
+				"usage": "unban <Tag | ID> [reason]",
 				"option_user": "Enter ID/mention of user to be unbanned in this server",
 				"option_reason": "Unban reason (Default: *none*)",
 				"no_reason": "*Not provided*",
@@ -427,9 +436,9 @@
 			},
 			"sync": {
 				"help": "Sync moderation action with group servers",
-				"usage": "/sync ban <case ID> <group ID>\n... unban <user ID> <group ID>",
 				"ban": {
 					"help": "Sync permament ban with group servers",
+					"usage": "ban <case ID> <master group>",
 					"option_case": "Enter case ID",
 					"option_group": "Select the group you are master of",
 					"not_found": "Could not find case(ban) by specified ID.",
@@ -442,6 +451,7 @@
 				},
 				"unban": {
 					"help": "Sync unban with group servers",
+					"unban": "unban <@User | ID> <master group>",
 					"option_member": "Enter member ID or ping them",
 					"option_group": "Select the group you are master of",
 					"not_found": "Could not find member by specified ID.\nUser **must** be unbaned here and joined this server.",
@@ -455,13 +465,13 @@
 			},
 			"case": {
 				"help": "View information about logged ban",
-				"usage": "/case <case ID>",
+				"usage": "case <case ID>",
 				"option_id": "Enter case ID",
 				"not_found": "Could not find case(ban) by specified ID"
 			},
 			"reason": {
 				"help": "Change ban reason",
-				"usage": "/reason <case ID> <reason>",
+				"usage": "reason <case ID> <reason>",
 				"option_id": "Enter case ID",
 				"option_reason": "Enter new reason",
 				"not_found": "Could not find case(ban) by specified ID",
@@ -469,7 +479,7 @@
 			},
 			"duration": {
 				"help": "Change ban duration",
-				"usage": "/duration <case ID> <duration>",
+				"usage": "duration <case ID> <duration>",
 				"option_id": "Enter case ID",
 				"option_time": "Enter new duration (Example: 2h, 2w5d (week, day, hour, minute) | 0)",
 				"not_found": "Could not find case(ban) by specified ID",
@@ -533,21 +543,23 @@
 			},
 			"group": {
 				"help": "Sync group settings",
-				"usage": "/group create <name>\n... delete\n... join <group ID>\n... leave\n... view <group ID>\n... rename <group ID> <name>\n... remove <group ID> <guild ID>",
 				"create": {
 					"help": "Create new sync group",
+					"usage": "create <name>",
 					"option_name": "Enter name for new group",
 					"max_amount": "This server has reached maximum amount of groups which it can be master of (max - 3).",
 					"done": "Group `{group_name}` successfully created!\n\n*Group ID: {group_id}*"
 				},
 				"delete": {
 					"help": "Delete existing group of which you're master",
+					"usage": "delete <master group>",
 					"option_group": "Select sync group",
 					"no_group": "Couldn't find requested sync group.",
 					"done": "Group `{group_name}` successfully deleted!\n\n*Group ID: {group_id}*"
 				},
 				"join": {
 					"help": "Join existing sync group",
+					"usage": "join <group ID>",
 					"option_id": "Enter sync group ID",
 					"max_amount": "This server has reached maximum amount of groups it can join (max - 5).",
 					"no_group": "Couldn't find group by entered ID.",
@@ -562,12 +574,14 @@
 				},
 				"leave": {
 					"help": "Leave sync group",
+					"usage": "leave <group>",
 					"option_group": "Select sync group",
 					"no_group": "Couldn't find requested sync group.",
 					"done": "Successfully left group `{group_name}`!\n\n*Group ID: {group_id}*"
 				},
 				"remove": {
 					"help": "Remove server from sync group",
+					"usage": "remove <master group>",
 					"option_group": "Select sync group",
 					"no_group": "Couldn't find requested sync group.",
 					"no_guilds": "There are no other servers in the selected group.",
@@ -578,6 +592,7 @@
 				},
 				"view": {
 					"help": "View information about selected group",
+					"usage": "view [master groups?] [sync groups?]",
 					"option_mastergroup": "Select group you are the master of",
 					"option_syncgroup": "Select group that you joined",
 					"no_group": "Couldn't find requested sync group.",
@@ -590,6 +605,7 @@
 				},
 				"rename": {
 					"help": "Rename sync group",
+					"usage": "rename <master group> <name>",
 					"option_group": "Select sync group",
 					"option_name": "Enter new name for this group",
 					"no_group": "Couldn't find requested sync group.",
@@ -600,14 +616,14 @@
 		"other": {
 			"ping": {
 				"help": "Check the bot's latency",
-				"usage": "/ping",
+				"usage": "ping",
 				"loading": "{EMOTE_TYPING} Ping: ...",
 				"info": "{EMOTE_PING} Ping: {ping} ms",
 				"info_full": "{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest} ms"
 			},
 			"about": {
 				"help": "Get basic information about the bot",
-				"usage": "/about",
+				"usage": "about [show?]",
 				"embed": {
 					"about_title": "About {name}!",
 					"about_value": "Discord bot for personal use. Written in Java using JDA library.\nDeveloper - **{developer_name}**({developer_id}).",
@@ -631,7 +647,7 @@
 			},
 			"status": {
 				"help": "Gets bot's status, shard info",
-				"usage": "/status",
+				"usage": "status [show?]",
 				"embed": {
 					"stats_title": "Stats",
 					"stats" : {
@@ -651,7 +667,7 @@
 		},
 		"help": {
 			"help": "List all available commands the bot has or description of specific command.",
-			"usage": "/help [command][category][show?]",
+			"usage": "help [command | category] [show?]",
 			"category_info": {
 				"help": "Shows commands in selected category"
 			},
@@ -660,10 +676,12 @@
 				"docs": "Docs",
 				"no_command": "The provided command doesn't exist!\nMake sure you typed it correctly.",
 				"title": "Command help: {command}",
-				"value": "Category: **{category}**\nIs owner command: {owner}\nServer only command: {guild}\nModule: **{module}**",
+				"value": "Category: **{category}**\nOwner command: {owner}\nCan be used in DMs: {guild}\nModule: **{module}**",
 				"help_title": "Description",
 				"usage_title": "Usage options",
-				"usage_value": "```\n{command_usage}\n```\n`[]` = Optional\n`<>` = Required"
+				"usage_value": "```/{usage}```",
+				"usage_child": "```/{base} {usage}```└ {help}",
+				"usage_subvalue": "`[]` ─ Optional\n`<>` ─ Required\n`A | B` ─ Selection"
 			},
 			"command_menu": {
 				"title": "Available commands:",
@@ -682,8 +700,6 @@
 					"support_value": "If you need help with the bot, contact the owner `{owner_name}`."
 				}
 			}
-		},
-		"dm_failure": "I can't send you a DM!",
-		"dm_success": "Check your DMs!"
+		}
 	}
 }

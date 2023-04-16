@@ -48,7 +48,7 @@ public class UnghostCmd extends CommandBase {
 
 		createReplyEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, "bot.voice.unghost.done"))
+				.setDescription(lu.getText(event, path+".done"))
 				.build()
 		);
 	}

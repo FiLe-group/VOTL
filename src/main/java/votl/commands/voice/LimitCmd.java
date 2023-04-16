@@ -43,7 +43,7 @@ public class LimitCmd extends CommandBase {
 			this.name = "set";
 			this.path = "bot.voice.limit.set";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.INTEGER, "limit", lu.getText(path+".option_description"), true)
+				new OptionData(OptionType.INTEGER, "limit", lu.getText(path+".option_limit"), true)
 					.setRequiredRange(0, 99)
 			);
 		}

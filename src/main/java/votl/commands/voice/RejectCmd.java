@@ -29,7 +29,7 @@ public class RejectCmd extends CommandBase {
 		this.name = "reject";
 		this.path = "bot.voice.reject";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.STRING, "mention", lu.getText(path+".option_description"))
+			new OptionData(OptionType.STRING, "mention", lu.getText(path+".option_mention"))
 				.setRequired(true)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_MOVE_OTHERS};
@@ -52,7 +52,7 @@ public class RejectCmd extends CommandBase {
 
 		Mentions filMentions = event.optMentions("mention");
 		if (filMentions == null) {
-			editError(event, "bot.voice.permit.invalid_args");
+			editError(event, path+".invalid_args");
 			return;
 		}
 
@@ -63,11 +63,11 @@ public class RejectCmd extends CommandBase {
 		List<Member> members = filMentions.getMembers();
 		List<Role> roles = filMentions.getRoles();
 		if (members.isEmpty() & roles.isEmpty()) {
-			editError(event, "bot.voice.reject.invalid_args");
+			editError(event, path+".invalid_args");
 			return;
 		}
 		if (members.contains(author) || members.contains(guild.getSelfMember())) {
-			editError(event, "bot.voice.reject.not_self");
+			editError(event, path+".not_self");
 			return;
 		}
 
@@ -99,7 +99,7 @@ public class RejectCmd extends CommandBase {
 
 		editHookEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getUserText(event, "bot.voice.reject.done", mentionStrings))
+				.setDescription(lu.getUserText(event, path+".done", mentionStrings))
 				.build()
 		);
 	}

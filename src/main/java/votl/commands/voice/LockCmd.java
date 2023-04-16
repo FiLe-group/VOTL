@@ -48,7 +48,7 @@ public class LockCmd extends CommandBase {
 
 		createReplyEmbed(event,
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, "bot.voice.lock.done"))
+				.setDescription(lu.getText(event, path+".done"))
 				.build()
 		);
 	}

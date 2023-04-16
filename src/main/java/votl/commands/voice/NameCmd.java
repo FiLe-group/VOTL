@@ -43,7 +43,7 @@ public class NameCmd extends CommandBase {
 			this.name = "set";
 			this.path = "bot.voice.name.set";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "name", lu.getText(path+".option_description"), true)
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".option_name"), true)
 					.setMaxLength(100)
 			);
 		}

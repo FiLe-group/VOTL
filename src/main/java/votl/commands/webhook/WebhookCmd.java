@@ -70,7 +70,7 @@ public class WebhookCmd extends CommandBase {
 			Boolean listAll = event.optBoolean("all", false);
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
-				.setTitle(lu.getLocalized(userLocale, "bot.webhook.list.embed.title"));
+				.setTitle(lu.getLocalized(userLocale, path+".embed.title"));
 			
 			// Retrieves every webhook in server
 			guild.retrieveWebhooks().queue(webhooks -> {
@@ -87,10 +87,10 @@ public class WebhookCmd extends CommandBase {
 
 				if (webhooks.isEmpty()) {
 					embedBuilder.setDescription(
-						lu.getLocalized(userLocale, (listAll ? "bot.webhook.list.embed.none_found" : "bot.webhook.list.embed.none_registered"))
+						lu.getLocalized(userLocale, (listAll ? path+".embed.none_found" : path+".embed.none_registered"))
 					);
 				} else {
-					String title = lu.getLocalized(userLocale, "bot.webhook.list.embed.value");
+					String title = lu.getLocalized(userLocale, path+".embed.value");
 					StringBuilder text = new StringBuilder();
 					for (Webhook wh : webhooks) {
 						if (text.length() > 790) { // max characters for field value = 1024, and max for each line = ~226, so at least 4.5 lines fits in one field
@@ -131,7 +131,7 @@ public class WebhookCmd extends CommandBase {
 			GuildChannel channel = event.optGuildChannel("channel", event.getGuildChannel());
 
 			if (setName.isEmpty() || setName.length() > 100) {
-				createError(event, "bot.webhook.add.create.invalid_range");
+				createError(event, path+".invalid_range");
 				return;
 			}
 
@@ -142,7 +142,7 @@ public class WebhookCmd extends CommandBase {
 						bot.getDBUtil().webhook.add(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 						createReplyEmbed(event,
 							bot.getEmbedUtil().getEmbed(event).setDescription(
-								lu.getText(event, "bot.webhook.add.create.done").replace("{webhook_name}", webhook.getName())
+								lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName())
 							).build()
 						);
 					}
@@ -175,21 +175,21 @@ public class WebhookCmd extends CommandBase {
 				event.getJDA().retrieveWebhookById(Objects.requireNonNull(webhookId)).queue(
 					webhook -> {
 						if (bot.getDBUtil().webhook.exists(webhookId)) {
-							createError(event, "bot.webhook.add.select.error_registered");
+							createError(event, path+".error_registered");
 						} else {
 							bot.getDBUtil().webhook.add(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
 							createReplyEmbed(event,
 								bot.getEmbedUtil().getEmbed(event).setDescription(
-									lu.getText(event, "bot.webhook.add.select.done").replace("{webhook_name}", webhook.getName())
+									lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName())
 								).build()
 							);
 						}
 					}, failure -> {
-						createError(event, "bot.webhook.add.select.error_not_found", failure.getMessage());
+						createError(event, path+".error_not_found", failure.getMessage());
 					}
 				);
 			} catch (IllegalArgumentException ex) {
-				createError(event, "bot.webhook.remove.error_not_found", ex.getMessage());
+				createError(event, path+".error_not_found", ex.getMessage());
 			}
 		}
 
@@ -218,7 +218,7 @@ public class WebhookCmd extends CommandBase {
 				event.getJDA().retrieveWebhookById(webhookId).queue(
 					webhook -> {
 						if (!bot.getDBUtil().webhook.exists(webhookId)) {
-							createError(event, "bot.webhook.remove.error_not_registered");
+							createError(event, path+".error_not_registered");
 						} else {
 							if (webhook.getGuild().equals(guild)) {
 								if (delete) {
@@ -227,21 +227,21 @@ public class WebhookCmd extends CommandBase {
 								bot.getDBUtil().webhook.remove(webhookId);
 								createReplyEmbed(event,
 									bot.getEmbedUtil().getEmbed(event).setDescription(
-										lu.getText(event, "bot.webhook.remove.done").replace("{webhook_name}", webhook.getName())
+										lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName())
 									).build()
 								);
 							} else {
-								createError(event, "bot.webhook.remove.error_not_guild", 
+								createError(event, path+".error_not_guild", 
 									String.format("Selected webhook guild: %s", webhook.getGuild().getName()));
 							}
 						}
 					},
 					failure -> {
-						createError(event, "bot.webhook.remove.error_not_found", failure.getMessage());
+						createError(event, path+".error_not_found", failure.getMessage());
 					}
 				);
 			} catch (IllegalArgumentException ex) {
-				createError(event, "bot.webhook.remove.error_not_found", ex.getMessage());
+				createError(event, path+".error_not_found", ex.getMessage());
 			}
 		}
 
@@ -267,7 +267,7 @@ public class WebhookCmd extends CommandBase {
 			GuildChannel channel = event.optGuildChannel("channel");
 
 			if (!channel.getType().equals(ChannelType.TEXT)) {
-				createError(event, "bot.webhook.move.error_channel", "Selected channel is not Text Channel");
+				createError(event, path+".error_channel", "Selected channel is not Text Channel");
 				return;
 			}
 
@@ -278,7 +278,7 @@ public class WebhookCmd extends CommandBase {
 							wm -> {
 								createReplyEmbed(event,
 									bot.getEmbedUtil().getEmbed(event).setDescription(
-										lu.getText(event, "bot.webhook.move.done")
+										lu.getText(event, path+".done")
 											.replace("{webhook_name}", webhook.getName())
 											.replace("{channel}", channel.getName())
 									).build()
@@ -289,10 +289,10 @@ public class WebhookCmd extends CommandBase {
 							}
 						);
 					} else {
-						createError(event, "bot.webhook.move.error_not_registered");
+						createError(event, path+".error_not_registered");
 					}
 				}, failure -> {
-					createError(event, "bot.webhook.move.error_not_found", failure.getMessage());
+					createError(event, path+".error_not_found", failure.getMessage());
 				}
 			);
 		}

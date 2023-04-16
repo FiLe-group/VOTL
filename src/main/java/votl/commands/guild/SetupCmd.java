@@ -50,7 +50,7 @@ public class SetupCmd extends CommandBase {
 			if (bot.getDBUtil().guild.add(guildId)) {
 				createReplyEmbed(event, 
 					bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getText(event, "bot.guild.setup.main.done"))
+						.setDescription(lu.getText(event, path+".done"))
 						.setColor(Constants.COLOR_SUCCESS)
 						.build()
 				);
@@ -58,7 +58,7 @@ public class SetupCmd extends CommandBase {
 			} else {
 				createReplyEmbed(event, 
 					bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getText(event, "bot.guild.setup.main.exists"))
+						.setDescription(lu.getText(event, path+".exists"))
 						.setColor(Constants.COLOR_WARNING)
 						.build()
 				);
@@ -72,7 +72,7 @@ public class SetupCmd extends CommandBase {
 		public Voice(App bot) {
 			super(bot);
 			this.name = "voice";
-			this.path = "bot.guild.setup";
+			this.path = "bot.guild.setup.voice";
 			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS
 			this.module = CmdModule.VOICE;
 		}
@@ -89,12 +89,12 @@ public class SetupCmd extends CommandBase {
 			}
 
 			try {
-				guild.createCategory(lu.getText(event, "bot.voice.setup.category"))
+				guild.createCategory(lu.getText(event, path+".category"))
 					.addPermissionOverride(guild.getBotRole(), Arrays.asList(getBotPermissions()), null)
 					.queue(
 						category -> {
 							try {
-								category.createVoiceChannel(lu.getText(event, "bot.voice.setup.channel"))
+								category.createVoiceChannel(lu.getText(event, path+".channel"))
 									.addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
 									.queue(
 										channel -> {
@@ -102,7 +102,7 @@ public class SetupCmd extends CommandBase {
 											bot.getLogger().info("Voice setup done in guild `"+guild.getName()+"'("+guildId+")");
 											editHookEmbed(event, 
 												bot.getEmbedUtil().getEmbed(event)
-													.setDescription(lu.getText(event, "bot.voice.setup.done").replace("{channel}", channel.getAsMention()))
+													.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
 													.setColor(Constants.COLOR_SUCCESS)
 													.build()
 											);

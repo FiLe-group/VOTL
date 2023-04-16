@@ -35,13 +35,13 @@ public class ClaimCmd extends CommandBase {
 		Member author = Objects.requireNonNull(event.getMember());
 
 		if (!author.getVoiceState().inAudioChannel()) {
-			editError(event, "bot.voice.claim.not_in_voice");
+			editError(event, path+".not_in_voice");
 			return;
 		}
 
 		AudioChannel ac = author.getVoiceState().getChannel();
 		if (!bot.getDBUtil().voice.existsChannel(ac.getId())) {
-			editError(event, "bot.voice.claim.not_custom");
+			editError(event, path+".not_custom");
 			return;
 		}
 
@@ -52,7 +52,7 @@ public class ClaimCmd extends CommandBase {
 			owner -> {
 				for (Member vcMember : vc.getMembers()) {
 					if (vcMember == owner) {
-						editHook(event, lu.getText(event, "bot.voice.claim.has_owner"));
+						editHook(event, lu.getText(event, path+".has_owner"));
 						return;
 					}
 				}
@@ -68,7 +68,7 @@ public class ClaimCmd extends CommandBase {
 				
 				editHookEmbed(event, 
 					bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getText(event, "bot.voice.claim.done").replace("{channel}", vc.getAsMention()))
+						.setDescription(lu.getText(event, path+".done").replace("{channel}", vc.getAsMention()))
 						.build()
 				);
 			}, failure -> {

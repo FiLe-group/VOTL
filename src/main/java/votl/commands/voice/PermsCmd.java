@@ -67,8 +67,8 @@ public class PermsCmd extends CommandBase {
 			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(authorId));
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
-				.setTitle(lu.getLocalized(userLocale, "bot.voice.perms.view.embed.title").replace("{channel}", vc.getName()))
-				.setDescription(lu.getLocalized(userLocale, "bot.voice.perms.view.embed.field")+"\n\n");
+				.setTitle(lu.getLocalized(userLocale, path+".embed.title").replace("{channel}", vc.getName()))
+				.setDescription(lu.getLocalized(userLocale, path+".embed.field")+"\n\n");
 
 			//@Everyone
 			PermissionOverride publicOverride = vc.getPermissionOverride(guild.getPublicRole());
@@ -76,8 +76,8 @@ public class PermsCmd extends CommandBase {
 			String view = contains(publicOverride, Permission.VIEW_CHANNEL);
 			String join = contains(publicOverride, Permission.VOICE_CONNECT);
 			
-			embedBuilder = embedBuilder.appendDescription(formatHolder(lu.getLocalized(userLocale, "bot.voice.perms.view.embed.everyone"), view, join))
-				.appendDescription("\n\n" + lu.getLocalized(userLocale, "bot.voice.perms.view.embed.roles") + "\n");
+			embedBuilder = embedBuilder.appendDescription(formatHolder(lu.getLocalized(userLocale, path+".embed.everyone"), view, join))
+				.appendDescription("\n\n" + lu.getLocalized(userLocale, path+".embed.roles") + "\n");
 
 			//Roles
 			List<PermissionOverride> overrides = new ArrayList<>(vc.getRolePermissionOverrides()); // cause given override list is immutable
@@ -89,7 +89,7 @@ public class PermsCmd extends CommandBase {
 			}
 			
 			if (overrides.isEmpty()) {
-				embedBuilder.appendDescription(lu.getLocalized(userLocale, "bot.voice.perms.view.embed.none") + "\n");
+				embedBuilder.appendDescription(lu.getLocalized(userLocale, path+".embed.none") + "\n");
 			} else {
 				for (PermissionOverride ov : overrides) {
 					view = contains(ov, Permission.VIEW_CHANNEL);
@@ -98,7 +98,7 @@ public class PermsCmd extends CommandBase {
 					embedBuilder.appendDescription(formatHolder(ov.getRole().getName(), view, join) + "\n");
 				}
 			}
-			embedBuilder.appendDescription("\n" + lu.getLocalized(userLocale, "bot.voice.perms.view.embed.members") + "\n");
+			embedBuilder.appendDescription("\n" + lu.getLocalized(userLocale, path+".embed.members") + "\n");
 
 			//Members
 			overrides = new ArrayList<>(vc.getMemberPermissionOverrides());
@@ -115,7 +115,7 @@ public class PermsCmd extends CommandBase {
 			guild.retrieveMembersByIds(false, overrides.stream().map(ov -> ov.getId()).toArray(String[]::new)).onSuccess(
 				members -> {
 					if (members.isEmpty()) {
-						embedBuilder2.appendDescription(lu.getLocalized(userLocale, "bot.voice.perms.view.embed.none") + "\n");
+						embedBuilder2.appendDescription(lu.getLocalized(userLocale, path+".embed.none") + "\n");
 					} else {
 						for (PermissionOverride ov : ovs) {
 							String view2 = contains(ov, Permission.VIEW_CHANNEL);
@@ -178,7 +178,7 @@ public class PermsCmd extends CommandBase {
 
 			createReplyEmbed(event,
 				bot.getEmbedUtil().getEmbed(event)
-					.setDescription(lu.getLocalized(userLocale, "bot.voice.perms.reset.done"))
+					.setDescription(lu.getLocalized(userLocale, path+".done"))
 					.build()
 			);
 		}

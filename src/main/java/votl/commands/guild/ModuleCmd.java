@@ -115,7 +115,7 @@ public class ModuleCmd extends CommandBase {
 
 			embed.setDescription(lu.getText(event, path+".embed_value"));
 			StringSelectMenu menu = StringSelectMenu.create("disable-module")
-				.setPlaceholder("Select")
+				.setPlaceholder(lu.getText(event, path+".select"))
 				.setRequiredRange(1, 1)
 				.addOptions(enabled.stream().map(
 					sModule -> {
@@ -184,7 +184,7 @@ public class ModuleCmd extends CommandBase {
 
 			embed.setDescription(lu.getText(event, path+".embed_value"));
 			StringSelectMenu menu = StringSelectMenu.create("enable-module")
-				.setPlaceholder("Select")
+				.setPlaceholder(lu.getText(event, path+".select"))
 				.setRequiredRange(1, 1)
 				.addOptions(enabled.stream().map(
 					sModule -> {

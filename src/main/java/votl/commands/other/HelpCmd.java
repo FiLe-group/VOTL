@@ -82,15 +82,33 @@ public class HelpCmd extends CommandBase {
 					.replace("{category}", Optional.ofNullable(command.getCategory())
 						.map(cat -> lu.getLocalized(userLocale, "bot.help.command_menu.categories."+cat.getName())).orElse(Constants.NONE))
 					.replace("{owner}", command.isOwnerCommand() ? Emotes.CHECK_C.getEmote() : Emotes.CROSS_C.getEmote())
-					.replace("{guild}", command.isGuildOnly() ? Emotes.CHECK_C.getEmote() : Emotes.CROSS_C.getEmote())
+					.replace("{guild}", command.isGuildOnly() ? Emotes.CROSS_C.getEmote() : Emotes.CHECK_C.getEmote())
 					.replace("{module}", Optional.ofNullable(command.getModule()).map(mod -> lu.getLocalized(userLocale, mod.getPath())).orElse(Constants.NONE)))
 				.addField(lu.getLocalized(userLocale, "bot.help.command_info.help_title"), lu.getLocalized(userLocale, command.getHelpPath()), false)
-				.addField(lu.getLocalized(userLocale, "bot.help.command_info.usage_title"), lu.getLocalized(userLocale, "bot.help.command_info.usage_value")
-					.replace("{command_usage}", lu.getLocalized(userLocale, command.getUsagePath())), false);
+				.addField(lu.getLocalized(userLocale, "bot.help.command_info.usage_title"), getUsageText(userLocale, command), false);
 			
 			editHookEmbed(event, builder.build());
 		}
 		
+	}
+
+	private String getUsageText(DiscordLocale locale, SlashCommand command) {
+		StringBuffer buffer = new StringBuffer();
+		if (command.getChildren().length > 0) {
+			String base = command.getName();
+			for (SlashCommand child : command.getChildren()) {
+				buffer.append(
+					lu.getLocalized(locale, "bot.help.command_info.usage_child")
+						.replace("{base}", base)
+						.replace("{usage}", lu.getLocalized(locale, child.getUsagePath()))
+						.replace("{help}", lu.getLocalized(locale, child.getHelpPath()))
+					).append("\n");
+			}
+		} else {
+			buffer.append(lu.getLocalized(locale, "bot.help.command_info.usage_value").replace("{usage}", lu.getLocalized(locale, command.getUsagePath()))).append("\n");
+		}
+		buffer.append("\n").append(lu.getLocalized(locale, "bot.help.command_info.usage_subvalue"));
+		return buffer.toString();
 	}
 
 	private void sendHelp(SlashCommandEvent event, String filCat) {
@@ -129,7 +147,6 @@ public class HelpCmd extends CommandBase {
 				fieldValue.append("`").append(prefix==null?" ":prefix).append(command.getName())
 					.append(command.getArguments()==null ? "`" : " "+command.getArguments()+"`")
 					.append(" - ").append(command.getDescriptionLocalization().get(userLocale))
-					// REMAKE to support CommandBase and getLocalized help
 					.append("\n");
 			}
 		}

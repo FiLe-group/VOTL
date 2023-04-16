@@ -48,7 +48,7 @@ public class GhostCmd extends CommandBase {
 
 		createReplyEmbed(event, 
 			bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, "bot.voice.ghost.done"))
+				.setDescription(lu.getText(event, path+".done"))
 				.build()
 		);
 	}
