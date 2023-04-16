@@ -5,7 +5,6 @@ import java.util.Map;
 
 import votl.App;
 import votl.commands.CommandBase;
-import votl.objects.CmdAccessLevel;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Constants;
@@ -35,7 +34,6 @@ public class EvalCmd extends CommandBase {
 			// ............пиздец
 		);
 		this.category = CmdCategory.OWNER;
-		this.accessLevel = CmdAccessLevel.DEV;
 		this.ownerCommand = true;
 		this.guildOnly = false;
 	}

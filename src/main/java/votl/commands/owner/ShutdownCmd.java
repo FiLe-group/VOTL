@@ -15,8 +15,8 @@ public class ShutdownCmd extends CommandBase {
 		this.name = "shutdown";
 		this.path = "bot.owner.shutdown";
 		this.category = CmdCategory.OWNER;
-		this.guildOnly = false;
 		this.ownerCommand = true;
+		this.guildOnly = false;
 	}
 	
 	@Override

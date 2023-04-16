@@ -34,6 +34,7 @@ import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
+import votl.objects.CmdAccessLevel;
 import votl.utils.exception.CheckException;
 
 /**
@@ -265,14 +266,14 @@ public abstract class SlashCommand extends Command
 	 * @param client the command client for checking stuff
 	 * @return {@code true} if the User is the Owner, else {@code false}
 	 */
-	public boolean isOwner(SlashCommandEvent event, CommandClient client)
-	{
-		if(event.getUser().getId().equals(client.getOwnerId()))
+	public boolean isOwner(SlashCommandEvent event, CommandClient client) {
+		String userId = event.getUser().getId();
+		if (client.getOwnerId().equals(userId))
 			return true;
-		if(client.getCoOwnerIds()==null)
+		if (client.getCoOwnerIds()==null)
 			return false;
-		for(String id : client.getCoOwnerIds())
-			if(id.equals(event.getUser().getId()))
+		for (String id : client.getCoOwnerIds())
+			if (id.equals(userId))
 				return true;
 		return false;
 	}
@@ -282,8 +283,7 @@ public abstract class SlashCommand extends Command
 	 *
 	 * @return subcommand data
 	 */
-	public SubcommandGroupData getSubcommandGroup()
-	{
+	public SubcommandGroupData getSubcommandGroup() {
 		return subcommandGroup;
 	}
 
@@ -292,8 +292,7 @@ public abstract class SlashCommand extends Command
 	 *
 	 * @return the OptionData array for options
 	 */
-	public List<OptionData> getOptions()
-	{
+	public List<OptionData> getOptions() {
 		return options;
 	}
 
@@ -316,12 +315,12 @@ public abstract class SlashCommand extends Command
 			data.addOptions(getOptions());
 		}
 
-		//Check name localizations
+		// Check name localizations
 		if (!getNameLocalization().isEmpty()) {
 			//Add localizations
 			data.setNameLocalizations(getNameLocalization());
 		}
-		//Check description localizations
+		// Check description localizations
 		if (!getDescriptionLocalization().isEmpty()) {
 			//Add localizations
 			data.setDescriptionLocalizations(getDescriptionLocalization());
@@ -329,6 +328,10 @@ public abstract class SlashCommand extends Command
 		// Add if NSFW command
 		if (nsfwOnly) {
 			data.setNSFW(true);
+		}
+		// Add AccessLevel if ownerCommand
+		if (ownerCommand) {
+			this.accessLevel = CmdAccessLevel.DEV;
 		}
 
 		// Check for children
@@ -405,8 +408,7 @@ public abstract class SlashCommand extends Command
 	 *
 	 * @return The children for the Command
 	 */
-	public SlashCommand[] getChildren()
-	{
+	public SlashCommand[] getChildren() {
 		return children;
 	}
 
@@ -430,10 +432,8 @@ public abstract class SlashCommand extends Command
 	 *
 	 * @return A String key to use when applying a cooldown.
 	 */
-	public String getCooldownKey(SlashCommandEvent event)
-	{
-		switch (cooldownScope)
-		{
+	public String getCooldownKey(SlashCommandEvent event) {
+		switch (cooldownScope) {
 			case USER:         return cooldownScope.genKey(name,event.getUser().getIdLong());
 			case USER_GUILD:   return Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name,event.getUser().getIdLong(),g.getIdLong()))
 				.orElse(CooldownScope.USER_CHANNEL.genKey(name,event.getUser().getIdLong(), event.getChannel().getIdLong()));

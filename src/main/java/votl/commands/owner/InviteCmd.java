@@ -12,8 +12,8 @@ public class InviteCmd extends CommandBase {
 		this.name = "invite";
 		this.path = "bot.owner.invite";
 		this.category = CmdCategory.OWNER;
-		this.guildOnly = false;
 		this.ownerCommand = true;
+		this.guildOnly = false;
 	}
 
 	@Override
