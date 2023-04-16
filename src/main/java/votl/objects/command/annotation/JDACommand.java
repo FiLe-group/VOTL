@@ -24,8 +24,8 @@ import votl.objects.command.CooldownScope;
 
 /**
  * An Annotation applicable to {@link java.lang.reflect.Method Method}s that will act as
- * {@link com.jagrosh.jdautilities.command.Command Command}s when added to a Client
- * using {@link com.jagrosh.jdautilities.command.CommandClientBuilder#addAnnotatedModule(Object)
+ * {@link votl.objects.command.Command Command}s when added to a Client
+ * using {@link votl.objects.command.CommandClientBuilder#addAnnotatedModule(Object)
  * CommandClientBuilder#addAnnotatedModule()} serving as metadata "constructors" for what
  * would be a class extending Command of the same functionality and settings.
  *
@@ -34,22 +34,22 @@ import votl.objects.command.CooldownScope;
  * than most other types systems.
  *
  * To circumvent this, classes annotated with this are put through an {@link
- * com.jagrosh.jdautilities.command.AnnotatedModuleCompiler AnnotatedModuleCompiler}.
- * where they will be converted to Commands using {@link com.jagrosh.jdautilities.command.CommandBuilder
+ * votl.objects.command.AnnotatedModuleCompiler AnnotatedModuleCompiler}.
+ * where they will be converted to Commands using {@link votl.objects.command.CommandBuilder
  * CommandBuilder}.
  *
  * <p>Classes that wish to be contain methods to be used as commands must be annotated with
- * {@link com.jagrosh.jdautilities.command.annotation.JDACommand.Module @Module}.
+ * {@link votl.objects.command.annotation.JDACommand.Module @Module}.
  * <br>Following that, any methods of said class annotated with this annotation (whose names
  * are also given as parameters of the {@code @Module} annotation) will be registered to the
  * module and "compiled" through the AnnotatedModuleCompiler provided in CommandClientBuilder.
  *
- * <pre><code>   {@link com.jagrosh.jdautilities.command.annotation.JDACommand.Module @JDACommand.Module}({@link com.jagrosh.jdautilities.command.annotation.JDACommand.Module#value() value} = "example")
+ * <pre><code>   {@link votl.objects.command.annotation.JDACommand.Module @JDACommand.Module}({@link votl.objects.command.annotation.JDACommand.Module#value() value} = "example")
  * public class AnnotatedModuleCmd {
  *
  *     {@literal @JDACommand(}
- *          {@link com.jagrosh.jdautilities.command.annotation.JDACommand#name() name} = {"example", "test", "demo"},
- *          {@link com.jagrosh.jdautilities.command.annotation.JDACommand#help() help} = "gives an example of what commands do"
+ *          {@link votl.objects.command.annotation.JDACommand#name() name} = {"example", "test", "demo"},
+ *          {@link votl.objects.command.annotation.JDACommand#help() help} = "gives an example of what commands do"
  *      )
  *      public void example(CommandEvent) {
  *          event.reply("Hey look! This would be the bot's reply if this was a command!");
@@ -57,7 +57,7 @@ import votl.objects.command.CooldownScope;
  *
  * }</code></pre>
  *
- * @see    com.jagrosh.jdautilities.command.annotation.JDACommand.Module
+ * @see    votl.objects.command.annotation.JDACommand.Module
  *
  * @since  1.7
  * @author Kaidan Gustave
@@ -146,7 +146,7 @@ public @interface JDACommand
 	 * <br>Default {@code true}.
 	 *
 	 * <p>For more information on topic tags, see
-	 * {@link com.jagrosh.jdautilities.command.Command#usesTopicTags
+	 * {@link votl.objects.command.Command#usesTopicTags
 	 * Command#usesTopicTags}
 	 *
 	 * @return {@code true} if this command uses topic tags, {@code false} otherwise.
@@ -170,7 +170,7 @@ public @interface JDACommand
 	/**
 	 * The {@link JDACommand.Category JDACommand.Category} for this command.
 	 * <br>This holds data to properly locate a <b>static field</b> representing
-	 * this command's {@link com.jagrosh.jdautilities.command.Command.Category
+	 * this command's {@link votl.objects.command.Command.Category
 	 * Category}.
 	 *
 	 * @return The {@code @Category} for this command.
@@ -179,10 +179,10 @@ public @interface JDACommand
 
 	/**
 	 * A helper annotation to assist in location of methods that will generate
-	 * into {@link com.jagrosh.jdautilities.command.Command Command}s.
+	 * into {@link votl.objects.command.Command Command}s.
 	 *
 	 * <p>Method names provided to this annotation must have one or two parameters.
-	 * Either a single parameter {@link com.jagrosh.jdautilities.command.CommandEvent
+	 * Either a single parameter {@link votl.objects.command.CommandEvent
 	 * CommandEvent}, or a double parameter {@code CommandEvent} and {@code Command}.
 	 * <br>The arrangement of the double parameters is not important, so methods
 	 * may do it as {@code (CommandEvent, Command)} or {@code (Command, CommandEvent)}.
@@ -195,7 +195,7 @@ public @interface JDACommand
 	{
 		/**
 		 * The names of any methods that will be targeted when compiling this object
-		 * using the {@link com.jagrosh.jdautilities.command.AnnotatedModuleCompiler
+		 * using the {@link votl.objects.command.AnnotatedModuleCompiler
 		 * AnnotatedModuleCompiler}.
 		 *
 		 * <p><b>This is not the same thing as the name of the commands!</b> These are
@@ -241,21 +241,21 @@ public @interface JDACommand
 	 * A helper annotation to assist in location of Category instance.
 	 *
 	 * <p>This will target a <b>static field</b> in the specified class
-	 * {@link com.jagrosh.jdautilities.command.annotation.JDACommand.Category#location() location} using reflections, with a
-	 * matching {@link com.jagrosh.jdautilities.command.annotation.JDACommand.Category#name() name}.
+	 * {@link votl.objects.command.annotation.JDACommand.Category#location() location} using reflections, with a
+	 * matching {@link votl.objects.command.annotation.JDACommand.Category#name() name}.
 	 *
 	 * <p>It is important to remember the target must be a <b>static field</b>
 	 * and any other attempted inputs will result in errors from the
-	 * {@link com.jagrosh.jdautilities.command.AnnotatedModuleCompiler compiler}.
+	 * {@link votl.objects.command.AnnotatedModuleCompiler compiler}.
 	 *
-	 * @see    com.jagrosh.jdautilities.command.annotation.JDACommand#category()
+	 * @see    votl.objects.command.annotation.JDACommand#category()
 	 */
 	@Target(ElementType.TYPE)
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface Category
 	{
 		/**
-		 * The name of the <b>static field</b> in the {@link com.jagrosh.jdautilities.command.annotation.JDACommand.Category#location()
+		 * The name of the <b>static field</b> in the {@link votl.objects.command.annotation.JDACommand.Category#location()
 		 * target class} that will be the category for the annotated command.
 		 *
 		 * @return The name of the <b>static field</b> in the target class.

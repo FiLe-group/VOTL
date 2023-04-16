@@ -50,6 +50,10 @@ sourceSets {
 	libsDirName = 'lib'
 }
 
+javadoc {
+	options.tags = ['implNote:a:Implementation Note:']
+}
+
 // jar's Manifest
 jar {
 	manifest {

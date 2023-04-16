@@ -43,7 +43,7 @@ import votl.utils.exception.CheckException;
  * a low level of development.
  * <br>All Commands extending this class can define any number of these fields in a object constructor and then
  * create the command action/response in the abstract
- * {@link com.jagrosh.jdautilities.command.Command#execute(com.jagrosh.jdautilities.command.CommandEvent) #execute(CommandEvent)} body:
+ * {@link votl.objects.command.Command#execute(CommandEvent) #execute(CommandEvent)} body:
  *
  * <pre><code> public class ExampleCmd extends Command {
  *
@@ -61,13 +61,13 @@ import votl.utils.exception.CheckException;
  * }</code></pre>
  *
  * Execution is with the provision of a MessageReceivedEvent-CommandClient wrapper called a
- * {@link com.jagrosh.jdautilities.command.CommandEvent CommandEvent} and is performed in two steps:
+ * {@link votl.objects.command.CommandEvent CommandEvent} and is performed in two steps:
  * <ul>
- *     <li>{@link com.jagrosh.jdautilities.command.Command#run(CommandEvent) run} - The command runs
+ *     <li>{@link votl.objects.command.Command#run(CommandEvent) run} - The command runs
  *     through a series of conditionals, automatically terminating the command instance if one is not met,
  *     and possibly providing an error response.</li>
  *
- *     <li>{@link com.jagrosh.jdautilities.command.Command#execute(CommandEvent) execute} - The command,
+ *     <li>{@link votl.objects.command.Command#execute(CommandEvent) execute} - The command,
  *     now being cleared to run, executes and performs whatever lies in the abstract body method.</li>
  * </ul>
  *
@@ -91,7 +91,7 @@ public abstract class Command extends Interaction
 	protected String help = "no help available";
 
 	/**
-	 * The {@link com.jagrosh.jdautilities.command.Command.Category Category} of the command.
+	 * The {@link votl.objects.command.Command.Category Category} of the command.
 	 * <br>This can perform any other checks not completed by the default conditional fields.
 	 */
 	protected Category category = null;
@@ -118,7 +118,7 @@ public abstract class Command extends Interaction
 
 	/**
 	 * The aliases of the command, when calling a command these function identically to calling the
-	 * {@link com.jagrosh.jdautilities.command.Command#name Command.name}.
+	 * {@link votl.objects.command.Command#name Command.name}.
 	 * This options only works for normal commands, not slash commands.
 	 */
 	protected String[] aliases = new String[0];
@@ -151,19 +151,19 @@ public abstract class Command extends Interaction
 	protected boolean hidden = false;
 
 	/**
-	 * The main body method of a {@link com.jagrosh.jdautilities.command.Command Command}.
+	 * The main body method of a {@link votl.objects.command.Command Command}.
 	 * <br>This is the "response" for a successful
-	 * {@link com.jagrosh.jdautilities.command.Command#run(CommandEvent) #run(CommandEvent)}.
+	 * {@link votl.objects.command.Command#run(CommandEvent) #run(CommandEvent)}.
 	 *
 	 * @param  event
-	 *         The {@link com.jagrosh.jdautilities.command.CommandEvent CommandEvent} that
+	 *         The {@link votl.objects.command.CommandEvent CommandEvent} that
 	 *         triggered this Command
 	 */
 	protected abstract void execute(CommandEvent event);
 
 	/**
-	 * Runs checks for the {@link com.jagrosh.jdautilities.command.Command Command} with the
-	 * given {@link com.jagrosh.jdautilities.command.CommandEvent CommandEvent} that called it.
+	 * Runs checks for the {@link votl.objects.command.Command Command} with the
+	 * given {@link votl.objects.command.CommandEvent CommandEvent} that called it.
 	 * <br>Will terminate, and possibly respond with a failure message, if any checks fail.
 	 *
 	 * @param  event
@@ -285,7 +285,7 @@ public abstract class Command extends Interaction
 	}
 
 	/**
-	 * Gets the {@link com.jagrosh.jdautilities.command.Command#name Command.name} for the Command.
+	 * Gets the {@link votl.objects.command.Command#name Command.name} for the Command.
 	 *
 	 * @return The name for the Command
 	 */
@@ -296,7 +296,7 @@ public abstract class Command extends Interaction
 	}
 
 	/**
-	 * Gets the {@link com.jagrosh.jdautilities.command.Command#help Command.help} for the Command.
+	 * Gets the {@link votl.objects.command.Command#help Command.help} for the Command.
 	 *
 	 * @return The help for the Command
 	 */
@@ -307,7 +307,7 @@ public abstract class Command extends Interaction
 	}
 
 	/**
-	 * Gets the {@link com.jagrosh.jdautilities.command.Command#category Command.category} for the Command.
+	 * Gets the {@link votl.objects.command.Command#category Command.category} for the Command.
 	 *
 	 * @return The category for the Command
 	 */
@@ -317,7 +317,7 @@ public abstract class Command extends Interaction
 	}
 
 	/**
-	 * Gets the {@link com.jagrosh.jdautilities.command.Command#arguments Command.arguments} for the Command.
+	 * Gets the {@link votl.objects.command.Command#arguments Command.arguments} for the Command.
 	 *
 	 * @return The arguments for the Command
 	 */
@@ -338,7 +338,7 @@ public abstract class Command extends Interaction
 	}
 
 	/**
-	 * Gets the {@link com.jagrosh.jdautilities.command.Command#requiredRole Command.requiredRole} for the Command.
+	 * Gets the {@link votl.objects.command.Command#requiredRole Command.requiredRole} for the Command.
 	 *
 	 * @return The requiredRole for the Command
 	 */
@@ -348,7 +348,7 @@ public abstract class Command extends Interaction
 	}
 
 	/**
-	 * Gets the {@link com.jagrosh.jdautilities.command.Command#aliases Command.aliases} for the Command.
+	 * Gets the {@link votl.objects.command.Command#aliases Command.aliases} for the Command.
 	 *
 	 * @return The aliases for the Command
 	 */
@@ -358,7 +358,7 @@ public abstract class Command extends Interaction
 	}
 
 	/**
-	 * Gets the {@link com.jagrosh.jdautilities.command.Command#children Command.children} for the Command.
+	 * Gets the {@link votl.objects.command.Command#children Command.children} for the Command.
 	 *
 	 * @return The children for the Command
 	 */
@@ -391,7 +391,7 @@ public abstract class Command extends Interaction
 
 	/**
 	 * Gets the proper cooldown key for this Command under the provided
-	 * {@link com.jagrosh.jdautilities.command.CommandEvent CommandEvent}.
+	 * {@link votl.objects.command.CommandEvent CommandEvent}.
 	 *
 	 * @param  event
 	 *         The CommandEvent to generate the cooldown for.
@@ -420,7 +420,7 @@ public abstract class Command extends Interaction
 
 	/**
 	 * Gets an error message for this Command under the provided
-	 * {@link com.jagrosh.jdautilities.command.CommandEvent CommanEvent}.
+	 * {@link votl.objects.command.CommandEvent CommanEvent}.
 	 *
 	 * @param  event
 	 *         The CommandEvent to generate the error message for.
@@ -450,9 +450,9 @@ public abstract class Command extends Interaction
 	}
 
 	/**
-	 * To be used in {@link com.jagrosh.jdautilities.command.Command Command}s as a means of
+	 * To be used in {@link votl.objects.command.Command Command}s as a means of
 	 * organizing commands into "Categories" as well as terminate command usage when the calling
-	 * {@link com.jagrosh.jdautilities.command.CommandEvent CommandEvent} doesn't meet
+	 * {@link votl.objects.command.CommandEvent CommandEvent} doesn't meet
 	 * certain requirements.
 	 *
 	 * @author John Grosh (jagrosh)
@@ -480,7 +480,7 @@ public abstract class Command extends Interaction
 		 * A Command Category containing a name and a {@link java.util.function.Predicate}.
 		 *
 		 * <p>The command will be terminated if
-		 * {@link com.jagrosh.jdautilities.command.Command.Category#test(com.jagrosh.jdautilities.command.CommandEvent)}
+		 * {@link votl.objects.command.Command.Category#test(votl.objects.command.CommandEvent)}
 		 * returns {@code false}.
 		 *
 		 * @param  name
@@ -500,7 +500,7 @@ public abstract class Command extends Interaction
 		 * and a failure response.
 		 *
 		 * <p>The command will be terminated if
-		 * {@link com.jagrosh.jdautilities.command.Command.Category#test(com.jagrosh.jdautilities.command.CommandEvent)}
+		 * {@link votl.objects.command.Command.Category#test(votl.objects.command.CommandEvent)}
 		 * returns {@code false}, and the failure response will be sent.
 		 *
 		 * @param  name
@@ -542,7 +542,7 @@ public abstract class Command extends Interaction
 		 * Does not support SlashCommands.
 		 *
 		 * @param  event
-		 *         The {@link com.jagrosh.jdautilities.command.CommandEvent CommandEvent}
+		 *         The {@link votl.objects.command.CommandEvent CommandEvent}
 		 *         that was called when this method is invoked
 		 *
 		 * @return {@code true} if the Predicate was not set, was set as null, or was

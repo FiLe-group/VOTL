@@ -156,9 +156,9 @@ public abstract class SlashCommand extends Command
 	public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {}
 
 	/**
-	 * The main body method of a {@link com.jagrosh.jdautilities.command.Command Command}.
+	 * The main body method of a {@link votl.objects.command.Command Command}.
 	 * <br>This is the "response" for a successful
-	 * {@link com.jagrosh.jdautilities.command.Command#run(CommandEvent) #run(CommandEvent)}.
+	 * {@link votl.objects.command.Command#run(CommandEvent) #run(CommandEvent)}.
 	 * <b>
 	 *     Because this is a SlashCommand, this is called, but does nothing.
 	 *     You can still override this if you want to have a separate response for normal [prefix][name].
@@ -166,7 +166,7 @@ public abstract class SlashCommand extends Command
 	 * </b>
 	 *
 	 * @param  event
-	 *         The {@link com.jagrosh.jdautilities.command.CommandEvent CommandEvent} that
+	 *         The {@link votl.objects.command.CommandEvent CommandEvent} that
 	 *         triggered this Command
 	 */
 	@Override

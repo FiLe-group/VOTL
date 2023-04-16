@@ -30,7 +30,7 @@ import votl.objects.command.CommandEvent;
 import votl.objects.command.annotation.JDACommand;
 
 /**
- * Default implementation for {@link com.jagrosh.jdautilities.command.AnnotatedModuleCompiler
+ * Default implementation for {@link votl.objects.command.AnnotatedModuleCompiler
  * AnnotatedModuleCompiler}.
  *
  * @since  1.8

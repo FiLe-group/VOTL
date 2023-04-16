@@ -121,9 +121,10 @@ public abstract class ContextMenu extends Interaction
 	 *
 	 * @param  event
 	 *         The event to generate the error message for.
+	 * @param  guild
+	 *         The guild where command is run.
 	 * @param  remaining
 	 *         The remaining number of seconds a context menu is on cooldown for.
-	 * @param client the client
 	 *
 	 * @return A String error message for this menu if {@code remaining > 0},
 	 *         else {@code null}.

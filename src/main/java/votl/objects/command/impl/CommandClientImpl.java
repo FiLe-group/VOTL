@@ -65,7 +65,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-//import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -93,13 +92,13 @@ import votl.objects.command.UserContextMenuEvent;
 import votl.objects.command.Command.Category;
 
 /**
- * An implementation of {@link com.jagrosh.jdautilities.command.CommandClient CommandClient} to be used by a bot.
+ * An implementation of {@link votl.objects.command.CommandClient CommandClient} to be used by a bot.
  *
  * <p>This is a listener usable with {@link net.dv8tion.jda.api.JDA JDA}, as it implements
  * {@link net.dv8tion.jda.api.hooks.EventListener EventListener} in order to catch and use different kinds of
  * {@link net.dv8tion.jda.api.events.Event Event}s. The primary usage of this is where the CommandClient implementation
  * takes {@link net.dv8tion.jda.api.events.message.MessageReceivedEvent MessageReceivedEvent}s, and automatically
- * processes arguments, and provide them to a {@link com.jagrosh.jdautilities.command.Command Command} for
+ * processes arguments, and provide them to a {@link votl.objects.command.Command Command} for
  * running and execution.
  *
  * @author John Grosh (jagrosh)

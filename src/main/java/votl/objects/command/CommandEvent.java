@@ -40,8 +40,8 @@ import net.dv8tion.jda.internal.utils.Checks;
 
 /**
  * A wrapper class for a {@link net.dv8tion.jda.api.events.message.MessageReceivedEvent MessageReceivedEvent},
- * {@link com.jagrosh.jdautilities.command.CommandClient CommandClient}, and String user arguments
- * compatible with all {@link com.jagrosh.jdautilities.command.Command Command}s.
+ * {@link votl.objects.command.CommandClient CommandClient}, and String user arguments
+ * compatible with all {@link votl.objects.command.Command Command}s.
  * 
  * <p>From here, developers can invoke several useful and specialized methods to assist in Command function and
  * development. There are also "extension" methods for all methods found in MessageReceivedEvent.
@@ -76,7 +76,7 @@ public class CommandEvent
 	 * @param  args
 	 *         The String arguments after the command call
 	 * @param  client
-	 *         The {@link com.jagrosh.jdautilities.command.CommandClient CommandClient}
+	 *         The {@link votl.objects.command.CommandClient CommandClient}
 	 */
 	public CommandEvent(MessageReceivedEvent event, String prefix, String args, CommandClient client)
 	{
@@ -123,7 +123,7 @@ public class CommandEvent
 	}
 	
 	/**
-	 * Returns the {@link com.jagrosh.jdautilities.command.CommandClient CommandClient}
+	 * Returns the {@link votl.objects.command.CommandClient CommandClient}
 	 * that initiated this CommandEvent.
 	 * 
 	 * @return The initiating CommandClient
@@ -457,8 +457,8 @@ public class CommandEvent
 	 * <p><b>NOTE:</b> This alternate String message can exceed the 2000 character cap, and will 
 	 * be sent in two split Messages.
 	 * 
-	 * <p>It is also worth noting that unlike {@link com.jagrosh.jdautilities.command.CommandEvent#reply(File,String) CommandEvent#reply(File, String)}
-	 * and {@link com.jagrosh.jdautilities.command.CommandEvent#reply(String,File,String) CommandEvent#reply(String, File, String)},
+	 * <p>It is also worth noting that unlike {@link votl.objects.command.CommandEvent#reply(File,String) CommandEvent#reply(File, String)}
+	 * and {@link votl.objects.command.CommandEvent#reply(String,File,String) CommandEvent#reply(String, File, String)},
 	 * this method does not throw a {@link java.io.IOException}. This is because the cause of the alternate String message being sent comes directly from a 
 	 * thrown {@link java.lang.Exception}, and thus a thrown IOException is grounds for the sending of the alternate message.
 	 * 
@@ -906,7 +906,7 @@ public class CommandEvent
 	}
 	
 	/**
-	 * Uses the {@link com.jagrosh.jdautilities.command.CommandClient#getScheduleExecutor() client's executor}
+	 * Uses the {@link votl.objects.command.CommandClient#getScheduleExecutor() client's executor}
 	 * to run the provided {@link java.lang.Runnable Runnable} asynchronously without blocking the thread this
 	 * is called in.
 	 *

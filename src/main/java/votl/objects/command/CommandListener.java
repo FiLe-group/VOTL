@@ -153,7 +153,7 @@ public interface CommandListener {
 	 *
 	 * <p>This doesn't account for exceptions thrown during other pre-checks, and should not be treated as such!
 	 *
-	 * <p>An example of this misconception is via a {@link com.jagrosh.jdautilities.command.Command.Category} test:
+	 * <p>An example of this misconception is via a {@link votl.objects.command.Command.Category} test:
 	 *
 	 * <pre><code> public class BadCommand extends Command {
 	 *
@@ -184,7 +184,7 @@ public interface CommandListener {
 	}
 
 	/**
-	 * Called when a {@link com.jagrosh.jdautilities.command.SlashCommand SlashCommand}
+	 * Called when a {@link votl.objects.command.SlashCommand SlashCommand}
 	 * catches a {@link java.lang.Throwable Throwable} <b>during execution</b>.
 	 *
 	 * <p>This doesn't account for exceptions thrown during other pre-checks,
