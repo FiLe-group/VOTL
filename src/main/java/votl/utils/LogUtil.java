@@ -49,9 +49,9 @@ public class LogUtil {
 		Instant timeEnd = timeStart.plus(duration);
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_FAILURE)
 			.setAuthor(lu.getLocalized(locale, path+"ban.title").replace("{case_id}", banId.toString()).replace("{user_tag}", userTag), null, userIcon)
-			.addField(lu.getLocalized(locale, path+"ban.user"), String.format("<@%s>", userId), true)
-			.addField(lu.getLocalized(locale, path+"ban.mod"), (formatMod ? String.format("<@%s>", modId) : modTag), true)
-			.addField(lu.getLocalized(locale, path+"ban.duration"), duration.isZero() ? lu.getLocalized(locale, path+"permanently") : 
+			.addField(lu.getLocalized(locale, path+"user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"mod"), (formatMod ? String.format("<@%s>", modId) : modTag), true)
+			.addField(lu.getLocalized(locale, path+"duration"), duration.isZero() ? lu.getLocalized(locale, path+"permanently") : 
 				lu.getLocalized(locale, path+"temporary")
 					.replace("{time}", bot.getTimeUtil().formatTime(timeEnd, false)), true)
 			.addField(lu.getLocalized(locale, path+"ban.reason"), reason, true)
@@ -63,10 +63,10 @@ public class LogUtil {
 	public MessageEmbed getSyncBanEmbed(DiscordLocale locale, Guild master, User enforcer, User target, String reason) {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_FAILURE)
 			.setAuthor(lu.getLocalized(locale, path+"ban.title_synced").replace("{user_tag}", target.getAsTag()), null, target.getAvatarUrl())
-			.addField(lu.getLocalized(locale, path+"ban.user"), target.getAsMention(), true)
+			.addField(lu.getLocalized(locale, path+"user"), target.getAsMention(), true)
 			.addField(lu.getLocalized(locale, path+"ban.reason"), reason, true)
-			.addField(lu.getLocalized(locale, path+"ban.master"), "`"+master.getName()+"` (#"+master.getId()+")", true)
-			.addField(lu.getLocalized(locale, path+"ban.enforcer"), enforcer.getAsTag(), true)
+			.addField(lu.getLocalized(locale, path+"master"), "`"+master.getName()+"` (#"+master.getId()+")", true)
+			.addField(lu.getLocalized(locale, path+"enforcer"), enforcer.getAsTag(), true)
 			.setFooter("ID: "+target.getId())
 			.setTimestamp(Instant.now())
 			.build();
@@ -76,11 +76,11 @@ public class LogUtil {
 	public MessageEmbed getSyncUnbanEmbed(DiscordLocale locale, Guild master, User enforcer, User target, String banReason, String reason) {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
 			.setAuthor(lu.getLocalized(locale, path+"unban.title_synced").replace("{user_tag}", target.getAsTag()), null, target.getAvatarUrl())
-			.addField(lu.getLocalized(locale, path+"unban.user"), target.getAsMention(), true)
+			.addField(lu.getLocalized(locale, path+"user"), target.getAsMention(), true)
 			.addField(lu.getLocalized(locale, path+"unban.ban_reason"), (banReason!=null ? banReason : "-"), true)
 			.addField(lu.getLocalized(locale, path+"unban.reason"), reason, true)
-			.addField(lu.getLocalized(locale, path+"unban.master"), "`"+master.getName()+"` (#"+master.getId()+")", true)
-			.addField(lu.getLocalized(locale, path+"unban.enforcer"), enforcer.getAsTag(), true)
+			.addField(lu.getLocalized(locale, path+"master"), "`"+master.getName()+"` (#"+master.getId()+")", true)
+			.addField(lu.getLocalized(locale, path+"enforcer"), enforcer.getAsTag(), true)
 			.setFooter("ID: "+target.getId())
 			.setTimestamp(Instant.now())
 			.build();
@@ -95,8 +95,8 @@ public class LogUtil {
 	private MessageEmbed getUnbanEmbed(DiscordLocale locale, String userTag, String userId, String modMention, String banReason, String reason) {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
 			.setAuthor(lu.getLocalized(locale, path+"unban.title").replace("{user_tag}", userTag))
-			.addField(lu.getLocalized(locale, path+"unban.user"), String.format("<@%s>", userId), true)
-			.addField(lu.getLocalized(locale, path+"unban.mod"), modMention, true)
+			.addField(lu.getLocalized(locale, path+"user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"mod"), modMention, true)
 			.addField(lu.getLocalized(locale, path+"unban.ban_reason"), (banReason!=null ? banReason : "-"), true)
 			.addField(lu.getLocalized(locale, path+"unban.reason"), reason, true)
 			.setFooter("ID: "+userId)
@@ -112,10 +112,10 @@ public class LogUtil {
 	@Nonnull
 	private MessageEmbed getAutoUnbanEmbed(DiscordLocale locale, String userTag, String userId, String banReason, Duration duration) {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
-			.setAuthor(lu.getLocalized(locale, path+"unban.title").replace("{user_tag}", userTag))
-			.addField(lu.getLocalized(locale, path+"unban.user"), String.format("<@%s>", userId), true)
-			.addField(lu.getLocalized(locale, path+"unban.ban_reason"), (banReason!=null ? banReason : "-"), true)
-			.addField(lu.getLocalized(locale, path+"ban.duration"), bot.getTimeUtil().durationToString(duration), true)
+			.setAuthor(lu.getLocalized(locale, path+"expired.unban.title").replace("{user_tag}", userTag))
+			.addField(lu.getLocalized(locale, path+"user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"expired.unban.ban_reason"), (banReason!=null ? banReason : "-"), true)
+			.addField(lu.getLocalized(locale, path+"duration"), bot.getTimeUtil().durationToString(duration), true)
 			.setFooter("ID: "+userId)
 			.build();
 	}
@@ -125,8 +125,8 @@ public class LogUtil {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
 			.setAuthor(lu.getLocalized(locale, path+"change.reason").replace("{case_id}", caseId.toString()).replace("{user_tag}", userTag))
 			.setDescription("🔴 ~~"+oldReason+"~~\n\n🟢 "+newReason)
-			.addField(lu.getLocalized(locale, path+"change.user"), String.format("<@%s>", userId), true)
-			.addField(lu.getLocalized(locale, path+"change.mod"), String.format("<@%s>", modId), true)
+			.addField(lu.getLocalized(locale, path+"user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"mod"), String.format("<@%s>", modId), true)
 			.setFooter("ID: "+userId)
 			.build();
 	}
@@ -136,11 +136,36 @@ public class LogUtil {
 		String oldTime = oldDuration.isZero() ? lu.getLocalized(locale, path+"permanently") : lu.getLocalized(locale, path+"temporary")
 			.replace("{time}", bot.getTimeUtil().formatTime(timeStart.plus(oldDuration), false));
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_WARNING)
-			.setAuthor(lu.getLocalized(locale, path+"change.reason").replace("{case_id}", caseId.toString()).replace("{user_tag}", userTag))
+			.setAuthor(lu.getLocalized(locale, path+"change.duration").replace("{case_id}", caseId.toString()).replace("{user_tag}", userTag))
 			.setDescription("🔴 ~~"+oldTime+"~~\n\n🟢 "+newTime)
-			.addField(lu.getLocalized(locale, path+"change.user"), String.format("<@%s>", userId), true)
-			.addField(lu.getLocalized(locale, path+"change.mod"), String.format("<@%s>", modId), true)
+			.addField(lu.getLocalized(locale, path+"user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"mod"), String.format("<@%s>", modId), true)
 			.setFooter("ID: "+userId)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getKickEmbed(DiscordLocale locale, String userTag, String userId, String modTag, String modId, String reason, String userIcon, Boolean formatMod) {
+		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_FAILURE)
+			.setAuthor(lu.getLocalized(locale, path+"kick.title").replace("{user_tag}", userTag), null, userIcon)
+			.addField(lu.getLocalized(locale, path+"user"), String.format("<@%s>", userId), true)
+			.addField(lu.getLocalized(locale, path+"mod"), (formatMod ? String.format("<@%s>", modId) : modTag), true)
+			.addField(lu.getLocalized(locale, path+"kick.reason"), reason, true)
+			.setFooter("ID: "+userId)
+			.setTimestamp(Instant.now())
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed getSyncKickEmbed(DiscordLocale locale, Guild master, User enforcer, User target, String reason) {
+		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_FAILURE)
+			.setAuthor(lu.getLocalized(locale, path+"kick.title_synced").replace("{user_tag}", target.getAsTag()), null, target.getAvatarUrl())
+			.addField(lu.getLocalized(locale, path+"user"), target.getAsMention(), true)
+			.addField(lu.getLocalized(locale, path+"kick.reason"), reason, true)
+			.addField(lu.getLocalized(locale, path+"master"), "`"+master.getName()+"` (#"+master.getId()+")", true)
+			.addField(lu.getLocalized(locale, path+"enforcer"), enforcer.getAsTag(), true)
+			.setFooter("ID: "+target.getId())
+			.setTimestamp(Instant.now())
 			.build();
 	}
 

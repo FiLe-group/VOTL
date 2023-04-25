@@ -37,7 +37,7 @@ public class SyncCmd extends CommandBase {
 		super(bot);
 		this.name = "sync";
 		this.path = "bot.moderation.sync";
-		this.children = new SlashCommand[]{new Ban(bot), new Unban(bot)};
+		this.children = new SlashCommand[]{new Ban(bot), new Unban(bot), new Kick(bot)};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -143,7 +143,7 @@ public class SyncCmd extends CommandBase {
 				});
 			},
 			t -> {
-
+				editError(event, "errors.unknown", t.getMessage());
 			});
 		}
 
@@ -227,6 +227,14 @@ public class SyncCmd extends CommandBase {
 											.setComponents().queue();
 									}
 								});
+							},
+							t -> {
+								if (last) {
+									event.getHook().editOriginalEmbeds(builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
+										.replace("{count}", String.valueOf(success.size()))
+										.replace("{max_count}", maxCount.toString())).build())
+										.setComponents().queue();
+								}
 							});
 						}
 					},
@@ -239,6 +247,109 @@ public class SyncCmd extends CommandBase {
 			});
 		}
 
+	}
+
+	private class Kick extends CommandBase {
+		
+		public Kick(App bot) {
+			super(bot);
+			this.name = "kick";
+			this.path = "bot.moderation.sync.kick";
+			List<OptionData> options = new ArrayList<>();
+			options.add(new OptionData(OptionType.USER, "user", lu.getText(path+".option_user"), true));
+			options.add(new OptionData(OptionType.INTEGER, "master_group", lu.getText(path+".option_group"), true, true).setMinValue(0));
+			this.options = options;
+			this.cooldownScope = CooldownScope.GUILD;
+			this.cooldown = 20;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+
+			User target = event.optUser("user");
+			if (target == null) {
+				editError(event, path+".not_found");
+				return;
+			}
+			if (event.getUser().equals(target) || event.getJDA().getSelfUser().equals(target)) {
+				editError(event, path+".not_self");
+				return;
+			}
+			if (event.getGuild().isMember(target)) {
+				editError(event, path+".is_member");
+				return;
+			}
+
+			Integer groupId = event.optInteger("master_group");
+			String masterId = bot.getDBUtil().group.getMaster(groupId);
+			if (masterId == null || !masterId.equals(event.getGuild().getId())) {
+				editError(event, path+".no_group", "Group ID: `"+groupId.toString()+"`");
+				return;
+			}
+
+			EmbedBuilder builder = bot.getEmbedUtil().getEmbed(event);
+
+			MessageEmbed embed = builder.setDescription(lu.getText(event, path+".embed_title")).build();
+			ActionRow button = ActionRow.of(
+				Button.of(ButtonStyle.PRIMARY, "button:confirm", lu.getText(event, path+".button_confirm"))
+			);
+			event.getHook().editOriginalEmbeds(embed).setComponents(button).queue(msg -> {
+				waiter.waitForEvent(
+					ButtonInteractionEvent.class,
+					e -> msg.getId().equals(e.getMessageId()) && e.getComponentId().equals("button:confirm"),
+					action -> {
+						List<String> guilds = bot.getDBUtil().group.getGroupGuildIds(groupId);
+						if (guilds.isEmpty()) {
+							editError(event, path+".no_guilds");
+							return;
+						};
+
+						Integer maxCount = guilds.size();
+						List<String> success = new ArrayList<>();
+						for (int i = 0; i < maxCount; i++) {
+							Guild guild = event.getJDA().getGuildById(guilds.get(i));
+
+							Boolean last = i + 1 == maxCount;
+							guild.retrieveMember(target).queue(member -> {
+								guild.kick(target).reason("Sync: Manual kick").queue(done -> {
+									bot.getLogListener().onSyncKick(event, guild, target, "Manual kick");
+		
+									success.add(guild.getId());
+									if (last) {
+										event.getHook().editOriginalEmbeds(builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
+											.replace("{count}", String.valueOf(success.size()))
+											.replace("{max_count}", maxCount.toString())).build())
+											.setComponents().queue();
+									}
+								},
+								failure -> {
+									if (last) {
+										event.getHook().editOriginalEmbeds(builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
+											.replace("{count}", String.valueOf(success.size()))
+											.replace("{max_count}", maxCount.toString())).build())
+											.setComponents().queue();
+									}
+								});
+							},
+							notFound -> {
+								if (last) {
+									event.getHook().editOriginalEmbeds(builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
+										.replace("{count}", String.valueOf(success.size()))
+										.replace("{max_count}", maxCount.toString())).build())
+										.setComponents().queue();
+								}
+							});
+						}
+					},
+					20,
+					TimeUnit.SECONDS,
+					() -> {
+						event.getHook().editOriginalComponents(ActionRow.of(Button.of(ButtonStyle.SECONDARY, "timed_out", "Timed out").asDisabled())).queue();
+					}
+				);
+			});
+		}
 	}
 
 }

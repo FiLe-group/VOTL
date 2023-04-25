@@ -13,7 +13,6 @@ import java.util.Map;
 
 import votl.App;
 import votl.commands.CommandBase;
-import votl.objects.CmdAccessLevel;
 import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
@@ -46,36 +45,33 @@ public class GenerateListCmd extends CommandBase {
 			return;
 		}
 
-		JSONObject template = new JSONObject();
-		template.appendField("name", "")
-			.appendField("description", Map.of("en-GB", "", "ru", ""))
-			.appendField("usage", Map.of("en-GB", "", "ru", ""))
-			.appendField("category", Map.of("en-GB", "", "ru", ""))
-			.appendField("guildOnly", true)
-			.appendField("module", Map.of("en-GB", "", "ru", ""))
-			.appendField("access", CmdAccessLevel.ALL.getLevel())
-			.appendField("child", Collections.emptyList());
-
 		JSONObject result = new JSONObject();
 		for (Integer i = 0; i < commands.size(); i++) {
 			SlashCommand cmd = commands.get(i);
 
-			JSONObject jsonObject = new JSONObject(template);
-			jsonObject.replace("name", cmd.getName());
-			jsonObject.replace("description", getText(cmd.getHelpPath()));
-			jsonObject.replace("category", getText("bot.help.command_menu.categories."+cmd.getCategory().getName()));
-			jsonObject.replace("guildOnly", cmd.isGuildOnly());
-			if (cmd.getModule() != null) jsonObject.replace("module", getText(cmd.getModule().getPath()));
-			jsonObject.replace("access", cmd.getAccessLevel().getLevel());
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.appendField("name", cmd.getName())
+				.appendField("description", getText(cmd.getHelpPath()))
+				.appendField("category", getCategoryMap(cmd.getCategory()))
+				.appendField("guildOnly", cmd.isGuildOnly())
+				.appendField("access", cmd.getAccessLevel().getLevel());
 
+			if (cmd.getModule() == null) {
+				jsonObject.appendField("module", Map.of("en-GB", "", "ru", ""));
+			} else {
+				jsonObject.appendField("module", getText(cmd.getModule().getPath()));
+			}
+			
 			if (cmd.getChildren().length > 0) {
 				List<Map<String, Object>> values = new ArrayList<>();
 				for (SlashCommand child : cmd.getChildren()) {
 					values.add(Map.of("description", getText(child.getHelpPath()), "usage", getText(child.getUsagePath())));
 				}
-				jsonObject.replace("child", values);
+				jsonObject.appendField("child", values);
+				jsonObject.appendField("usage", Map.of("en-GB", "", "ru", ""));
 			} else {
-				jsonObject.replace("usage", getText(cmd.getUsagePath()));
+				jsonObject.appendField("child", Collections.emptyList());
+				jsonObject.appendField("usage", getText(cmd.getUsagePath()));
 			}
 			
 			result.appendField(i.toString(), jsonObject);
@@ -92,6 +88,16 @@ public class GenerateListCmd extends CommandBase {
 		} catch (IOException | UncheckedIOException ex) {
 			createError(event, path+".error", ex.getMessage());
 		}
+	}
+
+	private Map<String, Object> getCategoryMap(Category category) {
+		if (category == null) {
+			return Map.of("name", "", "en-GB", "", "ru", "");
+		}
+		Map<String, Object> map = new HashMap<>();
+		map.put("name", category.getName());
+		map.putAll(getText("bot.help.command_menu.categories."+category.getName()));
+		return map;
 	}
 
 	private Map<String, Object> getText(String path) {

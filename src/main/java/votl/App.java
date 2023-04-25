@@ -149,6 +149,7 @@ public class App {
 				// moderation
 				new BanCmd(this, waiter),
 				new UnbanCmd(this, waiter),
+				new KickCmd(this, waiter),
 				new SyncCmd(this, waiter),
 				new CaseCmd(this),
 				new ReasonCmd(this),

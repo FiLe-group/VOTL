@@ -30,6 +30,7 @@ public class LogListener {
 		this.logUtil = bot.getLogUtil();
 	}
 
+	// Moderation actions
 	public void onBan(SlashCommandEvent event, User target, Member moderator, Integer banId) {
 		String guildId = Objects.requireNonNull(event.getGuild()).getId();
 
@@ -55,6 +56,26 @@ public class LogListener {
 			return;
 		}
 	}
+	
+	public void onSyncBan(SlashCommandEvent event, Guild guild, User target, String reason) {
+		String guildId = Objects.requireNonNull(guild).getId();
+
+		String channelId = db.guild.getModLogChannel(guildId);
+		if (channelId == null) {
+			return;
+		}
+		TextChannel channel = event.getJDA().getTextChannelById(channelId);
+		if (channel == null) {
+			return;
+		}
+
+		try {
+			MessageEmbed embed = logUtil.getSyncBanEmbed(guild.getLocale(), event.getGuild(), event.getUser(), target, reason);
+			channel.sendMessageEmbeds(embed).queue();
+		} catch (InsufficientPermissionException ex) {
+			return;
+		}
+	}
 
 	public void onUnban(SlashCommandEvent event, Member moderator, Ban banData, String reason) {
 		String guildId = Objects.requireNonNull(event.getGuild()).getId();
@@ -70,6 +91,136 @@ public class LogListener {
 
 		try {
 			MessageEmbed embed = logUtil.getUnbanEmbed(event.getUserLocale(), banData, moderator, reason);
+			channel.sendMessageEmbeds(embed).queue();
+		} catch (InsufficientPermissionException ex) {
+			return;
+		}
+	}
+
+	public void onSyncUnban(SlashCommandEvent event, Guild guild, User target, String banReason, String reason) {
+		String guildId = Objects.requireNonNull(guild).getId();
+
+		String channelId = db.guild.getModLogChannel(guildId);
+		if (channelId == null) {
+			return;
+		}
+		TextChannel channel = event.getJDA().getTextChannelById(channelId);
+		if (channel == null) {
+			return;
+		}
+
+		try {
+			MessageEmbed embed = logUtil.getSyncUnbanEmbed(guild.getLocale(), event.getGuild(), event.getUser(), target, banReason, reason);
+			channel.sendMessageEmbeds(embed).queue();
+		} catch (InsufficientPermissionException ex) {
+			return;
+		}
+	}
+
+	public void onAutoUnban(Map<String, Object> banMap, Integer banId, Guild guild) {
+		String channelId = db.guild.getModLogChannel(guild.getId());
+		if (channelId == null) {
+			return;
+		}
+		TextChannel channel = bot.jda.getTextChannelById(channelId);
+		if (channel == null) {
+			return;
+		}
+
+		try {
+			MessageEmbed embed = logUtil.getAutoUnbanEmbed(guild.getLocale(), banMap);
+			channel.sendMessageEmbeds(embed).queue();
+		} catch (InsufficientPermissionException ex) {
+			return;
+		}
+	}
+
+	public void onChangeReason(SlashCommandEvent event, Integer banId, String oldReason, String newReason) {
+		String guildId = Objects.requireNonNull(event.getGuild()).getId();
+
+		String channelId = db.guild.getModLogChannel(guildId);
+		if (channelId == null) {
+			return;
+		}
+		TextChannel channel = event.getJDA().getTextChannelById(channelId);
+		if (channel == null) {
+			return;
+		}
+
+		Map<String, Object> ban = db.ban.getInfo(banId);
+		if (ban.isEmpty() || ban == null) {
+			bot.getLogger().warn("That is not supposed to happen... Ban ID: %s", banId);
+			return;
+		}
+
+		try {
+			MessageEmbed embed = logUtil.getReasonChangeEmbed(event.getGuildLocale(), banId, ban.get("userTag").toString(), ban.get("userId").toString(), event.getUser().getId(), oldReason, oldReason);
+			channel.sendMessageEmbeds(embed).queue();
+		} catch (InsufficientPermissionException ex) {
+			return;
+		}
+	}
+
+	public void onChangeDuration(SlashCommandEvent event, Integer banId, Instant timeStart, Duration oldDuration, String newTime) {
+		String guildId = Objects.requireNonNull(event.getGuild()).getId();
+
+		String channelId = db.guild.getModLogChannel(guildId);
+		if (channelId == null) {
+			return;
+		}
+		TextChannel channel = event.getJDA().getTextChannelById(channelId);
+		if (channel == null) {
+			return;
+		}
+
+		Map<String, Object> ban = db.ban.getInfo(banId);
+		if (ban.isEmpty() || ban == null) {
+			bot.getLogger().warn("That is not supposed to happen... Ban ID: %s", banId);
+			return;
+		}
+
+		try {
+			MessageEmbed embed = logUtil.getDurationChangeEmbed(event.getGuildLocale(), banId, ban.get("userTag").toString(), ban.get("userId").toString(), event.getUser().getId(), timeStart, oldDuration, newTime);
+			channel.sendMessageEmbeds(embed).queue();
+		} catch (InsufficientPermissionException ex) {
+			return;
+		}
+	}
+
+	public void onKick(SlashCommandEvent event, User target, User moderator, String reason) {
+		String guildId = Objects.requireNonNull(event.getGuild()).getId();
+
+		String channelId = db.guild.getModLogChannel(guildId);
+		if (channelId == null) {
+			return;
+		}
+		TextChannel channel = event.getJDA().getTextChannelById(channelId);
+		if (channel == null) {
+			return;
+		}
+
+		try {
+			MessageEmbed embed = logUtil.getKickEmbed(event.getGuildLocale(), target.getAsTag(), target.getId(), moderator.getAsTag(), moderator.getId(), reason, target.getAvatarUrl(), true);
+			channel.sendMessageEmbeds(embed).queue();
+		} catch (InsufficientPermissionException ex) {
+			return;
+		}
+	}
+
+	public void onSyncKick(SlashCommandEvent event, Guild guild, User target, String reason) {
+		String guildId = Objects.requireNonNull(guild).getId();
+
+		String channelId = db.guild.getModLogChannel(guildId);
+		if (channelId == null) {
+			return;
+		}
+		TextChannel channel = event.getJDA().getTextChannelById(channelId);
+		if (channel == null) {
+			return;
+		}
+
+		try {
+			MessageEmbed embed = logUtil.getSyncKickEmbed(guild.getLocale(), guild, event.getUser(), target, reason);
 			channel.sendMessageEmbeds(embed).queue();
 		} catch (InsufficientPermissionException ex) {
 			return;
@@ -260,116 +411,6 @@ public class LogListener {
 					channel.sendMessageEmbeds(embed).queue();
 				} catch (InsufficientPermissionException ex) {}
 			}
-		}
-	}
-
-	public void onAutoUnban(Map<String, Object> banMap, Integer banId, Guild guild) {
-		String channelId = db.guild.getModLogChannel(guild.getId());
-		if (channelId == null) {
-			return;
-		}
-		TextChannel channel = bot.jda.getTextChannelById(channelId);
-		if (channel == null) {
-			return;
-		}
-
-		try {
-			MessageEmbed embed = logUtil.getAutoUnbanEmbed(guild.getLocale(), banMap);
-			channel.sendMessageEmbeds(embed).queue();
-		} catch (InsufficientPermissionException ex) {
-			return;
-		}
-	}
-
-	public void onSyncBan(SlashCommandEvent event, Guild guild, User target, String reason) {
-		String guildId = Objects.requireNonNull(guild).getId();
-
-		String channelId = db.guild.getModLogChannel(guildId);
-		if (channelId == null) {
-			return;
-		}
-		TextChannel channel = event.getJDA().getTextChannelById(channelId);
-		if (channel == null) {
-			return;
-		}
-
-		try {
-			MessageEmbed embed = logUtil.getSyncBanEmbed(guild.getLocale(), event.getGuild(), event.getUser(), target, reason);
-			channel.sendMessageEmbeds(embed).queue();
-		} catch (InsufficientPermissionException ex) {
-			return;
-		}
-	}
-
-	public void onSyncUnban(SlashCommandEvent event, Guild guild, User target, String banReason, String reason) {
-		String guildId = Objects.requireNonNull(guild).getId();
-
-		String channelId = db.guild.getModLogChannel(guildId);
-		if (channelId == null) {
-			return;
-		}
-		TextChannel channel = event.getJDA().getTextChannelById(channelId);
-		if (channel == null) {
-			return;
-		}
-
-		try {
-			MessageEmbed embed = logUtil.getSyncUnbanEmbed(guild.getLocale(), event.getGuild(), event.getUser(), target, banReason, reason);
-			channel.sendMessageEmbeds(embed).queue();
-		} catch (InsufficientPermissionException ex) {
-			return;
-		}
-	}
-
-	public void onChangeReason(SlashCommandEvent event, Integer banId, String oldReason, String newReason) {
-		String guildId = Objects.requireNonNull(event.getGuild()).getId();
-
-		String channelId = db.guild.getModLogChannel(guildId);
-		if (channelId == null) {
-			return;
-		}
-		TextChannel channel = event.getJDA().getTextChannelById(channelId);
-		if (channel == null) {
-			return;
-		}
-
-		Map<String, Object> ban = db.ban.getInfo(banId);
-		if (ban.isEmpty() || ban == null) {
-			bot.getLogger().warn("That is not supposed to happen... Ban ID: %s", banId);
-			return;
-		}
-
-		try {
-			MessageEmbed embed = logUtil.getReasonChangeEmbed(event.getGuildLocale(), banId, ban.get("userTag").toString(), ban.get("userId").toString(), event.getUser().getId(), oldReason, oldReason);
-			channel.sendMessageEmbeds(embed).queue();
-		} catch (InsufficientPermissionException ex) {
-			return;
-		}
-	}
-
-	public void onChangeDuration(SlashCommandEvent event, Integer banId, Instant timeStart, Duration oldDuration, String newTime) {
-		String guildId = Objects.requireNonNull(event.getGuild()).getId();
-
-		String channelId = db.guild.getModLogChannel(guildId);
-		if (channelId == null) {
-			return;
-		}
-		TextChannel channel = event.getJDA().getTextChannelById(channelId);
-		if (channel == null) {
-			return;
-		}
-
-		Map<String, Object> ban = db.ban.getInfo(banId);
-		if (ban.isEmpty() || ban == null) {
-			bot.getLogger().warn("That is not supposed to happen... Ban ID: %s", banId);
-			return;
-		}
-
-		try {
-			MessageEmbed embed = logUtil.getDurationChangeEmbed(event.getGuildLocale(), banId, ban.get("userTag").toString(), ban.get("userId").toString(), event.getUser().getId(), timeStart, oldDuration, newTime);
-			channel.sendMessageEmbeds(embed).queue();
-		} catch (InsufficientPermissionException ex) {
-			return;
 		}
 	}
 
