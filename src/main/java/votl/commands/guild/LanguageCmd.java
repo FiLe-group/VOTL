@@ -17,7 +17,6 @@ import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.utils.file.lang.LangUtil;
 
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
@@ -31,7 +30,6 @@ public class LanguageCmd extends CommandBase {
 		this.name = "language";
 		this.path = "bot.guild.language";
 		this.children = new SlashCommand[]{new Reset(bot), new Set(bot), new Show(bot)};
-		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.GUILD;
 		this.module = CmdModule.LANGUAGE;
 		this.accessLevel = CmdAccessLevel.ADMIN;

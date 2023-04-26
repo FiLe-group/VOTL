@@ -35,7 +35,6 @@ public class WebhookCmd extends CommandBase {
 		this.path = "bot.webhook";
 		this.children = new SlashCommand[]{new ShowList(bot), new Create(bot), new Select(bot),
 			new Remove(bot), new Move(bot)};
-		this.userPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		this.botPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		this.category = CmdCategory.WEBHOOK;
 		this.module = CmdModule.WEBHOOK;

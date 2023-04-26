@@ -12,6 +12,7 @@
 		"no_send_perm": "I have no permission to send messages in your channel. Pls fix!",
 		"no_channel": "You don't own/has any voice channel.",
 		"guild_not_setup": "Server is not configured! Check `/help` for setup command.",
+		"access_level_low": "You don't have needed access level to perform this command.",
 		"request_error": "There was an error while handling the request. Make sure that my message wasn't deleted and that I have sufficient permissions!",
 		"title": "Error",
 		"additional": "Additional info:",

@@ -16,6 +16,7 @@ import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -38,6 +39,7 @@ public class SyncCmd extends CommandBase {
 		this.name = "sync";
 		this.path = "bot.moderation.sync";
 		this.children = new SlashCommand[]{new Ban(bot), new Unban(bot), new Kick(bot)};
+		this.botPermissions = new Permission[]{Permission.KICK_MEMBERS, Permission.BAN_MEMBERS};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.ADMIN;

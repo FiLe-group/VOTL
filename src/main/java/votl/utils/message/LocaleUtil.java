@@ -104,7 +104,6 @@ public class LocaleUtil {
 			.replace("{name}", "Voice of the Lord")
 			.replace("{prefix}", "/")
 			.replace("{guild_invite}", Links.DISCORD)
-			.replace("{owner_id}", bot.getFileManager().getString("config", "owner-id"))
 			.replace("{developer_name}", Constants.DEVELOPER_TAG)
 			.replace("{developer_id}", Constants.DEVELOPER_ID)
 			.replace("{bot_version}", bot.version)

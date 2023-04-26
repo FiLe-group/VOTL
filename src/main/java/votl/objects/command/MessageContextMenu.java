@@ -131,8 +131,12 @@ public abstract class MessageContextMenu extends ContextMenu
 	public CommandData buildCommandData() {
 		// Make the command data
 		CommandData data = Commands.message(getName());
+		
 		if (this.userPermissions.length == 0)
-			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+			if (this.isOwnerCommand())
+				data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+			else
+				data.setDefaultPermissions(DefaultMemberPermissions.ENABLED);
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(this.userPermissions));
 

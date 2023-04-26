@@ -77,8 +77,9 @@ public class GuildListener extends ListenerAdapter {
 					continue;
 				}
 			}
+			db.group.clearGroup(groupId);
 		}
-		db.group.removeAll(guildId);
+		db.group.removeFromGroups(guildId);
 		db.group.deleteAll(guildId);
 		
 		db.access.removeAll(guildId);

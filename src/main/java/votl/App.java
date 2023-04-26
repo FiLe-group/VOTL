@@ -107,7 +107,7 @@ public class App {
 		voiceListener	= new VoiceListener(this);
 		logListener		= new LogListener(this);
 
-		executorService = new ScheduledThreadPoolExecutor(2, r -> new Thread(r, "votl"));
+		executorService = new ScheduledThreadPoolExecutor(2, r -> new Thread(r, "VOTL Scheduler"));
 		expiryCheck		= new ExpiryCheck(this);
 
 		// Define a command client

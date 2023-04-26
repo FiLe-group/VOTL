@@ -30,7 +30,7 @@ public class GroupManager extends DBBase {
     }
 
     public void deleteAll(String guildId) {
-        delete("groupMaster", "guildId", guildId);
+        delete("groupMaster", "masterId", guildId);
     }
 
     public void rename(Integer groupId, String name) {
@@ -64,8 +64,12 @@ public class GroupManager extends DBBase {
         delete("groupSync", List.of("groupId", "guildId"), List.of(groupId, guildId));
     }
 
-    public void removeAll(String guildId) {
+    public void removeFromGroups(String guildId) {
         delete("groupSync", "guildId", guildId);
+    }
+    
+    public void clearGroup(Integer groupId) {
+        delete("groupSync", "groupId", groupId);
     }
 
     public List<String> getGroupGuildIds(Integer groupId) {

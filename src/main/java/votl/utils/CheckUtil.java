@@ -74,7 +74,7 @@ public class CheckUtil {
 
 	public <T> CheckUtil hasAccess(T event, CommandClient client, Member member, CmdAccessLevel accessLevel) throws CheckException {
 		if (accessLevel.getLevel() > getAccessLevel(client, member).getLevel())
-			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.low_access_level", "Access: "+accessLevel.getName()));
+			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.access_level_low", "Access: "+accessLevel.getName()));
 		return this;
 	}
 

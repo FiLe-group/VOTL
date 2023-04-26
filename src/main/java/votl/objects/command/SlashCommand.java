@@ -393,10 +393,13 @@ public abstract class SlashCommand extends Command
 				data.addSubcommandGroups(groupData.values());
 		}
 
-		if (this.getUserPermissions().length == 0)
-			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+		if (this.userPermissions.length == 0)
+			if (this.isOwnerCommand())
+				data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+			else
+				data.setDefaultPermissions(DefaultMemberPermissions.ENABLED);
 		else
-			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(this.getUserPermissions()));
+			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(this.userPermissions));
 
 		data.setGuildOnly(this.guildOnly);
 

@@ -20,7 +20,6 @@ import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -39,7 +38,6 @@ public class ModuleCmd extends CommandBase {
 		this.name = "module";
 		this.path = "bot.guild.module";
 		this.children = new SlashCommand[]{new Show(bot), new Disable(bot), new Enable(bot)};
-		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.OWNER;
 		this.mustSetup = true;

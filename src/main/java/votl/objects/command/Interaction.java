@@ -80,18 +80,6 @@ public abstract class Interaction
 	protected CooldownScope cooldownScope = CooldownScope.USER;
 
 	/**
-	 * The permission message used when the bot does not have the required permission.
-	 * Requires 3 "%s", first is user mention, second is the permission needed, third is type, e.g. server.
-	 */
-	protected String botMissingPermMessage = "%s I need the %s permission in this %s!";
-
-	/**
-	 * The permission message used when the user does not have the required permission.
-	 * Requires 3 "%s", first is user mention, second is the permission needed, third is type, e.g. server.
-	 */
-	protected String userMissingPermMessage = "%s You must have the %s permission in this %s to use that!";
-
-	/**
 	 * Gets the {@link Interaction#cooldown cooldown} for the Interaction.
 	 *
 	 * @return The cooldown for the Interaction

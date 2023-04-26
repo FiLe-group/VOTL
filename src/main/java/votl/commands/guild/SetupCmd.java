@@ -24,7 +24,6 @@ public class SetupCmd extends CommandBase {
 		this.name = "setup";
 		this.path = "bot.guild.setup";
 		this.children = new SlashCommand[]{new Voice(bot), new Main(bot)};
-		this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 	}
@@ -73,7 +72,7 @@ public class SetupCmd extends CommandBase {
 			super(bot);
 			this.name = "voice";
 			this.path = "bot.guild.setup.voice";
-			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS}; // Permission.MESSAGE_EMBED_LINKS
+			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS};
 			this.module = CmdModule.VOICE;
 		}
 

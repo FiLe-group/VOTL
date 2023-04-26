@@ -169,7 +169,10 @@ public abstract class UserContextMenu extends ContextMenu {
 		CommandData data = Commands.user(getName());
 
 		if (this.userPermissions.length == 0)
-			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+			if (this.isOwnerCommand())
+				data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+			else
+				data.setDefaultPermissions(DefaultMemberPermissions.ENABLED);
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(this.userPermissions));
 

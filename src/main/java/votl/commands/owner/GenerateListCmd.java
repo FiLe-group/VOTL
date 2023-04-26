@@ -17,7 +17,6 @@ import votl.objects.command.SlashCommand;
 import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.CmdCategory;
 import votl.objects.constants.Constants;
-import votl.utils.message.LocaleUtil;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -25,8 +24,6 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import net.minidev.json.JSONObject;
 
 public class GenerateListCmd extends CommandBase {
-
-	protected final LocaleUtil lu;
 	
 	public GenerateListCmd(App bot) {
 		super(bot);
@@ -35,7 +32,6 @@ public class GenerateListCmd extends CommandBase {
 		this.category = CmdCategory.OWNER;
 		this.ownerCommand = true;
 		this.guildOnly = false;
-		this.lu = bot.getLocaleUtil();
 	}
 
 	@Override

@@ -42,7 +42,7 @@ public class LogCmd extends CommandBase {
 		this.name = "log";
 		this.path = "bot.guild.log";
 		this.children = new SlashCommand[]{new Setup(bot), new Manage(bot)};
-		this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.VIEW_AUDIT_LOGS};
+		this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.VIEW_AUDIT_LOGS, Permission.MESSAGE_SEND};
 		this.category = CmdCategory.GUILD;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.ADMIN;
