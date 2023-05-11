@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 import votl.objects.command.CommandClient;
 import votl.objects.command.SlashCommand;
 import votl.utils.database.DBUtil;
+
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;

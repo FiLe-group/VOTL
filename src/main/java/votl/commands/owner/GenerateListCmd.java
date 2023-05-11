@@ -21,7 +21,7 @@ import votl.objects.constants.Constants;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.utils.FileUpload;
 
-import net.minidev.json.JSONObject;
+import org.json.JSONObject;
 
 public class GenerateListCmd extends CommandBase {
 	
@@ -46,16 +46,16 @@ public class GenerateListCmd extends CommandBase {
 			SlashCommand cmd = commands.get(i);
 
 			JSONObject jsonObject = new JSONObject();
-			jsonObject.appendField("name", cmd.getName())
-				.appendField("description", getText(cmd.getHelpPath()))
-				.appendField("category", getCategoryMap(cmd.getCategory()))
-				.appendField("guildOnly", cmd.isGuildOnly())
-				.appendField("access", cmd.getAccessLevel().getLevel());
+			jsonObject.put("name", cmd.getName())
+				.put("description", getText(cmd.getHelpPath()))
+				.put("category", getCategoryMap(cmd.getCategory()))
+				.put("guildOnly", cmd.isGuildOnly())
+				.put("access", cmd.getAccessLevel().getLevel());
 
 			if (cmd.getModule() == null) {
-				jsonObject.appendField("module", Map.of("en-GB", "", "ru", ""));
+				jsonObject.put("module", Map.of("en-GB", "", "ru", ""));
 			} else {
-				jsonObject.appendField("module", getText(cmd.getModule().getPath()));
+				jsonObject.put("module", getText(cmd.getModule().getPath()));
 			}
 			
 			if (cmd.getChildren().length > 0) {
@@ -63,21 +63,21 @@ public class GenerateListCmd extends CommandBase {
 				for (SlashCommand child : cmd.getChildren()) {
 					values.add(Map.of("description", getText(child.getHelpPath()), "usage", getText(child.getUsagePath())));
 				}
-				jsonObject.appendField("child", values);
-				jsonObject.appendField("usage", Map.of("en-GB", "", "ru", ""));
+				jsonObject.put("child", values);
+				jsonObject.put("usage", Map.of("en-GB", "", "ru", ""));
 			} else {
-				jsonObject.appendField("child", Collections.emptyList());
-				jsonObject.appendField("usage", getText(cmd.getUsagePath()));
+				jsonObject.put("child", Collections.emptyList());
+				jsonObject.put("usage", getText(cmd.getUsagePath()));
 			}
 			
-			result.appendField(i.toString(), jsonObject);
+			result.put(i.toString(), jsonObject);
 		}
 
 		File file = new File(Constants.DATA_PATH + Constants.SEPAR + "commands.json");
 		try {
 			file.createNewFile();
 			FileWriter writer = new FileWriter(file, Charset.forName("utf-8"));
-			writer.write(result.toJSONString());
+			writer.write(result.toString());
 			writer.flush();
 			writer.close();
 			event.replyFiles(FileUpload.fromData(file, "commands.json")).setEphemeral(true).queue(hook -> file.delete());

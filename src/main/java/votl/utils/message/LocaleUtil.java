@@ -12,13 +12,12 @@ import javax.annotation.Nullable;
 import votl.App;
 import votl.objects.Emotes;
 import votl.objects.command.CommandEvent;
-import votl.objects.command.MessageContextMenuEvent;
-import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.Constants;
 import votl.objects.constants.Links;
 import votl.utils.file.lang.LangUtil;
 
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 public class LocaleUtil {
@@ -117,14 +116,11 @@ public class LocaleUtil {
 
 	@Nonnull
 	public <T> String getText(T genericEvent, @Nonnull String path) {
-		if (genericEvent instanceof SlashCommandEvent) {
-			return getLocalized(((SlashCommandEvent) genericEvent).getUserLocale(), path);
+		if (genericEvent instanceof GenericInteractionCreateEvent) {
+			return getLocalized(((GenericInteractionCreateEvent) genericEvent).getUserLocale(), path);
 		}
 		if (genericEvent instanceof CommandEvent) {
 			return getLocalized(getGuildLocale( ((CommandEvent) genericEvent).getGuild() ), path);
-		}
-		if (genericEvent instanceof MessageContextMenuEvent) {
-			return getLocalized(((MessageContextMenuEvent) genericEvent).getUserLocale(), path);
 		}
 		throw new IllegalArgumentException("Passed argument is not supported Event. Received: "+genericEvent.getClass());
 	}
@@ -151,17 +147,13 @@ public class LocaleUtil {
 
 	@Nonnull
 	private <T> String getUserText(T genericEvent, @Nonnull String path, List<String> targets, boolean format) {
-		if (genericEvent instanceof SlashCommandEvent) {
-			SlashCommandEvent event = (SlashCommandEvent) genericEvent;
+		if (genericEvent instanceof GenericInteractionCreateEvent) {
+			GenericInteractionCreateEvent event = (GenericInteractionCreateEvent) genericEvent;
 			return getLocalized(event.getUserLocale(), path, event.getUser().getAsTag(), targets, format);
 		}
 		if (genericEvent instanceof CommandEvent) {
 			CommandEvent event = (CommandEvent) genericEvent;
 			return getLocalized(getGuildLocale(event.getGuild()), path, event.getAuthor().getAsTag(), targets, format);
-		}
-		if (genericEvent instanceof MessageContextMenuEvent) {
-			MessageContextMenuEvent event = (MessageContextMenuEvent) genericEvent;
-			return getLocalized(event.getUserLocale(), path, event.getUser().getAsTag(), targets, format);
 		}
 		throw new IllegalArgumentException("Passed argument is not supported Event. Received: "+genericEvent.getClass());
 	}

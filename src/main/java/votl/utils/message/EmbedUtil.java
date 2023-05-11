@@ -5,8 +5,6 @@ import java.time.ZonedDateTime;
 import javax.annotation.Nonnull;
 
 import votl.objects.command.CommandEvent;
-import votl.objects.command.MessageContextMenuEvent;
-import votl.objects.command.SlashCommandEvent;
 import votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -15,6 +13,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
@@ -33,22 +32,16 @@ public class EmbedUtil {
 
 	@Nonnull
 	public <T> EmbedBuilder getEmbed(T genericEvent) {
-		if (genericEvent instanceof SlashCommandEvent) {
+		if (genericEvent instanceof GenericInteractionCreateEvent) {
 			return getEmbed().setFooter(
 				lu.getUserText(genericEvent, "embed.footer"),
-				((SlashCommandEvent) genericEvent).getUser().getEffectiveAvatarUrl()
+				((GenericInteractionCreateEvent) genericEvent).getUser().getEffectiveAvatarUrl()
 			);
 		}
 		if (genericEvent instanceof CommandEvent) {
 			return getEmbed().setFooter(
 				lu.getUserText(genericEvent, "embed.footer"),
 				((CommandEvent) genericEvent).getAuthor().getEffectiveAvatarUrl()
-			);
-		}
-		if (genericEvent instanceof MessageContextMenuEvent) {
-			return getEmbed().setFooter(
-				lu.getUserText(genericEvent, "embed.footer"),
-				((MessageContextMenuEvent) genericEvent).getUser().getEffectiveAvatarUrl()
 			);
 		}
 		throw new IllegalArgumentException("Passed argument is not supported Event. Received: "+genericEvent.getClass());
