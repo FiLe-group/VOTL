@@ -117,6 +117,24 @@
 					"category": "Voice Channels",
 					"channel": "★ Join to create",
 					"done": "Successfully created channel {channel}! Setup is done."
+				},
+				"panel": {
+					"help": "Create panel for controling voice channels",
+					"usage": "panel <#Channel>",
+					"option_channel": "Select channel where to create panel",
+					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
+					"lock": "Lock",
+					"unlock": "Unlock",
+					"ghost": "Ghost",
+					"unghost": "Unghost",
+					"name": "Rename",
+					"limit": "Set limit",
+					"permit": "Permit",
+					"reject": "Reject",
+					"delete": "Delete channel",
+					"embed_title": "Manage your voice channel",
+					"embed_value": "Press buttons bellow to manage your custom voice channel",
+					"done": "Panel created in {channel}!"
 				}
 			},
 			"module": {
@@ -241,7 +259,23 @@
 		"voice": {
 			"listener": {
 				"cooldown": "Creating voice channels too quickly, wait a bit!",
-				"default_name": "{user}'s channel"
+				"default_name": "{user}'s channel",
+				"not_in_voice": "You are not connected to any voice channel",
+				"panel": {
+					"lock": "Channel locked!",
+					"unlock": "Channel unlocked!",
+					"ghost": "Channel ghosted!",
+					"unghost": "Channel unghosted!",
+					"modal": "Provide information",
+					"name-label": "Channel name",
+					"limit-label": "Channel limit",
+					"permit-label": "Permit access",
+					"reject-label": "Reject access",
+					"option_mention": "Enter Role or Member mention/-s",
+					"delete": "Channel deleted!",
+					"name-done": "Channel renamed to {channel}!",
+					"limit-done": "Channel user limit set to {limit}!"
+				}
 			},
 			"setname": {
 				"help": "Sets default name for custom voice channels",

@@ -28,7 +28,6 @@ public class GhostCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-
 		Member member = Objects.requireNonNull(event.getMember());
 
 		if (!bot.getDBUtil().voice.existsUser(member.getId())) {

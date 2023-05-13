@@ -22,6 +22,7 @@ public class SetNameCmd extends CommandBase {
 		this.path = "bot.voice.setname";
 		this.options = Collections.singletonList(
 			new OptionData(OptionType.STRING, "name", lu.getText(path+".option_name"), true)
+				.setMaxLength(100)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
 		this.category = CmdCategory.VOICE;
@@ -34,7 +35,7 @@ public class SetNameCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {
 		String filName = event.optString("name", "Default name"); // REDO
 
-		if (filName.isEmpty() || filName.length() > 100) {
+		if (filName.isEmpty()) {
 			createError(event, path+".invalid_range");
 			return;
 		}

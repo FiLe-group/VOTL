@@ -71,6 +71,7 @@ public class NameCmd extends CommandBase {
 			).orElse(
 				lu.getText(event, "bot.voice.listener.default_name").replace("{user}", event.getMember().getEffectiveName())
 			);
+			if (filName.length() > 100) filName = filName.substring(0, 99);
 			sendReply(event, filName);
 		}
 
@@ -78,7 +79,7 @@ public class NameCmd extends CommandBase {
 
 	private void sendReply(SlashCommandEvent event, String filName) {
 
-		if (filName.isEmpty() || filName.length() > 100) {
+		if (filName.isEmpty()) {
 			createError(event, "bot.voice.name.invalid_range");
 			return;
 		}

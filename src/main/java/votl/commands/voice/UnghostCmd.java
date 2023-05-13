@@ -29,16 +29,15 @@ public class UnghostCmd extends CommandBase {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		Member member = Objects.requireNonNull(event.getMember());
-		String memberId = member.getId();
 
-		if (!bot.getDBUtil().voice.existsUser(memberId)) {
+		if (!bot.getDBUtil().voice.existsUser(member.getId())) {
 			createError(event, "errors.no_channel");
 			return;
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
 
-		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(memberId));
+		VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(member.getId()));
 		try {
 			vc.upsertPermissionOverride(guild.getPublicRole()).clear(Permission.VIEW_CHANNEL).queue();
 		} catch (InsufficientPermissionException ex) {

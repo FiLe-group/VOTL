@@ -63,6 +63,7 @@ public class App {
 	private final GuildListener guildListener;
 	private final VoiceListener voiceListener;
 	private final AutoCompleteListener acListener;
+	private final ButtonListener buttonListener;
 
 	private final LogListener logListener;
 	
@@ -106,6 +107,7 @@ public class App {
 		guildListener	= new GuildListener(this);
 		voiceListener	= new VoiceListener(this);
 		logListener		= new LogListener(this);
+		buttonListener	= new ButtonListener(this);
 
 		executorService = new ScheduledThreadPoolExecutor(2, r -> new Thread(r, "VOTL Scheduler"));
 		expiryCheck		= new ExpiryCheck(this);
@@ -183,7 +185,7 @@ public class App {
 				CacheFlag.ROLE_TAGS				// role search
 			) 
 			.setAutoReconnect(true)
-			.addEventListeners(commandClient, waiter, guildListener, voiceListener, acListener);
+			.addEventListeners(commandClient, waiter, guildListener, voiceListener, acListener, buttonListener);
 
 		Integer retries = 4; // how many times will it try to build
 		Integer cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
