@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import votl.objects.CmdModule;
-import votl.utils.database.DBBase;
+import votl.utils.database.LiteDBBase;
 import votl.utils.database.DBUtil;
 
-public class ModuleManager extends DBBase {
+public class ModuleManager extends LiteDBBase {
 	
 	public ModuleManager(DBUtil util) {
 		super(util);

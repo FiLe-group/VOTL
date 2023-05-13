@@ -12,6 +12,7 @@ import votl.utils.database.managers.GuildSettingsManager;
 import votl.utils.database.managers.GuildVoiceManager;
 import votl.utils.database.managers.ModuleManager;
 import votl.utils.database.managers.UserSettingsManager;
+import votl.utils.database.managers.VerifyManager;
 import votl.utils.database.managers.VoiceChannelManager;
 import votl.utils.database.managers.WebhookManager;
 
@@ -30,13 +31,23 @@ public class DBUtil {
 	public final AccessManager access;
 	public final BanManager ban;
 	public final GroupManager group;
+	public final VerifyManager verify;
 
 	protected final Logger logger = (Logger) LoggerFactory.getLogger(DBUtil.class);
 
-	private String url;
+	private String urlSQLite;
+	private String urlMySql;
+	public String sqldb;
+	private String username;
+	private String pass;
 
-	public DBUtil(File location) {
-		url = "jdbc:sqlite:" + location;
+	public DBUtil(File location, String ip, String database, String username, String pass) {
+		this.urlSQLite = "jdbc:sqlite:" + location;
+		this.urlMySql = "jdbc:mysql://" + ip + ":3306/" + database;
+		this.sqldb = database;
+		this.username = username;
+		this.pass = pass;
+		
 		guild = new GuildSettingsManager(this);
 		guildVoice = new GuildVoiceManager(this);
 		user = new UserSettingsManager(this);
@@ -46,14 +57,27 @@ public class DBUtil {
 		access = new AccessManager(this);
 		ban = new BanManager(this);
 		group = new GroupManager(this);
+		
+		verify = new VerifyManager(this);
 	}
 
-	protected Connection connect() {
+	protected Connection connectSQLite() {
 		Connection conn = null;
 		try {
-			conn = DriverManager.getConnection(url);
+			conn = DriverManager.getConnection(urlSQLite);
 		} catch (SQLException ex) {
-			logger.error("DB: Connection error to database", ex);
+			logger.error("DB SQLite: Connection error to database", ex);
+			return null;
+		}
+		return conn;
+	}
+
+	protected Connection connectMySql() {
+		Connection conn = null;
+		try {
+			conn = DriverManager.getConnection(urlMySql, username, pass);
+		} catch (SQLException ex) {
+			logger.error("DB MySQL: Connection error to database", ex);
 			return null;
 		}
 		return conn;
