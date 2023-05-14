@@ -55,44 +55,45 @@ public class AccessCmd extends CommandBase {
 			Member targetMember = event.optMember("member");
 			if (targetMember == null) {
 				editError(event, "bot.guild.access.add.no_member");
-			} else {
-				Member author = Objects.requireNonNull(event.getMember());
-				Guild guild = Objects.requireNonNull(event.getGuild());
-				String guildId = guild.getId();
-
-				guild.retrieveMember(targetMember).queue(
-					member -> {
-						if (member.equals(author) || member.getUser().isBot()) {
-							editError(event, "bot.guild.access.add.not_self");
-							return;
-						}
-						if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-							editError(event, "bot.guild.access.add.is_higher");
-							return;
-						}
-						String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
-						if (access != null && access.equals("mod")) {
-							editError(event, "bot.guild.access.add.mod.already");
-							return;
-						}
-						if (access != null && access.equals("admin")) {
-							bot.getDBUtil().access.update(guildId, member.getId(), false);
-						} else {
-							bot.getDBUtil().access.add(guildId, member.getId(), false);
-						}
-
-						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-							.setDescription(lu.getText(event, "bot.guild.access.add.mod.done").replace("{member}", member.getAsMention()))
-							.setColor(Constants.COLOR_SUCCESS);
-						editHookEmbed(event, embed.build());
-					},
-					error -> {
-						// remake to specify error response - not in this guild or user does not exist
-						// add errors - UNKNOWN_MEMBER & UNKNOWN_USER
-						editError(event, "bot.guild.access.add.no_member");
-					}
-				);
+				return;
 			}
+
+			Member author = Objects.requireNonNull(event.getMember());
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildId = guild.getId();
+
+			guild.retrieveMember(targetMember).queue(
+				member -> {
+					if (member.equals(author) || member.getUser().isBot()) {
+						editError(event, "bot.guild.access.add.not_self");
+						return;
+					}
+					if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
+						editError(event, "bot.guild.access.add.is_higher");
+						return;
+					}
+					String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
+					if (access != null && access.equals("mod")) {
+						editError(event, "bot.guild.access.add.mod.already");
+						return;
+					}
+					if (access != null && access.equals("admin")) {
+						bot.getDBUtil().access.update(guildId, member.getId(), false);
+					} else {
+						bot.getDBUtil().access.add(guildId, member.getId(), false);
+					}
+
+					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
+						.setDescription(lu.getText(event, "bot.guild.access.add.mod.done").replace("{member}", member.getAsMention()))
+						.setColor(Constants.COLOR_SUCCESS);
+					editHookEmbed(event, embed.build());
+				},
+				error -> {
+					// remake to specify error response - not in this guild or user does not exist
+					// add errors - UNKNOWN_MEMBER & UNKNOWN_USER
+					editError(event, "bot.guild.access.add.no_member");
+				}
+			);
 		}
 
 	}
@@ -117,43 +118,44 @@ public class AccessCmd extends CommandBase {
 			Member targetMember = event.optMember("member");
 			if (targetMember == null) {
 				editError(event, "bot.guild.access.add.no_member");
-			} else {
-				Member author = Objects.requireNonNull(event.getMember());
-				Guild guild = Objects.requireNonNull(event.getGuild());
-				String guildId = guild.getId();
-
-				guild.retrieveMember(targetMember).queue(
-					member -> {
-						if (member.equals(author) || member.getUser().isBot()) {
-							editError(event, "bot.guild.access.add.not_self");
-							return;
-						}
-						if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-							editError(event, "bot.guild.access.add.is_higher");
-							return;
-						}
-						String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
-						if (access != null && access.equals("admin")) {
-							editError(event, "bot.guild.access.add.admin.already");
-							return;
-						}
-						if (access != null && access.equals("mod")) {
-							bot.getDBUtil().access.update(guildId, member.getId(), true);
-						} else {
-							bot.getDBUtil().access.add(guildId, member.getId(), true);
-						}
-
-						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-							.setDescription(lu.getText(event, "bot.guild.access.add.admin.done").replace("{member}", member.getAsMention()))
-							.setColor(Constants.COLOR_SUCCESS);
-							editHookEmbed(event, embed.build());
-
-					}, 
-					failure -> {
-						editError(event, "bot.guild.access.add.no_member");
-					}
-				);
+				return;
 			}
+			
+			Member author = Objects.requireNonNull(event.getMember());
+			Guild guild = Objects.requireNonNull(event.getGuild());
+			String guildId = guild.getId();
+
+			guild.retrieveMember(targetMember).queue(
+				member -> {
+					if (member.equals(author) || member.getUser().isBot()) {
+						editError(event, "bot.guild.access.add.not_self");
+						return;
+					}
+					if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
+						editError(event, "bot.guild.access.add.is_higher");
+						return;
+					}
+					String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
+					if (access != null && access.equals("admin")) {
+						editError(event, "bot.guild.access.add.admin.already");
+						return;
+					}
+					if (access != null && access.equals("mod")) {
+						bot.getDBUtil().access.update(guildId, member.getId(), true);
+					} else {
+						bot.getDBUtil().access.add(guildId, member.getId(), true);
+					}
+
+					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
+						.setDescription(lu.getText(event, "bot.guild.access.add.admin.done").replace("{member}", member.getAsMention()))
+						.setColor(Constants.COLOR_SUCCESS);
+						editHookEmbed(event, embed.build());
+
+				}, 
+				failure -> {
+					editError(event, "bot.guild.access.add.no_member");
+				}
+			);
 		}
 
 	}

@@ -53,6 +53,7 @@
 		"webhook": "Webhook commands",
 		"language": "Language commands",
 		"moderation": "Moderation category",
+		"verification": "Verification",
 		"module_disabled": "This command(module) is disabled."
 	},
 	"bot": {
@@ -611,6 +612,12 @@
 					"removed": "Server was removed from your sync group",
 					"renamed": "Sync group was renamed",
 					"oldname": "Previous group name"
+				},
+				"verify": {
+					"added": "User verified | {user_tag}",
+					"removed": "User unverified | {user_tag}",
+					"steamname": "Steam account",
+					"reason": "Reason"
 				}
 			},
 			"group": {
@@ -763,6 +770,7 @@
 					"guild": "Server",
 					"webhook": "Webhook",
 					"moderation": "Moderation",
+					"verification": "Verification",
 					"other": "Other",
 					"title": "Categories"
 				},
@@ -771,6 +779,76 @@
 					"support_title": "*Additional help*",
 					"support_value": "If you need help with the bot, contact the owner `{owner_name}`."
 				}
+			}
+		},
+		"verification": {
+			"failed_role": "Verification error, failed to issue a role! Report this issue to the server Administration.",
+			"you_verified": "You are already verified (has role)",
+			"user_verified": "User is already verified (has role)",
+			"user_nor_verified": "User is not verified",
+			"listener": {
+				"refresh": "Refresh",
+				"connect": "Connect account",
+				"wait_title": "Please, wait!",
+				"wait_value": "If you haven't linked your account yet, follow the instructions above.",
+				"embed_title": "Link your account to complete verification",
+				"embed_howto": "How to link your account?"
+			},
+			"vfpanel": {
+				"help": "Manage panel for verification module",
+				"usage": "/vfpanel",
+				"create": {
+					"help": "Send panel to selected channel",
+					"usage": "create <#Channel>",
+					"option_channel": "Select channel in which to create the panel",
+					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
+					"no_role": "Verification role is not set!\nUse `/verifyrole`",
+					"continue": "Continue",
+					"done": "Panel created in {channel}!"
+				},
+				"main": {
+					"help": "Set the main text on the panel that will be sent to the channel",
+					"usage": "main <text>",
+					"option_text": "Text (max 4000 symbols), ENCLOSE TEXT IN ` TO SAVE MENTIONS/EMOJI, use <br> for line breaks",
+					"done": "Text updated!"
+				},
+				"instruct": {
+					"help": "Set instruction panel text",
+					"usage": "instruct <description> <instructions>",
+					"option_text": "Text (max 4000 symbols), ENCLOSE TEXT IN ` TO SAVE MENTIONS/EMOJI, use <br> for line breaks",
+					"done": "Text updated!"
+				},
+				"link": {
+					"help": "Set link, which will be shown for verification",
+					"usage": "link <url>",
+					"option_text": "URL (max 500 symbols)",
+					"done": "Link updated to {link}"
+				}
+			},
+			"verifyrole": {
+				"help": "Assign server role for verification",
+				"usage": "/verifyrole <@Role>",
+				"option_role": "Select role which will be used for verification",
+				"no_role": "Provided role was incorrect.",
+				"done": "Role {role} assigned for verification!"
+			},
+			"verify": {
+				"help": "Manualy add verify role to member",
+				"usage": "/verify <@User | ID>",
+				"option_user": "Mention member or enter ID",
+				"no_user": "Couldn't find mentioned member, either they left server or not existent!",
+				"not_setup": "Verification role is not set!\nUse `/verifyrole`",
+				"done": "Member has been given verified role!"
+			},
+			"unverify": {
+				"help": "Manualy remove verify role from member",
+				"usage": "/unverify <@User | ID>",
+				"option_user": "Mention member or enter ID",
+				"option_reason": "Reason for unverification",
+				"no_user": "Couldn't find mentioned member, either they left server or not existent!",
+				"not_setup": "Verification role is not set!\nUse `/verifyrole`",
+				"no_reason": "*Not provided*",
+				"done": "Verified role removed from member!"
 			}
 		}
 	}

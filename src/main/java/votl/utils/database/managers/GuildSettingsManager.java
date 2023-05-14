@@ -2,10 +2,10 @@ package votl.utils.database.managers;
 
 import java.util.List;
 
-import votl.utils.database.DBBase;
+import votl.utils.database.LiteDBBase;
 import votl.utils.database.DBUtil;
 
-public class GuildSettingsManager extends DBBase {
+public class GuildSettingsManager extends LiteDBBase {
 	
 	public GuildSettingsManager(DBUtil util) {
 		super(util);

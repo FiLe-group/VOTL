@@ -6,10 +6,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import votl.utils.database.DBBase;
+import votl.utils.database.LiteDBBase;
 import votl.utils.database.DBUtil;
 
-public class BanManager extends DBBase {
+public class BanManager extends LiteDBBase {
 
 	public final Util utils;
 	

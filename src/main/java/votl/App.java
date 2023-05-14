@@ -13,6 +13,7 @@ import votl.commands.guild.*;
 import votl.commands.moderation.*;
 import votl.commands.other.*;
 import votl.commands.owner.*;
+import votl.commands.verification.*;
 import votl.commands.voice.*;
 import votl.commands.webhook.WebhookCmd;
 import votl.listeners.*;
@@ -78,6 +79,7 @@ public class App {
 	private final LocaleUtil localeUtil;
 	private final TimeUtil timeUtil;
 	private final LogUtil logUtil;
+	private final SteamUtil steamUtil;
 
 	public App() {
 
@@ -94,7 +96,10 @@ public class App {
 		}
 		
 		// Define for default
-		dbUtil		= new DBUtil(getFileManager().getFiles().get("database"));
+		dbUtil		= new DBUtil(getFileManager().getFiles().get("database"),
+			fileManager.getString("config", "mysql-ip"), fileManager.getString("config", "mysql-db"),
+			fileManager.getString("config", "mysql-user"), fileManager.getString("config", "mysql-pass")
+		);
 		langUtil	= new LangUtil(this);
 		localeUtil	= new LocaleUtil(this, langUtil, "en-GB", DiscordLocale.ENGLISH_UK);
 		messageUtil	= new MessageUtil(this);
@@ -102,6 +107,7 @@ public class App {
 		checkUtil	= new CheckUtil(this);
 		timeUtil	= new TimeUtil();
 		logUtil		= new LogUtil(this);
+		steamUtil	= new SteamUtil();
 
 		waiter			= new EventWaiter();
 		guildListener	= new GuildListener(this);
@@ -161,7 +167,12 @@ public class App {
 				new PingCmd(this),
 				new AboutCmd(this),
 				new HelpCmd(this),
-				new StatusCmd(this)
+				new StatusCmd(this),
+				// verify
+				new VerifyPanelCmd(this),
+				new VerifyRoleCmd(this),
+				new VerifyCmd(this),
+				new UnverifyCmd(this)
 			)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
 			.build();
@@ -256,6 +267,10 @@ public class App {
 
 	public LogUtil getLogUtil() {
 		return logUtil;
+	}
+
+	public SteamUtil getSteamUtil() {
+		return steamUtil;
 	}
 
 	public LogListener getLogListener() {

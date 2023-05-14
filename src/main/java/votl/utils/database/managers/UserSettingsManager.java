@@ -2,10 +2,10 @@ package votl.utils.database.managers;
 
 import java.util.List;
 
-import votl.utils.database.DBBase;
+import votl.utils.database.LiteDBBase;
 import votl.utils.database.DBUtil;
 
-public class UserSettingsManager extends DBBase {
+public class UserSettingsManager extends LiteDBBase {
 
 	public UserSettingsManager(DBUtil util) {
 		super(util);

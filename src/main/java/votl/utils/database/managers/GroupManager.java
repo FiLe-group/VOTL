@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import votl.utils.database.DBBase;
+import votl.utils.database.LiteDBBase;
 import votl.utils.database.DBUtil;
 
-public class GroupManager extends DBBase {
+public class GroupManager extends LiteDBBase {
     
     public GroupManager(DBUtil util) {
         super(util);

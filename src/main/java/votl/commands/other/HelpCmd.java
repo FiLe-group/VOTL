@@ -34,6 +34,7 @@ public class HelpCmd extends CommandBase {
 			.addChoice("Owner", "owner")
 			.addChoice("Webhook", "webhook")
 			.addChoice("Moderation", "moderation")
+			.addChoice("Verification", "verification")
 			.addChoice("Other", "other"));
 		options.add(new OptionData(OptionType.STRING, "command", lu.getText(path+".command_info.help"), false, true)
 			.setRequiredLength(3, 20));

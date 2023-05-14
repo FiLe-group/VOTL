@@ -4,10 +4,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import votl.utils.database.DBBase;
+import votl.utils.database.LiteDBBase;
 import votl.utils.database.DBUtil;
 
-public class AccessManager extends DBBase {
+public class AccessManager extends LiteDBBase {
 	
 	public AccessManager(DBUtil util) {
 		super(util);

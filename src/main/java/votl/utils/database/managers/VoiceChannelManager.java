@@ -2,10 +2,10 @@ package votl.utils.database.managers;
 
 import java.util.List;
 
-import votl.utils.database.DBBase;
+import votl.utils.database.LiteDBBase;
 import votl.utils.database.DBUtil;
 
-public class VoiceChannelManager extends DBBase {
+public class VoiceChannelManager extends LiteDBBase {
 	
 	public VoiceChannelManager(DBUtil util) {
 		super(util);

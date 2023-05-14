@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DBBase {
+public class LiteDBBase {
 
 	private DBUtil util;
 
-	public DBBase(DBUtil util) {
+	public LiteDBBase(DBUtil util) {
 		this.util = util;
 	}
 
@@ -30,11 +30,11 @@ public class DBBase {
 
 		String sql = "INSERT INTO "+table+" ("+String.join(", ", insertKeys)+") VALUES ("+String.join(", ", insertValues)+")";
 		util.logger.debug(sql);
-		try (Connection conn = util.connect();
+		try (Connection conn = util.connectSQLite();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
-			util.logger.warn("DB: Error at INSERT\nrequest: {}", sql, ex);
+			util.logger.warn("DB SQLite: Error at INSERT\nrequest: {}", sql, ex);
 		}
 	}
 
@@ -59,14 +59,14 @@ public class DBBase {
 
 		List<Object> results = new ArrayList<Object>();
 		util.logger.debug(sql);
-		try (Connection conn = util.connect();
+		try (Connection conn = util.connectSQLite();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 			while (rs.next()) {
 				results.add(rs.getObject(selectKey));
 			}
 		} catch (SQLException ex) {
-			util.logger.warn("DB: Error at SELECT\nrequest: {}", sql, ex);
+			util.logger.warn("DB SQLite: Error at SELECT\nrequest: {}", sql, ex);
 		}
 		return results;
 	}
@@ -92,7 +92,7 @@ public class DBBase {
 		List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
 
 		util.logger.debug(sql);
-		try (Connection conn = util.connect();
+		try (Connection conn = util.connectSQLite();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 			List<String> keys = new ArrayList<>();
@@ -113,7 +113,7 @@ public class DBBase {
 				results.add(data);
 			}
 		} catch (SQLException ex) {
-			util.logger.warn("DB: Error at SELECT\nrequest: {}", sql, ex);
+			util.logger.warn("DB SQLite: Error at SELECT\nrequest: {}", sql, ex);
 		}
 		return results;
 	}
@@ -123,14 +123,14 @@ public class DBBase {
 
 		Object result = null;
 		util.logger.debug(sql);
-		try (Connection conn = util.connect();
+		try (Connection conn = util.connectSQLite();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 			while (rs.next()) {
 				result = rs.getObject(selectKey);
 			}
 		} catch (SQLException ex) {
-			util.logger.warn("DB: Error at SELECT\nrequest: {}", sql, ex);
+			util.logger.warn("DB SQLite: Error at SELECT\nrequest: {}", sql, ex);
 		}
 		return result;
 	}
@@ -174,11 +174,11 @@ public class DBBase {
 		}
 
 		util.logger.debug(sql);
-		try (Connection conn = util.connect();
+		try (Connection conn = util.connectSQLite();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
-			util.logger.warn("DB: Error at UPDATE\nrequest: {}", sql, ex);
+			util.logger.warn("DB SQLite: Error at UPDATE\nrequest: {}", sql, ex);
 		}
 	}
 
@@ -202,11 +202,11 @@ public class DBBase {
 		}
 
 		util.logger.debug(sql);
-		try (Connection conn = util.connect();
+		try (Connection conn = util.connectSQLite();
 		PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
-			util.logger.warn("DB: Error at DELETE\nrequest: {}", sql, ex);
+			util.logger.warn("DB SQLite: Error at DELETE\nrequest: {}", sql, ex);
 		}
 	}
 
