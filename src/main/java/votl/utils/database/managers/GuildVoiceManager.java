@@ -10,7 +10,6 @@ public class GuildVoiceManager extends LiteDBBase {
 	public GuildVoiceManager(DBUtil util) {
 		super(util);
 	}
-
 	
 	public boolean exists(String guildId) {
 		if (select("guildVoice", "guildId", "guildId", guildId).isEmpty()) return false;

@@ -1,6 +1,8 @@
 package votl.commands.verification;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import votl.App;
 import votl.commands.CommandBase;
@@ -13,8 +15,6 @@ import votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -26,9 +26,9 @@ public class VerifyPanelCmd extends CommandBase {
 	
 	public VerifyPanelCmd(App bot) { 
 		super(bot);
-		this.name = "verifypanel";
-		this.path = "bot.verification.verifypanel";
-		this.children = new SlashCommand[]{new Create(bot), new SetRole(bot)};
+		this.name = "vfpanel";
+		this.path = "bot.verification.vfpanel";
+		this.children = new SlashCommand[]{new Create(bot), new Main(bot), new Instructions(bot), new Link(bot)};
 		this.module = CmdModule.VERIFICATION;
 		this.category = CmdCategory.VERIFICATION;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -43,7 +43,7 @@ public class VerifyPanelCmd extends CommandBase {
 		public Create(App bot) {
 			super(bot);
 			this.name = "create";
-			this.path = "bot.verification.verifypanel.create";
+			this.path = "bot.verification.vfpanel.create";
 			this.options = Collections.singletonList(
 				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".option_channel"), true)
 			);
@@ -59,21 +59,15 @@ public class VerifyPanelCmd extends CommandBase {
 			}
 			TextChannel tc = (TextChannel) channel;
 
-			if (bot.getDBUtil().guild.getVerifyRole(event.getGuild().getId()) == null) {
+			if (bot.getDBUtil().verify.getVerifyRole(event.getGuild().getId()) == null) {
 				createError(event, path+".no_role");
 				return;
 			}
 
 			Button next = Button.primary("verify", lu.getText(event, path+".continue"));
+			String text = bot.getDBUtil().verify.getPanelText(event.getGuild().getId());
 
-			StringBuffer buffer = new StringBuffer();
-			buffer.append("**ЧТОБЫ ПОЛУЧИТЬ __ПОЛНЫЙ__ ДОСТУП К СЕРВЕРУ НАЖМИТЕ НА КНОПКУ НИЖЕ**\n\n")
-				.append("___Нажимая на кнопку Вы соглашаетесь соблюдать правила:___ \n")
-				.append("🔸Правила сообщества Discord - https://discord.com/guidelines \n")
-				.append("🔸Пользовательское соглашение Discord - https://discord.com/terms \n")
-				.append("🔸Правила дискорд-сервера Rise of the Republic в канале <#559795098410418177>");
-
-			tc.sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_DEFAULT).setDescription(buffer.toString()).build()).addActionRow(next).queue();
+			tc.sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_DEFAULT).setDescription(text).build()).addActionRow(next).queue();
 
 			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
 				.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention()))
@@ -83,30 +77,98 @@ public class VerifyPanelCmd extends CommandBase {
 
 	}
 
-	private class SetRole extends CommandBase {
-
-		public SetRole(App bot) {
+	private class Main extends CommandBase {
+		
+		public Main(App bot) {
 			super(bot);
-			this.name = "role";
-			this.path = "bot.verification.verifypanel.role";
+			this.name = "main";
+			this.path = "bot.verification.vfpanel.main";
 			this.options = Collections.singletonList(
-				new OptionData(OptionType.ROLE, "role", lu.getText(path+".option_role"), true)
+				new OptionData(OptionType.STRING, "text", lu.getText(path+".option_text"), true)
 			);
+			this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = event.getGuild();
-			Role role = event.optRole("role");
-			if (role == null || role.isPublicRole() || role.isManaged() || !guild.getSelfMember().canInteract(role)) {
-				createError(event, path+".no_role");
-				return;
-			}
+			String guildId = event.getGuild().getId();
+			String text = event.optString("text");
 
-			bot.getDBUtil().guild.setVerifyRole(guild.getId(), role.getId());
+			if (!bot.getDBUtil().verify.exists(guildId)) {
+				bot.getDBUtil().verify.add(guildId);
+			}
+			bot.getDBUtil().verify.setPanelText(guildId, text);
 
 			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()))
+				.setDescription(lu.getText(event, path+".done"))
+				.setColor(Constants.COLOR_SUCCESS)
+				.build());
+		}
+
+	}
+
+	private class Instructions extends CommandBase {
+		
+		public Instructions(App bot) {
+			super(bot);
+			this.name = "instruct";
+			this.path = "bot.verification.vfpanel.instruct";
+			List<OptionData> options = new ArrayList<OptionData>();
+			options.add(new OptionData(OptionType.STRING, "description", lu.getText(path+".option_text")));
+			options.add(new OptionData(OptionType.STRING, "instructions", lu.getText(path+".option_text")));
+			this.options = options;
+			this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			String guildId = event.getGuild().getId();
+
+			if (!bot.getDBUtil().verify.exists(guildId)) {
+				bot.getDBUtil().verify.add(guildId);
+			}
+			
+			String description = event.optString("description");
+			if (description != null) {
+				bot.getDBUtil().verify.setInstructionText(guildId, description);
+			}
+			String instructions = event.optString("instructions");
+			if (instructions != null) {
+				bot.getDBUtil().verify.setInstructionField(guildId, instructions);
+			}
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
+				.setDescription(lu.getText(event, path+".done"))
+				.setColor(Constants.COLOR_SUCCESS)
+				.build());
+		}
+
+	}
+
+	private class Link extends CommandBase {
+		
+		public Link(App bot) {
+			super(bot);
+			this.name = "link";
+			this.path = "bot.verification.vfpanel.link";
+			this.options = Collections.singletonList(
+				new OptionData(OptionType.STRING, "text", lu.getText(path+".option_text"), true).setMaxLength(500)
+			);
+			this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			String guildId = event.getGuild().getId();
+			String text = event.optString("text");
+
+			if (!bot.getDBUtil().verify.exists(guildId)) {
+				bot.getDBUtil().verify.add(guildId);
+			}
+			bot.getDBUtil().verify.setVerificationLink(guildId, text);
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
+				.setDescription(lu.getText(event, path+".done").replace("{link}", text))
 				.setColor(Constants.COLOR_SUCCESS)
 				.build());
 		}

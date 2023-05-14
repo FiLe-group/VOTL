@@ -13,6 +13,7 @@ import votl.utils.database.managers.GuildVoiceManager;
 import votl.utils.database.managers.ModuleManager;
 import votl.utils.database.managers.UserSettingsManager;
 import votl.utils.database.managers.VerifyManager;
+import votl.utils.database.managers.VerifyRequestManager;
 import votl.utils.database.managers.VoiceChannelManager;
 import votl.utils.database.managers.WebhookManager;
 
@@ -32,6 +33,7 @@ public class DBUtil {
 	public final BanManager ban;
 	public final GroupManager group;
 	public final VerifyManager verify;
+	public final VerifyRequestManager verifyRequest;
 
 	protected final Logger logger = (Logger) LoggerFactory.getLogger(DBUtil.class);
 
@@ -57,8 +59,9 @@ public class DBUtil {
 		access = new AccessManager(this);
 		ban = new BanManager(this);
 		group = new GroupManager(this);
-		
 		verify = new VerifyManager(this);
+		
+		verifyRequest = new VerifyRequestManager(this);
 	}
 
 	protected Connection connectSQLite() {

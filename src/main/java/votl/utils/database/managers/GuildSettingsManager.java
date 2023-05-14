@@ -59,14 +59,4 @@ public class GuildSettingsManager extends LiteDBBase {
 		return String.valueOf(objs.get(0));
 	}
 
-	public void setVerifyRole(String guildId, String roleId) {
-		update("guild", "verifyRoleId", roleId, "guildId", guildId);
-	}
-
-	public String getVerifyRole(String guildId) {
-		List<Object> objs = select("guild", "verifyRoleId", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return String.valueOf(objs.get(0));
-	}
-
 }
