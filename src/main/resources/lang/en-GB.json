@@ -53,6 +53,7 @@
 		"webhook": "Webhook commands",
 		"language": "Language commands",
 		"moderation": "Moderation category",
+		"verification": "Verification",
 		"module_disabled": "This command(module) is disabled."
 	},
 	"bot": {
@@ -611,6 +612,12 @@
 					"removed": "Server was removed from your sync group",
 					"renamed": "Sync group was renamed",
 					"oldname": "Previous group name"
+				},
+				"verify": {
+					"added": "User verified | {user_tag}",
+					"removed": "User unverified | {user_tag}",
+					"steamname": "Steam account",
+					"reason": "Reason"
 				}
 			},
 			"group": {
@@ -763,6 +770,7 @@
 					"guild": "Server",
 					"webhook": "Webhook",
 					"moderation": "Moderation",
+					"verification": "Verification",
 					"other": "Other",
 					"title": "Categories"
 				},
@@ -771,6 +779,42 @@
 					"support_title": "*Additional help*",
 					"support_value": "If you need help with the bot, contact the owner `{owner_name}`."
 				}
+			}
+		},
+		"verification": {
+			"listener": {
+				"refresh": "Refresh",
+				"connect": "Connect account"
+			},
+			"verifypanel": {
+				"help": "Manage panel for verification module",
+				"usage": "/panel",
+				"create": {
+					"help": "Send panel to selected channel",
+					"usage": "create <#Channel>",
+					"option_channel": "Select channel in which to create the panel",
+					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
+					"no_role": "Verification role is not set!\nUse `/panel role`",
+					"continue": "Continue",
+					"done": "Panel created in {channel}!"
+				},
+				"role": {
+					"help": "Assign server role for verification",
+					"usage": "role <@Role>",
+					"option_role": "Select role which will be used for verification",
+					"no_role": "Provided role was incorrect.",
+					"done": "Role {role} assigned for verification!"
+				}
+			},
+			"verify": {
+				"help": "Manualy add verify role to member",
+				"usage": "/verify <@User>",
+				"option_member": "Enter member ID or ping them"
+			},
+			"unverify": {
+				"help": "Manualy remove verify role from member",
+				"usage": "/unverify <@User>",
+				"option_member": "Enter member ID or ping them"
 			}
 		}
 	}

@@ -1,5 +1,7 @@
 package votl.listeners;
 
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.Nonnull;
 
 import votl.App;
@@ -10,11 +12,15 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
@@ -122,6 +128,54 @@ public class ButtonListener extends ListenerAdapter {
 			else {
 				replyError(event, "errors.unknown", "Received key: "+key);
 			}
+		}
+
+		else if (buttonId.startsWith("verify")) {
+			Member member = event.getMember();
+			Guild guild = event.getGuild();
+
+			Role role = guild.getRoleById(db.guild.getVerifyRole(guild.getId()));
+			if (member.getRoles().contains(role)) {
+				event.reply("У вас уже имеется роль верификации").setEphemeral(true).queue();
+				return;
+			}
+
+			String steam64 = db.verify.getSteam64(member.getId());
+			if (steam64 != null) {
+				// Give verify role to user
+				if (role == null) {
+					event.reply("Ошибка! Роль не найдена, сообщие о проблеме Администрации Дискорд-сервера!");
+					bot.getLogger().info("Verify role not found for server "+guild.getName()+"("+guild.getId()+")");
+					return;
+				}
+
+				event.deferEdit().queue();
+				guild.addRoleToMember(member, role).reason("Verification completed - "+steam64).queue(
+					success -> {
+						bot.getLogListener().onVerified(member, steam64, guild);
+					},
+					failure -> {
+						event.reply("Ошибка! Не удалось выдать роль, сообщие о проблеме Администрации Дискорд-сервера!");
+						bot.getLogger().info("Was unable to add verify role to user in "+guild.getName()+"("+guild.getId()+")", failure);
+					});
+			} else {
+				Button refresh = Button.of(ButtonStyle.DANGER, "verify-refresh", bot.getLocaleUtil().getText(event, "bot.verification.listener.refresh"), Emoji.fromUnicode("🔁"));
+				// Check if user pressed refresh button
+				if (buttonId.endsWith("refresh")) {
+					// Ask user to wait for 30 seconds each time
+					event.replyEmbeds(new EmbedBuilder().setColor(Constants.COLOR_FAILURE).setTitle("Пожалуйста, подождите!")
+						.setDescription("Если вы еще не привязали свой аккаунт, следуйте инструкции выше.").build()).setEphemeral(true).queue();
+					event.editButton(refresh.asDisabled()).queue(success -> event.editButton(refresh).queueAfter(30, TimeUnit.SECONDS));
+					return;
+				}
+				// Reply with instruction on how to verify, buttons - link and refresh
+				Button verify = Button.link("https://unionteams.ru/player", bot.getLocaleUtil().getText(event, "bot.verification.listener.connect"));
+				EmbedBuilder builder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT).setTitle("Привяжите свой аккаунт, чтобы завершить верификацию")
+					.setDescription("Чтобы получить полный доступ к серверу (отправка сообщений, каналы заявок и жалоб), перейдите по ссылке ниже и привяжите свой аккаунт Steam и Discord.")
+					.addField("Как привязать свой аккаунт?", "1. Перейдите на сайт проекта https://unionteams.ru\n2. Зайдите в свой личный кабинет через Steam\n3. Привяжите свой аккаунт Discord в ЛК", false);
+
+				event.replyEmbeds(builder.build()).addActionRow(verify, refresh).setEphemeral(true).queue();
+			}
 		} else {
 			replyError(event, "errors.unknown", "Received button ID: "+buttonId);
 		}
@@ -149,7 +203,7 @@ public class ButtonListener extends ListenerAdapter {
 			VoiceChannel vc = guild.getVoiceChannelById(bot.getDBUtil().voice.getChannel(memberId));
 
 			if (vc == null) {
-				event.deferEdit();
+				event.deferEdit().queue();;
 				return;
 			}
 
@@ -173,11 +227,11 @@ public class ButtonListener extends ListenerAdapter {
 				try {
 					value = Integer.parseInt(input);
 				} catch (NumberFormatException ex) {
-					event.deferEdit();
+					event.deferEdit().queue();
 					return;
 				}
 				if (value < 0 || value > 99) {
-					event.deferEdit();
+					event.deferEdit().queue();
 					return;
 				}
 
@@ -193,7 +247,7 @@ public class ButtonListener extends ListenerAdapter {
 				).setEphemeral(true).queue();
 			}
 			else if (key.equals("permit") || key.equals("reject")) {
-				event.deferEdit();
+				event.deferEdit().queue();
 				
 			}
 			else {
@@ -201,7 +255,7 @@ public class ButtonListener extends ListenerAdapter {
 			}
 		} else {
 			// smt
-			event.deferEdit();
+			event.deferEdit().queue();
 		}
 	}
 	

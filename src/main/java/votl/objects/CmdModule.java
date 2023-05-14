@@ -4,7 +4,8 @@ public enum CmdModule {
 	VOICE("modules.voice"),
 	WEBHOOK("modules.webhook"),
 	LANGUAGE("modules.language"),
-	MODERATION("modules.moderation");
+	MODERATION("modules.moderation"),
+	VERIFICATION("modules.verification");
 	
 	private final String path;
 	

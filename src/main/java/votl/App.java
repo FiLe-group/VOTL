@@ -13,6 +13,7 @@ import votl.commands.guild.*;
 import votl.commands.moderation.*;
 import votl.commands.other.*;
 import votl.commands.owner.*;
+import votl.commands.verification.VerifyPanelCmd;
 import votl.commands.voice.*;
 import votl.commands.webhook.WebhookCmd;
 import votl.listeners.*;
@@ -164,7 +165,9 @@ public class App {
 				new PingCmd(this),
 				new AboutCmd(this),
 				new HelpCmd(this),
-				new StatusCmd(this)
+				new StatusCmd(this),
+				// verify
+				new VerifyPanelCmd(this)
 			)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
 			.build();

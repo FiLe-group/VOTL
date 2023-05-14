@@ -40,9 +40,7 @@ public class SetupCmd extends CommandBase {
 	}
 
 	@Override
-	protected void execute(SlashCommandEvent event) {
-
-	}
+	protected void execute(SlashCommandEvent event) {}
 
 	private class Main extends CommandBase {
 		
