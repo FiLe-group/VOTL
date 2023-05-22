@@ -7,8 +7,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Nonnull;
-
 import votl.commands.guild.*;
 import votl.commands.moderation.*;
 import votl.commands.other.*;
@@ -142,7 +140,6 @@ public class App {
 				new UnghostCmd(this),
 				new PermsCmd(this),
 				// guild
-				new LanguageCmd(this),
 				new SetupCmd(this),
 				new ModuleCmd(this, waiter),
 				new AccessCmd(this),
@@ -275,16 +272,6 @@ public class App {
 
 	public LogListener getLogListener() {
 		return logListener;
-	}
-
-	@Nonnull
-	public String getLanguage(String guildId) {
-		String res = dbUtil.guild.getLanguage(guildId);
-		return (res == null ? localeUtil.getDefaultLanguage() : res);
-	}
-
-	public void setLanguage(String guildId, String value) {
-		dbUtil.guild.setLanguage(guildId, value);
 	}
 
 	public static void main(String[] args) {
