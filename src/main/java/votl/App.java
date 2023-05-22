@@ -94,10 +94,7 @@ public class App {
 		}
 		
 		// Define for default
-		dbUtil		= new DBUtil(getFileManager().getFiles().get("database"),
-			fileManager.getString("config", "mysql-ip"), fileManager.getString("config", "mysql-db"),
-			fileManager.getString("config", "mysql-user"), fileManager.getString("config", "mysql-pass")
-		);
+		dbUtil		= new DBUtil(getFileManager().getFiles().get("database"));
 		langUtil	= new LangUtil(this);
 		localeUtil	= new LocaleUtil(this, langUtil, "en-GB", DiscordLocale.ENGLISH_UK);
 		messageUtil	= new MessageUtil(this);
@@ -169,7 +166,7 @@ public class App {
 				new VerifyPanelCmd(this),
 				new VerifyRoleCmd(this),
 				new VerifyCmd(this),
-				new UnverifyCmd(this)
+				new BlacklistCmd(this)
 			)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
 			.build();

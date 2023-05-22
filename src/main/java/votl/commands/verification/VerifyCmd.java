@@ -23,7 +23,7 @@ public class VerifyCmd extends CommandBase {
 		this.name = "verify";
 		this.path = "bot.verification.verify";
 		this.options = Collections.singletonList(
-			new OptionData(OptionType.USER, "user", path+".option_user", true)
+			new OptionData(OptionType.USER, "user", lu.getText(path+".option_user"), true)
 		);
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
 		this.module = CmdModule.VERIFICATION;
@@ -58,7 +58,8 @@ public class VerifyCmd extends CommandBase {
 
 		guild.addRoleToMember(member, role).reason("Manual verification by "+event.getUser().getAsTag()).queue(
 			success -> {
-				bot.getLogListener().onVerified(member, null, guild);
+				bot.getLogListener().onVerified(member, guild);
+				bot.getDBUtil().verify.removeUser(guild.getId(), member.getId());
 				createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event).setDescription(lu.getText(event, path+".done")).build());
 			},
 			failure -> {

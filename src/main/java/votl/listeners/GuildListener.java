@@ -86,6 +86,7 @@ public class GuildListener extends ListenerAdapter {
 		db.access.removeAll(guildId);
 		db.module.removeAll(guildId);
 		db.webhook.removeAll(guildId);
+		db.verify.clearGuild(guildId);
 		db.verify.remove(guildId);
 		if (db.guild.exists(guildId) || db.guildVoice.exists(guildId)) {
 			db.guild.remove(guildId);

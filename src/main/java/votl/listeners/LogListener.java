@@ -414,10 +414,10 @@ public class LogListener {
 	}
 
 	// Verification
-	public void onVerified(Member member, String steam64, Guild guild) {
+	public void onVerified(Member member, Guild guild) {
 		String guildId = Objects.requireNonNull(guild).getId();
 
-		String channelId = db.guild.getModLogChannel(guildId);
+		String channelId = db.guild.getVerifyLogChannel(guildId);
 		if (channelId == null) {
 			return;
 		}
@@ -427,15 +427,15 @@ public class LogListener {
 		}
 
 		try {
-			MessageEmbed embed = logUtil.getVerifiedEmbed(guild.getLocale(), member.getUser().getAsTag(), member.getId(), member.getEffectiveAvatarUrl(), (steam64 == null ? null : db.verifyRequest.getSteamName(steam64)), steam64);
+			MessageEmbed embed = logUtil.getVerifiedEmbed(guild.getLocale(), member.getUser().getAsTag(), member.getId(), member.getEffectiveAvatarUrl());
 			channel.sendMessageEmbeds(embed).queue();
 		} catch (InsufficientPermissionException ex) {}
 	}
 
-	public void onUnverified(Member member, String steam64, Guild guild, String reason) {
+	public void onBlacklist(Member member, Guild guild, String reason) {
 		String guildId = Objects.requireNonNull(guild).getId();
 
-		String channelId = db.guild.getModLogChannel(guildId);
+		String channelId = db.guild.getVerifyLogChannel(guildId);
 		if (channelId == null) {
 			return;
 		}
@@ -445,7 +445,7 @@ public class LogListener {
 		}
 
 		try {
-			MessageEmbed embed = logUtil.getUnverifiedEmbed(guild.getLocale(), member.getUser().getAsTag(), member.getId(), member.getEffectiveAvatarUrl(), (steam64 == null ? null : db.verifyRequest.getSteamName(steam64)), steam64, reason);
+			MessageEmbed embed = logUtil.getBlacklistedEmbed(guild.getLocale(), member.getUser().getAsTag(), member.getId(), member.getEffectiveAvatarUrl(), reason);
 			channel.sendMessageEmbeds(embed).queue();
 		} catch (InsufficientPermissionException ex) {}
 	}

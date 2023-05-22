@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LiteDBBase {
+public class SQLiteDBBase {
 
 	private DBUtil util;
 
-	public LiteDBBase(DBUtil util) {
+	public SQLiteDBBase(DBUtil util) {
 		this.util = util;
 	}
 

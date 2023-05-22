@@ -13,7 +13,6 @@ import votl.utils.database.managers.GuildVoiceManager;
 import votl.utils.database.managers.ModuleManager;
 import votl.utils.database.managers.UserSettingsManager;
 import votl.utils.database.managers.VerifyManager;
-import votl.utils.database.managers.VerifyRequestManager;
 import votl.utils.database.managers.VoiceChannelManager;
 import votl.utils.database.managers.WebhookManager;
 
@@ -33,22 +32,13 @@ public class DBUtil {
 	public final BanManager ban;
 	public final GroupManager group;
 	public final VerifyManager verify;
-	public final VerifyRequestManager verifyRequest;
 
 	protected final Logger logger = (Logger) LoggerFactory.getLogger(DBUtil.class);
 
 	private String urlSQLite;
-	private String urlMySql;
-	public String sqldb;
-	private String username;
-	private String pass;
 
-	public DBUtil(File location, String ip, String database, String username, String pass) {
+	public DBUtil(File location) {
 		this.urlSQLite = "jdbc:sqlite:" + location;
-		this.urlMySql = "jdbc:mysql://" + ip + ":3306/" + database;
-		this.sqldb = database;
-		this.username = username;
-		this.pass = pass;
 		
 		guild = new GuildSettingsManager(this);
 		guildVoice = new GuildVoiceManager(this);

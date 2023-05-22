@@ -267,20 +267,18 @@ public class LogUtil {
 	}
 
 	@Nonnull
-	public MessageEmbed getVerifiedEmbed(DiscordLocale locale, String memberTag, String memberId, String memberIcon, String steamName, String steam64) {
+	public MessageEmbed getVerifiedEmbed(DiscordLocale locale, String memberTag, String memberId, String memberIcon) {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_SUCCESS)
 			.setAuthor(lu.getLocalized(locale, path+"verify.added").replace("{user_tag}", memberTag), null, memberIcon)
-			.addField(lu.getLocalized(locale, path+"verify.steamname"), (steam64 == null ? "None" : steamName+" (`"+bot.getSteamUtil().convertSteam64toSteamID(steam64)+"`)"), false)
 			.setFooter("ID: "+memberId)
 			.setTimestamp(Instant.now())
 			.build();
 	}
 
 	@Nonnull
-	public MessageEmbed getUnverifiedEmbed(DiscordLocale locale, String memberTag, String memberId, String memberIcon, String steamName, String steam64, String reason) {
+	public MessageEmbed getBlacklistedEmbed(DiscordLocale locale, String memberTag, String memberId, String memberIcon, String reason) {
 		return bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_FAILURE)
 			.setAuthor(lu.getLocalized(locale, path+"verify.removed").replace("{user_tag}", memberTag), null, memberIcon)
-			.addField(lu.getLocalized(locale, path+"verify.steamname"), (steam64 == null ? "None" : steamName+" (`"+bot.getSteamUtil().convertSteam64toSteamID(steam64)+"`)"), false)
 			.addField(lu.getLocalized(locale, path+"verify.reason"), reason, false)
 			.setFooter("ID: "+memberId)
 			.setTimestamp(Instant.now())

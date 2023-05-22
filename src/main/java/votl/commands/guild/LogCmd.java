@@ -90,6 +90,7 @@ public class LogCmd extends CommandBase {
 			
 			bot.getDBUtil().guild.setModLogChannel(event.getGuild().getId(), tc.getId());
 			bot.getDBUtil().guild.setGroupLogChannel(event.getGuild().getId(), tc.getId());
+			bot.getDBUtil().guild.setVerifyLogChannel(event.getGuild().getId(), tc.getId());
 			tc.sendMessageEmbeds(builder.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log")).build()).queue();
 			createReplyEmbed(event, builder.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention())).build());
 		}
@@ -114,7 +115,8 @@ public class LogCmd extends CommandBase {
 			String guildId = event.getGuild().getId();
 			String modChannelId = bot.getDBUtil().guild.getModLogChannel(guildId);
 			String groupChannelId = bot.getDBUtil().guild.getGroupLogChannel(guildId);
-			if (modChannelId == null || groupChannelId == null) { 
+			String verifyChannelId = bot.getDBUtil().guild.getVerifyLogChannel(guildId);
+			if (modChannelId == null || groupChannelId == null || verifyChannelId == null) { 
 				builder.setDescription(lu.getText(event, path+".none"));
 				editHookEmbed(event, builder.build());
 				return;
@@ -122,8 +124,10 @@ public class LogCmd extends CommandBase {
 
 			TextChannel modtc = event.getJDA().getTextChannelById(modChannelId);
 			TextChannel grouptc = event.getJDA().getTextChannelById(groupChannelId);
+			TextChannel verifytc = event.getJDA().getTextChannelById(verifyChannelId);
 			builder.appendDescription(lu.getText(event, "bot.guild.log.types.moderation")+" - "+(modtc != null ? modtc.getAsMention() : "*not found*")+"\n")
-				.appendDescription(lu.getText(event, "bot.guild.log.types.group")+" - "+(grouptc != null ? grouptc.getAsMention() : "*not found*"));
+				.appendDescription(lu.getText(event, "bot.guild.log.types.group")+" - "+(grouptc != null ? grouptc.getAsMention() : "*not found*")+"\n")
+				.appendDescription(lu.getText(event, "bot.guild.log.types.verify")+" - "+(verifytc != null ? grouptc.getAsMention() : "*not found*"));
 
 			ActionRow buttons = ActionRow.of(
 				Button.of(ButtonStyle.PRIMARY, "button:change", lu.getText(event, path+".button_change")),
@@ -149,6 +153,7 @@ public class LogCmd extends CommandBase {
 			if (buttonPressed.equals("button:remove")) {
 				bot.getDBUtil().guild.setModLogChannel(guildId, "NULL");
 				bot.getDBUtil().guild.setGroupLogChannel(guildId, "NULL");
+				bot.getDBUtil().guild.setVerifyLogChannel(guildId, "NULL");
 				MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
 					.setDescription(lu.getText(event, path+".removed"))
 					.build();
@@ -158,6 +163,7 @@ public class LogCmd extends CommandBase {
 					.setPlaceholder(lu.getText(event, path+".menu_type"))
 					.addOption(lu.getText(event, "bot.guild.log.types.moderation"), "moderation")
 					.addOption(lu.getText(event, "bot.guild.log.types.group"), "group")
+					.addOption(lu.getText(event, "bot.guild.log.types.verify"), "verify")
 					.build();
 					event.getHook().editOriginalComponents(ActionRow.of(menu)).queue();
 
@@ -227,6 +233,8 @@ public class LogCmd extends CommandBase {
 				bot.getDBUtil().guild.setModLogChannel(event.getGuild().getId(), newTc.getId());
 			} else if (selectedType.equals("group")) {
 				bot.getDBUtil().guild.setGroupLogChannel(event.getGuild().getId(), newTc.getId());
+			} else if (selectedType.equals("verify")) {
+				bot.getDBUtil().guild.setVerifyLogChannel(event.getGuild().getId(), newTc.getId());
 			}
 			newTc.sendMessageEmbeds(builder.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log")
 				.replace("{type}", lu.getLocalized(event.getGuildLocale(),"bot.guild.log.types."+selectedType))).build()).queue();

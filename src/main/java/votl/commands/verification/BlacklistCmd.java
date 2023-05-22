@@ -17,15 +17,15 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class UnverifyCmd extends CommandBase {
+public class BlacklistCmd extends CommandBase {
 	
-	public UnverifyCmd(App bot) {
+	public BlacklistCmd(App bot) {
 		super(bot);
-		this.name = "unverify";
-		this.path = "bot.verification.unverify";
+		this.name = "blacklist";
+		this.path = "bot.verification.blacklist";
 		List<OptionData> options = new ArrayList<>();
-		options.add(new OptionData(OptionType.USER, "user", path+".option_user", true));
-		options.add(new OptionData(OptionType.STRING, "reason", path+".option_reason").setMaxLength(200));
+		options.add(new OptionData(OptionType.USER, "user", lu.getText(path+".option_user"), true));
+		options.add(new OptionData(OptionType.STRING, "reason", lu.getText(path+".option_reason")).setMaxLength(200));
 		this.options = options;
 		this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
 		this.module = CmdModule.VERIFICATION;
@@ -38,7 +38,7 @@ public class UnverifyCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {
 		Member member = event.optMember("user");
 		Guild guild = event.getGuild();
-		if (member == null) {
+		if (member == null || !guild.getSelfMember().canInteract(member)) {
 			createError(event, path+".no_user");
 		}
 
@@ -53,22 +53,29 @@ public class UnverifyCmd extends CommandBase {
 			return;
 		}
 
-		if (!member.getRoles().contains(role)) {
-			createError(event, "bot.verification.user_not_verified");
+		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
+
+		if (member.getRoles().contains(role)) {
+			guild.removeRoleFromMember(member, role).reason("Blacklisted by "+event.getUser().getAsTag()+" | "+reason).queue(
+				success -> {
+					createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event).setDescription(lu.getText(event, path+".done_role")).build());
+				},
+				failure -> {
+					createError(event, "bot.verification.failed_role");
+					bot.getLogger().info("Was unable to remove verify role to user in "+guild.getName()+"("+guild.getId()+")", failure);
+				});
 			return;
 		}
 
-		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
+		
+		if (bot.getDBUtil().verify.addUser(guild.getId(), member.getId())) {
+			bot.getLogListener().onBlacklist(member, guild, reason);
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event).setDescription(lu.getText(event, path+".done_added")).build());
+		} else {
+			createError(event, path+".failed_to_add");
+		}
+		
 
-		guild.removeRoleFromMember(member, role).reason("Manual unverification by "+event.getUser().getAsTag()+" | "+reason).queue(
-			success -> {
-				bot.getLogListener().onUnverified(member, null, guild, reason);
-				createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event).setDescription(lu.getText(event, path+".done")).build());
-			},
-			failure -> {
-				createError(event, "bot.verification.failed_role");
-				bot.getLogger().info("Was unable to remove verify role to user in "+guild.getName()+"("+guild.getId()+")", failure);
-			});
 	}
 
 }

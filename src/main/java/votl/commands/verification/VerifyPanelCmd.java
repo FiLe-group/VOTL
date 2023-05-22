@@ -1,5 +1,6 @@
 package votl.commands.verification;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +29,7 @@ public class VerifyPanelCmd extends CommandBase {
 		super(bot);
 		this.name = "vfpanel";
 		this.path = "bot.verification.vfpanel";
-		this.children = new SlashCommand[]{new Create(bot), new Main(bot), new Instructions(bot), new Link(bot)};
+		this.children = new SlashCommand[]{new Create(bot), new Main(bot), new Instructions(bot), new Link(bot), new SetColor(bot)};
 		this.module = CmdModule.VERIFICATION;
 		this.category = CmdCategory.VERIFICATION;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -67,7 +68,7 @@ public class VerifyPanelCmd extends CommandBase {
 			Button next = Button.primary("verify", lu.getText(event, path+".continue"));
 			String text = bot.getDBUtil().verify.getPanelText(event.getGuild().getId());
 
-			tc.sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_DEFAULT).setDescription(text).build()).addActionRow(next).queue();
+			tc.sendMessageEmbeds(new EmbedBuilder().setColor(bot.getDBUtil().verify.getColor(event.getGuild().getId())).setDescription(text).build()).addActionRow(next).queue();
 
 			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
 				.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention()))
@@ -174,5 +175,43 @@ public class VerifyPanelCmd extends CommandBase {
 		}
 
 	}
+
+	private class SetColor extends CommandBase {
+
+		public SetColor(App bot) {
+			super(bot);
+			this.name = "color";
+			this.path = "bot.verification.vfpanel.color";
+			this.options = Collections.singletonList(
+				new OptionData(OptionType.STRING, "color", lu.getText(path+".option_color"), true).setMaxLength(20)
+			);
+			this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			String guildId = event.getGuild().getId();
+			String text = event.optString("color");
+
+			if (!bot.getDBUtil().verify.exists(guildId)) {
+				bot.getDBUtil().verify.add(guildId);
+			}
+
+			Color color = bot.getMessageUtil().getColor(text);
+			if (color == null) {
+				createError(event, path+".no_color");
+				return;
+			}
+			bot.getDBUtil().verify.setColor(guildId, color.getRGB() & 0xFFFFFF);
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
+				.setDescription(lu.getText(event, path+".done").replace("{color}", "#"+Integer.toHexString(color.getRGB() & 0xFFFFFF)))
+				.setColor(Constants.COLOR_SUCCESS)
+				.build());
+		}
+
+	}
+
+
 
 }
