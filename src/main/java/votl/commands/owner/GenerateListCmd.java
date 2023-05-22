@@ -73,7 +73,7 @@ public class GenerateListCmd extends CommandBase {
 			result.put(i.toString(), jsonObject);
 		}
 
-		File file = new File(Constants.DATA_PATH + Constants.SEPAR + "commands.json");
+		File file = new File(Constants.DATA_PATH + "commands.json");
 		try {
 			file.createNewFile();
 			FileWriter writer = new FileWriter(file, Charset.forName("utf-8"));

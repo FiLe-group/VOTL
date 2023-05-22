@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -46,7 +47,7 @@ public class FileManager {
 	}
 
 	public FileManager addFile(String name, String internal, String external){
-		createOrLoad(name, internal, external);
+		createUpdateLoad(name, internal, external);
 		
 		return this;
 	}
@@ -62,7 +63,7 @@ public class FileManager {
 		}
 		locales.add(locale);
 
-		return addFile(file, Constants.LANG_DIR + file + ".json", Constants.DATA_PATH + Constants.LANG_DIR + file + ".json");
+		return addFile(file, "/lang/" + file + ".json", Constants.DATA_PATH + "lang" + Constants.SEPAR + file + ".json");
 	}
 	
 	public Map<String, File> getFiles() {
@@ -73,35 +74,42 @@ public class FileManager {
 		return locales;
 	}
 	
-	public void createOrLoad(String name, String internal, String external) {
+	public void createUpdateLoad(String name, String internal, String external) {
 		if (files == null)
 			files = new HashMap<>();
 
 		File file = new File(external);
-		// 
+		
 		String[] split = external.contains("/") ? external.split(File.separator) : external.split(Pattern.quote(File.separator));
 
 		try {
 			if (!file.exists()) {
 				if ((split.length == 2 && !split[0].equals(".")) || (split.length >= 3 && split[0].equals("."))) {
 					if (!file.getParentFile().mkdirs() && !file.getParentFile().exists()) {
-						logger.warn("Failed to create directory {}", split[1]);
+						logger.error("Failed to create directory {}", split[1]);
 						return;
 					}
 				}
 				if (file.createNewFile()) {
-					if (export(App.class.getResourceAsStream(internal.replace(File.separator, "/")), external)) {
+					if (export(App.class.getResourceAsStream(internal), external)) {
 						logger.info("Successfully created {}!", name);
 						files.put(name, file);
 					} else {
-						logger.warn("Failed to create {}!", name);
+						logger.error("Failed to write {}!", name);
 					}
 				}
+			} else if (external.contains("lang") && Files.mismatch(file.toPath(), Paths.get(App.class.getResource(internal).toURI())) != -1) {
+				if (export(App.class.getResourceAsStream(internal), external)) {
+					logger.info("Successfully updated {}!", name);
+					files.put(name, file);
+				} else {
+					logger.error("Failed to overwrite {}!", name);
+				}
 			} else {
-				logger.info("Successfully located {}!", name);
+				logger.info("Successfully loaded {}!", name);
 				files.put(name, file);
 			}
-		} catch (IOException ex) {
+		} catch (IOException | URISyntaxException ex) {
 			logger.error("Couldn't locate nor create {}", file.getAbsolutePath(), ex);
 		}
 	}

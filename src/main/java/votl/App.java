@@ -84,8 +84,8 @@ public class App {
 		JDA setJda = null;
 
 		try {
-			fileManager.addFile("config", Constants.SEPAR + "config.json", Constants.DATA_PATH + Constants.SEPAR + "config.json")
-				.addFile("database", Constants.SEPAR + "server.db", Constants.DATA_PATH + Constants.SEPAR + "server.db")
+			fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "config.json")
+				.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
 				.addLang("en-GB")
 				.addLang("ru");
 		} catch (Exception ex) {

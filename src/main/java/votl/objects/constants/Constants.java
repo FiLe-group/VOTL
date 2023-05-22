@@ -1,7 +1,6 @@
 package votl.objects.constants;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class Constants {
@@ -11,8 +10,7 @@ public final class Constants {
 
 	public static final String SEPAR = File.separator;
 
-	public static final Path DATA_PATH = Paths.get("." + SEPAR + "data");
-	public static final String LANG_DIR = SEPAR + "lang" + SEPAR;
+	public static final String DATA_PATH = Paths.get("." + SEPAR + "data") + SEPAR;
 
 	public static final String SUCCESS = "\u2611";
 	public static final String WARNING = "\u26A0";
