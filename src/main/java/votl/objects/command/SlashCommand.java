@@ -346,7 +346,7 @@ public abstract class SlashCommand extends Command
 				if (child.botPermissions.length == 0) {
 					child.botPermissions = getBotPermissions();
 				}
-				if (getAccessLevel().getLevel() > child.getAccessLevel().getLevel()) {
+				if (child.getAccessLevel().getLevel() == CmdAccessLevel.ALL.getLevel()) {
 					child.accessLevel = getAccessLevel();
 				}
 				if (child.module == null) {

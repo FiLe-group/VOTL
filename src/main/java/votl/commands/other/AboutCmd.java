@@ -70,7 +70,9 @@ public class AboutCmd extends CommandBase {
 				String.join(
 					"\n",
 					lu.getLocalized(userLocale, "bot.other.about.embed.links.discord"),
-					lu.getLocalized(userLocale, "bot.other.about.embed.links.github").replace("{github_url}", Links.GITHUB)
+					lu.getLocalized(userLocale, "bot.other.about.embed.links.github").replace("{github_url}", Links.GITHUB),
+					lu.getLocalized(userLocale, "bot.other.about.embed.links.privacy").replace("{privacy}", Links.PRIVACY),
+					lu.getLocalized(userLocale, "bot.other.about.embed.links.terms").replace("{terms}", Links.TERMS)
 				),
 				true
 			)

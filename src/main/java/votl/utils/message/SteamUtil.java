@@ -20,7 +20,7 @@ public class SteamUtil {
 	}
 
 	public String convertSteamIDtoSteam64(String steamId) {
-		Long steam64id = 76561197960265728L;
+		Long steam64id = 76561197960265729L;
 		String[] id_split = steamId.split(":");
 
     	steam64id += Long.parseLong(id_split[2]) * 2;

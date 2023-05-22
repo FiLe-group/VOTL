@@ -5,6 +5,8 @@ public class Links {
 	public static final String DISCORD = "https://discord.gg/25K5S55wrU";
 	// Bot's sites
 	public static final String GITHUB = "https://github.com/FileEditor97";
+	public static final String PRIVACY = "https://votl.vercel.app/privacy";
+	public static final String TERMS = "https://votl.vercel.app/tos";
 	// UnionTeam's sites
 	public static final String UNIONTEAMS = "https://unionteams.ru/";
 	public static final String ROTR_INVITE = "https://discord.gg/ersz3gp";
