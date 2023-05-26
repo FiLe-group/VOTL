@@ -778,23 +778,11 @@
 					"continue": "Continue",
 					"done": "Panel created in {channel}!"
 				},
-				"main": {
+				"text": {
 					"help": "Set the main text on the panel that will be sent to the channel",
-					"usage": "main <text>",
+					"usage": "text <text>",
 					"option_text": "Text (max 4000 symbols), ENCLOSE TEXT IN ` TO SAVE MENTIONS/EMOJI, use <br> for line breaks",
 					"done": "Text updated!"
-				},
-				"instruct": {
-					"help": "Set instruction panel text",
-					"usage": "instruct <description> <instructions>",
-					"option_text": "Text (max 4000 symbols), ENCLOSE TEXT IN ` TO SAVE MENTIONS/EMOJI, use <br> for line breaks",
-					"done": "Text updated!"
-				},
-				"link": {
-					"help": "Set link, which will be shown for verification",
-					"usage": "link <url>",
-					"option_text": "URL (max 500 symbols)",
-					"done": "Link updated to {link}"
 				},
 				"color": {
 					"help": "Set embed color accent",

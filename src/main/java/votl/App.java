@@ -94,7 +94,7 @@ public class App {
 		}
 		
 		// Define for default
-		dbUtil		= new DBUtil(getFileManager().getFiles().get("database"));
+		dbUtil		= new DBUtil(getFileManager());
 		langUtil	= new LangUtil(this);
 		localeUtil	= new LocaleUtil(this, langUtil, "en-GB", DiscordLocale.ENGLISH_UK);
 		messageUtil	= new MessageUtil(this);

@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -87,29 +87,39 @@ public class FileManager {
 				if ((split.length == 2 && !split[0].equals(".")) || (split.length >= 3 && split[0].equals("."))) {
 					if (!file.getParentFile().mkdirs() && !file.getParentFile().exists()) {
 						logger.error("Failed to create directory {}", split[1]);
-						return;
 					}
 				}
 				if (file.createNewFile()) {
-					if (export(App.class.getResourceAsStream(internal), external)) {
+					if (export(App.class.getResourceAsStream(internal), Paths.get(external))) {
 						logger.info("Successfully created {}!", name);
 						files.put(name, file);
 					} else {
 						logger.error("Failed to write {}!", name);
 					}
 				}
-			} else if (external.contains("lang") && Files.mismatch(file.toPath(), Paths.get(App.class.getResource(internal).toURI())) != -1) {
-				if (export(App.class.getResourceAsStream(internal), external)) {
-					logger.info("Successfully updated {}!", name);
-					files.put(name, file);
-				} else {
-					logger.error("Failed to overwrite {}!", name);
-				}
-			} else {
-				logger.info("Successfully loaded {}!", name);
-				files.put(name, file);
+				return;
 			}
-		} catch (IOException | URISyntaxException ex) {
+			if (external.contains("lang")) {
+				File tempFile = File.createTempFile("locale-", ".json");
+				if (!export(App.class.getResourceAsStream(internal), tempFile.toPath())) {
+					logger.error("Failed to write temp file {}!", tempFile.getName());
+				} else {
+					if (Files.mismatch(file.toPath(), tempFile.toPath()) != -1) {
+						if (export(App.class.getResourceAsStream(internal), Paths.get(external))) {
+							logger.info("Successfully updated {}!", name);
+							files.put(name, file);
+							return;
+						} else {
+							logger.error("Failed to overwrite {}!", name);
+						}
+					}
+				}
+				tempFile.delete();
+			}
+
+			files.put(name, file);
+			logger.info("Successfully loaded {}!", name);
+		} catch (IOException ex) {
 			logger.error("Couldn't locate nor create {}", file.getAbsolutePath(), ex);
 		}
 	}
@@ -199,11 +209,12 @@ public class FileManager {
 		}
 	}
 
-	private boolean export(InputStream inputStream, String destination){
+	public boolean export(InputStream inputStream, Path destination){
 		boolean success = true;
 		try {
-			Files.copy(inputStream, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(inputStream, destination, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException | NullPointerException ex){
+			logger.info("Exception at copying", ex);
 			success = false;
 		}
 

@@ -51,36 +51,6 @@ public class VerifyManager extends SQLiteDBBase {
 		return escapeCode(String.valueOf(objs.get(0)));
 	}
 
-	public void setInstructionText(String guildId, String text) {
-		update(tableVerify, "instructionText", text, "guildId", guildId);
-	}
-
-	public String getInstructionText(String guildId) {
-		List<Object> objs = select(tableVerify, "instructionText", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) return "No text";
-		return escapeCode(String.valueOf(objs.get(0)));
-	}
-
-	public void setInstructionField(String guildId, String text) {
-		update(tableVerify, "instructionField", text, "guildId", guildId);
-	}
-
-	public String getInstructionField(String guildId) {
-		List<Object> objs = select(tableVerify, "instructionField", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) return "No text";
-		return escapeCode(String.valueOf(objs.get(0)));
-	}
-
-	public void setVerificationLink(String guildId, String link) {
-		update(tableVerify, "verificationLink", link, "guildId", guildId);
-	}
-
-	public String getVerificationLink(String guildId) {
-		List<Object> objs = select(tableVerify, "verificationLink", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) return "http://example.com/";
-		return String.valueOf(objs.get(0));
-	}
-
 	public void setColor(String guildId, Integer color) {
 		update(tableVerify, "panelColor", color, "guildId", guildId);
 	}
