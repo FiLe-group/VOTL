@@ -110,8 +110,8 @@
 					"permit": "Permit",
 					"reject": "Reject",
 					"delete": "Delete channel",
-					"embed_title": "Manage your voice channel",
-					"embed_value": "Press buttons bellow to manage your custom voice channel",
+					"embed_title": "Custom voice channels",
+					"embed_value": "To create your personal voice channel, join <#{channel}>.\n\nYou can control your voice channel either by pressing buttons bellow or using my slash commands.",
 					"done": "Panel created in {channel}!"
 				}
 			},
@@ -248,12 +248,22 @@
 					"modal": "Provide information",
 					"name-label": "Channel name",
 					"limit-label": "Channel limit",
-					"permit-label": "Permit access",
-					"reject-label": "Reject access",
-					"option_mention": "Enter Role or Member mention/-s",
+					"permit-label": "Select members and/or roles to which grand access to your channel.",
+					"reject-label": "Select members and/or roles to whom deny access to your channel.",
+					"perms-embed": {
+						"title": "Channel permissions for `{channel}`",
+						"field": "**Can View | Can Join | Holder**",
+						"everyone": "Everyone",
+						"roles": "**Roles:**",
+						"members": "**Members:**",
+						"none": "*None*"
+					},
 					"delete": "Channel deleted!",
 					"name-done": "Channel renamed to {channel}!",
-					"limit-done": "Channel user limit set to {limit}!"
+					"limit-done": "Channel user limit set to {limit}!",
+					"not_self": "You can't add/remove yourself or me.",
+					"permit-done": "Successfully permited {targets} to connect to your channel!",
+					"reject-done": "Successfully rejected {targets} from connecting to your channel!"
 				}
 			},
 			"setname": {
