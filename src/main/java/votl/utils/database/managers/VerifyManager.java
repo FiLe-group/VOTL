@@ -69,7 +69,7 @@ public class VerifyManager extends SQLiteDBBase {
 	}
 
 	// Blacklist table
-	public boolean addUser(String guildId, String userId) {
+	public boolean blacklistUser(String guildId, String userId) {
 		if (isBlacklisted(guildId, userId))
 			return false;
 		else

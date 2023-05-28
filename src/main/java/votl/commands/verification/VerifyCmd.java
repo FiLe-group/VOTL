@@ -36,7 +36,7 @@ public class VerifyCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {
 		Member member = event.optMember("user");
 		Guild guild = event.getGuild();
-		if (member == null) {
+		if (member == null || member.getUser().isBot() || !guild.getSelfMember().canInteract(member)) {
 			createError(event, path+".no_user");
 		}
 

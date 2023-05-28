@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -101,6 +102,19 @@ public class GuildListener extends ListenerAdapter {
 		Map<String, Object> banData = db.ban.getMemberExpirable(event.getUser().getId(), event.getGuild().getId());
 		if (!banData.isEmpty()) {
 			db.ban.setInactive(Integer.valueOf(banData.get("badId").toString()));
+		}
+	}
+
+	@Override
+	public void onGuildMemberRemove(@Nonnull GuildMemberRemoveEvent event) {
+		// When user leaves guild, check if there are any records in DB that would be better to remove.
+		// This does not consider clearing User DB, when bot leaves guild.
+		String guildId = event.getGuild().getId();
+		String userId = event.getUser().getId();
+
+		db.access.remove(guildId, userId);
+		if (event.getUser().getMutualGuilds().size() == 0) {
+			db.user.remove(userId);
 		}
 	}
 }

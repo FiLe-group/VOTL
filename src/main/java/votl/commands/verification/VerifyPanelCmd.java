@@ -63,7 +63,7 @@ public class VerifyPanelCmd extends CommandBase {
 				return;
 			}
 
-			Button next = Button.primary("verify", lu.getText(event, path+".continue"));
+			Button next = Button.primary("verify", lu.getLocalized(event.getGuildLocale(), path+".continue"));
 			String text = bot.getDBUtil().verify.getPanelText(event.getGuild().getId());
 
 			tc.sendMessageEmbeds(new EmbedBuilder().setColor(bot.getDBUtil().verify.getColor(event.getGuild().getId())).setDescription(text).build()).addActionRow(next).queue();
@@ -136,7 +136,7 @@ public class VerifyPanelCmd extends CommandBase {
 
 			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
 				.setDescription(lu.getText(event, path+".done").replace("{color}", "#"+Integer.toHexString(color.getRGB() & 0xFFFFFF)))
-				.setColor(Constants.COLOR_SUCCESS)
+				.setColor(color)
 				.build());
 		}
 
