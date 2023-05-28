@@ -109,6 +109,7 @@
 					"limit": "Set limit",
 					"permit": "Permit",
 					"reject": "Reject",
+					"perms": "Permissions",
 					"delete": "Delete channel",
 					"embed_title": "Custom voice channels",
 					"embed_value": "To create your personal voice channel, join <#{channel}>.\n\nYou can control your voice channel either by pressing buttons bellow or using my slash commands.",
