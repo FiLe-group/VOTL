@@ -1,6 +1,7 @@
 package dev.fileeditor.votl.utils.database.managers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -200,8 +201,9 @@ public class TicketTagManager extends LiteBase {
 			return message;
 		}
 
-		public String getSupportRoles() {
-			return supportRoles;
+		public List<String> getSupportRoles() {
+			if (supportRoles==null) return List.of();
+			return Arrays.asList(supportRoles.split(";"));
 		}
 	}
 }

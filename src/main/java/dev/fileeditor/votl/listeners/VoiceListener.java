@@ -1,89 +1,124 @@
 package dev.fileeditor.votl.listeners;
 
+import java.time.OffsetDateTime;
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Nonnull;
-
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.audit.ActionType;
+import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildDeafenEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildMuteEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+import dev.fileeditor.votl.objects.annotation.Nonnull;
+import dev.fileeditor.votl.objects.logs.LogType;
+import dev.fileeditor.votl.utils.database.DBUtil;
 
 public class VoiceListener extends ListenerAdapter {
 	
+	private final DBUtil db;
 	private final App bot;
-	private final LocaleUtil lu;
 
 	public VoiceListener(App bot) {
+		this.db = bot.getDBUtil();
 		this.bot = bot;
-		this.lu = bot.getLocaleUtil();
 	}
 
+	@Override
+	public void onGuildVoiceGuildMute(@Nonnull GuildVoiceGuildMuteEvent event) {
+		if (!db.getLogSettings(event.getGuild()).enabled(LogType.VOICE)) return;
+
+		event.getGuild().retrieveAuditLogs()
+			.type(ActionType.MEMBER_UPDATE)
+			.limit(1)
+			.queue(list -> {
+				if (!list.isEmpty()) {
+					AuditLogEntry entry = list.get(0);
+					if (entry.getChangeByKey("mute")!=null && entry.getTargetIdLong() == event.getMember().getIdLong() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
+						bot.getLogger().voice.onVoiceMute(event.getMember(), event.isGuildMuted(), entry.getUserIdLong());
+						return;
+					}
+				}
+				bot.getLogger().voice.onVoiceMute(event.getMember(), event.isGuildMuted(), null);
+			});
+	}
+
+	@Override
+    public void onGuildVoiceGuildDeafen(@Nonnull GuildVoiceGuildDeafenEvent event) {
+		if (!db.getLogSettings(event.getGuild()).enabled(LogType.VOICE)) return;
+
+		event.getGuild().retrieveAuditLogs()
+			.type(ActionType.MEMBER_UPDATE)
+			.limit(1)
+			.queue(list -> {
+				if (!list.isEmpty()) {
+					AuditLogEntry entry = list.get(0);
+					if (entry.getChangeByKey("deaf")!=null && entry.getTargetIdLong() == event.getMember().getIdLong() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
+						bot.getLogger().voice.onVoiceDeafen(event.getMember(), event.isGuildDeafened(), entry.getUserIdLong());
+						return;
+					}
+				}
+				bot.getLogger().voice.onVoiceDeafen(event.getMember(), event.isGuildDeafened(), null);
+			});
+	}
+
+	@Override
 	public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
-		String masterVoiceID = bot.getDBUtil().guildVoice.getChannel(event.getGuild().getId());
+		// TODO log join/leave/switch
+		Long masterVoiceId = db.guildVoice.getChannelId(event.getGuild().getIdLong());
 		AudioChannelUnion channelJoined = event.getChannelJoined();
-		if (channelJoined != null && channelJoined.getId().equals(masterVoiceID)) {
+		if (channelJoined != null && masterVoiceId != null && channelJoined.getIdLong() == masterVoiceId) {
 			handleVoiceCreate(event.getGuild(), event.getMember());
 		}
 
 		AudioChannelUnion channelLeft = event.getChannelLeft();
-		if (channelLeft != null && bot.getDBUtil().voice.existsChannel(channelLeft.getId()) && channelLeft.getMembers().isEmpty()) {
-			channelLeft.delete().reason("Custom channel, empty").queueAfter(500, TimeUnit.MILLISECONDS);
-			bot.getDBUtil().voice.remove(channelLeft.getId());
+		if (channelLeft != null && db.voice.existsChannel(channelLeft.getIdLong()) && channelLeft.getMembers().isEmpty()) {
+			channelLeft.delete().reason("Custom channel, empty").queueAfter(500, TimeUnit.MILLISECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
+			db.voice.remove(channelLeft.getIdLong());
 		}
 	}
 
 	private void handleVoiceCreate(Guild guild, Member member) {
-		String guildId = guild.getId();
-		String userId = member.getId();
+		long guildId = guild.getIdLong();
+		long userId = member.getIdLong();
 		DiscordLocale guildLocale = guild.getLocale();
 
-		if (bot.getDBUtil().voice.existsUser(userId)) {
+		if (db.voice.existsUser(userId)) {
 			member.getUser().openPrivateChannel()
-				.queue(channel -> channel.sendMessage(lu.getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue());
+				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue());
 			return;
 		}
-		String CategoryID = bot.getDBUtil().guildVoice.getCategory(guildId);
-		if (CategoryID == null) return;
-		String channelName = bot.getDBUtil().user.getName(userId);
-		Integer channelLimit = bot.getDBUtil().user.getLimit(userId);
-		String defaultChannelName = bot.getDBUtil().guildVoice.getName(guildId);
-		Integer defaultChannelLimit = bot.getDBUtil().guildVoice.getLimit(guildId);
-		String name = null;
-		Integer limit = null;
-		if (channelName == null) {
-			if (defaultChannelName == null) {
-				name = lu.getLocalized(guildLocale, "bot.voice.listener.default_name", member.getUser().getName(), false);
-			} else {
-				name = defaultChannelName;
-			}
-		} else {
-			name = channelName;
-		}
-		if (channelLimit == null) {
-			if (defaultChannelLimit == null) {
-				limit = 0;
-			} else {
-				limit = defaultChannelLimit;
-			}
-		} else {
-			limit = channelLimit;
-		}
-		guild.createVoiceChannel(name, guild.getCategoryById(CategoryID))
-			.reason(member.getUser().getAsTag()+" custom channel")
-			.setUserlimit(limit)
+		Long categoryId = db.guildVoice.getCategoryId(guildId);
+		if (categoryId == null) return;
+
+		String channelName = Optional.ofNullable(db.user.getName(userId))
+			.or(() -> Optional.ofNullable(db.guildVoice.getName(guildId)))
+			.orElse(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.default_name"))
+			.replace("{user}", member.getEffectiveName());
+		channelName = channelName.substring(0, Math.min(100, channelName.length()));
+
+		Integer channelLimit = Optional.ofNullable(db.user.getLimit(userId))
+			.or(() -> Optional.ofNullable(db.guildVoice.getLimit(guildId)))
+			.orElse(0);
+		
+		guild.createVoiceChannel(channelName, guild.getCategoryById(categoryId))
+			.reason(member.getUser().getEffectiveName()+" private channel")
+			.setUserlimit(channelLimit)
 			.syncPermissionOverrides()
 			.addPermissionOverride(member, EnumSet.of(Permission.MANAGE_CHANNEL), null)
 			.queue(
 				channel -> {
-					bot.getDBUtil().voice.add(userId, channel.getId());
+					db.voice.add(userId, channel.getIdLong());
 					guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS);
 				}
 			);

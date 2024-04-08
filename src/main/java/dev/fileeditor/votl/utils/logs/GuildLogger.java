@@ -166,7 +166,7 @@ public class GuildLogger {
 			sendLog(guild, type, () -> logUtil.helperKickEmbed(guild.getLocale(), groupId, target, reason, success, max));
 		}
 
-		public void onBlacklistAdded(User mod, User target, Long steam64, List<Integer> groupIds) {
+		public void onBlacklistAdded(User mod, User target, List<Integer> groupIds) {
 			for (int groupId : groupIds) {
 				final String groupInfo = "%s (#%d)".formatted(db.group.getName(groupId), groupId);
 				Guild master = JDA.getGuildById(db.group.getOwner(groupId));
@@ -174,7 +174,7 @@ public class GuildLogger {
 			}
 		}
 
-		public void onBlacklistRemoved(User mod, User target, Long steam64, int groupId) {
+		public void onBlacklistRemoved(User mod, User target, int groupId) {
 			final String groupInfo = "%s (#%d)".formatted(db.group.getName(groupId), groupId);
 			Guild master = JDA.getGuildById(db.group.getOwner(groupId));
 			sendLog(master, type, () -> logUtil.blacklistRemovedEmbed(master.getLocale(), mod, target, groupInfo));
@@ -206,7 +206,7 @@ public class GuildLogger {
 	public class RoleLogs {
 		private final LogType type = LogType.ROLE;
 
-		public void onApproved(Member member, Member admin, Guild guild, List<Role> roles, String ticketId) {
+		public void onApproved(Member member, Member admin, Guild guild, List<Role> roles, int ticketId) {
 			sendLog(guild, type, () -> logUtil.rolesApprovedEmbed(guild.getLocale(), ticketId, member.getIdLong(),
 				roles.stream().map(role -> role.getAsMention()).collect(Collectors.joining(" ")), admin.getIdLong()));
 		}
@@ -290,6 +290,19 @@ public class GuildLogger {
 			sendLog(event.getGuild(), type, () -> logUtil.groupOwnerDeletedEmbed(event.getGuildLocale(), event.getMember().getAsMention(), ownerId, ownerIcon, groupId, name));
 		}
 
+		public void onDeletion(long ownerId, String ownerIcon, Integer groupId) {
+			String groupName = db.group.getName(groupId);
+
+			// For each group guild (except master) remove if from group DB and send log to log channel
+			List<Long> memberIds = db.group.getGroupMembers(groupId);
+			for (Long memberId : memberIds) {
+				db.group.remove(groupId, memberId);
+				Guild membed = JDA.getGuildById(memberId);
+
+				sendLog(membed, type, () -> logUtil.groupMemberDeletedEmbed(membed.getLocale(), ownerId, ownerIcon, groupId, groupName));
+			}
+		}
+
 		public void onGuildAdded(SlashCommandEvent event, Integer groupId, String name, long targetId, String targetName) {
 			long ownerId = event.getGuild().getIdLong();
 			String ownerIcon = event.getGuild().getIconUrl();
@@ -324,6 +337,17 @@ public class GuildLogger {
 
 			// Master log
 			sendLog(owner, type, () -> logUtil.groupOwnerLeftEmbed(owner.getLocale(), ownerId, ownerIcon, event.getGuild().getName(), event.getGuild().getIdLong(), groupId, name));
+		}
+
+		public void onGuildLeft(Guild target, int groupId) {
+			long ownerId = db.group.getOwner(groupId);
+			Guild owner = JDA.getGuildById(ownerId);
+			String ownerIcon = owner.getIconUrl();
+
+			String groupName = db.group.getName(groupId);
+
+			// Inform group's owner
+			sendLog(owner, type, () -> logUtil.groupOwnerLeftEmbed(owner.getLocale(), ownerId, ownerIcon, target.getName(), target.getIdLong(), groupId, groupName));
 		}
 
 		public void onGuildRemoved(SlashCommandEvent event, Guild target, Integer groupId, String name) {

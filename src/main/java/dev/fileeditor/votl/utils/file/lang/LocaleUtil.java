@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.Emotes;
+import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.annotation.Nullable;
 
@@ -35,7 +35,7 @@ public class LocaleUtil {
 
 	@Nonnull
 	public String getLocalized(DiscordLocale locale, String path) {
-		return Emotes.getWithEmotes(langUtil.getString(locale, path));
+		return Emote.getWithEmotes(langUtil.getString(locale, path));
 	}
 
 	@Nonnull

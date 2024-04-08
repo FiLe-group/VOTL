@@ -9,7 +9,7 @@ import dev.fileeditor.votl.objects.annotation.Nullable;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
-public enum Emotes {
+public enum Emote {
 	// Animated emotes
 	LOADING     ("loading",     960102018217828352L, true),
 	TYPING      ("typing",      960102038291742750L, true),
@@ -37,13 +37,13 @@ public enum Emotes {
 	WARNING_C	("color_warning", 1043105732347834428L, false);
 
 	private static final Pattern emote_pattern = Pattern.compile("\\{EMOTE_(?<name>[A-Z0-9_]+)}");
-	private static final Emotes[] ALL = values();
+	private static final Emote[] ALL = values();
 	
 	private final String emoteName;
 	private final Long id;
 	private final boolean animated;
 
-	Emotes(String emoteName, Long id, boolean animated) {
+	Emote(String emoteName, Long id, boolean animated) {
 		this.emoteName = emoteName;
 		this.id = id;
 		this.animated = animated;
@@ -97,7 +97,7 @@ public enum Emotes {
 
 	@Nullable
 	private static String getEmote(String name) {
-		for (Emotes emote : ALL) {
+		for (Emote emote : ALL) {
 			if (emote.name().equalsIgnoreCase(name))
 				return emote.getEmote();
 		}

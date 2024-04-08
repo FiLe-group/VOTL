@@ -422,7 +422,7 @@ public class LogEmbedUtil {
 
 	// Roles
 	@Nonnull
-	public MessageEmbed rolesApprovedEmbed(DiscordLocale locale, String ticketId, long memberId, String mentions, long modId) {
+	public MessageEmbed rolesApprovedEmbed(DiscordLocale locale, int ticketId, long memberId, String mentions, long modId) {
 		return new LogEmbedBuilder(locale, GREEN_DARK)
 			.setHeader("tickets.roles_title", "role-"+ticketId)
 			.setUser(memberId)

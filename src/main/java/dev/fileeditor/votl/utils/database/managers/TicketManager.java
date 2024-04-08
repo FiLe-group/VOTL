@@ -92,7 +92,7 @@ public class TicketManager extends LiteBase {
 			"channelId", Long.class);
 	}
 
-	public List<Long> getRoleIds(String channelId) {
+	public List<Long> getRoleIds(long channelId) {
 		String data = selectOne("SELECT roleIds FROM %s WHERE (channelId=%s)".formatted(table, channelId), "roleIds", String.class);
 		if (data == null) return Collections.emptyList();
 		return Stream.of(data.split(";")).map(CastUtil::castLong).toList();
@@ -102,8 +102,8 @@ public class TicketManager extends LiteBase {
 		return selectOne("SELECT userId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "userId", Long.class);
 	}
 
-	public Long getTicketId(long channelId) {
-		return selectOne("SELECT ticketId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "ticketId", Long.class);
+	public Integer getTicketId(long channelId) {
+		return selectOne("SELECT ticketId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "ticketId", Integer.class);
 	}
 
 	public boolean isRoleTicket(long channelId) {

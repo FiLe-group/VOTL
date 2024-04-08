@@ -1,7 +1,6 @@
 package dev.fileeditor.votl.commands;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -54,12 +53,12 @@ public abstract class CommandBase extends SlashCommand {
 	}
 
 	// PermError
-	public final void createPermError(SlashCommandEvent event, Member member, Permission perm, Boolean self) {
-		createReply(event, bot.getEmbedUtil().createPermError(event, member, perm, self));
+	public final void createPermError(SlashCommandEvent event, Permission perm, Boolean self) {
+		createReply(event, bot.getEmbedUtil().createPermError(event, perm, self));
 	}
 
-	public final void createPermError(SlashCommandEvent event, Member member, TextChannel channel, Permission perm, Boolean self) {
-		createReply(event, bot.getEmbedUtil().createPermError(event, member, channel, perm, self));
+	public final void createPermError(SlashCommandEvent event, TextChannel channel, Permission perm, Boolean self) {
+		createReply(event, bot.getEmbedUtil().createPermError(event, channel, perm, self));
 	}
 	
 
@@ -86,11 +85,11 @@ public abstract class CommandBase extends SlashCommand {
 	}
 
 	// PermError
-	public final void editPermError(SlashCommandEvent event, Member member, Permission perm, Boolean self) {
-		editHook(event, MessageEditData.fromCreateData(bot.getEmbedUtil().createPermError(event, member, perm, self)));
+	public final void editPermError(SlashCommandEvent event, Permission perm, Boolean self) {
+		editHook(event, MessageEditData.fromCreateData(bot.getEmbedUtil().createPermError(event, perm, self)));
 	}
 
-	public final void editPermError(SlashCommandEvent event, Member member, TextChannel channel, Permission perm, Boolean self) {
-		editHook(event, MessageEditData.fromCreateData(bot.getEmbedUtil().createPermError(event, member, channel, perm, self)));
+	public final void editPermError(SlashCommandEvent event, TextChannel channel, Permission perm, Boolean self) {
+		editHook(event, MessageEditData.fromCreateData(bot.getEmbedUtil().createPermError(event, channel, perm, self)));
 	}
 }

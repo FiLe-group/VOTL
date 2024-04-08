@@ -16,15 +16,22 @@ import dev.fileeditor.votl.commands.owner.*;
 import dev.fileeditor.votl.commands.verification.*;
 import dev.fileeditor.votl.commands.voice.*;
 import dev.fileeditor.votl.commands.webhook.WebhookCmd;
+import dev.fileeditor.votl.listeners.AuditListener;
 import dev.fileeditor.votl.listeners.AutoCompleteListener;
-import dev.fileeditor.votl.listeners.ButtonListener;
+import dev.fileeditor.votl.listeners.CommandListener;
 import dev.fileeditor.votl.listeners.GuildListener;
+import dev.fileeditor.votl.listeners.InteractionListener;
+import dev.fileeditor.votl.listeners.MemberListener;
+import dev.fileeditor.votl.listeners.MessageListener;
+import dev.fileeditor.votl.listeners.ModerationListener;
 import dev.fileeditor.votl.listeners.VoiceListener;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
 import dev.fileeditor.votl.services.ExpiryCheck;
 import dev.fileeditor.votl.utils.CheckUtil;
+import dev.fileeditor.votl.utils.GroupHelper;
+import dev.fileeditor.votl.utils.TicketUtil;
 import dev.fileeditor.votl.utils.WebhookAppender;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
@@ -69,7 +76,12 @@ public class App {
 	private final GuildListener guildListener;
 	private final VoiceListener voiceListener;
 	private final AutoCompleteListener acListener;
-	private final ButtonListener buttonListener;
+	private final InteractionListener interactionListener;
+	private final CommandListener commandListener;
+	private final ModerationListener moderationListener;
+	private final MessageListener messageListener;
+	private final AuditListener auditListener;
+	private final MemberListener memberListener;
 
 	private final GuildLogger guildLogger;
 	private final LogEmbedUtil logEmbedUtil;
@@ -82,6 +94,8 @@ public class App {
 	private final EmbedUtil embedUtil;
 	private final CheckUtil checkUtil;
 	private final LocaleUtil localeUtil;
+	private final TicketUtil ticketUtil;
+	private final GroupHelper groupHelper;
 
 	public App() {
 		try {
@@ -100,14 +114,22 @@ public class App {
 		messageUtil	= new MessageUtil(localeUtil);
 		embedUtil	= new EmbedUtil(localeUtil);
 		checkUtil	= new CheckUtil(this);
-
-		WAITER			= new EventWaiter();
-		guildListener	= new GuildListener(this);
-		voiceListener	= new VoiceListener(this);
-		buttonListener	= new ButtonListener(this);
+		ticketUtil	= new TicketUtil(this);
 
 		guildLogger		= new GuildLogger(this);
 		logEmbedUtil	= new LogEmbedUtil(localeUtil);
+
+		WAITER			= new EventWaiter();
+		groupHelper		= new GroupHelper(this);
+		commandListener = new CommandListener(localeUtil);
+		interactionListener = new InteractionListener(this, WAITER);
+
+		guildListener	= new GuildListener(this);
+		voiceListener	= new VoiceListener(this);
+		moderationListener = new ModerationListener(this);
+		messageListener = new MessageListener(this);
+		auditListener	= new AuditListener(dbUtil, guildLogger);
+		memberListener	= new MemberListener(this);
 
 		scheduledExecutor	= new ScheduledThreadPoolExecutor(2, new CountingThreadFactory("VOTL", "Scheduler", false));
 		expiryCheck			= new ExpiryCheck(this);
@@ -203,7 +225,11 @@ public class App {
 			.enableCache(enabledCacheFlags)
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
-			.addEventListeners(commandClient, WAITER, acListener, buttonListener, guildListener, voiceListener);
+			.addEventListeners(
+				commandClient, WAITER, acListener, interactionListener, commandListener,
+				guildListener, voiceListener, moderationListener, messageListener,
+				auditListener, memberListener
+			);
 			
 		JDA tempJda = null;
 
@@ -274,6 +300,14 @@ public class App {
 
 	public LogEmbedUtil getLogEmbedUtil() {
 		return logEmbedUtil;
+	}
+
+	public TicketUtil getTicketUtil() {
+		return ticketUtil;
+	}
+
+	public GroupHelper getHelper() {
+		return groupHelper;
 	}
 
 	public static void main(String[] args) {

@@ -165,7 +165,7 @@ public class DBUtil {
 				lines = Files.readAllLines(tempFile.toPath(), StandardCharsets.UTF_8);
 			}
 		} catch (Exception ex) {
-			logger.error("SQLite: Failed to open update file", ex);
+			logger.error("SQLite: Failed to read update file", ex);
 		}
 		lines = lines.subList(activeVersion - 1, lines.size());
 		List<List<String>> result = new ArrayList<>();
