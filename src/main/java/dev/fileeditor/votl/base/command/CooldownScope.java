@@ -25,7 +25,7 @@ import dev.fileeditor.votl.objects.annotation.Nonnull;
  * for cooldown scopes, allowing a command to remain on cooldown for more than just the user
  * calling it, with no unnecessary abstraction or developer input.
  *
- * Cooldown keys are generated via {@link union.base.command.SlashCommand#getCooldownKey(SlashCommandEvent)
+ * Cooldown keys are generated via {@link dev.fileeditor.votl.base.command.SlashCommand#getCooldownKey(SlashCommandEvent)
  * SlashCommand#getCooldownKey(SlashCommandEvent)} using 1-2 Snowflake ID's corresponding to the name
  * (IE: {@code USER_CHANNEL} uses the ID's of the User and the Channel from the CommandEvent).
  *
@@ -51,7 +51,7 @@ import dev.fileeditor.votl.objects.annotation.Nonnull;
  * @since  1.3
  * @author Kaidan Gustave
  *
- * @see    union.base.command.Interaction#cooldownScope Interaction.cooldownScope
+ * @see    dev.fileeditor.votl.base.command.Interaction#cooldownScope Interaction.cooldownScope
  */
 public enum CooldownScope
 {

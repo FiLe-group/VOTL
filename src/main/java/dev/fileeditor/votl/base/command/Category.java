@@ -3,9 +3,9 @@ package dev.fileeditor.votl.base.command;
 import java.util.Objects;
 
 /**
- * To be used in {@link union.base.command.SlashCommand SlashCommand}s as a means of
+ * To be used in {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}s as a means of
  * organizing commands into "Categories" as well as terminate command usage when the calling
- * {@link union.base.command.CommandEvent CommandEvent} doesn't meet
+ * {@link dev.fileeditor.votl.base.command.CommandEvent CommandEvent} doesn't meet
  * certain requirements.
  *
  * @author John Grosh (jagrosh)

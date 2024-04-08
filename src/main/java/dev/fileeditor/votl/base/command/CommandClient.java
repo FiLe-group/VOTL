@@ -25,10 +25,10 @@ import java.util.concurrent.ScheduledExecutorService;
 /**
  * A Bot Client interface implemented on objects used to hold bot data.
  *
- * <p>This is implemented in {@link union.base.command.impl.CommandClientImpl CommandClientImpl}
+ * <p>This is implemented in {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl}
  * alongside implementation of {@link net.dv8tion.jda.api.hooks.EventListener EventListener} to create a
  * compounded "Client Listener" which catches specific kinds of events thrown by JDA and processes them
- * automatically to handle and execute {@link union.base.command.SlashCommand SlashCommand}s.
+ * automatically to handle and execute {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}s.
  *
  * <p>Implementations also serve as a useful platforms, carrying reference info such as the bot's
  * {@linkplain #getOwnerId() Owner ID} and a {@linkplain #getServerInvite()
@@ -36,8 +36,8 @@ import java.util.concurrent.ScheduledExecutorService;
  *
  * <p>For the CommandClientImpl, once initialized, only the following can be modified:
  * <ul>
- *     <li>{@link union.base.command.SlashCommand SlashCommand}s may be added or removed.</li>
- *     <li>The {@link union.base.command.CommandListener CommandListener} may be set.</li>
+ *     <li>{@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}s may be added or removed.</li>
+ *     <li>The {@link dev.fileeditor.votl.base.command.CommandListener CommandListener} may be set.</li>
  * </ul>
  *
  * @author John Grosh (jagrosh)
@@ -59,7 +59,7 @@ import java.util.concurrent.ScheduledExecutorService;
  *                      if you provide {@code null} for the Owner ID, that'll just flat out throw an {@link
  *                      java.lang.IllegalArgumentException IllegalArgumentException}).
  *
- *         <p><b>4)</b> Do not provide strings when using {@link union.base.command.CommandClientBuilder#setEmojis(String, String, String)
+ *         <p><b>4)</b> Do not provide strings when using {@link dev.fileeditor.votl.base.command.CommandClientBuilder#setEmojis(String, String, String)
  *                      CommandClientBuilder#setEmojis(String, String, String)} that are not unicode emojis or that do
  *                      not match the custom emote format specified in {@link Emoji#getFormatted()} ()
  *                      Emote#getAsMention()} (IE: {@code <:EmoteName:EmoteID>}).
@@ -67,7 +67,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public interface CommandClient
 {
 	/**
-	 * Adds a single {@link union.base.command.Interaction Interaction} to this CommandClient's
+	 * Adds a single {@link dev.fileeditor.votl.base.command.Interaction Interaction} to this CommandClient's
 	 * registered SlashCommand.
 	 *
 	 * <p>For CommandClient's containing 20 commands or less, command calls by users will have the bot iterate
@@ -77,7 +77,7 @@ public interface CommandClient
 	 * <p>To prevent delay a CommandClient that has more that 20 Commands registered to it will begin to use
 	 * <b>indexed calls</b>.
 	 * <br>Indexed calls use a {@link java.util.HashMap HashMap} which links their
-	 * {@link union.base.command.SlashCommand#name name} to the index that which they
+	 * {@link dev.fileeditor.votl.base.command.SlashCommand#name name} to the index that which they
 	 * are located at in the ArrayList they are stored.
 	 *
 	 * <p>This means that all insertion and removal of SlashCommands must reorganize the index maintained by the HashMap.
@@ -93,7 +93,7 @@ public interface CommandClient
 	void addSlashCommand(SlashCommand command);
 
 	/**
-	 * Adds a single {@link union.base.command.SlashCommand SlashCommand} to this CommandClient's
+	 * Adds a single {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand} to this CommandClient's
 	 * registered Commands at the specified index.
 	 *
 	 * <p>For CommandClient's containing 20 commands or less, command calls by users will have the bot iterate
@@ -103,7 +103,7 @@ public interface CommandClient
 	 * <p>To prevent delay a CommandClient that has more that 20 Commands registered to it will begin to use
 	 * <b>indexed calls</b>.
 	 * <br>Indexed calls use a {@link java.util.HashMap HashMap} which links their
-	 * {@link union.base.command.Command#name name} to the index that which they
+	 * {@link dev.fileeditor.votl.base.command.Command#name name} to the index that which they
 	 * are located at in the ArrayList they are stored.
 	 *
 	 * <p>This means that all insertion and removal of Commands must reorganize the index maintained by the HashMap.
@@ -148,8 +148,8 @@ public interface CommandClient
 	void addContextMenu(ContextMenu menu, int index);
 
 	/**
-	 * Sets the {@link union.base.command.CommandListener CommandListener} to catch
-	 * command-related events thrown by this {@link union.base.command.CommandClient CommandClient}.
+	 * Sets the {@link dev.fileeditor.votl.base.command.CommandListener CommandListener} to catch
+	 * command-related events thrown by this {@link dev.fileeditor.votl.base.command.CommandClient CommandClient}.
 	 *
 	 * @param  listener
 	 *         The CommandListener
@@ -157,14 +157,14 @@ public interface CommandClient
 	void setListener(CommandListener listener);
 
 	/**
-	 * Returns the current {@link union.base.command.CommandListener CommandListener}.
+	 * Returns the current {@link dev.fileeditor.votl.base.command.CommandListener CommandListener}.
 	 *
 	 * @return A possibly-null CommandListener
 	 */
 	CommandListener getListener();
 
 	/**
-	 * Returns the list of registered {@link union.base.command.SlashCommand SlashCommand}s
+	 * Returns the list of registered {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}s
 	 * during this session.
 	 *
 	 * @return A never-null List of Slash Commands registered during this session
@@ -200,7 +200,7 @@ public interface CommandClient
 	String[] devGuildIds();
 
 	/**
-	 * Gets the time this {@link union.base.command.CommandClient CommandClient}
+	 * Gets the time this {@link dev.fileeditor.votl.base.command.CommandClient CommandClient}
 	 * implementation was created.
 	 *
 	 * @return The start time of this CommandClient implementation
@@ -243,7 +243,7 @@ public interface CommandClient
 	void cleanCooldowns();
 
 	/**
-	 * Gets the number of uses for the provide {@link union.base.command.SlashCommand SlashCommand}
+	 * Gets the number of uses for the provide {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}
 	 * during this session, or {@code 0} if the command is not registered to this CommandClient.
 	 *
 	 * @param  command
@@ -254,12 +254,12 @@ public interface CommandClient
 	int getCommandUses(SlashCommand command);
 
 	/**
-	 * Gets the number of uses for a {@link union.base.command.SlashCommand SlashCommand}
+	 * Gets the number of uses for a {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}
 	 * during this session matching the provided String name, or {@code 0} if there is no Command
 	 * with the name.
 	 *
 	 * <p><b>NOTE:</b> 
-	 * {@link union.base.command.SlashCommand#children child commands} <b>ARE NOT</b>
+	 * {@link dev.fileeditor.votl.base.command.SlashCommand#children child commands} <b>ARE NOT</b>
 	 * tracked and providing names or effective names of child commands will return {@code 0}.
 	 *
 	 * @param  name

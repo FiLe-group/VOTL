@@ -92,7 +92,7 @@ public abstract class SlashCommand extends Interaction
 	protected String help = "no help available";
 
 	/**
-	 * The {@link union.base.command.Category Category} of the command.
+	 * The {@link dev.fileeditor.votl.base.command.Category Category} of the command.
 	 * <br>This can perform any other checks not completed by the default conditional fields.
 	 */
 	protected Category category = null;
@@ -294,7 +294,7 @@ public abstract class SlashCommand extends Interaction
 	}
 
 	/**
-	 * Gets the {@link union.base.command.SlashCommand#name SlashCommand.name} for the Command.
+	 * Gets the {@link dev.fileeditor.votl.base.command.SlashCommand#name SlashCommand.name} for the Command.
 	 *
 	 * @return The name for the Command
 	 */
@@ -305,7 +305,7 @@ public abstract class SlashCommand extends Interaction
 	}
 
 	/**
-	 * Gets the {@link union.base.command.SlashCommand#help SlashCommand.help} for the Command.
+	 * Gets the {@link dev.fileeditor.votl.base.command.SlashCommand#help SlashCommand.help} for the Command.
 	 *
 	 * @return The help for the Command
 	 */
@@ -316,7 +316,7 @@ public abstract class SlashCommand extends Interaction
 	}
 
 	/**
-	 * Gets the {@link union.base.command.SlashCommand#category SlashCommand.category} for the Command.
+	 * Gets the {@link dev.fileeditor.votl.base.command.SlashCommand#category SlashCommand.category} for the Command.
 	 *
 	 * @return The category for the Command
 	 */

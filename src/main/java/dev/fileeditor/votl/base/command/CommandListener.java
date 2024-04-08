@@ -108,7 +108,7 @@ public interface CommandListener {
 	default void onTerminatedUserContextMenu(UserContextMenuEvent event, UserContextMenu menu) {}
 
 	/**
-	 * Called when a {@link union.base.command.SlashCommand SlashCommand}
+	 * Called when a {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}
 	 * catches a {@link java.lang.Throwable Throwable} <b>during execution</b>.
 	 *
 	 * <p>This doesn't account for exceptions thrown during other pre-checks,

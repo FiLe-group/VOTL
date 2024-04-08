@@ -5,7 +5,7 @@ import java.lang.annotation.*;
 /**
  * The annotated element must not be null.
  *
- * @see union.objects.annotation.Nullable
+ * @see dev.fileeditor.votl.objects.annotation.Nullable
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})

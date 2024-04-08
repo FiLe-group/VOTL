@@ -58,7 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An implementation of {@link union.base.command.CommandClient CommandClient} to be used by a bot.
+ * An implementation of {@link dev.fileeditor.votl.base.command.CommandClient CommandClient} to be used by a bot.
  *
  * <p>This is a listener usable with {@link net.dv8tion.jda.api.JDA JDA}, as it implements
  * {@link net.dv8tion.jda.api.hooks.EventListener EventListener} in order to catch and use different kinds of

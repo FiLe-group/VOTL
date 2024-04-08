@@ -28,9 +28,9 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 /**
- * A simple builder used to create a {@link union.base.command.impl.CommandClientImpl CommandClientImpl}.
+ * A simple builder used to create a {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl}.
  *
- * <p>Once built, add the {@link union.base.command.CommandClient CommandClient} as an EventListener to
+ * <p>Once built, add the {@link dev.fileeditor.votl.base.command.CommandClient CommandClient} as an EventListener to
  * {@link net.dv8tion.jda.api.JDA JDA} and it will automatically handle commands with ease!
  *
  * @author John Grosh (jagrosh)
@@ -52,9 +52,9 @@ public class CommandClientBuilder
 	private ScheduledExecutorService executor;
 
 	/**
-	 * Builds a {@link union.base.command.impl.CommandClientImpl CommandClientImpl}
+	 * Builds a {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl}
 	 * with the provided settings.
-	 * <br>Once built, only the {@link union.base.command.CommandListener CommandListener}.
+	 * <br>Once built, only the {@link dev.fileeditor.votl.base.command.CommandListener CommandListener}.
 	 *
 	 * @return The CommandClient built.
 	 */
@@ -157,8 +157,8 @@ public class CommandClientBuilder
 	}
 
 	/**
-	 * Adds a {@link union.base.command.SlashCommand SlashCommand} and registers it to the
-	 * {@link union.base.command.impl.CommandClientImpl CommandClientImpl} for this session.
+	 * Adds a {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand} and registers it to the
+	 * {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl} for this session.
 	 *
 	 * @param  command
 	 *         The SlashCommand to add
@@ -172,9 +172,9 @@ public class CommandClientBuilder
 	}
 
 	/**
-	 * Adds and registers multiple {@link union.base.command.SlashCommand SlashCommand}s to the
-	 * {@link union.base.command.impl.CommandClientImpl CommandClientImpl} for this session.
-	 * <br>This is the same as calling {@link union.base.command.CommandClientBuilder#addSlashCommand(SlashCommand) addSlashCommand(SlashCommand)} multiple times.
+	 * Adds and registers multiple {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}s to the
+	 * {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl} for this session.
+	 * <br>This is the same as calling {@link dev.fileeditor.votl.base.command.CommandClientBuilder#addSlashCommand(SlashCommand) addSlashCommand(SlashCommand)} multiple times.
 	 *
 	 * @param  commands
 	 *         The Commands to add
@@ -189,8 +189,8 @@ public class CommandClientBuilder
 	}
 
 	/**
-	 * Adds a {@link union.base.command.ContextMenu ContextMenu} and registers it to the
-	 * {@link union.base.command.impl.CommandClientImpl CommandClientImpl} for this session.
+	 * Adds a {@link dev.fileeditor.votl.base.command.ContextMenu ContextMenu} and registers it to the
+	 * {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl} for this session.
 	 *
 	 * @param  contextMenu
 	 *         The Context Menu to add
@@ -204,9 +204,9 @@ public class CommandClientBuilder
 	}
 
 	/**
-	 * Adds and registers multiple {@link union.base.command.ContextMenu ContextMenu}s to the
-	 * {@link union.base.command.impl.CommandClientImpl CommandClientImpl} for this session.
-	 * <br>This is the same as calling {@link union.base.command.CommandClientBuilder#addContextMenu(ContextMenu) addContextMenu(ContextMenu)} multiple times.
+	 * Adds and registers multiple {@link dev.fileeditor.votl.base.command.ContextMenu ContextMenu}s to the
+	 * {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl} for this session.
+	 * <br>This is the same as calling {@link dev.fileeditor.votl.base.command.CommandClientBuilder#addContextMenu(ContextMenu) addContextMenu(ContextMenu)} multiple times.
 	 *
 	 * @param  contextMenus
 	 *         The Context Menus to add
@@ -287,8 +287,8 @@ public class CommandClientBuilder
 	}
 
 	/**
-	 * Sets the {@link union.base.command.CommandListener CommandListener} for the
-	 * {@link union.base.command.impl.CommandClientImpl CommandClientImpl}.
+	 * Sets the {@link dev.fileeditor.votl.base.command.CommandListener CommandListener} for the
+	 * {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl}.
 	 *
 	 * @param  listener
 	 *         The CommandListener for the CommandClientImpl
@@ -303,7 +303,7 @@ public class CommandClientBuilder
 
 	/**
 	 * Sets the {@link java.util.concurrent.ScheduledExecutorService ScheduledExecutorService} for the
-	 * {@link union.base.command.impl.CommandClientImpl CommandClientImpl}.
+	 * {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl}.
 	 *
 	 * @param  executor
 	 *         The ScheduledExecutorService for the CommandClientImpl
