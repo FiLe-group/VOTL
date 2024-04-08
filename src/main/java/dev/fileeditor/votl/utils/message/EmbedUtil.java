@@ -2,21 +2,18 @@ package dev.fileeditor.votl.utils.message;
 
 import java.time.ZonedDateTime;
 
-import javax.annotation.Nonnull;
+import dev.fileeditor.votl.objects.annotation.Nonnull;
+import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
-import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-
-import dev.fileeditor.votl.objects.command.CommandEvent;
-import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
 public class EmbedUtil {
 
@@ -27,52 +24,49 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
+	public EmbedBuilder getEmbed(int color) {
+		return new EmbedBuilder().setColor(color).setTimestamp(ZonedDateTime.now());
+	}
+
+	@Nonnull
 	public EmbedBuilder getEmbed() {
-		return new EmbedBuilder().setColor(Constants.COLOR_DEFAULT).setTimestamp(ZonedDateTime.now());
+		return getEmbed(Constants.COLOR_DEFAULT);
 	}
 
 	@Nonnull
-	public <T> EmbedBuilder getEmbed(T genericEvent) {
-		if (genericEvent instanceof GenericInteractionCreateEvent) {
-			return getEmbed().setFooter(
-				lu.getUserText(genericEvent, "embed.footer"),
-				((GenericInteractionCreateEvent) genericEvent).getUser().getEffectiveAvatarUrl()
-			);
-		}
-		if (genericEvent instanceof CommandEvent) {
-			return getEmbed().setFooter(
-				lu.getUserText(genericEvent, "embed.footer"),
-				((CommandEvent) genericEvent).getAuthor().getEffectiveAvatarUrl()
-			);
-		}
-		throw new IllegalArgumentException("Passed argument is not supported Event. Received: "+genericEvent.getClass());
+	public EmbedBuilder getEmbed(IReplyCallback replyCallback) {
+		return getEmbed().setFooter(
+			lu.getText(replyCallback, "embed.footer").formatted(replyCallback.getUser().getName()),
+			replyCallback.getUser().getEffectiveAvatarUrl()
+		);
+
 	}
 
 	@Nonnull
-	private <T> EmbedBuilder getErrorEmbed(T event) {
-		return getEmbed(event).setColor(Constants.COLOR_FAILURE).setTitle(lu.getText(event, "errors.title"));
+	private EmbedBuilder getErrorEmbed(IReplyCallback replyCallback) {
+		return getEmbed().setColor(Constants.COLOR_FAILURE).setTitle(lu.getText(replyCallback, "errors.title"));
 	}
 
 	@Nonnull
-	private <T> EmbedBuilder getPermErrorEmbed(T event, GuildChannel channel, Permission perm, boolean self) {
-		EmbedBuilder embed = getErrorEmbed(event);
+	private EmbedBuilder getPermErrorEmbed(IReplyCallback replyCallback, GuildChannel channel, Permission perm, boolean self) {
+		EmbedBuilder embed = getErrorEmbed(replyCallback);
 		String msg;
 		if (self) {
 			if (channel == null) {
-				msg = lu.getText(event, "errors.missing_perms.self")
-					.replace("{permissions}", perm.getName());
+				msg = lu.getText(replyCallback, "errors.missing_perms.self")
+					.replace("{permission}", perm.getName());
 			} else {
-				msg = lu.getText(event, "errors.missing_perms.self_channel")
-					.replace("{permissions}", perm.getName())
+				msg = lu.getText(replyCallback, "errors.missing_perms.self_channel")
+					.replace("{permission}", perm.getName())
 					.replace("{channel}", channel.getAsMention());
 			}
 		} else {
 			if (channel == null) {
-				msg = lu.getText(event, "errors.missing_perms.other")
-					.replace("{permissions}", perm.getName());
+				msg = lu.getText(replyCallback, "errors.missing_perms.other")
+					.replace("{permission}", perm.getName());
 			} else {
-				msg = lu.getText(event, "errors.missing_perms.other_channel")
-					.replace("{permissions}", perm.getName())
+				msg = lu.getText(replyCallback, "errors.missing_perms.other_channel")
+					.replace("{permission}", perm.getName())
 					.replace("{channel}", channel.getAsMention());
 			}
 		}
@@ -81,19 +75,19 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public <T> MessageEmbed getError(T event, @Nonnull String path) {
-		return getError(event, path, null);
+	public MessageEmbed getError(IReplyCallback replyCallback, @Nonnull String path) {
+		return getError(replyCallback, path, null);
 	}
 
 	@Nonnull
-	public <T> MessageEmbed getError(T event, @Nonnull String path, String reason) {
-		EmbedBuilder embedBuilder = getErrorEmbed(event)
-			.setDescription(lu.getText(event, path));
+	public MessageEmbed getError(IReplyCallback replyCallback, @Nonnull String path, String reason) {
+		EmbedBuilder embedBuilder = getErrorEmbed(replyCallback)
+			.setDescription(lu.getText(replyCallback, path));
 
 		if (reason != null)
 			embedBuilder.addField(
-				lu.getText(event, "errors.additional"),
-				reason,
+				lu.getText(replyCallback, "errors.additional"),
+				MessageUtil.limitString(reason, 1024),
 				false
 			);
 
@@ -101,16 +95,16 @@ public class EmbedUtil {
 	}
 
 	@Nonnull
-	public <T> MessageCreateData createPermError(T event, Member member, Permission perm, boolean self) {
-		return createPermError(event, member, null, perm, self);
+	public MessageCreateData createPermError(IReplyCallback replyCallback, Permission perm, boolean self) {
+		return createPermError(replyCallback, null, perm, self);
 	}
 
 	@Nonnull
-	public <T> MessageCreateData createPermError(T event, Member member, GuildChannel channel, Permission perm, boolean self) {
-		User user = member.getUser();
+	public MessageCreateData createPermError(IReplyCallback replyCallback, GuildChannel channel, Permission perm, boolean self) {
+		User user = replyCallback.getUser();
 		if (perm.equals(Permission.MESSAGE_SEND)) {
 			user.openPrivateChannel()
-				.flatMap(ch -> ch.sendMessage(lu.getText(event, "errors.no_send_perm")))
+				.flatMap(ch -> ch.sendMessage(lu.getText(replyCallback, "errors.no_send_perm")))
 				.queue();
 			return MessageCreateData.fromContent("No MESSAGE_SEND perm"); //useles?
 		}
@@ -119,18 +113,18 @@ public class EmbedUtil {
 		if (perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
 			if (channel == null) {
 				mb.setContent(
-					lu.getText(event, "errors.missing_perms.self")
+					lu.getText(replyCallback, "errors.missing_perms.self")
 						.replace("{permission}", perm.getName())
 				);
 			} else {
 				mb.setContent(
-					lu.getText(event, "errors.missing_perms.self_channel")
+					lu.getText(replyCallback, "errors.missing_perms.self_channel")
 						.replace("{permission}", perm.getName())
 						.replace("{channel}", channel.getAsMention())
 				);
 			}
 		} else {
-			mb.setEmbeds(getPermErrorEmbed(event, channel, perm, self).build());
+			mb.setEmbeds(getPermErrorEmbed(replyCallback, channel, perm, self).build());
 		}
 		return mb.build();
 	}

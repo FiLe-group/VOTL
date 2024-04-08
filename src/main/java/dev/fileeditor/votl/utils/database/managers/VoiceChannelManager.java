@@ -1,52 +1,40 @@
 package dev.fileeditor.votl.utils.database.managers;
 
-import java.util.List;
+import dev.fileeditor.votl.utils.database.ConnectionUtil;
+import dev.fileeditor.votl.utils.database.LiteBase;
 
-import dev.fileeditor.votl.utils.database.DBUtil;
-import dev.fileeditor.votl.utils.database.SQLiteDBBase;
+public class VoiceChannelManager extends LiteBase {
 
-public class VoiceChannelManager extends SQLiteDBBase {
-
-	private final String table = "voiceChannel";
-	
-	public VoiceChannelManager(DBUtil util) {
-		super(util);
+	public VoiceChannelManager(ConnectionUtil cu) {
+		super(cu, "voiceChannels");
 	}
 
-	public void add(String userId, String channelId) {
-		insert(table, List.of("userId", "channelId"), List.of(userId, channelId));
+	public void add(long userId, long channelId) {
+		execute("INSERT INTO %s(userId, channelId) VALUES (%d, %d) ON CONFLICT(channelId) DO UPDATE SET channelId=%<d".formatted(table, userId, channelId));
 	}
 
-	public void remove(String channelId) {
-		delete(table, "channelId", channelId);
+	public void remove(long channelId) {
+		execute("DELETE FROM %s WHERE (channelId=%d)".formatted(table, channelId));
 	}
 
-	public boolean existsUser(String userId) {
-		if (select(table, "userId", "userId", userId).isEmpty()) {
-			return false;
-		}
-		return true;
+	public boolean existsUser(long userId) {
+		return getChannel(userId) != null;
 	}
 
-	public boolean existsChannel(String channelId) {
-		if (select(table, "channelId", "channelId", channelId).isEmpty()) return false;
-		return true;
+	public boolean existsChannel(long channelId) {
+		return getUser(channelId) != null;
 	}
 
-	public void setUser(String userId, String channelId) {
-		update(table, "userId", userId, "channelId", channelId);
+	public void setUser(long channelId, long userId) {
+		execute("UPDATE %s SET userId=%s WHERE (channelId=%d)".formatted(table, userId, channelId));
 	}
 
-	public String getChannel(String userId) {
-		List<Object> objs = select(table, "channelId", "userId", userId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return String.valueOf(objs.get(0));
+	public Long getChannel(long userId) {
+		return selectOne("SELECT channelId FROM %s WHERE (userId=%d)".formatted(table, userId), "channelId", Long.class);
 	}
 
-	public String getUser(String channelId) {
-		List<Object> objs = select(table, "userId", "channelId", channelId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return String.valueOf(objs.get(0));
+	public Long getUser(long channelId) {
+		return selectOne("SELECT userId FROM %s WHERE (channelId=%d)".formatted(table, channelId), "userId", Long.class);
 	}
 
 }

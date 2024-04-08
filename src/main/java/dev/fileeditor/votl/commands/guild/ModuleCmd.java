@@ -7,8 +7,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
@@ -17,15 +15,14 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.base.waiter.EventWaiter;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emotes;
-import dev.fileeditor.votl.objects.command.SlashCommand;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -78,7 +75,6 @@ public class ModuleCmd extends CommandBase {
 			createReplyEmbed(event, embed);
 		}
 
-		@Nonnull
 		private String format(String sModule, Emotes emote) {
 			return emote.getEmote() + " | " + sModule;
 		}

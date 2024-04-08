@@ -1,15 +1,13 @@
 package dev.fileeditor.votl.utils.exception;
 
-import javax.annotation.Nonnull;
+import dev.fileeditor.votl.objects.annotation.Nonnull;
 
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 public class CheckException extends Exception {
-
-	@Nonnull
-	private MessageCreateData data;
+	private final MessageCreateData data;
 	
 	public CheckException(@Nonnull MessageEmbed embed) {
 		super();

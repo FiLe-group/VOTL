@@ -2,72 +2,48 @@ package dev.fileeditor.votl.utils.file.lang;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import dev.fileeditor.votl.objects.annotation.Nonnull;
+import dev.fileeditor.votl.objects.annotation.Nullable;
+import dev.fileeditor.votl.utils.file.FileManager;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 
-import dev.fileeditor.votl.App;
-
 public final class LangUtil {
 
-	private final App bot;
-	public LangUtil(App bot) {
-		this.bot = bot;
+	private final FileManager fileManager;
+	
+	public LangUtil(FileManager fileManager) {
+		this.fileManager = fileManager;
 	}
 	
-	@Nonnull
-	public String getString(String language, String path) {
-		switch (language) {
-			case "ru":
-				return bot.getFileManager().getString(language, path);
+	@dev.fileeditor.votl.objects.annotation.Nonnull
+	public String getString(DiscordLocale locale, String path) {
+		switch (locale) {
+			case RUSSIAN:
+				return fileManager.getString(locale.getLocale(), path);
 			default: //en
-				return bot.getFileManager().getString("en-GB", path);
+				return fileManager.getString("en-GB", path);
+		}
+	}
+
+	@Nullable
+	public String getNullableString(DiscordLocale locale, String path) {
+		switch (locale) {
+			case RUSSIAN:
+				return fileManager.getNullableString(locale.getLocale(), path);
+			default: //en
+				return fileManager.getNullableString("en-GB", path);
 		}
 	}
 
 	@Nonnull
-	public List<String> getStringList(String language, String path) {
-		switch (language) {
-			case "ru":
-				return bot.getFileManager().getStringList(language, path);
+	public List<String> getStringList(DiscordLocale locale, String path) {
+		switch (locale) {
+			case RUSSIAN:
+				return fileManager.getStringList(locale.getLocale(), path);
 			default: //en
-				return bot.getFileManager().getStringList("en-GB", path);
+				return fileManager.getStringList("en-GB", path);
 		}
 	}
 
-	public enum Language {
-		EN_GB ("\uDDEC", "\uDDE7"),
-		RU    ("\uDDF7", "\uDDFA"),
-
-		UNKNOWN ("\uDDFA", "\uDDF3");
-
-		@Nonnull
-		private final String emote;
-
-		Language(String code1, String code2) {
-			this.emote = "\uD83C" + code1 + "\uD83C" + code2;
-		}
-
-		@Nonnull
-		public static String getEmote(DiscordLocale locale) {
-			String lang = locale.getLocale();
-			for (Language language : values()) {
-				if (lang.equals(language.name().toLowerCase().replace("_", "-")))
-					return language.emote;
-			}
-
-			return UNKNOWN.emote;
-		}
-
-		@Nonnull
-		public static String getString(DiscordLocale locale) {
-			String lang = locale.getLocale().toLowerCase();
-			for (Language language : values()) {
-				if (lang.equals(language.name().toLowerCase().replace("_", "-")))
-					return language.emote + " " + locale.getNativeName();
-			}
-
-			return UNKNOWN.emote + " " + UNKNOWN.name().toLowerCase();
-		}
-	}
 }

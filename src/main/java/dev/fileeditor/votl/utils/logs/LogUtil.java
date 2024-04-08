@@ -1,11 +1,9 @@
-package dev.fileeditor.votl.utils;
+package dev.fileeditor.votl.utils.logs;
 
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -16,6 +14,7 @@ import net.dv8tion.jda.api.entities.Guild.Ban;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 

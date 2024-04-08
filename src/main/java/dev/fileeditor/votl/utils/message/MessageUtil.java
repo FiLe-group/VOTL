@@ -2,38 +2,54 @@ package dev.fileeditor.votl.utils.message;
 
 import java.awt.Color;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
 public class MessageUtil {
 
 	private final Random random;
 	private final LocaleUtil lu;
 
-	private final DecimalFormat decimalFormat = new DecimalFormat("# ### ###");
+	private static final DecimalFormat decimalFormat = new DecimalFormat("# ### ###");
 
-	public MessageUtil(App bot) {
-		this.random = bot.getRandom();
-		this.lu = bot.getLocaleUtil();
+	private static final Pattern rolePattern = Pattern.compile("<@&(\\d+)>", Pattern.CASE_INSENSITIVE);
+
+	public MessageUtil(LocaleUtil localeUtil) {
+		this.random = new Random();
+		this.lu = localeUtil;
 	}
 
-	public String capitalize(final String str) {
+	public static String capitalize(final String str) {
 		if (str == null || str.length() == 0) {
 			return "";
 		}
 
-		final String s0 = str.substring(0, 1).toUpperCase();
-		return s0 + str.substring(1);
+		return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+	}
+
+	public static List<String> getRoleIdsFromString(String text) {
+		List<String> ids = new ArrayList<>();
+		if (text.contains("+")) ids.add("0");
+
+		Matcher roleMatcher = rolePattern.matcher(text);
+		while (roleMatcher.find()) {
+			ids.add(roleMatcher.group(1));
+		}
+		
+		return ids;
 	}
 
 	public Color getColor(String input) {
 		input = input.toLowerCase();
-		if (!input.equals("random") && !(input.startsWith("hex:") || input.startsWith("rgb:")))
+		if (!input.equals("random") && !(input.length() == 6 || input.contains(",")))
 			return null;
 
 		Color color = null;
@@ -46,32 +62,19 @@ public class MessageUtil {
 			return new Color(r, g, b);
 		}
 
-		String[] split = input.split(":");
-		if (split.length <= 1)
-			return null;
-
-		String value = split[1];
-
-		switch (split[0]) {
-			case "hex":
-				if (value.isEmpty())
-					return null;
-				try {
-					color = Color.decode(value.startsWith("#") ? value : "#" + value);
-				} catch (NumberFormatException ignored) {
-					return null;
-				}
-				break;
-
-			case "rgb":
-				if (value.isEmpty())
-					return null;
-				String[] rgb = Arrays.copyOf(value.split(","), 3);
-				try {
-					color = new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2]));
-				} catch (NumberFormatException ignored) {
-					return null;
-				}
+		if (input.length() == 6) {
+			try {
+				color = Color.decode("#"+input);
+			} catch (NumberFormatException ignored) {
+				return null;
+			}
+		} else {
+			String[] rgb = Arrays.copyOf(input.split(","), 3);
+			try {
+				color = new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2]));
+			} catch (NumberFormatException ignored) {
+				return null;
+			}
 		}
 
 		return color;
@@ -92,7 +95,7 @@ public class MessageUtil {
 		return replaceLast(builder.toString(), ", ", " "+lu.getText("misc.and")+" ");
 	}
 
-	public String replaceLast(String input, String target, String replacement) {
+	public static String replaceLast(String input, String target, String replacement) {
 		if (!input.contains(target))
 			return input;
 
@@ -102,15 +105,26 @@ public class MessageUtil {
 		return builder.toString();
 	}
 
-	public String formatNumber(long number) {
+	public static String formatNumber(long number) {
 		return decimalFormat.format(number);
 	}
 
-	private String escapeAll(String name) {
+	private static String escapeAll(String name) {
 		return name.replace("*", "\\*")
 			.replace("_", "\\_")
 			.replace("`", "\\`")
 			.replace("~", "\\~");
+	}
+
+	public static String limitString(String text, int limit) {
+		if (text == null) return "";
+		if (text.length() > limit)
+			return text.substring(0, limit-3) + "...";
+		return text;
+	}
+
+	public static String formatKey(String text) {
+		return capitalize(text).replace("_", " ");
 	}
 
 }

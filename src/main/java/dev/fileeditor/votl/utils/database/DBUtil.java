@@ -2,95 +2,141 @@ package dev.fileeditor.votl.utils.database;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.utils.database.managers.AccessManager;
+import dev.fileeditor.votl.utils.database.managers.AutopunishManager;
+import dev.fileeditor.votl.utils.database.managers.BlacklistManager;
+import dev.fileeditor.votl.utils.database.managers.CaseManager;
+import dev.fileeditor.votl.utils.database.managers.GroupManager;
+import dev.fileeditor.votl.utils.database.managers.GuildLogsManager;
+import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
+import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager.GuildSettings;
+import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager.TicketSettings;
+import dev.fileeditor.votl.utils.database.managers.VerifySettingsManager.VerifySettings;
+import dev.fileeditor.votl.utils.database.managers.GuildVoiceManager;
+import dev.fileeditor.votl.utils.database.managers.LogExceptionsManager;
+import dev.fileeditor.votl.utils.database.managers.RoleManager;
+import dev.fileeditor.votl.utils.database.managers.StrikeManager;
+import dev.fileeditor.votl.utils.database.managers.TempRoleManager;
+import dev.fileeditor.votl.utils.database.managers.TicketManager;
+import dev.fileeditor.votl.utils.database.managers.TicketPanelManager;
+import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager;
+import dev.fileeditor.votl.utils.database.managers.TicketTagManager;
+import dev.fileeditor.votl.utils.database.managers.UserSettingsManager;
+import dev.fileeditor.votl.utils.database.managers.VerifySettingsManager;
+import dev.fileeditor.votl.utils.database.managers.VoiceChannelManager;
+import dev.fileeditor.votl.utils.database.managers.WebhookManager;
+import dev.fileeditor.votl.utils.database.managers.GuildLogsManager.LogSettings;
+import dev.fileeditor.votl.utils.file.FileManager;
+
+import net.dv8tion.jda.api.entities.Guild;
 
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
-import dev.fileeditor.votl.utils.database.managers.AccessManager;
-import dev.fileeditor.votl.utils.database.managers.BanManager;
-import dev.fileeditor.votl.utils.database.managers.GroupManager;
-import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
-import dev.fileeditor.votl.utils.database.managers.GuildVoiceManager;
-import dev.fileeditor.votl.utils.database.managers.ModuleManager;
-import dev.fileeditor.votl.utils.database.managers.UserSettingsManager;
-import dev.fileeditor.votl.utils.database.managers.VerifyManager;
-import dev.fileeditor.votl.utils.database.managers.VoiceChannelManager;
-import dev.fileeditor.votl.utils.database.managers.WebhookManager;
-import dev.fileeditor.votl.utils.file.FileManager;
 
 public class DBUtil {
 
 	private final FileManager fileManager;
+	private final ConnectionUtil connectionUtil;
+	
+	protected final Logger logger = (Logger) LoggerFactory.getLogger(DBUtil.class);
 
-	public final GuildSettingsManager guild;
+	public final GuildSettingsManager guildSettings;
 	public final GuildVoiceManager guildVoice;
 	public final UserSettingsManager user;
 	public final VoiceChannelManager voice;
 	public final WebhookManager webhook;
-	public final ModuleManager module;
 	public final AccessManager access;
-	public final BanManager ban;
 	public final GroupManager group;
-	public final VerifyManager verify;
-
-	protected final Logger logger = (Logger) LoggerFactory.getLogger(DBUtil.class);
-
-	private String urlSQLite;
+	public final VerifySettingsManager verifySettings;
+	public final CaseManager cases;
+	public final StrikeManager strikes;
+	public final GuildLogsManager logs;
+	public final LogExceptionsManager logExceptions;
+	public final RoleManager roles;
+	public final TempRoleManager tempRoles;
+	public final TicketSettingsManager ticketSettings;
+	public final TicketPanelManager ticketPanels;
+	public final TicketTagManager ticketTags;
+	public final TicketManager tickets;
+	public final AutopunishManager autopunish;
+	public final BlacklistManager blacklist;
 
 	public DBUtil(FileManager fileManager) {
 		this.fileManager = fileManager;
-		this.urlSQLite = "jdbc:sqlite:" + fileManager.getFiles().get("database");
+		this.connectionUtil = new ConnectionUtil("jdbc:sqlite:"+fileManager.getFiles().get("database"), logger);
 		
-		guild = new GuildSettingsManager(this);
-		guildVoice = new GuildVoiceManager(this);
-		user = new UserSettingsManager(this);
-		voice = new VoiceChannelManager(this);
-		webhook = new WebhookManager(this);
-		module = new ModuleManager(this);
-		access = new AccessManager(this);
-		ban = new BanManager(this);
-		group = new GroupManager(this);
-		verify = new VerifyManager(this);
+		guildSettings = new GuildSettingsManager(connectionUtil);
+		access = new AccessManager(connectionUtil);
+		group = new GroupManager(connectionUtil);
+		guildVoice = new GuildVoiceManager(connectionUtil);
+		voice = new VoiceChannelManager(connectionUtil);
+		user = new UserSettingsManager(connectionUtil);
+		webhook = new WebhookManager(connectionUtil);
+		verifySettings = new VerifySettingsManager(connectionUtil);
+		cases = new CaseManager(connectionUtil);
+		strikes = new StrikeManager(connectionUtil);
+		logs = new GuildLogsManager(connectionUtil);
+		logExceptions = new LogExceptionsManager(connectionUtil);
+		roles = new RoleManager(connectionUtil);
+		tempRoles = new TempRoleManager(connectionUtil);
+		ticketSettings = new TicketSettingsManager(connectionUtil);
+		ticketPanels = new TicketPanelManager(connectionUtil);
+		ticketTags = new TicketTagManager(connectionUtil);
+		tickets = new TicketManager(connectionUtil);
+		autopunish = new AutopunishManager(connectionUtil);
+		blacklist = new BlacklistManager(connectionUtil);
 
 		updateDB();
 	}
 
-	protected Connection connectSQLite() {
-		Connection conn = null;
-		try {
-			conn = DriverManager.getConnection(urlSQLite);
-		} catch (SQLException ex) {
-			logger.error("Connection error to database", ex);
-			return null;
-		}
-		return conn;
+	public GuildSettings getGuildSettings(Guild guild) {
+		return guildSettings.getSettings(guild.getIdLong());
+	}
+
+	public VerifySettings getVerifySettings(Guild guild) {
+		return verifySettings.getSettings(guild.getIdLong());
+	}
+
+	public LogSettings getLogSettings(Guild guild) {
+		return logs.getSettings(guild.getIdLong());
+	}
+
+	public TicketSettings getTicketSettings(Guild guild) {
+		return ticketSettings.getSettings(guild.getIdLong());
 	}
 
 	// 0 - no version or error
 	// 1> - compare active db version with resources
-	// if version lower -> apply instruction for creating new tables, adding/removing collumns
+	// if version lower -> apply instruction for creating new tables, adding/removing columns
 	// in the end set active db version to resources
-	public Integer getActiveDBVersion() {
-		Integer version = 0;
-		try (Connection conn = DriverManager.getConnection(urlSQLite);
-		PreparedStatement st = conn.prepareStatement("PRAGMA user_version")) {
+	public int getActiveDBVersion() {
+		int version = 0;
+		try (Connection conn = DriverManager.getConnection(connectionUtil.getUrlSQLite());
+			PreparedStatement st = conn.prepareStatement("PRAGMA user_version")) {
 			version = st.executeQuery().getInt(1);
 		} catch(SQLException ex) {
-			logger.warn("Failed to get active database version", ex);
+			logger.warn("SQLite: Failed to get active database version", ex);
 		}
 		return version;
 	}
 
-	public Integer getResourcesDBVersion() {
-		Integer version = 0;
+	public int getResourcesDBVersion() {
+		int version = 0;
 		try {
-			File tempFile = File.createTempFile("locale-", ".json");
+			File tempFile = File.createTempFile("local-", ".tmp");
 			if (!fileManager.export(getClass().getResourceAsStream("/server.db"), tempFile.toPath())) {
 				logger.error("Failed to write temp file {}!", tempFile.getName());
 				return version;
@@ -109,47 +155,58 @@ public class DBUtil {
 		return version;
 	}
 
-	// CREATE TABLE table_name (column1 datatype, column2 datatype);
-	// DROP TABLE table_name;
-	// ALTER TABLE table_name RENAME TO new_name;
-	// ALTER TABLE table_name ADD column_name datatype;
-	// ALTER TABLE table_name DROP column_name;
-	// ALTER TABLE table_name RENAME old_name to new_name;
-	private final List<List<String>> instruct = List.of(
-		List.of("ALTER TABLE 'verify' DROP 'instructionText'", "ALTER TABLE 'verify' DROP 'instructionField'", "ALTER TABLE 'verify' DROP 'verificationLink'", "ALTER TABLE 'verify' ADD 'panelColor' TEXT DEFAULT '0x112E51'") // 1 -> 2
-	);
+	private List<List<String>> loadInstructions(Integer activeVersion) {
+		List<String> lines = new ArrayList<>();
+		try {
+			File tempFile = File.createTempFile("database_updates", ".tmp");
+			if (!fileManager.export(App.class.getResourceAsStream("/database_updates"), tempFile.toPath())) {
+				logger.error("Failed to write temp file {}!", tempFile.getName());
+			} else {
+				lines = Files.readAllLines(tempFile.toPath(), StandardCharsets.UTF_8);
+			}
+		} catch (Exception ex) {
+			logger.error("SQLite: Failed to open update file", ex);
+		}
+		lines = lines.subList(activeVersion - 1, lines.size());
+		List<List<String>> result = new ArrayList<>();
+		lines.forEach(line -> {
+			String[] points = line.split(";");
+			List<String> list = points.length == 0 ? Arrays.asList(line) : Arrays.asList(points);
+			if (!list.isEmpty()) result.add(list);
+		});
+		return result;
+	}
 
 	private void updateDB() {
 		// 0 - skip
-		Integer newVersion = getResourcesDBVersion();
+		int newVersion = getResourcesDBVersion();
 		if (newVersion == 0) return;
-		Integer activeVersion = getActiveDBVersion();
+		int activeVersion = getActiveDBVersion();
 		if (activeVersion == 0) return;
 
 		if (newVersion > activeVersion) {
-			try (Connection conn = DriverManager.getConnection(urlSQLite);
-				Statement st = conn.createStatement()) {
-				while (activeVersion < newVersion) {
-					Integer next = activeVersion + 1;
-					List<String> instructions = instruct.get(next - 2);
-					for (String sql : instructions) {
-						logger.debug(sql);
-						st.execute(sql);
+			try (Connection conn = DriverManager.getConnection(connectionUtil.getUrlSQLite());
+			Statement st = conn.createStatement()) {
+				if (activeVersion < newVersion) {
+					for (List<String> version : loadInstructions(activeVersion)) {
+						for (String sql : version) {
+							logger.debug(sql);
+							st.execute(sql);
+						}
 					}
-					activeVersion = next;
 				}
 			} catch(SQLException ex) {
-				logger.warn("Failed to execute update!\nPerform database update manually or delete it.\n{}", ex.getMessage());
+				logger.error("SQLite: Failed to execute update!\nPerform database update manually or delete it.\n{}", ex.getMessage());
 				return;
 			}
-
+			
 			// Update version
-			try (Connection conn = DriverManager.getConnection(urlSQLite);
+			try (Connection conn = DriverManager.getConnection(connectionUtil.getUrlSQLite());
 			Statement st = conn.createStatement()) {
-				st.execute("PRAGMA user_version = "+newVersion.toString());
-				logger.info("Database version updated to {}", newVersion);
+				st.execute("PRAGMA user_version = "+newVersion);
+				logger.info("SQLite: Database version updated to {}", newVersion);
 			} catch(SQLException ex) {
-				logger.warn("Failed to set active database version", ex);
+				logger.error("SQLite: Failed to set active database version", ex);
 			}
 		}
 	}

@@ -1,11 +1,9 @@
 package dev.fileeditor.votl.utils.exception;
 
-import javax.annotation.Nonnull;
+import dev.fileeditor.votl.objects.annotation.Nonnull;
 
 public class FormatterException extends Exception {
-	
-	@Nonnull
-	private String path;
+	private final String path;
 	
 	public FormatterException(@Nonnull String path) {
 		super();

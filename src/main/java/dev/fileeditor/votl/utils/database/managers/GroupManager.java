@@ -1,97 +1,110 @@
 package dev.fileeditor.votl.utils.database.managers;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import dev.fileeditor.votl.utils.database.DBUtil;
-import dev.fileeditor.votl.utils.database.SQLiteDBBase;
+import dev.fileeditor.votl.utils.database.ConnectionUtil;
+import dev.fileeditor.votl.utils.database.LiteBase;
 
-public class GroupManager extends SQLiteDBBase {
+public class GroupManager extends LiteBase {
 
-    private final String tableMaster = "groupMaster";
-    private final String tableSync = "groupSync";
-    
-    public GroupManager(DBUtil util) {
-        super(util);
-    }
+	private final String groups = "groups";
+	private final String members = "groupMembers";
+	
+	public GroupManager(ConnectionUtil cu) {
+		super(cu, null);
+	}
 
-    // groupMaster table
-    public void create(Integer groupId, String guildId, String name) {
-        insert(tableMaster, List.of("groupId", "masterId", "name"), List.of(groupId, guildId, name));
-    }
+	// groups table
+	public void create(long guildId, String name, long appealGuildId) {
+		execute("INSERT INTO %s(ownerId, name, appealGuildId) VALUES (%d, %s, %d)".formatted(groups, guildId, quote(name), appealGuildId));
+	}
 
-    public Integer lastId() {
-        Object data = selectLast(tableMaster, "groupId");
-        if (data == null) return 0;
-        return Integer.parseInt(data.toString());
-    }
+	public int getIncrement() {
+		return getIncrement(groups);
+	}
 
-    public void delete(Integer groupId) {
-        delete(tableMaster, "groupId", groupId);
-    }
+	public void deleteGroup(int groupId) {
+		execute("DELETE FROM %s WHERE (groupId=%d)".formatted(groups, groupId));
+	}
 
-    public void deleteAll(String guildId) {
-        delete(tableMaster, "masterId", guildId);
-    }
+	public void deleteGuildGroups(long guildId) {
+		execute("DELETE FROM %s WHERE (ownerId=%d)".formatted(groups, guildId));
+	}
 
-    public void rename(Integer groupId, String name) {
-        update(tableMaster, "name", name, "groupId", groupId);
-    }
+	public void rename(int groupId, String name) {
+		execute("UPDATE %s SET name=%s WHERE (groupId=%d)".formatted(groups, quote(name), groupId));
+	}
 
-    public String getMaster(Integer groupId) {
-        List<Object> data = select(tableMaster, "masterId", "groupId", groupId);
-        if (data.isEmpty() || data.get(0) == null) return null;
-        return data.get(0).toString();
-    }
+	public Long getOwner(int groupId) {
+		return selectOne("SELECT ownerId FROM %s WHERE (groupId=%d)".formatted(groups, groupId), "ownerId", Long.class);
+	}
 
-    public List<Map<String, Object>> getMasterGroups(String masterId) {
-        List<Map<String, Object>> data = select(tableMaster, List.of("groupId", "name"), "masterId", masterId);
-        if (data.isEmpty() || data.get(0) == null) return Collections.emptyList();
-        return data;
-    }
+	public List<Integer> getOwnedGroups(long guildId) {
+		return select("SELECT groupId FROM %s WHERE (ownerId=%d)".formatted(groups, guildId), "groupId", Integer.class);
+	}
 
-    public String getName(Integer groupId) {
-        List<Object> data = select(tableMaster, "name", "groupId", groupId);
-        if (data.isEmpty() || data.get(0) == null) return null;
-        return data.get(0).toString();
-    }
+	public String getName(int groupId) {
+		return selectOne("SELECT name FROM %s WHERE (groupId=%d)".formatted(groups, groupId), "name", String.class);
+	}
 
-    // groupSync table
-    public void add(Integer groupId, String guildId) {
-        insert(tableSync, List.of("groupId", "guildId"), List.of(groupId, guildId));
-    }
+	public boolean isOwner(int groupId, long guildId) {
+		return selectOne("SELECT ownerId FROM %s WHERE (groupId=%d AND ownerId=%d)"
+			.formatted(groups, groupId, guildId), "ownerId", Long.class) != null;
+	}
 
-    public void remove(Integer groupId, String guildId) {
-        delete(tableSync, List.of("groupId", "guildId"), List.of(groupId, guildId));
-    }
+	public Long getAppealGuildId(int groupId) {
+		Long data = selectOne("SELECT appealGuildId FROM %s WHERE (groupId=%d)".formatted(groups, groupId), "appealGuildId", Long.class);
+		return data==null ? 0L : data;
+	}
 
-    public void removeFromGroups(String guildId) {
-        delete(tableSync, "guildId", guildId);
-    }
-    
-    public void clearGroup(Integer groupId) {
-        delete(tableSync, "groupId", groupId);
-    }
+	// groupMembers table
+	public void add(int groupId, long guildId, boolean canManage) {
+		execute("INSERT INTO %s(groupId, guildId, canManage) VALUES (%d, %d, %d)".formatted(members, groupId, guildId, canManage ? 1 : 0));
+	}
 
-    public List<String> getGroupGuildIds(Integer groupId) {
-        List<Object> data = select(tableSync, "guildId", "groupId", groupId);
-        if (data.isEmpty() || data.get(0) == null) return Collections.emptyList();
-        return data.stream().map(obj -> obj.toString()).collect(Collectors.toList());
-    }
+	public void remove(int groupId, long guildId) {
+		execute("DELETE FROM %s WHERE (groupId=%d AND guildId=%d)".formatted(members, groupId, guildId));
+	}
 
-    public List<Integer> getGuildGroups(String guildId) {
-        List<Object> data = select(tableSync, "groupId", "guildId", guildId);
-        if (data.isEmpty() || data.get(0) == null) return Collections.emptyList();
-        return data.stream().map(obj -> (Integer) obj).collect(Collectors.toList());
-    }
+	public void removeGuildFromGroups(long guildId) {
+		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(members, guildId));
+	}
+	
+	public void clearGroup(int groupId) {
+		execute("DELETE FROM %s WHERE (groupId=%d)".formatted(members, groupId));
+	}
 
-    public boolean existSync(Integer groupId, String guildId) {
-        if (select(tableSync, "guildId", List.of("groupId", "guildId"), List.of(groupId, guildId)).isEmpty()) {
-            return false;
-        }
-        return true;
-    }
+	public Boolean isMember(int groupId, long guildId) {
+		return selectOne("SELECT guildId FROM %s WHERE (groupId=%d AND guildId=%d)".formatted(members, groupId, guildId), "guildId", Long.class) != null;
+	}
+
+	public List<Long> getGroupMembers(int groupId) {
+		return select("SELECT guildId FROM %s WHERE (groupId=%d)".formatted(members, groupId), "guildId", Long.class);
+	}
+
+	public int countMembers(int groupId) {
+		return count("SELECT COUNT(guildId) FROM %s WHERE (groupId=%d)".formatted(members, groupId));
+	}
+
+	public List<Integer> getGuildGroups(long guildId) {
+		return select("SELECT groupId FROM %s WHERE (guildId=%d)".formatted(members, guildId), "groupId", Integer.class);
+	}
+
+	public List<Integer> getManagedGroups(long guildId) {
+		return select("SELECT groupId FROM %s WHERE (guildId=%d AND canManage=1)".formatted(members, guildId), "groupId", Integer.class);
+	}
+
+	public List<Long> getGroupManagers(int groupId) {
+		return select("SELECT guildId FROM %s WHERE (groupId=%d AND canManage=1)".formatted(members, groupId), "guildId", Long.class);
+	} 
+
+	public boolean canManage(int groupId, long guildId) {
+		Integer data = selectOne("SELECT canManage FROM %s WHERE (groupId=%d AND guildId=%d)".formatted(members, groupId, guildId), "canManage", Integer.class);
+		return data==null ? false : data==1;
+	}
+
+	public void setManage(int groupId, long guildId, boolean canManage) {
+		execute("UPDATE %s SET canManage=%d WHERE (groupId=%d AND guildId=%d)".formatted(members, canManage ? 1 : 0, groupId, guildId));
+	}
 
 }

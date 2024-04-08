@@ -1,47 +1,38 @@
 package dev.fileeditor.votl.utils.database.managers;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import dev.fileeditor.votl.utils.database.DBUtil;
-import dev.fileeditor.votl.utils.database.SQLiteDBBase;
+import dev.fileeditor.votl.utils.database.ConnectionUtil;
+import dev.fileeditor.votl.utils.database.LiteBase;
 
-public class WebhookManager extends SQLiteDBBase {
+public class WebhookManager extends LiteBase {
 
-	private final String table = "webhook";
-	
-	public WebhookManager(DBUtil util) {
-		super(util);
+	public WebhookManager(ConnectionUtil cu) {
+		super(cu, "webhooks");
 	}
 
-	public void add(String webhookId, String guildId, String token) {
-		insert(table, List.of("webhookId", "guildId", "token"), List.of(webhookId, guildId, token));
+	public void add(long webhookId, long guildId, String token) {
+		execute("INSERT INTO %s(webhookId, guildId, token) VALUES (%s, %s, %s) ON CONFLICT(webhookId) DO NOTHING".formatted(table, webhookId, guildId, quote(token)));
 	}
 
-	public void remove(String webhookId) {
-		delete(table, "webhookId", webhookId);
+	public void remove(long webhookId) {
+		execute("DELETE FROM %s WHERE (webhookId=%s)".formatted(table, webhookId));
 	}
 
-	public void removeAll(String guildId) {
-		delete(table, "guildId", guildId);
+	public void removeAll(long guildId) {
+		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 
-	public boolean exists(String webhookId) {
-		if (select(table, "webhookId", "webhookId", webhookId).isEmpty()) return false;
-		return true;
+	public boolean exists(long webhookId) {
+		return selectOne("SELECT webhookId FROM %s WHERE (webhookId=%s)".formatted(table, webhookId), "webhookId", Long.class) != null;
 	}
 
-	public String getToken(String webhookId) {
-		List<Object> objs = select(table, "token", "webhookId", webhookId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return String.valueOf(objs.get(0));
+	public String getToken(long webhookId) {
+		return selectOne("SELECT token FROM %s WHERE (webhookId=%s)".formatted(table, webhookId), "token", String.class);
 	}
 
-	public List<String> getIds(String guildId) {
-		List<Object> objs = select(table, "webhookId", "guildId", guildId);
-		if (objs.isEmpty()) return Collections.emptyList();
-		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
+	public List<Long> getWebhookIds(long guildId) {
+		return select("SELECT webhookId FROM %s WHERE (guildId=%s)".formatted(table, guildId), "webhookId", Long.class);
 	}
 
 }

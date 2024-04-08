@@ -1,7 +1,5 @@
 package dev.fileeditor.votl.commands;
 
-import javax.annotation.Nonnull;
-
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -10,8 +8,9 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.command.SlashCommand;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.objects.annotation.Nonnull;
 
 public abstract class CommandBase extends SlashCommand {
 	

@@ -1,61 +1,47 @@
 package dev.fileeditor.votl.utils.database.managers;
 
-import java.util.List;
+import dev.fileeditor.votl.utils.database.ConnectionUtil;
+import dev.fileeditor.votl.utils.database.LiteBase;
 
-import dev.fileeditor.votl.utils.database.DBUtil;
-import dev.fileeditor.votl.utils.database.SQLiteDBBase;
+public class GuildVoiceManager extends LiteBase {
 
-public class GuildVoiceManager extends SQLiteDBBase {
-
-	private final String table = "guildVoice";
-
-	public GuildVoiceManager(DBUtil util) {
-		super(util);
-	}
-	
-	public boolean exists(String guildId) {
-		if (select(table, "guildId", "guildId", guildId).isEmpty()) return false;
-		return true;
+	public GuildVoiceManager(ConnectionUtil cu) {
+		super(cu, "guildVoice");
 	}
 
-	public void setup(String guildId, String categoryId, String channelId) {
-		if (exists(guildId)) {
-			update(table, List.of("categoryId", "channelId"), List.of(categoryId, channelId), "guildId", guildId);
-		} else {
-			insert(table, List.of("guildId", "categoryId", "channelId"), List.of(guildId, categoryId, channelId));
-		}
+	public void setup(long guildId, long categoryId, long channelId) {
+		execute("INSERT INTO %s(guildId, categoryId, channelId) VALUES (%d, %d, %d) ON CONFLICT(guildId) DO UPDATE SET categoryId=%3$d, channelId=%4$d"
+			.formatted(table, guildId, categoryId, channelId));
 	}
 
-	public void setName(String guildId, String defaultName) {
-		update(table, "defaultName", defaultName, "guildId", guildId);
+	public void remove(long guildId) {
+		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 
-	public void setLimit(String guildId, Integer defaultLimit) {
-		update(table, "defaultLimit", defaultLimit, "guildId", guildId);
+	public void setName(long guildId, String defaultName) {
+		execute("INSERT INTO %s(guildId, defaultName) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET defaultName=%<s"
+			.formatted(table, guildId, quote(defaultName)));
 	}
 
-	public String getCategory(String guildId) {
-		List<Object> objs = select(table, "categoryId", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return String.valueOf(objs.get(0));
+	public void setLimit(long guildId, int defaultLimit) {
+		execute("INSERT INTO %s(guildId, defaultLimit) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET defaultLimit=%<d"
+			.formatted(table, guildId, defaultLimit));
 	}
 
-	public String getChannel(String guildId) {
-		List<Object> objs = select(table, "channelId", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return String.valueOf(objs.get(0));
+	public Long getCategoryId(long guildId) {
+		return selectOne("SELECT categoryId FROM %s WHERE (guildId=%d)".formatted(table, guildId), "categoryId", Long.class);
 	}
 
-	public String getName(String guildId) {
-		List<Object> objs = select(table, "defaultName", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return String.valueOf(objs.get(0));
+	public Long getChannelId(long guildId) {
+		return selectOne("SELECT channelId FROM %s WHERE (guildId=%d)".formatted(table, guildId), "channelId", Long.class);
 	}
 
-	public Integer getLimit(String guildId) {
-		List<Object> objs = select(table, "defaultLimit", "guildId", guildId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return Integer.parseInt(String.valueOf(objs.get(0)));
+	public String getName(long guildId) {
+		return selectOne("SELECT defaultName FROM %s WHERE (guildId=%d)".formatted(table, guildId), "defaultName", String.class);
+	}
+
+	public Integer getLimit(long guildId) {
+		return selectOne("SELECT defaultLimit FROM %s WHERE (guildId=%d)".formatted(table, guildId), "defaultLimit", Integer.class);
 	}
 
 }

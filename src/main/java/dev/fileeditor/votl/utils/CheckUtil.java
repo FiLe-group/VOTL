@@ -1,19 +1,18 @@
 package dev.fileeditor.votl.utils;
 
-import java.util.Objects;
+import java.util.List;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.command.CommandClient;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
@@ -27,85 +26,82 @@ public class CheckUtil {
 		this.ownerId = bot.getFileManager().getString("config", "owner-id");
 	}
 
-	public boolean isDeveloper(User user) {
+	public boolean isDeveloper(UserSnowflake user) {
 		return user.getId().equals(Constants.DEVELOPER_ID);
 	}
 
-	public boolean isOwner(CommandClient client, User user) {
-    	if (user.getId().equals(client.getOwnerId()))
-    	    return true;
-        if (client.getCoOwnerIds()==null)
-            return false;
-        for (String id : client.getCoOwnerIds())
-            if (id.equals(user.getId()))
-                return true;
-        return false;
-    }
+	public boolean isBotOwner(UserSnowflake user) {
+		return user.getId().equals(ownerId);
+	}
 
-	public CmdAccessLevel getAccessLevel(CommandClient client, Member member) {
+	public CmdAccessLevel getAccessLevel(Member member) {
 		// Is bot developer
-		if (isDeveloper(member.getUser()) || isOwner(client, member.getUser()))
+		if (isDeveloper(member) || isBotOwner(member))
 			return CmdAccessLevel.DEV;
-		// Is guild owner
+		
+		// Is guild's owner
 		if (member.isOwner())
 			return CmdAccessLevel.OWNER;
 		
-		Guild guild = Objects.requireNonNull(member.getGuild());
-		String access = bot.getDBUtil().access.hasAccess(guild.getId(), member.getId());
-		// Has either mod or admin access
-		if (access != null) {
-			// Has admin access
-			if (access.equals("admin"))
-				return CmdAccessLevel.ADMIN;
-			return CmdAccessLevel.MOD;
-		}
-		// Default
-		return CmdAccessLevel.ALL;
+		// Check for user level
+		CmdAccessLevel userLevel = bot.getDBUtil().access.getUserLevel(member.getGuild().getIdLong(), member.getIdLong());
+		if (userLevel != null)
+			return userLevel;
+		
+		// Check if has Administrator privileges
+		if (member.hasPermission(Permission.ADMINISTRATOR))
+			return CmdAccessLevel.ADMIN;
+
+		// Check for role level
+		List<Long> roleIds = bot.getDBUtil().access.getAllRoles(member.getGuild().getIdLong());
+		CmdAccessLevel level = member.getRoles()
+			.stream()
+			.filter(role -> roleIds.contains(role.getIdLong()))
+			.map(role -> bot.getDBUtil().access.getRoleLevel(role.getIdLong()))
+			.max(CmdAccessLevel::compareTo)
+			.orElse(CmdAccessLevel.ALL);
+		
+		return level;
 	}
 
-	public Boolean hasHigherAccess(CommandClient client, Member who, Member than) {
-		return getAccessLevel(client, who).getLevel() > getAccessLevel(client, than).getLevel();
+	public Boolean hasHigherAccess(Member who, Member than) {
+		return getAccessLevel(who).isHigherThan(getAccessLevel(than));
 	}
 
-	public Boolean hasAccess(SlashCommandEvent event, CmdAccessLevel accessLevel) {
-		if (getAccessLevel(event.getClient(), event.getMember()).getLevel() >= accessLevel.getLevel()) {
-			return true;
-		}
-		return false;
+	public Boolean hasAccess(Member member, CmdAccessLevel accessLevel) {
+		if (accessLevel.equals(CmdAccessLevel.ALL)) return true;
+		if (accessLevel.isHigherThan(getAccessLevel(member)))
+			return false;
+		return true;
 	}
 
-	public <T> CheckUtil hasAccess(T event, CommandClient client, Member member, CmdAccessLevel accessLevel) throws CheckException {
-		if (accessLevel.getLevel() > getAccessLevel(client, member).getLevel())
-			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.access_level_low", "Access: "+accessLevel.getName()));
+	public CheckUtil hasAccess(IReplyCallback replyCallback, Member member, CmdAccessLevel accessLevel) throws CheckException {
+		if (accessLevel.equals(CmdAccessLevel.ALL)) return this;
+		if (accessLevel.isHigherThan(getAccessLevel(member)))
+			throw new CheckException(bot.getEmbedUtil().getError(replyCallback, "errors.interaction.no_access", "Required access level: "+accessLevel.getName()));
 		return this;
 	}
 
-	public <T> CheckUtil guildExists(T event, Guild guild) throws CheckException {
-		if (!bot.getDBUtil().guild.exists(guild.getId()))
-			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.guild_not_setup"));
-		return this;
-	}
-
-	public <T> CheckUtil moduleEnabled(T event, Guild guild, CmdModule module) throws CheckException {
+	public CheckUtil moduleEnabled(IReplyCallback replyCallback, Guild guild, CmdModule module) throws CheckException {
 		if (module == null)
 			return this;
-		if (bot.getDBUtil().module.isDisabled(guild.getId(), module)) 
-			throw new CheckException(bot.getEmbedUtil().getError(event, "modules.module_disabled"));
+		if (bot.getDBUtil().getGuildSettings(guild).isDisabled(module)) 
+			throw new CheckException(bot.getEmbedUtil().getError(replyCallback, "modules.module_disabled"));
 		return this;
 	}
 
-	public <T> CheckUtil hasPermissions(T genericEvent, Guild guild, Member member, Permission[] permissions) throws CheckException {
-		return hasPermissions(genericEvent, guild, member, false, null, permissions);
+	public CheckUtil hasPermissions(IReplyCallback replyCallback, Guild guild, Member member, Permission[] permissions) throws CheckException {
+		return hasPermissions(replyCallback, guild, member, false, null, permissions);
 	}
 
-	public <T> CheckUtil hasPermissions(T genericEvent, Guild guild, Member member, boolean isSelf, Permission[] permissions) throws CheckException {
-		return hasPermissions(genericEvent, guild, member, isSelf, null, permissions);
+	public CheckUtil hasPermissions(IReplyCallback replyCallback, Guild guild, Member member, boolean isSelf, Permission[] permissions) throws CheckException {
+		return hasPermissions(replyCallback, guild, member, isSelf, null, permissions);
 	}
 
-	public <T> CheckUtil hasPermissions(T event, Guild guild, Member member, boolean isSelf, GuildChannel channel, Permission[] permissions) throws CheckException {
+	public CheckUtil hasPermissions(IReplyCallback replyCallback, Guild guild, Member member, boolean isSelf, GuildChannel channel, Permission[] permissions) throws CheckException {
 		if (permissions == null || permissions.length == 0)
 			return this;
-		if (guild == null || member == null)
+		if (guild == null || (!isSelf && member == null))
 			return this;
 
 		MessageCreateData msg = null;
@@ -114,14 +110,14 @@ public class CheckUtil {
 			if (channel == null) {
 				for (Permission perm : permissions) {
 					if (!self.hasPermission(perm)) {
-						msg = bot.getEmbedUtil().createPermError(event, member, perm, true);
+						msg = bot.getEmbedUtil().createPermError(replyCallback, perm, true);
 						break;
 					}
 				}
 			} else {
 				for (Permission perm : permissions) {
 					if (!self.hasPermission(channel, perm)) {
-						msg = bot.getEmbedUtil().createPermError(event, member, channel, perm, true);
+						msg = bot.getEmbedUtil().createPermError(replyCallback, channel, perm, true);
 						break;
 					}
 				}
@@ -130,14 +126,14 @@ public class CheckUtil {
 			if (channel == null) {
 				for (Permission perm : permissions) {
 					if (!member.hasPermission(perm)) {
-						msg = bot.getEmbedUtil().createPermError(event, member, perm, false);
+						msg = bot.getEmbedUtil().createPermError(replyCallback, perm, false);
 						break;
 					}
 				}
 			} else {
 				for (Permission perm : permissions) {
 					if (!member.hasPermission(channel, perm)) {
-						msg = bot.getEmbedUtil().createPermError(event, member, channel, perm, false);
+						msg = bot.getEmbedUtil().createPermError(replyCallback, channel, perm, false);
 						break;
 					}
 				}

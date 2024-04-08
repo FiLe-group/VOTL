@@ -5,14 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 
-import dev.fileeditor.votl.objects.command.CommandClient;
-import dev.fileeditor.votl.objects.command.SlashCommand;
+import dev.fileeditor.votl.base.command.CommandClient;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.utils.database.DBUtil;
 
 public class AutoCompleteListener extends ListenerAdapter {

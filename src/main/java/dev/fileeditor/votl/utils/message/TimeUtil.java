@@ -1,58 +1,58 @@
 package dev.fileeditor.votl.utils.message;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.TemporalAccessor;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
-
-import net.dv8tion.jda.api.utils.TimeFormat;
-
+import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.utils.exception.FormatterException;
+import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+
+import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.utils.TimeFormat;
 
 public class TimeUtil {
 
-	private final Pattern timePatternFull = Pattern.compile("^(([0-9]+)([smhdw]{1}))+$", Pattern.CASE_INSENSITIVE);
-	private final Pattern timePattern = Pattern.compile("([0-9]+)([smhdw]{1})", Pattern.CASE_INSENSITIVE);
-	
-	public TimeUtil() {}
+	private static final Pattern timePatternFull = Pattern.compile("^(([0-9]+)([smhdw]{1}))+$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern timePattern = Pattern.compile("([0-9]+)([smhdw]{1})", Pattern.CASE_INSENSITIVE);
 
-	private enum TimeFormats{
+	private enum TimeUnit{
 		SECONDS('s', 1),
 		MINUTES('m', 60),
 		HOURS  ('h', 3600),
 		DAYS   ('d', 86400),
 		WEEKS  ('w', 604800);
 
-		private final Character character;
-		private final Integer multip;
+		private final char character;
+		private final int multip;
 
-		private static final HashMap<Character, TimeFormats> BY_CHAR = new HashMap<Character, TimeFormats>();
+		private static final HashMap<Character, TimeUnit> BY_CHAR = new HashMap<Character, TimeUnit>();
 
 		static {
-			for (TimeFormats format : TimeFormats.values()) {
+			for (TimeUnit format : TimeUnit.values()) {
 				BY_CHAR.put(format.getChar(), format);
 			}
 		}
 
-		TimeFormats(Character character, Integer multip) {
+		TimeUnit(char character, int multip) {
 			this.character = character;
 			this.multip = multip;
 		}
 
-		public Character getChar() {
+		public char getChar() {
 			return character;
 		}
 
-		public Integer getMultip() {
+		public int getMultip() {
 			return multip;
 		}
 
 		@Nullable
-		public static Integer getMultipByChar(Character c) {
+		public static Integer getMultipByChar(char c) {
 			return Optional.ofNullable(BY_CHAR.get(c)).map(tf -> tf.getMultip()).orElse(null);
 		}
 	}
@@ -62,8 +62,8 @@ public class TimeUtil {
 	 * but they are quite inconvinient, as we want to
 	 * use both duration(h m s) and period(w d).
 	 */
-	public Duration stringToDuration(String text, boolean allowSeconds) throws FormatterException {
-		if (text == null || text.isEmpty()) {
+	public static Duration stringToDuration(String text, boolean allowSeconds) throws FormatterException {
+		if (text == null || text.isEmpty() || text.equals("0")) {
 			return Duration.ZERO;
 		}
 
@@ -78,7 +78,7 @@ public class TimeUtil {
 			if (c.equals('s') && !allowSeconds) {
 				throw new FormatterException("errors.formatter.except_seconds");
 			}
-			Integer multip = TimeFormats.getMultipByChar(c);
+			Integer multip = TimeUnit.getMultipByChar(c);
 			if (multip == null) {
 				throw new FormatterException("errors.formatter.no_multip");
 			}
@@ -95,7 +95,7 @@ public class TimeUtil {
 		return Duration.ofSeconds(time);
 	}
 
-	public String durationToString(Duration duration) {
+	public static String durationToString(Duration duration) {
 		if (duration.isZero()) {
 			return "0 seconds";
 		}
@@ -119,22 +119,51 @@ public class TimeUtil {
 		return buffer.toString();
 	}
 
-	public String formatTime(TemporalAccessor time, Boolean full) {
-		if (time != null) {
-			if (full) {
-				return String.format(
-					"%s (%s)",
-					TimeFormat.DATE_TIME_SHORT.format(time),
-					TimeFormat.RELATIVE.format(time)
-				);
-			}
+	public static String durationToLocalizedString(LocaleUtil lu, DiscordLocale locale, Duration duration) {
+		if (duration.isZero()) {
+			return "0 %s".formatted(lu.getLocalized(locale, "misc.time.seconds"));
+		}
+
+		StringBuffer buffer = new StringBuffer();
+		Long days = duration.toDaysPart();
+		if (days >= 7L) {
+			Long weeks = Math.floorDiv(days, 7L);
+			buffer.append("%s %s ".formatted(weeks, lu.getLocalized(locale, "misc.time.weeks")));
+			days = Math.floorMod(days, 7L);
+		}
+		if (days > 0) buffer.append("%s %s ".formatted(days, lu.getLocalized(locale, "misc.time.days")));
+		
+		Integer value = duration.toHoursPart();
+		if (value > 0) buffer.append("%s %s ".formatted(value, lu.getLocalized(locale, "misc.time.hours")));
+		value = duration.toMinutesPart();
+		if (value > 0) buffer.append("%s %s ".formatted(value, lu.getLocalized(locale, "misc.time.minutes")));
+		value = duration.toSecondsPart();
+		if (value > 0) buffer.append("%s %s".formatted(value, lu.getLocalized(locale, "misc.time.seconds")));
+
+		return buffer.toString();
+	}
+
+	public static String formatTime(TemporalAccessor time, boolean full) {
+		if (time == null) return "";
+		if (full) {
 			return String.format(
-				"%s %s",
-				TimeFormat.DATE_SHORT.format(time),
-				TimeFormat.TIME_SHORT.format(time)
+				"%s (%s)",
+				TimeFormat.DATE_TIME_SHORT.format(time),
+				TimeFormat.RELATIVE.format(time)
 			);
 		}
-		return "";
+		return String.format(
+			"%s %s",
+			TimeFormat.DATE_SHORT.format(time),
+			TimeFormat.TIME_SHORT.format(time)
+		);
+	}
+
+	public static String formatDuration(LocaleUtil lu, DiscordLocale locale, Instant startTime, Duration duration) {
+		return duration.isZero() ?
+			lu.getLocalized(locale, "misc.permanently")
+			:
+			lu.getLocalized(locale, "misc.temporary").formatted(formatTime(startTime.plus(duration), false));
 	}
 
 }

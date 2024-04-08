@@ -1,49 +1,32 @@
 package dev.fileeditor.votl.utils.database.managers;
 
-import java.util.List;
+import dev.fileeditor.votl.utils.database.ConnectionUtil;
+import dev.fileeditor.votl.utils.database.LiteBase;
 
-import dev.fileeditor.votl.utils.database.DBUtil;
-import dev.fileeditor.votl.utils.database.SQLiteDBBase;
+public class UserSettingsManager extends LiteBase {
 
-public class UserSettingsManager extends SQLiteDBBase {
-
-	private final String table = "user";
-
-	public UserSettingsManager(DBUtil util) {
-		super(util);
+	public UserSettingsManager(ConnectionUtil cu) {
+		super(cu, "users");
 	}
 
-	public void add(String userId) {
-		insert(table, "userId", userId);
+	public void remove(long userId) {
+		execute("DELETE FROM %s WHERE (userId=%s)".formatted(table, userId));
 	}
 
-	public void remove(String userId) {
-		delete(table, "userId", userId);
+	public void setName(long userId, String channelName) {
+		execute("INSERT INTO %s(userId, voiceName) VALUES (%d, %s) ON CONFLICT(userId) DO UPDATE SET voiceName=%<s".formatted(table, userId, quote(channelName)));
 	}
 
-	public boolean exists(String userId) {
-		if (select(table, "userId", "userId", userId).isEmpty()) return false;
-		return true;
+	public void setLimit(long userId, int channelLimit) {
+		execute("INSERT INTO %s(userId, voiceLimit) VALUES (%d, %d) ON CONFLICT(userId) DO UPDATE SET voiceLimit=%<d".formatted(table, userId, channelLimit));
 	}
 
-	public void setName(String userId, String channelName) {
-		update(table, "voiceName", channelName, "userId", userId);
+	public String getName(long userId) {
+		return selectOne("SELECT voiceName FROM %s WHERE (userId=%d)".formatted(table, userId), "voiceName", String.class);
 	}
 
-	public void setLimit(String userId, Integer channelLimit) {
-		update(table, "voiceLimit", channelLimit, "userId", userId);
-	}
-
-	public String getName(String userId) {
-		List<Object> objs = select(table, "voiceName", "userId", userId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return String.valueOf(objs.get(0));
-	}
-
-	public Integer getLimit(String userId) {
-		List<Object> objs = select(table, "voiceLimit", "userId", userId);
-		if (objs.isEmpty() || objs.get(0) == null) return null;
-		return Integer.parseInt(String.valueOf(objs.get(0)));
+	public Integer getLimit(long userId) {
+		return selectOne("SELECT voiceLimit FROM %s WHERE (userId=%d)".formatted(table, userId), "voiceLimit", Integer.class);
 	}
 
 }

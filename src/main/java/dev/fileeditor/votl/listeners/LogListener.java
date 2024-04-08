@@ -16,8 +16,8 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.command.SlashCommandEvent;
-import dev.fileeditor.votl.utils.LogUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import dev.fileeditor.votl.utils.logs.LogUtil;
 
 public class LogListener {
 	

@@ -9,25 +9,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nonnull;
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.objects.annotation.Nonnull;
+import dev.fileeditor.votl.objects.annotation.Nullable;
+import dev.fileeditor.votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 import org.slf4j.LoggerFactory;
 
 import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 
 import ch.qos.logback.classic.Logger;
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.constants.Constants;
 
 class KeyIsNull extends Exception {
 	public KeyIsNull(String str) {
@@ -36,33 +38,31 @@ class KeyIsNull extends Exception {
 }
 
 public class FileManager {
-	
+
 	private final Logger logger = (Logger) LoggerFactory.getLogger(FileManager.class);
+
+	private final Configuration CONF = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS);
 	
-	private Map<String, File> files;
-	private List<DiscordLocale> locales;
+	private final Map<String, File> files = new HashMap<>();
+	private final List<DiscordLocale> locales = new ArrayList<>();
 
-	public FileManager() {
-	}
+	public FileManager() {}
 
-	public FileManager addFile(String name, String internal, String external){
+	public FileManager addFile(String name, String internal, String external) {
 		createUpdateLoad(name, internal, external);
 		
 		return this;
 	}
 	
-	// Convenience method do add new languages more easy.
-	public FileManager addLang(@Nonnull String file) throws Exception {
-		if (locales == null)
-		locales = new ArrayList<>();
-		
-		DiscordLocale locale = DiscordLocale.from(file);
+	// Add new language by locale
+	public FileManager addLang(@Nonnull String localeTag) throws Exception {
+		DiscordLocale locale = DiscordLocale.from(localeTag);
 		if (locale.equals(DiscordLocale.UNKNOWN)) {
-			throw new Exception("Unknown language was provided");
+			throw new IllegalArgumentException("Unknown locale tag was provided: "+localeTag);
 		}
 		locales.add(locale);
 
-		return addFile(file, "/lang/" + file + ".json", Constants.DATA_PATH + "lang" + Constants.SEPAR + file + ".json");
+		return addFile(localeTag, "/lang/" + localeTag + ".json", Constants.DATA_PATH + "lang" + Constants.SEPAR + localeTag + ".json");
 	}
 	
 	public Map<String, File> getFiles() {
@@ -74,9 +74,6 @@ public class FileManager {
 	}
 	
 	public void createUpdateLoad(String name, String internal, String external) {
-		if (files == null)
-			files = new HashMap<>();
-
 		File file = new File(external);
 		
 		String[] split = external.contains("/") ? external.split(File.separator) : external.split(Pattern.quote(File.separator));
@@ -89,11 +86,11 @@ public class FileManager {
 					}
 				}
 				if (file.createNewFile()) {
-					if (export(App.class.getResourceAsStream(internal), Paths.get(external))) {
+					if (!export(App.class.getResourceAsStream(internal), Paths.get(external))) {
+						logger.error("Failed to write {}!", name);
+					} else {
 						logger.info("Successfully created {}!", name);
 						files.put(name, file);
-					} else {
-						logger.error("Failed to write {}!", name);
 					}
 				}
 				return;
@@ -115,82 +112,89 @@ public class FileManager {
 				}
 				tempFile.delete();
 			}
-
 			files.put(name, file);
 			logger.info("Successfully loaded {}!", name);
 		} catch (IOException ex) {
 			logger.error("Couldn't locate nor create {}", file.getAbsolutePath(), ex);
 		}
 	}
-	
+
+	/**
+	 * @param name - json file to be searched
+	 * @param path - string's json path
+	 * @return Returns not-null string. If search returns null string, returns provided path. 
+	 */
 	@Nonnull
 	public String getString(String name, String path) {
+		String result = getNullableString(name, path);
+		if (result == null) {
+			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
+			return path;
+		}
+		return result;
+	}
+	
+	/**
+	 * @param name - json file to be saerched
+	 * @param path - string's json path
+	 * @return Returns null-able string. 
+	 */
+	@Nullable
+	public String getNullableString(String name, String path) {
 		File file = files.get(name);
 
-		String text = "";
+		String text = null;
 		try {
 			if (file == null)
 				throw new FileNotFoundException();
 
-			Configuration conf = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS);
+			text = JsonPath.using(CONF).parse(file).read("$." + path);
 
-			text = JsonPath.using(conf).parse(file).read("$." + path);
-
-			if (text == null || text.isEmpty())
-				throw new KeyIsNull(path);
+			if (text != null && text.isBlank()) text = null;
 		
 		} catch (FileNotFoundException ex) {
 			logger.error("Couldn't find file {}.json", name);
-			text = "TEXT ERROR: file not found";
-		} catch (KeyIsNull ex) {
-			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
-			text = ex.getMessage();
+			text = "FILE ERROR: file not found";
+		} catch (InvalidPathException ex) {
+			logger.error("Invalid path '{}'\n{}", path, ex.getMessage());
+			text = "PATH ERROR: invalid";
 		} catch (IOException ex) {
-			logger.error("Couldn't process file {}.json", name, ex);
-			text = "ERROR at processing file";
+			logger.error("Couldn't process file {}.json\n{}", name, ex.getMessage());
+			text = "FILE ERROR: IO exception";
 		}
 
-		return Objects.requireNonNull(text);
+		return text;
 	}
 	
-	public boolean getBoolean(String name, String path){
+	@Nullable
+	public Boolean getBoolean(String name, String path){
 		File file = files.get(name);
 		
-		if(file == null)
-			return false;
+		if (file == null) return null;
 		
 		try {
+			Boolean res = JsonPath.using(CONF).parse(file).read("$." + path);
 			
-			Configuration conf = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
-
-			Object res = JsonPath.using(conf).parse(file).read("$." + path);
-			
-			if (res == null || res.equals(null))
-				return false;
-				
-			return true;
+			return res;
 		} catch (FileNotFoundException ex) {
 			logger.error("Couldn't find file {}.json", name);
-			return false;
 		} catch (IOException ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
-			return false;
 		}
+		return null;
 	}
 
 	@Nonnull
 	public List<String> getStringList(String name, String path){
 		File file = files.get(name);
 		
-		if(file == null)
-			return new ArrayList<>();
+		if (file == null) {
+			logger.error("Couldn't find file {}.json", name);
+			return Collections.emptyList();
+		}
 
-		List<String> array = new ArrayList<String>();
 		try {
-			
-			Configuration conf = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
-
-			array = JsonPath.using(conf).parse(file).read("$." + path);	
+			List<String> array = JsonPath.using(CONF).parse(file).read("$." + path);	
 			
 			if (array == null || array.isEmpty())
 				throw new KeyIsNull(path);
@@ -198,14 +202,38 @@ public class FileManager {
 			return array;
 		} catch (FileNotFoundException ex) {
 			logger.error("Couldn't find file {}.json", name);
-			return new ArrayList<>();
 		} catch (KeyIsNull ex) {
 			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
-			return new ArrayList<>();
 		} catch (IOException ex) {
 			logger.warn("Couldn't process file {}.json", name, ex);
-			return new ArrayList<>();
 		}
+		return Collections.emptyList();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Nonnull
+	public Map<String, String> getMap(String name, String path){
+		File file = files.get(name);
+		if(file == null) {
+			logger.error("Couldn't find file {}.json", name);
+			return Collections.emptyMap();
+		}
+
+		try {
+			Map<String, String> map = JsonPath.using(CONF).parse(file).read("$." + path, Map.class);	
+			
+			if (map == null || map.isEmpty())
+				throw new KeyIsNull(path);
+				
+			return map;
+		} catch (FileNotFoundException ex) {
+			logger.error("Couldn't find file {}.json", name);
+		} catch (KeyIsNull ex) {
+			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
+		} catch (IOException ex) {
+			logger.warn("Couldn't process file {}.json", name, ex);
+		}
+		return Collections.emptyMap();
 	}
 
 	public boolean export(InputStream inputStream, Path destination){
