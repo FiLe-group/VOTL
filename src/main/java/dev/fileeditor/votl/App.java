@@ -1,12 +1,38 @@
 package dev.fileeditor.votl;
 
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import dev.fileeditor.votl.base.command.CommandClient;
+import dev.fileeditor.votl.base.command.CommandClientBuilder;
+import dev.fileeditor.votl.base.waiter.EventWaiter;
+import dev.fileeditor.votl.commands.guild.*;
+import dev.fileeditor.votl.commands.moderation.*;
+import dev.fileeditor.votl.commands.other.*;
+import dev.fileeditor.votl.commands.owner.*;
+import dev.fileeditor.votl.commands.verification.*;
+import dev.fileeditor.votl.commands.voice.*;
+import dev.fileeditor.votl.commands.webhook.WebhookCmd;
+import dev.fileeditor.votl.listeners.AutoCompleteListener;
+import dev.fileeditor.votl.listeners.ButtonListener;
+import dev.fileeditor.votl.listeners.GuildListener;
+import dev.fileeditor.votl.listeners.VoiceListener;
+import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.objects.constants.Links;
+import dev.fileeditor.votl.services.CountingThreadFactory;
+import dev.fileeditor.votl.services.ExpiryCheck;
+import dev.fileeditor.votl.utils.CheckUtil;
+import dev.fileeditor.votl.utils.WebhookAppender;
+import dev.fileeditor.votl.utils.database.DBUtil;
+import dev.fileeditor.votl.utils.file.FileManager;
+import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+import dev.fileeditor.votl.utils.logs.GuildLogger;
+import dev.fileeditor.votl.utils.logs.LogEmbedUtil;
+import dev.fileeditor.votl.utils.message.EmbedUtil;
+import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -25,29 +51,6 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
-
-import dev.fileeditor.votl.base.command.CommandClient;
-import dev.fileeditor.votl.base.command.CommandClientBuilder;
-import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.commands.guild.*;
-import dev.fileeditor.votl.commands.moderation.*;
-import dev.fileeditor.votl.commands.other.*;
-import dev.fileeditor.votl.commands.owner.*;
-import dev.fileeditor.votl.commands.verification.*;
-import dev.fileeditor.votl.commands.voice.*;
-import dev.fileeditor.votl.commands.webhook.WebhookCmd;
-import dev.fileeditor.votl.listeners.*;
-import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.objects.constants.Links;
-import dev.fileeditor.votl.services.CountingThreadFactory;
-import dev.fileeditor.votl.services.ExpiryCheck;
-import dev.fileeditor.votl.utils.*;
-import dev.fileeditor.votl.utils.database.DBUtil;
-import dev.fileeditor.votl.utils.file.FileManager;
-import dev.fileeditor.votl.utils.file.lang.LangUtil;
-import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
-import dev.fileeditor.votl.utils.logs.LogUtil;
-import dev.fileeditor.votl.utils.message.*;
 
 public class App {
 	
@@ -68,7 +71,8 @@ public class App {
 	private final AutoCompleteListener acListener;
 	private final ButtonListener buttonListener;
 
-	private final LogListener logListener;
+	private final GuildLogger guildLogger;
+	private final LogEmbedUtil logEmbedUtil;
 	
 	private final ScheduledExecutorService scheduledExecutor;
 	private final ExpiryCheck expiryCheck;
@@ -78,7 +82,6 @@ public class App {
 	private final EmbedUtil embedUtil;
 	private final CheckUtil checkUtil;
 	private final LocaleUtil localeUtil;
-	private final LogUtil logUtil;
 
 	public App() {
 		try {
@@ -97,13 +100,14 @@ public class App {
 		messageUtil	= new MessageUtil(localeUtil);
 		embedUtil	= new EmbedUtil(localeUtil);
 		checkUtil	= new CheckUtil(this);
-		logUtil		= new LogUtil(this);
 
 		WAITER			= new EventWaiter();
 		guildListener	= new GuildListener(this);
 		voiceListener	= new VoiceListener(this);
-		logListener		= new LogListener(this);
 		buttonListener	= new ButtonListener(this);
+
+		guildLogger		= new GuildLogger(this);
+		logEmbedUtil	= new LogEmbedUtil(localeUtil);
 
 		scheduledExecutor	= new ScheduledThreadPoolExecutor(2, new CountingThreadFactory("VOTL", "Scheduler", false));
 		expiryCheck			= new ExpiryCheck(this);
@@ -264,12 +268,12 @@ public class App {
 		return localeUtil;
 	}
 
-	public LogUtil getLogUtil() {
-		return logUtil;
+	public GuildLogger getLogger() {
+		return guildLogger;
 	}
 
-	public LogListener getLogListener() {
-		return logListener;
+	public LogEmbedUtil getLogEmbedUtil() {
+		return logEmbedUtil;
 	}
 
 	public static void main(String[] args) {

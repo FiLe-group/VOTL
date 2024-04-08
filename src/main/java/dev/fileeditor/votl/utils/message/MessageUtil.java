@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 public class MessageUtil {
 
-	private final Random random;
+	private final Random random = new Random();
 	private final LocaleUtil lu;
 
 	private static final DecimalFormat decimalFormat = new DecimalFormat("# ### ###");
@@ -23,7 +23,6 @@ public class MessageUtil {
 	private static final Pattern rolePattern = Pattern.compile("<@&(\\d+)>", Pattern.CASE_INSENSITIVE);
 
 	public MessageUtil(LocaleUtil localeUtil) {
-		this.random = new Random();
 		this.lu = localeUtil;
 	}
 
