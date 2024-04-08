@@ -16,19 +16,11 @@ import dev.fileeditor.votl.commands.owner.*;
 import dev.fileeditor.votl.commands.verification.*;
 import dev.fileeditor.votl.commands.voice.*;
 import dev.fileeditor.votl.commands.webhook.WebhookCmd;
-import dev.fileeditor.votl.listeners.AuditListener;
-import dev.fileeditor.votl.listeners.AutoCompleteListener;
-import dev.fileeditor.votl.listeners.CommandListener;
-import dev.fileeditor.votl.listeners.GuildListener;
-import dev.fileeditor.votl.listeners.InteractionListener;
-import dev.fileeditor.votl.listeners.MemberListener;
-import dev.fileeditor.votl.listeners.MessageListener;
-import dev.fileeditor.votl.listeners.ModerationListener;
-import dev.fileeditor.votl.listeners.VoiceListener;
+import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
-import dev.fileeditor.votl.services.ExpiryCheck;
+import dev.fileeditor.votl.services.ScheduledCheck;
 import dev.fileeditor.votl.utils.CheckUtil;
 import dev.fileeditor.votl.utils.GroupHelper;
 import dev.fileeditor.votl.utils.TicketUtil;
@@ -87,7 +79,7 @@ public class App {
 	private final LogEmbedUtil logEmbedUtil;
 	
 	private final ScheduledExecutorService scheduledExecutor;
-	private final ExpiryCheck expiryCheck;
+	private final ScheduledCheck scheduledCheck;
 	
 	private final DBUtil dbUtil;
 	private final MessageUtil messageUtil;
@@ -131,10 +123,11 @@ public class App {
 		auditListener	= new AuditListener(dbUtil, guildLogger);
 		memberListener	= new MemberListener(this);
 
-		scheduledExecutor	= new ScheduledThreadPoolExecutor(2, new CountingThreadFactory("VOTL", "Scheduler", false));
-		expiryCheck			= new ExpiryCheck(this);
+		scheduledExecutor	= new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
+		scheduledCheck		= new ScheduledCheck(this);
 
-		scheduledExecutor.scheduleWithFixedDelay(() -> expiryCheck.checkUnbans(), 2, 10, TimeUnit.MINUTES);
+		scheduledExecutor.scheduleWithFixedDelay(() -> scheduledCheck.regularChecks(), 2, 5, TimeUnit.MINUTES);
+		scheduledExecutor.scheduleWithFixedDelay(() -> scheduledCheck.irregularChecks(), 3, 15, TimeUnit.MINUTES);
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()

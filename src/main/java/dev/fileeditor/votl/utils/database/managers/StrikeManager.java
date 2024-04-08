@@ -25,8 +25,8 @@ public class StrikeManager extends LiteBase {
 		return selectOne("SELECT count FROM %s WHERE (guildId=%d AND userId=%d)".formatted(table, guildId, userId), "count", Integer.class);
 	}
 
-	public List<Map<String, Object>> getExpired(Instant time) {
-		return select("SELECT * FROM %s WHERE (expiresAt<%d)".formatted(table, time.getEpochSecond()), Set.of("guildId", "userId", "count", "data"));
+	public List<Map<String, Object>> getExpired() {
+		return select("SELECT * FROM %s WHERE (expiresAt<%d)".formatted(table, Instant.now().getEpochSecond()), Set.of("guildId", "userId", "count", "data"));
 	}
 
 	public Pair<Integer, String> getData(long guildId, long userId) {

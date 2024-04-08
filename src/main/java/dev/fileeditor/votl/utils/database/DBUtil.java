@@ -106,6 +106,10 @@ public class DBUtil {
 		return guildSettings.getSettings(guild.getIdLong());
 	}
 
+	public GuildSettings getGuildSettings(long guildId) {
+		return guildSettings.getSettings(guildId);
+	}
+
 	public VerifySettings getVerifySettings(Guild guild) {
 		return verifySettings.getSettings(guild.getIdLong());
 	}
