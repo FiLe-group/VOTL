@@ -20,6 +20,7 @@ import dev.fileeditor.votl.commands.verification.*;
 import dev.fileeditor.votl.commands.voice.VoiceCmd;
 import dev.fileeditor.votl.commands.webhook.WebhookCmd;
 import dev.fileeditor.votl.listeners.*;
+import dev.fileeditor.votl.menus.ReportMenu;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
@@ -193,6 +194,9 @@ public class App {
 				new VoiceCmd(this),
 				// webhook
 				new WebhookCmd(this)
+			)
+			.addContextMenus(
+				new ReportMenu(this)
 			)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
 			.build();

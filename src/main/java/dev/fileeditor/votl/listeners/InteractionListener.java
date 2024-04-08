@@ -46,6 +46,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
@@ -862,11 +863,6 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		if (bot.getHelper() == null) {
-			sendError(event, "errors.no_helper");
-			return;
-		}
-
 		String userId = event.getComponentId().split(":")[1];
 		CaseData caseData = db.cases.getMemberActive(Long.parseLong(userId), event.getGuild().getIdLong(), CaseType.BAN);
 		if (caseData == null || !caseData.getDuration().isZero()) {
@@ -936,11 +932,6 @@ public class InteractionListener extends ListenerAdapter {
 	private void buttonUnbanSync(ButtonInteractionEvent event) {
 		if (!bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.OPERATOR)) {
 			sendError(event, "errors.interaction.no_access");
-			return;
-		}
-
-		if (bot.getHelper() == null) {
-			sendError(event, "errors.no_helper");
 			return;
 		}
 
@@ -1019,6 +1010,26 @@ public class InteractionListener extends ListenerAdapter {
 		).queue();
 	}
 
+	@Override
+	public void onModalInteraction(@Nonnull ModalInteractionEvent event) {
+		event.deferReply(true).queue();
+		String modalId = event.getModalId();
+
+		if (modalId.equals("vfpanel")) {
+			if (event.getValues().size() == 0) {
+				sendError(event, "errors.interaction.no_values");
+				return;
+			}
+
+			String main = event.getValue("main").getAsString();
+			db.verifySettings.setPanelText(event.getGuild().getIdLong(), main.isBlank() ? "NULL" : main);
+
+			event.getHook().editOriginalEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, "bot.verification.vfpanel.text.done"))
+				.build()
+			).queue();
+		}
+	}
 
 	@Override
 	public void onStringSelectInteraction(@Nonnull StringSelectInteractionEvent event) {

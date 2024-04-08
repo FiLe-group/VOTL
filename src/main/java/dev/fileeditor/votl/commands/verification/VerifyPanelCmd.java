@@ -152,7 +152,7 @@ public class VerifyPanelCmd extends CommandBase {
 			}
 			bot.getDBUtil().verifySettings.setPanelImage(event.getGuild().getIdLong(), imageUrl);
 			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getText(event, path+".done").formatted(imageUrl))
 				.build()
 			);
 		}

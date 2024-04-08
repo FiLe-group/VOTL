@@ -58,8 +58,7 @@ public class EvalCmd extends CommandBase {
 			"event", event,
 			"jda", event.getJDA(),
 			"guild", (event.isFromGuild() ? event.getGuild() : "null"),
-			"client", event.getClient(),
-			"helper", (bot.getHelper() != null ? bot.getHelper() : "null")
+			"client", event.getClient()
 		);
 
 		Binding binding = new Binding(variables);
