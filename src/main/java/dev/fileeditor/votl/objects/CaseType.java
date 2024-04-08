@@ -14,7 +14,7 @@ public enum CaseType {
 	STRIKE_2(22, "case_type.strike2", true),
 	STRIKE_3(23, "case_type.strike3", true);
 
-	private final Integer type;
+	private final int value;
 	private final String path;
 	private final Boolean active;
 
@@ -22,18 +22,18 @@ public enum CaseType {
 
 	static {
 		for (CaseType ct : CaseType.values()) {
-			BY_TYPE.put(ct.getType(), ct);
+			BY_TYPE.put(ct.getValue(), ct);
 		}
 	}
 
-	CaseType(Integer type, String path, Boolean active) {
-		this.type = type;
+	CaseType(int value, String path, Boolean active) {
+		this.value = value;
 		this.path = path;
 		this.active = active;
 	}
 
-	public int getType() {
-		return type;
+	public int getValue() {
+		return value;
 	}
 
 	public String getPath() {

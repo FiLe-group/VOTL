@@ -15,9 +15,9 @@ public class RoleManager extends LiteBase {
 		super(cu, "roles");
 	}
 
-	public void add(long guildId, long roleId, String description, Integer row, RoleType roleType) {
-		execute("INSERT INTO %s(guildId, roleId, description, type, row) VALUES (%s, %s, %s, %d, %d, %s)"
-			.formatted(table, guildId, roleId, quote(description), roleType.getType(), Optional.ofNullable(row).orElse(0)));
+	public void add(long guildId, long roleId, String description, Integer row, RoleType roleType, boolean timed) {
+		execute("INSERT INTO %s(guildId, roleId, description, type, row, timed) VALUES (%s, %s, %s, %s, %s, %s)"
+			.formatted(table, guildId, roleId, quote(description), roleType.getType(), Optional.ofNullable(row).orElse(0), timed ? 1 : 0));
 	}
 
 	public void remove(long roleId) {
@@ -41,8 +41,8 @@ public class RoleManager extends LiteBase {
 	}
 
 	public List<Map<String, Object>> getAssignableByRow(long guildId, int row) {
-		return select("SELECT * FROM %s WHERE (guildId=%s AND type>%d AND row=%d)".formatted(table, guildId, RoleType.ASSIGN.getType(), row),
-			Set.of("roleId", "description", "discordInvite")
+		return select("SELECT * FROM %s WHERE (guildId=%s AND type=%d AND row=%d)".formatted(table, guildId, RoleType.ASSIGN.getType(), row),
+			Set.of("roleId", "description", "timed")
 		);
 	}
 
@@ -78,12 +78,21 @@ public class RoleManager extends LiteBase {
 		return data;
 	}
 
+	public boolean isTimed(long roleId) {
+		Integer data = selectOne("SELECT timed FROM %s WHERE (roleId=%s)".formatted(table, roleId), "timed", Integer.class);
+		return data == null ? false : data==1;
+	}
+
 	public void setDescription(long roleId, String description) {
 		execute("UPDATE %s SET description=%s WHERE (roleId=%s)".formatted(table, quote(description), roleId));
 	}
 
 	public void setRow(long roleId, Integer row) {
 		execute("UPDATE %s SET row=%d WHERE (roleId=%s)".formatted(table, Optional.ofNullable(row).orElse(0), roleId));
+	}
+
+	public void setTimed(long roleId, boolean timed) {
+		execute("UPDATE %s SET timed=%s WHERE (roleId=%s)".formatted(table, timed ? 1 : 0, roleId));
 	}
 
 	public boolean isToggleable(long roleId) {

@@ -1,8 +1,8 @@
 package dev.fileeditor.votl.commands.other;
 
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
 public class PingCmd extends CommandBase {

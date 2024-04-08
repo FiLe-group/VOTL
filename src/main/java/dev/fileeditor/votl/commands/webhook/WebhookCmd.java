@@ -1,10 +1,17 @@
 package dev.fileeditor.votl.commands.webhook;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -12,20 +19,13 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.WebhookType;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
-
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.command.SlashCommand;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.constants.CmdCategory;
 
 public class WebhookCmd extends CommandBase {
 
@@ -34,27 +34,25 @@ public class WebhookCmd extends CommandBase {
 		this.name = "webhook";
 		this.path = "bot.webhook";
 		this.children = new SlashCommand[]{new ShowList(bot), new Create(bot), new Select(bot),
-			new Remove(bot), new Move(bot)};
+			new Remove(bot), new Move(bot), new Here(bot)};
 		this.botPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		this.category = CmdCategory.WEBHOOK;
 		this.module = CmdModule.WEBHOOK;
 		this.accessLevel = CmdAccessLevel.ADMIN;
-		this.mustSetup = true;
 	}
 
 	@Override
-	protected void execute(SlashCommandEvent event)	{
+	protected void execute(SlashCommandEvent event)	{}
 
-	}
-
-	private class ShowList extends CommandBase {
+	private class ShowList extends SlashCommand {
 
 		public ShowList(App bot) {
-			super(bot);
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
 			this.name = "list";
 			this.path = "bot.webhook.list";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.BOOLEAN, "all", lu.getText(path+".option_all"))
+			this.options = List.of(
+				new OptionData(OptionType.BOOLEAN, "all", lu.getText(path+".all.help"))
 			);
 		}
 
@@ -63,12 +61,11 @@ public class WebhookCmd extends CommandBase {
 			event.deferReply(true).queue();
 
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
 			DiscordLocale userLocale = event.getUserLocale();
 
 			Boolean listAll = event.optBoolean("all", false);
 
-			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
+			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getLocalized(userLocale, path+".embed.title"));
 			
 			// Retrieves every webhook in server
@@ -79,9 +76,9 @@ public class WebhookCmd extends CommandBase {
 				// If there is any webhook and only saved in DB are to be shown
 				if (!listAll) {
 					// Keeps only saved in DB type Webhook objects
-					List<String> regWebhookIDs = bot.getDBUtil().webhook.getIds(guildId);
+					List<Long> regWebhookIDs = bot.getDBUtil().webhook.getWebhookIds(guild.getIdLong());
 						
-					webhooks = webhooks.stream().filter(wh -> regWebhookIDs.contains(wh.getId())).collect(Collectors.toList());
+					webhooks = webhooks.stream().filter(wh -> regWebhookIDs.contains(wh.getIdLong())).collect(Collectors.toList());
 				}
 
 				if (webhooks.isEmpty()) {
@@ -109,108 +106,110 @@ public class WebhookCmd extends CommandBase {
 
 	}
 
-	private class Create extends CommandBase {
+	private class Create extends SlashCommand {
 
 		public Create(App bot) {
-			super(bot);
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
 			this.name = "create";
 			this.path = "bot.webhook.add.create";
-			List<OptionData> options = new ArrayList<OptionData>();
-			options.add(new OptionData(OptionType.STRING, "name", lu.getText(path+".option_name"), true));
-			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".option_channel")));
-			this.options = options;
-			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.webhook.add.help"));
-		}
-
-		@Override
-		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
-
-			String setName = event.optString("name", "Default name").trim();
-			GuildChannel channel = event.optGuildChannel("channel", event.getGuildChannel());
-
-			if (setName.isEmpty() || setName.length() > 100) {
-				createError(event, path+".invalid_range");
-				return;
-			}
-
-			try {
-				// DYK, guildChannel doesn't have WebhookContainer! no shit
-				guild.getTextChannelById(channel.getId()).createWebhook(setName).reason("By "+event.getUser().getAsTag()).queue(
-					webhook -> {
-						bot.getDBUtil().webhook.add(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
-						createReplyEmbed(event,
-							bot.getEmbedUtil().getEmbed(event).setDescription(
-								lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName())
-							).build()
-						);
-					}
-				);
-			} catch (PermissionException ex) {
-				createPermError(event, event.getMember(), ex.getPermission(), true);
-				ex.printStackTrace();
-			}
-		}
-
-	}
-
-	private class Select extends CommandBase {
-
-		public Select(App bot) {
-			super(bot);
-			this.name = "select";
-			this.path = "bot.webhook.add.select";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "id", lu.getText(path+".option_id"), true)
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true),
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"))
+					.setChannelTypes(ChannelType.TEXT)
 			);
 			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.webhook.add.help"));
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			String webhookId = event.optString("id", "0").trim();
+			event.deferReply(true).queue();
+
+			String setName = event.optString("name", "Default name").trim();
+			GuildChannel channel = event.optGuildChannel("channel", event.getGuildChannel());
+
+			if (setName.isEmpty() || setName.length() > 100) {
+				editError(event, path+".invalid_range");
+				return;
+			}
 
 			try {
-				event.getJDA().retrieveWebhookById(Objects.requireNonNull(webhookId)).queue(
+				// DYK, guildChannel doesn't have WebhookContainer! no shit
+				event.getGuild().getTextChannelById(channel.getId()).createWebhook(setName).reason("By "+event.getUser().getName()).queue(
 					webhook -> {
-						if (bot.getDBUtil().webhook.exists(webhookId)) {
-							createError(event, path+".error_registered");
-						} else {
-							bot.getDBUtil().webhook.add(webhook.getId(), webhook.getGuild().getId(), webhook.getToken());
-							createReplyEmbed(event,
-								bot.getEmbedUtil().getEmbed(event).setDescription(
-									lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName())
-								).build()
-							);
-						}
-					}, failure -> {
-						createError(event, path+".error_not_found", failure.getMessage());
+						bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken());
+						editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+							.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
+							.build()
+						);
 					}
 				);
-			} catch (IllegalArgumentException ex) {
-				createError(event, path+".error_not_found", ex.getMessage());
+			} catch (PermissionException ex) {
+				editPermError(event, ex.getPermission(), true);
+				ex.printStackTrace();
 			}
 		}
 
 	}
 
-	private class Remove extends CommandBase {
+	private class Select extends SlashCommand {
 
-		public Remove(App bot) {
-			super(bot);
-			this.name = "remove";
-			this.path = "bot.webhook.remove";
-			List<OptionData> options = new ArrayList<OptionData>();
-			options.add(new OptionData(OptionType.STRING, "id", lu.getText(path+".option_id"), true));
-			options.add(new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".option_delete")));
-			this.options = options;
+		public Select(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "select";
+			this.path = "bot.webhook.add.select";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true)
+			);
+			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.webhook.add.help"));
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
+			event.deferReply(true).queue();
+			Long webhookId = Long.parseLong(event.optString("id"));
 
-			String webhookId = event.optString("id", "0").trim();
+			try {
+				event.getJDA().retrieveWebhookById(webhookId).queue(
+					webhook -> {
+						if (bot.getDBUtil().webhook.exists(webhookId)) {
+							editError(event, path+".error_registered");
+						} else {
+							bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken());
+							editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+								.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
+								.build()
+							);
+						}
+					}, failure -> {
+						editError(event, path+".error_not_found", failure.getMessage());
+					}
+				);
+			} catch (IllegalArgumentException ex) {
+				editError(event, path+".error_not_found", ex.getMessage());
+			}
+		}
+
+	}
+
+	private class Remove extends SlashCommand {
+
+		public Remove(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "remove";
+			this.path = "bot.webhook.remove";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true),
+				new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".delete.help"))
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+			Long webhookId = Long.parseLong(event.optString("id"));
 			Boolean delete = event.optBoolean("delete", false); 
 
 			try {
@@ -219,15 +218,14 @@ public class WebhookCmd extends CommandBase {
 						if (!bot.getDBUtil().webhook.exists(webhookId)) {
 							createError(event, path+".error_not_registered");
 						} else {
-							if (webhook.getGuild().equals(guild)) {
+							if (webhook.getGuild().equals(event.getGuild())) {
 								if (delete) {
-									webhook.delete(webhook.getToken()).reason("By "+event.getUser().getAsTag()).queue();
+									webhook.delete(webhook.getToken()).reason("By "+event.getUser().getName()).queue();
 								}
 								bot.getDBUtil().webhook.remove(webhookId);
-								createReplyEmbed(event,
-									bot.getEmbedUtil().getEmbed(event).setDescription(
-										lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName())
-									).build()
+								createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+									.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
+									.build()
 								);
 							} else {
 								createError(event, path+".error_not_guild", 
@@ -246,55 +244,118 @@ public class WebhookCmd extends CommandBase {
 
 	}
 
-	private class Move extends CommandBase {
+	private class Move extends SlashCommand {
 
 		public Move(App bot) {
-			super(bot);
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
 			this.name = "move";
 			this.path = "bot.webhook.move";
-			List<OptionData> options = new ArrayList<OptionData>();
-			options.add(new OptionData(OptionType.STRING, "id", lu.getText(path+".option_id"), true));
-			options.add(new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".option_channel"), true));
-			this.options = options;
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true),
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
+			);
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
-
-			String webhookId = event.optString("id", "0").trim();
+			event.deferReply(true).queue();
+			Guild guild = event.getGuild();
+			Long webhookId = Long.parseLong(event.optString("id"));
 			GuildChannel channel = event.optGuildChannel("channel");
 
 			if (!channel.getType().equals(ChannelType.TEXT)) {
-				createError(event, path+".error_channel", "Selected channel is not Text Channel");
+				editError(event, path+".error_channel", "Selected channel is not Text Channel.");
+				return;
+			}
+
+			TextChannel textChannel = guild.getTextChannelById(channel.getId());
+			if (textChannel == null) {
+				editError(event, path+".error_channel", "Selected channel not found in this server.\nChannel ID: `%s`".formatted(channel.getId()));
 				return;
 			}
 
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
 					if (bot.getDBUtil().webhook.exists(webhookId)) {
-						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).reason("By "+event.getUser().getAsTag()).queue(
+						bot.getDBUtil().guildSettings.setLastWebhookId(guild.getIdLong(), webhookId);
+						webhook.getManager().setChannel(textChannel).reason("By "+event.getUser().getName()).queue(
 							wm -> {
-								createReplyEmbed(event,
-									bot.getEmbedUtil().getEmbed(event).setDescription(
-										lu.getText(event, path+".done")
-											.replace("{webhook_name}", webhook.getName())
-											.replace("{channel}", channel.getName())
-									).build()
+								editHookEmbed(event,bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+									.setDescription(lu.getText(event, path+".done")
+										.replace("{webhook_name}", webhook.getName())
+										.replace("{channel}", channel.getName())
+									)
+									.build()
 								);
 							},
 							failure -> {
-								createError(event, "errors.unknown", failure.getMessage());
+								editError(event, "errors.error", failure.getMessage());
 							}
 						);
 					} else {
-						createError(event, path+".error_not_registered");
+						editError(event, path+".error_not_registered");
 					}
 				}, failure -> {
-					createError(event, path+".error_not_found", failure.getMessage());
+					editError(event, path+".error_not_found", failure.getMessage());
 				}
 			);
 		}
 
 	}
+
+	private class Here extends SlashCommand {
+
+		public Here(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "here";
+			this.path = "bot.webhook.here";
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+			Guild guild = event.getGuild();
+
+			Long webhookId = bot.getDBUtil().getGuildSettings(guild).getLastWebhookId();
+			if (webhookId == null) {
+				editError(event, path+".id_null");
+				return;
+			}
+			
+			GuildChannel channel = event.getGuildChannel();
+			if (!channel.getType().equals(ChannelType.TEXT)) {
+				editError(event, path+".error_channel", "Selected channel is not Text Channel");
+				return;
+			}
+
+			event.getJDA().retrieveWebhookById(webhookId).queue(
+				webhook -> {
+					if (bot.getDBUtil().webhook.exists(webhookId)) {
+						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).reason("By "+event.getUser().getName()).queue(
+							wm -> {
+								editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+									.setDescription(lu.getText(event, path+".done")
+										.replace("{webhook_name}", webhook.getName())
+										.replace("{channel}", channel.getName())
+									)
+									.build()
+								);
+							},
+							failure -> {
+								editError(event, "errors.error", failure.getMessage());
+							}
+						);
+					} else {
+						editError(event, path+".error_not_registered");
+					}
+				}, failure -> {
+					editError(event, path+".error_not_found", failure.getMessage());
+				}
+			);
+		}
+
+	}
+
 }

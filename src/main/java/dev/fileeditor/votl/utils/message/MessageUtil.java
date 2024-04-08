@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 public class MessageUtil {
 
-	private final Random random = new Random();
+	private static final Random random = new Random();
 	private final LocaleUtil lu;
 
 	private static final DecimalFormat decimalFormat = new DecimalFormat("# ### ###");
@@ -46,7 +46,7 @@ public class MessageUtil {
 		return ids;
 	}
 
-	public Color getColor(String input) {
+	public static Color getColor(String input) {
 		input = input.toLowerCase();
 		if (!input.equals("random") && !(input.length() == 6 || input.contains(",")))
 			return null;

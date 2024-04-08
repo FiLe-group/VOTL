@@ -13,8 +13,11 @@ import dev.fileeditor.votl.commands.guild.*;
 import dev.fileeditor.votl.commands.moderation.*;
 import dev.fileeditor.votl.commands.other.*;
 import dev.fileeditor.votl.commands.owner.*;
+import dev.fileeditor.votl.commands.role.*;
+import dev.fileeditor.votl.commands.strike.*;
+import dev.fileeditor.votl.commands.ticketing.*;
 import dev.fileeditor.votl.commands.verification.*;
-import dev.fileeditor.votl.commands.voice.*;
+import dev.fileeditor.votl.commands.voice.VoiceCmd;
 import dev.fileeditor.votl.commands.webhook.WebhookCmd;
 import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -57,7 +60,7 @@ public class App {
 
 	private static App instance;
 
-	public final String version = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
+	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
 
 	public final JDA JDA;
 	public final EventWaiter WAITER;
@@ -137,50 +140,59 @@ public class App {
 			.setStatus(OnlineStatus.ONLINE)
 			.setActivity(Activity.customStatus("/help"))
 			.addSlashCommands(
-				// voice
-				new SetNameCmd(this),
-				new SetLimitCmd(this),
-				new ClaimCmd(this),
-				new NameCmd(this),
-				new LimitCmd(this),
-				new PermitCmd(this),
-				new RejectCmd(this),
-				new LockCmd(this),
-				new UnlockCmd(this),
-				new GhostCmd(this),
-				new UnghostCmd(this),
-				new PermsCmd(this),
 				// guild
-				new SetupCmd(this),
-				new ModuleCmd(this, WAITER),
 				new AccessCmd(this),
-				new LogCmd(this, WAITER),
-				// owner
-				new ShutdownCmd(this),
-				new EvalCmd(this),
-				new InviteCmd(this),
-				new GenerateListCmd(this),
-				// webhook
-				new WebhookCmd(this),
+				new AutopunishCmd(this),
+				new LogsCmd(this),
+				new ModuleCmd(this, WAITER),
+				new SetupCmd(this),
 				// moderation
-				new BanCmd(this, WAITER),
-				new UnbanCmd(this, WAITER),
-				new KickCmd(this, WAITER),
-				new SyncCmd(this, WAITER),
+				new BanCmd(this),
+				new BlacklistCmd(this),
 				new CaseCmd(this),
-				new ReasonCmd(this),
 				new DurationCmd(this),
 				new GroupCmd(this, WAITER),
+				new KickCmd(this, WAITER),
+				new ModLogsCmd(this),
+				new ModStatsCmd(this),
+				new ReasonCmd(this),
+				new SyncCmd(this, WAITER),
+				new UnbanCmd(this),
+				new UnmuteCmd(this),
 				// other
-				new PingCmd(this),
 				new AboutCmd(this),
 				new HelpCmd(this),
+				new PingCmd(this),
 				new StatusCmd(this),
-				// verify
+				// owner
+				new EvalCmd(this),
+				new ForceAccessCmd(this),
+				new GenerateListCmd(this),
+				new ShutdownCmd(this),
+				// role
+				new RoleCmd(this),
+				new TempRoleCmd(this),
+				// strike
+				new ClearStrikesCmd(this),
+				new DeleteStikeCmd(this, WAITER),
+				new StrikeCmd(this),
+				new StrikesCmd(this),
+				// ticketing
+				new AddUserCmd(this),
+				new CloseCmd(this),
+				new RcloseCmd(this),
+				new RemoveUserCmd(this),
+				new RolesManageCmd(this),
+				new RolesPanelCmd(this),
+				new TicketCountCmd(this),
+				new TicketPanelCmd(this),
+				// verification
 				new VerifyPanelCmd(this),
 				new VerifyRoleCmd(this),
-				new VerifyCmd(this),
-				new BlacklistCmd(this)
+				// voice
+				new VoiceCmd(this),
+				// webhook
+				new WebhookCmd(this)
 			)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
 			.build();

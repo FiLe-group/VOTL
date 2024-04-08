@@ -6,8 +6,7 @@ import java.util.Map;
 public enum RoleType {
 	CUSTOM(0, "role_type.custom"),
 	TOGGLE(1, "role_type.toggle"),
-	ASSIGN(2, "role_type.assign"),
-	ASSIGN_TEMP(3, "role_type.assign_temp");
+	ASSIGN(2, "role_type.assign");
 
 	private final Integer type;
 	private final String path;

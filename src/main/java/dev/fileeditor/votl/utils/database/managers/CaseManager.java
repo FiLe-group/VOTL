@@ -26,7 +26,7 @@ public class CaseManager extends LiteBase {
 	// add new case
 	public void add(CaseType type, long userId, String userName, long modId, String modName, long guildId, String reason, Instant timeStart, Duration duration) {
 		execute("INSERT INTO %s(type, targetId, targetTag, modId, modTag, guildId, reason, timeStart, duration, active) VALUES (%d, %d, %s, %d, %s, %d, %s, %d, %d, %d)"
-			.formatted(table, type.getType(), userId, quote(userName), modId, quote(modName), guildId, quote(reason),
+			.formatted(table, type.getValue(), userId, quote(userName), modId, quote(modName), guildId, quote(reason),
 			timeStart.getEpochSecond(), duration == null ? -1 : duration.getSeconds(), type.isActiveInt()));
 	}
 
@@ -84,7 +84,7 @@ public class CaseManager extends LiteBase {
 	// get user active temporary cases data
 	public CaseData getMemberActive(long userId, long guildId, CaseType type) {
 		Map<String, Object> data = selectOne("SELECT * FROM %s WHERE (guildId=%d AND targetId=%d AND type=%d AND active=1)"
-			.formatted(table, guildId, userId, type.getType()), fullCaseKeys);
+			.formatted(table, guildId, userId, type.getValue()), fullCaseKeys);
 		if (data == null) return null;
 		return new CaseData(data);
 	}
@@ -105,7 +105,7 @@ public class CaseManager extends LiteBase {
 	// set all strike cases for user inactive
 	// Better way for this is harder...
 	public void setInactiveByType(long userId, long guildId, CaseType type) {
-		execute("UPDATE %s SET active=0 WHERE (targetId=%d AND guildId=%d AND type=%d)".formatted(table, userId, guildId, type.getType()));
+		execute("UPDATE %s SET active=0 WHERE (targetId=%d AND guildId=%d AND type=%d)".formatted(table, userId, guildId, type.getValue()));
 	}
 
 	// get user's last case

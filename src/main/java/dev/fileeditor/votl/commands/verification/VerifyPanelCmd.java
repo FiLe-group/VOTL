@@ -1,25 +1,30 @@
 package dev.fileeditor.votl.commands.verification;
 
-import java.awt.Color;
-import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.command.SlashCommand;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.constants.CmdCategory;
-import dev.fileeditor.votl.objects.constants.Constants;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 
 public class VerifyPanelCmd extends CommandBase {
 	
@@ -27,121 +32,130 @@ public class VerifyPanelCmd extends CommandBase {
 		super(bot);
 		this.name = "vfpanel";
 		this.path = "bot.verification.vfpanel";
-		this.children = new SlashCommand[]{new Create(bot), new Text(bot), new SetColor(bot)};
+		this.children = new SlashCommand[]{new Create(bot), new Preview(bot), new SetText(bot), new SetImage(bot)};
+		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
 		this.module = CmdModule.VERIFICATION;
 		this.category = CmdCategory.VERIFICATION;
 		this.accessLevel = CmdAccessLevel.ADMIN;
-		this.mustSetup = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {}
 
-	private class Create extends CommandBase {
-		
+	private class Create extends SlashCommand {
 		public Create(App bot) {
-			super(bot);
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
 			this.name = "create";
 			this.path = "bot.verification.vfpanel.create";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".option_channel"), true)
+			this.options = List.of(
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
+					.setChannelTypes(ChannelType.TEXT)
 			);
-			this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+
+			Guild guild = event.getGuild();
 			GuildChannel channel = event.optGuildChannel("channel");
-			if (channel == null || channel.getType() != ChannelType.TEXT) {
-				createError(event, path+".no_channel", "Received: "+(channel == null ? "No channel" : channel.getType()));
+			if (channel == null ) {
+				editError(event, path+".no_channel", "Received: No channel");
 				return;
 			}
 			TextChannel tc = (TextChannel) channel;
 
-			if (bot.getDBUtil().verify.getVerifyRole(event.getGuild().getId()) == null) {
-				createError(event, path+".no_role");
+			if (bot.getDBUtil().getVerifySettings(guild).getRoleId() == null) {
+				editError(event, path+".no_role");
 				return;
 			}
 
 			Button next = Button.primary("verify", lu.getLocalized(event.getGuildLocale(), path+".continue"));
-			String text = bot.getDBUtil().verify.getPanelText(event.getGuild().getId());
 
-			tc.sendMessageEmbeds(new EmbedBuilder().setColor(bot.getDBUtil().verify.getColor(event.getGuild().getId())).setDescription(text).build()).addActionRow(next).queue();
+			tc.sendMessageEmbeds(new EmbedBuilder()
+				.setColor(bot.getDBUtil().getGuildSettings(guild).getColor())
+				.setDescription(bot.getDBUtil().getVerifySettings(guild).getPanelText())
+				.setImage(bot.getDBUtil().getVerifySettings(guild).getPanelImageUrl())
+				.setFooter(event.getGuild().getName(), event.getGuild().getIconUrl())
+				.build()
+			).addActionRow(next).queue();
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention()))
-				.setColor(Constants.COLOR_SUCCESS)
-				.build());
+				.build()
+			);
 		}
-
 	}
 
-	private class Text extends CommandBase {
-		
-		public Text(App bot) {
-			super(bot);
+	private class Preview extends SlashCommand {
+		public Preview(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "preview";
+			this.path = "bot.verification.vfpanel.preview";
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			Integer color = bot.getDBUtil().getGuildSettings(guild).getColor(); 
+			
+			MessageEmbed main = new EmbedBuilder().setColor(color)
+				.setDescription(bot.getDBUtil().getVerifySettings(guild).getPanelText())
+				.setImage(bot.getDBUtil().getVerifySettings(guild).getPanelImageUrl())
+				.setFooter(event.getGuild().getName(), event.getGuild().getIconUrl())
+				.build();
+			
+			event.replyEmbeds(main).setEphemeral(true).queue();
+		}
+	}
+
+	private class SetText extends SlashCommand {
+		public SetText(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
 			this.name = "text";
 			this.path = "bot.verification.vfpanel.text";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "text", lu.getText(path+".option_text"), true)
-			);
-			this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			String guildId = event.getGuild().getId();
-			String text = event.optString("text");
+			TextInput main = TextInput.create("main", lu.getText(event, path+".main"), TextInputStyle.PARAGRAPH)
+				.setPlaceholder("Verify here")
+				.setRequired(false)
+				.build();
 
-			if (!bot.getDBUtil().verify.exists(guildId)) {
-				bot.getDBUtil().verify.add(guildId);
+			event.replyModal(Modal.create("vfpanel", lu.getText(event, path+".panel")).addActionRow(main).build()).queue();
+		}
+	}
+
+	private class SetImage extends SlashCommand {
+		public final static Pattern URL_PATTERN = Pattern.compile("\\s*https?://\\S+\\s*", Pattern.CASE_INSENSITIVE);
+
+		public SetImage(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "image";
+			this.path = "bot.verification.vfpanel.image";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "image_url", lu.getText(path+".image_url.help"), true)
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			String imageUrl = event.optString("image_url");
+
+			if (!URL_PATTERN.matcher(imageUrl).matches()) {
+				createError(event, path+".unknown_url", "URL: "+imageUrl);
 			}
-			bot.getDBUtil().verify.setPanelText(guildId, text);
-
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
+			bot.getDBUtil().verifySettings.setPanelImage(event.getGuild().getIdLong(), imageUrl);
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done"))
-				.setColor(Constants.COLOR_SUCCESS)
-				.build());
-		}
-
-	}
-
-	private class SetColor extends CommandBase {
-
-		public SetColor(App bot) {
-			super(bot);
-			this.name = "color";
-			this.path = "bot.verification.vfpanel.color";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "color", lu.getText(path+".option_color"), true).setMaxLength(20)
+				.build()
 			);
-			this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
 		}
-
-		@Override
-		protected void execute(SlashCommandEvent event) {
-			String guildId = event.getGuild().getId();
-			String text = event.optString("color");
-
-			if (!bot.getDBUtil().verify.exists(guildId)) {
-				bot.getDBUtil().verify.add(guildId);
-			}
-
-			Color color = bot.getMessageUtil().getColor(text);
-			if (color == null) {
-				createError(event, path+".no_color");
-				return;
-			}
-			bot.getDBUtil().verify.setColor(guildId, color.getRGB() & 0xFFFFFF);
-
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, path+".done").replace("{color}", "#"+Integer.toHexString(color.getRGB() & 0xFFFFFF)))
-				.setColor(color)
-				.build());
-		}
-
 	}
-
-
 
 }

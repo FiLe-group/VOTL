@@ -1,38 +1,34 @@
 package dev.fileeditor.votl.commands.moderation;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.base.waiter.EventWaiter;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.Emote;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.command.CooldownScope;
-import dev.fileeditor.votl.objects.command.SlashCommand;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.constants.CmdCategory;
-import dev.fileeditor.votl.objects.constants.Constants;
+// TODO
+// Create invite system (activate Invite code in target guild to join the group)
 
 public class GroupCmd extends CommandBase {
 	
@@ -42,318 +38,438 @@ public class GroupCmd extends CommandBase {
 		super(bot);
 		this.name = "group";
 		this.path = "bot.moderation.group";
-		this.children = new SlashCommand[]{new Create(bot), new Delete(bot), new Join(bot), new Leave(bot), new Remove(bot), new View(bot), new Rename(bot)};
+		this.children = new SlashCommand[]{new Create(bot), new Delete(bot), new Add(bot), new Remove(bot), new Rename(bot), new Manage(bot), new View(bot)};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.accessLevel = CmdAccessLevel.ADMIN;
-		this.mustSetup = true;
+		this.accessLevel = CmdAccessLevel.OPERATOR;
 		GroupCmd.waiter = waiter;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {}
 
-	private class Create extends CommandBase {
+	private class Create extends SlashCommand {
 
 		public Create(App bot) {
-			super(bot);
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
 			this.name = "create";
 			this.path = "bot.moderation.group.create";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.STRING, "name", lu.getText(path+".option_name"), true)
-					.setMaxLength(100)
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true).setMaxLength(120),
+				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help")).setRequiredLength(12, 20)
 			);
+			this.cooldown = 30;
 			this.cooldownScope = CooldownScope.GUILD;
-			this.cooldown = 60;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			String guildId = Objects.requireNonNull(event.getGuild()).getId();
-			if (bot.getDBUtil().group.getMasterGroups(guildId).size() >= 3 ) {
-				createError(event, path+".max_amount");
+			event.deferReply().queue();
+			long guildId = event.getGuild().getIdLong();
+			if (bot.getDBUtil().group.getOwnedGroups(guildId).size() >= 3) {
+				editError(event, path+".max_amount");
 				return;
 			}
 
 			String groupName = event.optString("name");
 
-			Integer groupId = bot.getDBUtil().group.lastId() + 1;
-			bot.getDBUtil().group.create(groupId, guildId, groupName);
-			bot.getLogListener().onGroupCreation(event, groupId, groupName);
+			long appealGuildId = 0L;
+			if (event.hasOption("appeal_server")) {
+				try {
+					appealGuildId = Long.parseLong(event.optString("appeal_server"));
+				} catch (NumberFormatException ex) {
+					editError(event, "errors.error", ex.getMessage());
+					return;
+				}
+				if (appealGuildId != 0L && event.getJDA().getGuildById(appealGuildId) == null) {
+					editError(event, "errors.error", "Unknown appeal server ID.\nReceived: "+appealGuildId);
+					return;
+				}
+			}
+			
+			bot.getDBUtil().group.create(guildId, groupName, appealGuildId);
+			Integer groupId = bot.getDBUtil().group.getIncrement();
+			bot.getLogger().group.onCreation(event, groupId, groupName);
 
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
-				.setColor(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{group_name}", groupName).replace("{group_id}", groupId.toString()))
-				.build();
-			createReplyEmbed(event, embed);
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(
+					lu.getText(event, path+".done").replace("{group_name}", groupName).replace("{group_id}", groupId.toString())
+					.replace("{is_shared}", Emote.CROSS_C.getEmote())
+				)
+				.build()
+			);
 		}
 
 	}
 
-	private class Delete extends CommandBase {
-		
+	private class Delete extends SlashCommand {
+
 		public Delete(App bot) {
-			super(bot);
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
 			this.name = "delete";
 			this.path = "bot.moderation.group.delete";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.INTEGER, "master_group", lu.getText(path+".option_group"), true, true)
-					.setMinValue(0)
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(1)
 			);
-			this.cooldownScope = CooldownScope.GUILD;
 			this.cooldown = 30;
+			this.cooldownScope = CooldownScope.GUILD;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Integer groupId = event.optInteger("master_group");
-			String masterId = bot.getDBUtil().group.getMaster(groupId);
-			if (masterId == null || !masterId.equals(event.getGuild().getId())) {
-				createError(event, path+".no_group", "Group ID: `"+groupId.toString()+"`");
+			event.deferReply().queue();
+			Integer groupId = event.optInteger("group_owned");
+			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+			if (ownerId == null) {
+				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
+			if (event.getGuild().getIdLong() != ownerId) {
+				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 
-			bot.getDBUtil().group.delete(groupId);
-			bot.getLogListener().onGroupDeletion(event, groupId, groupName);
+			bot.getDBUtil().group.deleteGroup(groupId);
+			bot.getLogger().group.onDeletion(event, groupId, groupName);
 
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
-				.setColor(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{group_name}", groupName).replace("{group_id}", groupId.toString()))
-				.build();
-			event.replyEmbeds(embed).queue();
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(
+					lu.getText(event, path+".done").replace("{group_name}", groupName).replace("{group_id}", groupId.toString())
+				)
+				.build()
+			);
 		}
 
 	}
 
-	private class Join extends CommandBase {
-
-		public Join(App bot) {
-			super(bot);
-			this.name = "join";
-			this.path = "bot.moderation.group.join";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.INTEGER, "group_id", lu.getText(path+".option_id"), true)
-					.setMinValue(1)
+	private class Add extends SlashCommand {
+		// for currect requirement is enough, but as major release - NO
+		public Add(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "add";
+			this.path = "bot.moderation.group.add";
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(1),
+				new OptionData(OptionType.STRING, "server", lu.getText(path+".server.help"), true).setRequiredLength(12, 20),
+				new OptionData(OptionType.BOOLEAN, "manage", lu.getText(path+".manage.help"))
 			);
 		}
 
+		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
-			InteractionHook hook = event.getHook();
-
-			String guildId = Objects.requireNonNull(event.getGuild()).getId();
-			if (bot.getDBUtil().group.getGuildGroups(guildId).size() >= 5 ) {
-				editError(event, path+".max_amount");
+			Integer groupId = event.optInteger("group_owned");
+			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+			if (ownerId == null) {
+				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
+			if (event.getGuild().getIdLong() != ownerId) {
+				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
 
-			Integer groupId = event.optInteger("group_id");
-			String masterId = bot.getDBUtil().group.getMaster(groupId);
-			if (masterId == null) {
-				editError(event, path+".no_group", "Group ID: `"+groupId+"`");
+			long targetId;
+			try {
+				targetId = Long.parseLong(event.optString("server"));
+			} catch (NumberFormatException ex) {
+				editError(event, "errors.error", ex.getMessage());
 				return;
 			}
-			if (bot.getDBUtil().group.existSync(groupId, guildId) == true) {
-				editError(event, path+".already_exists");
+			if (event.getGuild().getIdLong() == targetId) {
+				editError(event, path+".failed_join", "This server is this Group's owner.\nGroup ID: `%s`".formatted(groupId));
 				return;
 			}
-			if (masterId.equals(guildId)) {
-				editError(event, path+".is_master");
+			if (bot.getDBUtil().group.isMember(groupId, targetId)) {
+				editError(event, path+".is_member", "Group ID: `%s`".formatted(groupId));
 				return;
 			}
-
+			
+			// Search for server in both bots
 			String groupName = bot.getDBUtil().group.getName(groupId);
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
-				.setTitle(lu.getText(event, path+".embed_title"))
-				.setDescription(lu.getText(event, path+".embed_value").replace("{group_name}", groupName).replace("{group_id}", groupId.toString()))
-				.build();
-			ActionRow buttons = ActionRow.of(
-				Button.of(ButtonStyle.PRIMARY, "button:confirm", lu.getText(event, path+".button_confirm")),
-				Button.of(ButtonStyle.DANGER, "button:abort", lu.getText(event, path+".button_abort"))
-			);
-			hook.editOriginalEmbeds(embed).setComponents(buttons).queue(msg -> {
-				waiter.waitForEvent(
-					ButtonInteractionEvent.class,
-					e -> msg.getId().equals(e.getMessageId()) && (e.getComponentId().equals("button:confirm") || e.getComponentId().equals("button:abort")),
-					action -> {
-					EmbedBuilder embedEdit = bot.getEmbedUtil().getEmbed(event);
-						if (action.getComponentId().equals("button:confirm")) {
-							bot.getDBUtil().group.add(groupId, guildId);
-							bot.getLogListener().onGroupJoin(event, groupId, groupName);
+			Boolean canManage = event.optBoolean("manage", false);
+			Guild guild = null;
+			try {
+				guild = event.getJDA().getGuildById(targetId);
+			} catch (NumberFormatException ex) {
+				editError(event, path+".no_guild", "Server ID: `%d`".formatted(targetId));
+				return;
+			} 
+			if (guild == null) {
+				editError(event, path+".no_guild", "Server ID: `%d`".formatted(targetId));
+				return;
+			}
+			bot.getDBUtil().group.add(groupId, targetId, canManage);
+			bot.getLogger().group.onGuildAdded(event, groupId, groupName, targetId, guild.getName());
 
-							embedEdit.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done").replace("{group_name}", groupName));
-							hook.editOriginalEmbeds(embedEdit.build()).setComponents().queue();
-						} else {
-							embedEdit.setColor(Constants.COLOR_FAILURE).setDescription(lu.getText(event, path+".abort"));
-							hook.editOriginalEmbeds(embedEdit.build()).setComponents().queue();
-						}
-					},
-					20,
-					TimeUnit.SECONDS,
-					() -> {
-						hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(event).setDescription(lu.getText(event, path+".abort")).setColor(Constants.COLOR_FAILURE).build())
-							.setComponents().queue();
-					}
-				);
-			});
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(
+					lu.getText(event, path+".done").replace("{server_id}", String.valueOf(targetId)).replace("{server_name}", guild.getName())
+						.replace("{group_name}", groupName)
+				)
+				.build()
+			);
 		}
 
 	}
 
-	private class Leave extends CommandBase {
-
-		public Leave(App bot) {
-			super(bot);
-			this.name = "leave";
-			this.path = "bot.moderation.group.leave";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.INTEGER, "sync_group", lu.getText(path+".option_group"), true, true)
-					.setMinValue(0)
-			);
-		}
-
-		protected void execute(SlashCommandEvent event) {
-			String guildId = event.getGuild().getId();
-			Integer groupId = event.optInteger("sync_group");
-			String masterId = bot.getDBUtil().group.getMaster(groupId);
-			if (masterId == null || !bot.getDBUtil().group.existSync(groupId, guildId)) {
-				createError(event, path+".no_group", "Group ID: `"+groupId.toString()+"`");
-				return;
-			}
-
-			String groupName = bot.getDBUtil().group.getName(groupId);
-
-			bot.getDBUtil().group.remove(groupId, guildId);
-			bot.getLogListener().onGroupLeave(event, groupId, groupName);
-
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
-				.setColor(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{group_name}", groupName).replace("{group_id}", groupId.toString()))
-				.build();
-			event.replyEmbeds(embed).queue();
-		}
-		
-	}
-
-	private class Remove extends CommandBase {
+	private class Remove extends SlashCommand {
 
 		public Remove(App bot) {
-			super(bot);
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
 			this.name = "remove";
 			this.path = "bot.moderation.group.remove";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.INTEGER, "master_group", lu.getText(path+".option_group"), true, true)
-					.setMinValue(0)
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(0)
 			);
 		}
 
+		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
-			InteractionHook hook = event.getHook();
-
-			Integer groupId = event.optInteger("master_group");
-			String masterId = bot.getDBUtil().group.getMaster(groupId);
-			if (masterId == null || !masterId.equals(event.getGuild().getId())) {
-				editError(event, path+".no_group", "Group ID: `"+groupId.toString()+"`");
+			Integer groupId = event.optInteger("group_owned");
+			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+			if (ownerId == null) {
+				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
-			String groupName = bot.getDBUtil().group.getName(groupId);
+			if (event.getGuild().getIdLong() != ownerId) {
+				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
 
-			List<String> guildIds = bot.getDBUtil().group.getGroupGuildIds(groupId);
-			if (guildIds.isEmpty()) {
+			List<Guild> guilds = bot.getDBUtil().group.getGroupMembers(groupId).stream()
+				.map(event.getJDA()::getGuildById)
+				.filter(Objects::nonNull)
+				.toList();
+			if (guilds.isEmpty()) {
 				editError(event, path+".no_guilds");
 				return;
 			}
 
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
+			String groupName = bot.getDBUtil().group.getName(groupId);
+			MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(event, path+".embed_title"))
 				.setDescription(lu.getText(event, path+".embed_value").replace("{group_name}", groupName))
 				.build();
+			
 			StringSelectMenu menu = StringSelectMenu.create("menu:remove-guild")
 				.setPlaceholder("Select")
 				.setMaxValues(1)
-				.addOptions(guildIds.stream().map(
-					guildId -> {
-						String guildName = event.getJDA().getGuildById(guildId).getName();
-						return SelectOption.of(String.format("%s (%s)", guildName, guildId), guildId);
-					}
-				).collect(Collectors.toList()))
+				.addOptions(guilds.stream().map(guild -> {
+					return SelectOption.of("%s (%s)".formatted(guild.getName(), guild.getId()), guild.getId());
+				}).limit(25).toList())
 				.build();
-			
-			hook.editOriginalEmbeds(embed).setActionRow(menu).queue(msg -> {
+			event.getHook().editOriginalEmbeds(embed).setActionRow(menu).queue(msg -> {
 				waiter.waitForEvent(
 					StringSelectInteractionEvent.class,
 					e -> e.getComponentId().equals("menu:remove-guild") && e.getMessageId().equals(msg.getId()),
 					actionMenu -> {
-						String targetId = actionMenu.getSelectedOptions().get(0).getValue();
+						Long targetId = Long.valueOf(actionMenu.getSelectedOptions().get(0).getValue());
 						Guild targetGuild = event.getJDA().getGuildById(targetId);
 
 						bot.getDBUtil().group.remove(groupId, targetId);
-						bot.getLogListener().onGroupRemove(event, targetGuild, groupId, groupName);
+						if (targetGuild != null)
+							bot.getLogger().group.onGuildRemoved(event, targetGuild, groupId, groupName);
 
-						MessageEmbed editEmbed = bot.getEmbedUtil().getEmbed(event)
-							.setColor(Constants.COLOR_SUCCESS)
-							.setDescription(lu.getText(event, path+".done").replace("{guild_name}", targetGuild.getName()).replace("{group_name}", groupName))
-							.build();
-						hook.editOriginalEmbeds(editEmbed).setComponents().queue();
+						event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+							.setDescription(lu.getText(event, path+".done").replace("{guild_name}", Optional.ofNullable(targetGuild.getName()).orElse("*Unknown*")).replace("{group_name}", groupName))
+							.build()
+						).setComponents().queue();
 					},
 					30,
 					TimeUnit.SECONDS,
 					() -> {
-						hook.editOriginalComponents(
-							ActionRow.of(menu.createCopy().setPlaceholder(lu.getText(event, path+".timed_out")).setDisabled(true).build())
+						event.getHook().editOriginalComponents(
+							ActionRow.of(menu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
 						).queue();
 					}
 				);
 			});
 		}
-		
+
 	}
 
-	private class View extends CommandBase {
+	private class Rename extends SlashCommand {
 
-		public View(App bot) {
-			super(bot);
-			this.name = "view";
-			this.path = "bot.moderation.group.view";
-			List<OptionData> options = new ArrayList<>();
-			options.add(new OptionData(OptionType.INTEGER, "master_group", lu.getText(path+".option_mastergroup"), false, true)
-				.setMinValue(0));
-			options.add(new OptionData(OptionType.INTEGER, "sync_group", lu.getText(path+".option_syncgroup"), false, true)
-				.setMinValue(0));
-			this.options = options;
+		public Rename(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "rename";
+			this.path = "bot.moderation.group.rename";
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(0),
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true).setMaxLength(120)
+			);
 		}
 
+		@Override
 		protected void execute(SlashCommandEvent event) {
-			String guildId = event.getGuild().getId();
-			if (event.hasOption("master_group")) {
-				// View master group information - name, every guild info (name, ID, member count)
-				Integer groupId = event.optInteger("master_group");
-				String masterId = bot.getDBUtil().group.getMaster(groupId);
-				if (masterId == null || !masterId.equals(guildId)) {
-					createError(event, path+".no_group", "Group ID: `"+groupId.toString()+"`");
+			Integer groupId = event.optInteger("group_owned");
+			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+			if (ownerId == null) {
+				createError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
+			if (event.getGuild().getIdLong() != ownerId) {
+				createError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
+
+			String oldName = bot.getDBUtil().group.getName(groupId);
+			String newName = event.optString("name");
+
+			bot.getDBUtil().group.rename(groupId, newName);
+			bot.getLogger().group.onRenamed(event, oldName, groupId, newName);
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(
+					lu.getText(event, path+".done").replace("{old_name}", oldName).replace("{new_name}", newName)
+					.replace("{group_id}", groupId.toString())
+				)
+				.build()
+			);
+		}
+
+	}
+
+	private class Manage extends SlashCommand {
+
+		public Manage(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "manage";
+			this.path = "bot.moderation.group.manage";
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(0),
+				new OptionData(OptionType.BOOLEAN, "manage", lu.getText(path+".manage.help"), true)
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+			Integer groupId = event.optInteger("group_owned");
+			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+			if (ownerId == null) {
+				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
+			if (event.getGuild().getIdLong() != ownerId) {
+				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
+
+			Boolean canManage = event.optBoolean("manage", false);
+
+			List<Guild> guilds = bot.getDBUtil().group.getGroupMembers(groupId).stream()
+				.map(event.getJDA()::getGuildById)
+				.filter(Objects::nonNull)
+				.toList();
+			if (guilds.isEmpty()) {
+				editError(event, path+".no_guilds");
+				return;
+			}
+
+			String groupName = bot.getDBUtil().group.getName(groupId);
+			MessageEmbed embed = bot.getEmbedUtil().getEmbed()
+				.setTitle(lu.getText(event, path+".embed_title"))
+				.setDescription(lu.getText(event, path+".embed_value").replace("{group_name}", groupName))
+				.build();
+			
+			StringSelectMenu menu = StringSelectMenu.create("menu:select-guild")
+				.setPlaceholder("Select")
+				.setMaxValues(1)
+				.addOptions(guilds.stream().map(guild -> {
+					return SelectOption.of("%s (%s)".formatted(guild.getName(), guild.getId()), guild.getId());
+				}).limit(25).toList())
+				.build();
+			event.getHook().editOriginalEmbeds(embed).setActionRow(menu).queue(msg -> {
+				waiter.waitForEvent(
+					StringSelectInteractionEvent.class,
+					e -> e.getComponentId().equals("menu:select-guild") && e.getMessageId().equals(msg.getId()),
+					actionMenu -> {
+						Long targetId = Long.valueOf(actionMenu.getSelectedOptions().get(0).getValue());
+						Guild targetGuild = event.getJDA().getGuildById(targetId);
+
+						bot.getDBUtil().group.setManage(groupId, targetId, canManage);
+
+						event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+							.setDescription(
+								lu.getText(event, path+".done").replace("{guild_name}", targetGuild.getName()).replace("{group_name}", groupName)
+								.replace("{manage}", canManage.toString())
+							)
+							.build()
+						).setComponents().queue();
+					},
+					30,
+					TimeUnit.SECONDS,
+					() -> {
+						event.getHook().editOriginalComponents(
+							ActionRow.of(menu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
+						).queue();
+					}
+				);
+			});
+		}
+	}
+
+	private class View extends SlashCommand {
+
+		public View(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "view";
+			this.path = "bot.moderation.group.view";
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), false, true).setMinValue(0),
+				new OptionData(OptionType.INTEGER, "group_joined", lu.getText(path+".group_joined.help"), false, true).setMinValue(0)
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			long guildId = event.getGuild().getIdLong();
+			if (event.hasOption("group_owned")) {
+				// View owned Group information - name, every guild info (name, ID, member count)
+				Integer groupId = event.optInteger("group_owned");
+				Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+				if (ownerId == null) {
+					createError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
+					return;
+				}
+				if (event.getGuild().getIdLong() != ownerId) {
+					createError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
 					return;
 				}
 
 				String groupName = bot.getDBUtil().group.getName(groupId);
-				List<String> groupGuildIds = bot.getDBUtil().group.getGroupGuildIds(groupId);
-				Integer groupSize = groupGuildIds.size();
+				List<Long> memberIds = bot.getDBUtil().group.getGroupMembers(groupId);
+				Integer groupSize = memberIds.size();
 
-				EmbedBuilder builder = new EmbedBuilder(bot.getEmbedUtil().getEmbed(event))
-					.setAuthor(lu.getText(event, "bot.moderation.embeds.group.title").replace("{group_name}", groupName).replace("{group_id}", groupId.toString()))
-					.setDescription(lu.getText(event, path+".embed_value").replace("{guild_name}", event.getGuild().getName()).replace("{guild_id}", masterId).replace("{size}", groupSize.toString()));
+				EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
+					.setAuthor(lu.getText(event, path+".embed_title").replace("{group_name}", groupName).replace("{group_id}", groupId.toString()))
+					.setDescription(
+						lu.getText(event, path+".embed_value").replace("{guild_name}", event.getGuild().getName())
+						.replace("{guild_id}", String.valueOf(ownerId)).replace("{size}", groupSize.toString())
+						.replace("{is_shared}", Emote.CROSS_C.getEmote())
+					);
 				
 				if (groupSize > 0) {
 					String fieldLabel = lu.getText(event, path+".embed_guilds");
 					StringBuffer buffer = new StringBuffer();
 					String format = "%s | %s | `%s`";
-					for (String groupGuildId : groupGuildIds) {
-						Guild guild = event.getJDA().getGuildById(groupGuildId);
+					for (Long memberId : memberIds) {
+						Guild guild = event.getJDA().getGuildById(memberId);
 						if (guild == null) continue;
 	
-						String line = String.format(format, guild.getName(), guild.getMemberCount(), guild.getId());
+						String line = format.formatted(guild.getName(), guild.getMemberCount(), guild.getId());
 						if (buffer.length() + line.length() + 2 > 1000) {
 							builder.addField(fieldLabel, buffer.toString(), false);
 							buffer.setLength(0);
@@ -366,49 +482,53 @@ public class GroupCmd extends CommandBase {
 					builder.addField(fieldLabel, buffer.toString(), false);
 				}
 				createReplyEmbed(event, builder.build());
-			} else if (event.hasOption("sync_group")) {
-				// View sync group information - name, master name/ID, guild count
-				Integer groupId = event.optInteger("sync_group");
-				String masterId = bot.getDBUtil().group.getMaster(groupId);
-				if (masterId == null || !bot.getDBUtil().group.existSync(groupId, guildId)) {
-					createError(event, path+".no_group", "Group ID: `"+groupId.toString()+"`");
+			} else if (event.hasOption("group_joined")) {
+				// View joined Group information - name, master name/ID, guild count
+				Integer groupId = event.optInteger("group_joined");
+				Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+				if (ownerId == null || !bot.getDBUtil().group.isMember(groupId, guildId)) {
+					createError(event, path+".no_group", "Group ID: `%s`".formatted(groupId));
 					return;
 				}
 				
 				String groupName = bot.getDBUtil().group.getName(groupId);
-				String masterName = event.getJDA().getGuildById(masterId).getName();
-				Integer groupSize = bot.getDBUtil().group.getGroupGuildIds(groupId).size();
+				String masterName = event.getJDA().getGuildById(ownerId).getName();
+				Integer groupSize = bot.getDBUtil().group.countMembers(groupId);
 
-				EmbedBuilder builder = new EmbedBuilder(bot.getEmbedUtil().getEmbed(event))
-					.setAuthor(lu.getText(event, "bot.moderation.embeds.group.title").replace("{group_name}", groupName).replace("{group_id}", groupId.toString()))
-					.setDescription(lu.getText(event, path+".embed_value").replace("{guild_name}", masterName).replace("{guild_id}", masterId).replace("{size}", groupSize.toString()));
+				EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
+					.setAuthor(lu.getText(event, "logger.groups.title").formatted(groupName, groupId))
+					.setDescription(lu.getText(event, path+".embed_value")
+						.replace("{guild_name}", masterName)
+						.replace("{guild_id}", ownerId.toString()).replace("{size}", groupSize.toString())
+						.replace("{is_shared}", Emote.CROSS_C.getEmote())
+					);
 				createReplyEmbed(event, builder.build());
 			} else {
 				// No options provided - reply with all groups that this guild is connected
-				List<Map<String, Object>> masterGroups = bot.getDBUtil().group.getMasterGroups(guildId);
-				List<Integer> syncGroupIds = bot.getDBUtil().group.getGuildGroups(guildId);
+				List<Integer> ownedGroups = bot.getDBUtil().group.getOwnedGroups(guildId);
+				List<Integer> joinedGroupIds = bot.getDBUtil().group.getGuildGroups(guildId);
 
-				EmbedBuilder builder = new EmbedBuilder(bot.getEmbedUtil().getEmbed(event))
+				EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
 					.setDescription("Group name | #ID");
 				
-				String fieldLabel = lu.getText(event, path+".embed_master");
-				if (masterGroups.isEmpty()) {
+				String fieldLabel = lu.getText(event, path+".embed_owned");
+				if (ownedGroups.isEmpty()) {
 					builder.addField(fieldLabel, lu.getText(event, path+".none"), false);
 				} else {
 					StringBuffer buffer = new StringBuffer();
-					for (Map<String, Object> group : masterGroups) {
-						buffer.append(String.format("%s | #%s\n", group.get("name").toString(), group.get("groupId").toString()));
+					for (Integer groupId : ownedGroups) {
+						buffer.append("%s | #%s\n".formatted(bot.getDBUtil().group.getName(groupId), groupId));
 					}
 					builder.addField(fieldLabel, buffer.toString(), false);
 				}
 
-				fieldLabel = lu.getText(event, path+".embed_sync");
-				if (syncGroupIds.isEmpty()) {
+				fieldLabel = lu.getText(event, path+".embed_member");
+				if (joinedGroupIds.isEmpty()) {
 					builder.addField(fieldLabel, lu.getText(event, path+".none"), false);
 				} else {
 					StringBuffer buffer = new StringBuffer();
-					for (Integer groupId : syncGroupIds) {
-						buffer.append(String.format("%s | #%s\n", bot.getDBUtil().group.getName(groupId), groupId.toString()));
+					for (Integer groupId : joinedGroupIds) {
+						buffer.append("%s | #%s\n".formatted(bot.getDBUtil().group.getName(groupId), groupId));
 					}
 					builder.addField(fieldLabel, buffer.toString(), false);
 				}
@@ -416,47 +536,7 @@ public class GroupCmd extends CommandBase {
 				createReplyEmbed(event, builder.build());
 			}
 		}
-		
-	}
 
-	private class Rename extends CommandBase {
-
-		public Rename(App bot) {
-			super(bot);
-			this.name = "rename";
-			this.path = "bot.moderation.group.rename";
-			List<OptionData> options = new ArrayList<>();
-			options.add(new OptionData(OptionType.INTEGER, "master_group", lu.getText(path+".option_group"), true, true)
-				.setMinValue(0));
-			options.add(new OptionData(OptionType.STRING, "name", lu.getText(path+".option_name"), true)
-				.setMaxLength(120));
-			this.options = options;
-		}
-
-		protected void execute(SlashCommandEvent event) {
-			Integer groupId = event.optInteger("master_group");
-			String masterId = bot.getDBUtil().group.getMaster(groupId);
-			if (masterId == null || !masterId.equals(event.getGuild().getId())) {
-				createError(event, path+".no_group", "Group ID: `"+groupId.toString()+"`");
-				return;
-			}
-
-			String oldName = bot.getDBUtil().group.getName(groupId);
-			String newName = event.optString("name");
-
-			bot.getDBUtil().group.rename(groupId, newName);
-			bot.getLogListener().onGroupRename(event, oldName, groupId, newName);
-
-			MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
-				.setColor(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{old_name}", oldName).replace("{new_name}", newName)
-					.replace("{group_id}", groupId.toString()))
-				.build();
-			createReplyEmbed(event, embed);
-		}
-		
 	}
 
 }
-
-

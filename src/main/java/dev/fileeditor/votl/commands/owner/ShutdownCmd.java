@@ -1,12 +1,12 @@
 package dev.fileeditor.votl.commands.owner;
 
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
-
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.constants.CmdCategory;
 
 public class ShutdownCmd extends CommandBase {
 
@@ -23,7 +23,7 @@ public class ShutdownCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {
 		createReply(event, "Shutting down...");
 		event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Shutting down..."));
-		bot.getLogger().info("Shutting down, by '" + event.getUser().getName() + "'");
+		bot.getAppLogger().info("Shutting down, by '%s'".formatted(event.getUser().getName()));
 		event.getJDA().shutdown();
 	}
 }

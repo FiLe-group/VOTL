@@ -2,22 +2,23 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CaseType;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
+import dev.fileeditor.votl.utils.exception.FormatterException;
+import dev.fileeditor.votl.utils.message.TimeUtil;
 
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.constants.CmdCategory;
-import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.exception.FormatterException;
 
 public class DurationCmd extends CommandBase {
 	
@@ -25,54 +26,62 @@ public class DurationCmd extends CommandBase {
 		super(bot);
 		this.name = "duration";
 		this.path = "bot.moderation.duration";
-		List<OptionData> options = new ArrayList<>();
-		options.add(new OptionData(OptionType.INTEGER, "id", lu.getText(path+".option_id"), true).setMinValue(0));
-		options.add(new OptionData(OptionType.STRING, "time", lu.getText(path+".option_time"), true).setMaxLength(20));
-		this.options = options;
+		this.options = List.of(
+			new OptionData(OptionType.INTEGER, "id", lu.getText(path+".id.help"), true).setMinValue(1),
+			new OptionData(OptionType.STRING, "time", lu.getText(path+".time.help"), true).setMaxLength(20)
+		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.MOD;
-		this.mustSetup = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Integer caseId = event.optInteger("id", 0);
-		Map<String, Object> banData = bot.getDBUtil().ban.getInfo(caseId);
-		if (banData.isEmpty() || !event.getGuild().getId().equals(banData.get("guildId").toString())) {
-			createError(event, path+".not_found");
+		event.deferReply().queue();
+		Integer caseId = event.optInteger("id");
+		CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
+		if (caseData == null || event.getGuild().getIdLong() != caseData.getGuildId()) {
+			editError(event, path+".not_found");
 			return;
 		}
 
-		final Duration duration;
+		Duration newDuration;
 		try {
-			duration = bot.getTimeUtil().stringToDuration(event.optString("time"), false);
+			newDuration = TimeUtil.stringToDuration(event.optString("time"), false);
 		} catch (FormatterException ex) {
-			createError(event, ex.getPath());
+			editError(event, ex.getPath());
 			return;
 		}
 
-		if (bot.getDBUtil().ban.utils.isPermament(banData)) {
-			bot.getDBUtil().ban.updateDuration(caseId, duration);
-			bot.getDBUtil().ban.setExpirable(caseId);
-		} else {
-			if (bot.getDBUtil().ban.utils.isExpirable(banData)) {
-				bot.getDBUtil().ban.updateDuration(caseId, duration);
-			} else {
-				createError(event, path+".is_expired");
+		if (!( caseData.isActive() && (caseData.getType().equals(CaseType.MUTE) || caseData.getType().equals(CaseType.BAN)) )) {
+			editError(event, path+".is_expired");
+			return;
+		}
+
+		if (caseData.getType().equals(CaseType.MUTE)) {
+			if (newDuration.isZero()) {
+				editError(event, "errors.error", "Duration must be larger than 1 minute");
 				return;
 			}
+			event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(target -> {
+				if (caseData.getTimeStart().plus(newDuration).isAfter(Instant.now())) {
+					// time out member for new time
+					target.timeoutUntil(caseData.getTimeStart().plus(newDuration)).reason("Duration change by "+event.getUser().getName()).queue();
+				} else {
+					// time will be expired, remove time out
+					target.removeTimeout();
+					bot.getDBUtil().cases.setInactive(caseId);
+				}
+			});
 		}
-
-		Instant timeStart = Instant.parse(banData.get("timeStart").toString());
-		String newTime = duration.isZero() ? lu.getText(event, "bot.moderation.embeds.permanently") : lu.getText(event, "bot.moderation.embeds.temporary")
-			.replace("{time}", bot.getTimeUtil().formatTime(timeStart.plus(duration), false));
-		MessageEmbed embed = bot.getEmbedUtil().getEmbed(event)
-			.setColor(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, path+".done").replace("{duration}", newTime))
+		bot.getDBUtil().cases.updateDuration(caseId, newDuration);
+		
+		String newTime = TimeUtil.formatDuration(lu, event.getUserLocale(), caseData.getTimeStart(), newDuration);
+		MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			.setDescription(lu.getText(event, path+".done").replace("{id}", caseId.toString()).replace("{duration}", newTime))
 			.build();
-		createReplyEmbed(event, embed);
+		editHookEmbed(event, embed);
 
-		bot.getLogListener().onChangeDuration(event, caseId, timeStart, Duration.parse(banData.get("duration").toString()), newTime);
+		bot.getLogger().mod.onChangeDuration(event.getGuild(), caseData, event.getMember(), newTime);
 	}
 }

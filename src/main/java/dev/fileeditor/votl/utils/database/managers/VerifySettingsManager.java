@@ -57,34 +57,6 @@ public class VerifySettingsManager extends LiteBase {
 		execute("INSERT INTO %s(guildId, panelImage) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelImage=%<s".formatted(table, guildId, imageUrl));
 	}
 
-	// Blacklist table
-	/* public boolean blacklistUser(String guildId, String userId) {
-		if (isBlacklisted(guildId, userId))
-			return false;
-		else
-			insert(tableBlacklist, List.of("guildId", "userId"), List.of(guildId, userId));
-		return true;
-	}
-
-	public boolean isBlacklisted(String guildId, String userId) {
-		if (select(tableBlacklist, "userId", List.of("guildId", "userId"), List.of(guildId, userId)).isEmpty()) return false;
-		return true;
-	}
-
-	public List<String> getBlacklist(String guildId) {
-		List<Object> objs = select(tableBlacklist, "userId", "guildId", guildId);
-		if (objs.isEmpty()) return Collections.emptyList();
-		return objs.stream().map(obj -> String.valueOf(obj)).collect(Collectors.toList());
-	}
-
-	public void removeUser(String guildId, String userId) {
-		delete(tableBlacklist, List.of("guildId", "userId"), List.of(guildId, userId));
-	}
-
-	public void clearGuild(String guildId) {
-		delete(tableBlacklist, "guildId", guildId);
-	} */
-
 	private void invalidateCache(long guildId) {
 		cache.pull(guildId);
 	}

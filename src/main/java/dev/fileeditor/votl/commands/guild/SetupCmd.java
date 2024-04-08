@@ -1,32 +1,36 @@
 package dev.fileeditor.votl.commands.guild;
 
+import java.awt.Color;
+import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Objects;
+import java.util.List;
+
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.Emote;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.Emotes;
-import dev.fileeditor.votl.objects.command.SlashCommand;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.constants.CmdCategory;
-import dev.fileeditor.votl.objects.constants.Constants;
 
 public class SetupCmd extends CommandBase {
 
@@ -34,7 +38,10 @@ public class SetupCmd extends CommandBase {
 		super(bot);
 		this.name = "setup";
 		this.path = "bot.guild.setup";
-		this.children = new SlashCommand[]{new Voice(bot), new Main(bot), new VoicePanel(bot)};
+		this.children = new SlashCommand[]{new PanelColor(bot), new AppealLink(bot), new ReportChannel(bot),
+			new VoiceCreate(bot), new VoiceSelect(bot), new VoicePanel(bot), new VoiceName(bot), new VoiceLimit(bot),
+			new Strikes(bot)
+		};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 	}
@@ -42,46 +49,111 @@ public class SetupCmd extends CommandBase {
 	@Override
 	protected void execute(SlashCommandEvent event) {}
 
-	private class Main extends CommandBase {
-		
-		public Main(App bot) {
-			super(bot);
-			this.name = "main";
-			this.path = "bot.guild.setup.main";
+	private class PanelColor extends SlashCommand {
+		public PanelColor(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "color";
+			this.path = "bot.guild.setup.color";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "color", lu.getText(path+".color.help"), true).setRequiredLength(5, 11)
+			);
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
+			long guildId = event.getGuild().getIdLong();
+			String text = event.optString("color");
 
-			if (bot.getDBUtil().guild.add(guildId)) {
-				createReplyEmbed(event, 
-					bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getText(event, path+".done"))
-						.setColor(Constants.COLOR_SUCCESS)
-						.build()
-				);
-				bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
-			} else {
-				createReplyEmbed(event, 
-					bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getText(event, path+".exists"))
-						.setColor(Constants.COLOR_WARNING)
-						.build()
-				);
+			Color color = MessageUtil.getColor(text);
+			if (color == null) {
+				createError(event, path+".no_color");
+				return;
 			}
-		}
+			bot.getDBUtil().guildSettings.setColor(guildId, color.getRGB() & 0xFFFFFF);
 
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(color.getRGB())
+				.setDescription(lu.getText(event, path+".done").replace("{color}", "#"+Integer.toHexString(color.getRGB() & 0xFFFFFF)))
+				.build());
+		}
 	}
 
-	private class Voice extends CommandBase {
+	private class AppealLink extends SlashCommand {
+		public AppealLink(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "appeal";
+			this.path = "bot.guild.setup.appeal";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "link", lu.getText(path+".link.help"), true)
+			);
+		}
 
-		public Voice(App bot) {
-			super(bot);
-			this.name = "voice";
-			this.path = "bot.guild.setup.voice";
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			long guildId = event.getGuild().getIdLong();
+			String text = event.optString("link");
+
+			if (!isValidURL(text)) {
+				createError(event, path+".not_valid", "Received unvalid URL: `%s`".formatted(text));
+				return;
+			}
+
+			bot.getDBUtil().guildSettings.setAppealLink(guildId, text);
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done").replace("{link}", text))
+				.build());
+		}
+
+		private boolean isValidURL(String urlString) {
+			try {
+				URL url = new URL(urlString);
+				url.toURI();
+				return true;
+			} catch (Exception e) {
+				return false;
+			}
+		}
+	}
+
+	private class ReportChannel extends SlashCommand {
+		public ReportChannel(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "report";
+			this.path = "bot.guild.setup.report";
+			this.options = List.of(
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
+					.setChannelTypes(ChannelType.TEXT)
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			long guildId = event.getGuild().getIdLong();
+			MessageChannel channel = event.optMessageChannel("channel");
+
+			if (!channel.canTalk()) {
+				createError(event, path+".cant_send");
+			}
+
+			bot.getDBUtil().guildSettings.setReportChannelId(guildId, channel.getIdLong());
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
+				.build());
+		}
+	}
+
+	private class VoiceCreate extends SlashCommand {
+		public VoiceCreate(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "create";
+			this.path = "bot.guild.setup.voice.create";
 			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS};
+			this.subcommandGroup = new SubcommandGroupData("voice", lu.getText("bot.guild.setup.voice.help"));
 			this.module = CmdModule.VOICE;
 		}
 
@@ -89,93 +161,212 @@ public class SetupCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
 
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
-
-			if (bot.getDBUtil().guild.add(guildId)) {
-				bot.getLogger().info("Added guild through setup '"+guild.getName()+"'("+guildId+") to db");
-			}
+			Guild guild = event.getGuild();
+			long guildId = guild.getIdLong();
 
 			try {
-				guild.createCategory(lu.getText(event, path+".category"))
+				guild.createCategory(lu.getLocalized(event.getGuildLocale(), path+".category_name"))
 					.addPermissionOverride(guild.getBotRole(), Arrays.asList(getBotPermissions()), null)
 					.queue(
 						category -> {
 							try {
-								category.createVoiceChannel(lu.getText(event, path+".channel"))
+								category.createVoiceChannel(lu.getLocalized(event.getGuildLocale(), path+".channel_name"))
 									.addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
 									.queue(
 										channel -> {
-											bot.getDBUtil().guildVoice.setup(guildId, category.getId(), channel.getId());
-											bot.getLogger().info("Voice setup done in guild `"+guild.getName()+"'("+guildId+")");
-											editHookEmbed(event, 
-												bot.getEmbedUtil().getEmbed(event)
-													.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
-													.setColor(Constants.COLOR_SUCCESS)
-													.build()
-											);
+											bot.getDBUtil().guildVoice.setup(guildId, category.getIdLong(), channel.getIdLong());
+											editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+												.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
+												.build());
 										}
 									);
 							} catch (InsufficientPermissionException ex) {
-								editPermError(event, event.getMember(), ex.getPermission(), true);
+								editPermError(event, ex.getPermission(), true);
 							}
 						}
 					);
 			} catch (InsufficientPermissionException ex) {
-				editPermError(event, event.getMember(), ex.getPermission(), true);
-				ex.printStackTrace();
+				editPermError(event, ex.getPermission(), true);
 			}
 		}
-
 	}
 
-	private class VoicePanel extends CommandBase {
-		
-		public VoicePanel(App bot) {
-			super(bot);
-			this.name = "panel";
-			this.path = "bot.guild.setup.panel";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".option_channel"), true)
+	private class VoiceSelect extends SlashCommand {
+		public VoiceSelect(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "select";
+			this.path = "bot.guild.setup.voice.select";
+			this.options = List.of(
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.name"), true)
+					.setChannelTypes(ChannelType.VOICE)
 			);
-			this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
+			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS};
+			this.subcommandGroup = new SubcommandGroupData("voice", lu.getText("bot.guild.setup.voice.help"));
 			this.module = CmdModule.VOICE;
-			this.mustSetup = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			GuildChannel channel = event.optGuildChannel("channel");
-			if (channel == null || channel.getType() != ChannelType.TEXT) {
-				createError(event, path+".no_channel", "Received: "+(channel == null ? "No channel" : channel.getType()));
-			}
-			TextChannel tc = (TextChannel) channel;
+			event.deferReply(true).queue();
 
-			Button lock = Button.danger("voicepanel-lock", lu.getLocalized(event.getGuildLocale(), path+".lock")).withEmoji(Emoji.fromUnicode("🔒"));
-			Button unlock = Button.success("voicepanel-unlock", lu.getLocalized(event.getGuildLocale(), path+".unlock")).withEmoji(Emoji.fromUnicode("🔓"));
-			Button ghost = Button.danger("voicepanel-ghost", lu.getLocalized(event.getGuildLocale(), path+".ghost")).withEmoji(Emoji.fromUnicode("👻"));
-			Button unghost = Button.success("voicepanel-unghost", lu.getLocalized(event.getGuildLocale(), path+".unghost")).withEmoji(Emoji.fromUnicode("👁️"));
-			Button name = Button.secondary("voicepanel-name", lu.getLocalized(event.getGuildLocale(), path+".name")).withEmoji(Emoji.fromUnicode("🔡"));
-			Button limit = Button.secondary("voicepanel-limit", lu.getLocalized(event.getGuildLocale(), path+".limit")).withEmoji(Emoji.fromUnicode("🔢"));
-			Button permit = Button.success("voicepanel-permit", lu.getLocalized(event.getGuildLocale(), path+".permit")).withEmoji(Emotes.ADDUSER.getEmoji());
-			Button reject = Button.danger("voicepanel-reject", lu.getLocalized(event.getGuildLocale(), path+".reject")).withEmoji(Emotes.REMOVEUSER.getEmoji());
-			Button perms = Button.secondary("voicepanel-perms", lu.getLocalized(event.getGuildLocale(), path+".perms")).withEmoji(Emotes.SETTINGS_2.getEmoji());
-			Button delete = Button.danger("voicepanel-delete", lu.getLocalized(event.getGuildLocale(), path+".delete")).withEmoji(Emoji.fromUnicode("🔴"));
+			Guild guild = event.getGuild();
+			long guildId = guild.getIdLong();
+
+			VoiceChannel channel = (VoiceChannel) event.optGuildChannel("channel");
+			Category category = channel.getParentCategory();
+			if (category == null) {
+				editError(event, path+".no_category");
+				return;
+			}
+
+			try {
+				category.upsertPermissionOverride(guild.getBotRole()).setAllowed(getBotPermissions()).queue(doneCategory -> {
+					channel.upsertPermissionOverride(guild.getPublicRole()).setDenied(Permission.VOICE_SPEAK).queue(doneChannel -> {
+						bot.getDBUtil().guildVoice.setup(guildId, category.getIdLong(), channel.getIdLong());
+						editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+							.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
+							.build());
+					});
+				});
+			} catch (InsufficientPermissionException ex) {
+				editPermError(event, ex.getPermission(), true);
+			}
+		}
+	}
+
+	private class VoicePanel extends SlashCommand {
+		public VoicePanel(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "panel";
+			this.path = "bot.guild.setup.voice.panel";
+			this.options = List.of(
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
+					.setChannelTypes(ChannelType.TEXT)
+			);
+			this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
+			this.subcommandGroup = new SubcommandGroupData("voice", lu.getText("bot.guild.setup.voice.help"));
+			this.module = CmdModule.VOICE;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			MessageChannel channel = event.optMessageChannel("channel");
+			if (channel == null || !channel.canTalk()) {
+				createError(event, path+".no_channel", "Received: "+(channel == null ? "No channel" : channel.getAsMention()));
+			}
+
+			Button lock = Button.danger("voice:lock", lu.getLocalized(event.getGuildLocale(), path+".lock")).withEmoji(Emoji.fromUnicode("🔒"));
+			Button unlock = Button.success("voice:unlock", lu.getLocalized(event.getGuildLocale(), path+".unlock")).withEmoji(Emoji.fromUnicode("🔓"));
+			Button ghost = Button.danger("voice:ghost", lu.getLocalized(event.getGuildLocale(), path+".ghost")).withEmoji(Emoji.fromUnicode("👻"));
+			Button unghost = Button.success("voice:unghost", lu.getLocalized(event.getGuildLocale(), path+".unghost")).withEmoji(Emoji.fromUnicode("👁️"));
+			Button permit = Button.success("voice:permit", lu.getLocalized(event.getGuildLocale(), path+".permit")).withEmoji(Emote.ADDUSER.getEmoji());
+			Button reject = Button.danger("voice:reject", lu.getLocalized(event.getGuildLocale(), path+".reject")).withEmoji(Emote.REMOVEUSER.getEmoji());
+			Button perms = Button.secondary("voice:perms", lu.getLocalized(event.getGuildLocale(), path+".perms")).withEmoji(Emote.SETTINGS_2.getEmoji());
+			Button delete = Button.danger("voice:delete", lu.getLocalized(event.getGuildLocale(), path+".delete")).withEmoji(Emoji.fromUnicode("🔴"));
 
 			ActionRow row1 = ActionRow.of(unlock, lock);
 			ActionRow row2 = ActionRow.of(unghost, ghost);
-			ActionRow row3 = ActionRow.of(name, limit);
 			ActionRow row4 = ActionRow.of(permit, reject, perms);
 			ActionRow row5 = ActionRow.of(delete);
-			tc.sendMessageEmbeds(
-				new EmbedBuilder().setColor(Constants.COLOR_DEFAULT).setTitle(lu.getLocalized(event.getGuildLocale(), path+".embed_title"))
-					.setDescription(lu.getLocalized(event.getGuildLocale(), path+".embed_value").replace("{channel}", bot.getDBUtil().guildVoice.getChannel(event.getGuild().getId()))).build()
-			).addComponents(row1, row2, row3, row4, row5).queue();
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention()))
-				.setColor(Constants.COLOR_SUCCESS)
+			Long channelId = bot.getDBUtil().guildVoice.getChannelId(event.getGuild().getIdLong());
+			channel.sendMessageEmbeds(new EmbedBuilder()
+				.setColor(Constants.COLOR_DEFAULT)
+				.setTitle(lu.getLocalized(event.getGuildLocale(), path+".embed_title"))
+				.setDescription(lu.getLocalized(event.getGuildLocale(), path+".embed_value").replace("{id}", String.valueOf(channelId)))
+				.build()
+			).addComponents(row1, row2, row4, row5).queue();
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
 				.build());
 		}
 	}
+
+	private class VoiceName extends SlashCommand {
+		public VoiceName(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "name";
+			this.path = "bot.guild.setup.voice.name";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true)
+					.setMaxLength(100)
+			);
+			this.subcommandGroup = new SubcommandGroupData("voice", lu.getText("bot.guild.setup.voice.help"));
+			this.module = CmdModule.VOICE;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			String filName = event.optString("name", lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name"));
+
+			if (filName.isBlank()) {
+				createError(event, path+".invalid_range");
+				return;
+			}
+
+			bot.getDBUtil().guildVoice.setName(event.getGuild().getIdLong(), filName);
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done").replace("{value}", filName))
+				.build());
+		}
+	}
+
+	private class VoiceLimit extends SlashCommand {
+		public VoiceLimit(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "limit";
+			this.path = "bot.guild.setup.voice.limit";
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "limit", lu.getText(path+".limit.help"), true)
+					.setRequiredRange(0, 99)
+			);
+			this.subcommandGroup = new SubcommandGroupData("voice", lu.getText("bot.guild.setup.voice.help"));
+			this.module = CmdModule.VOICE;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Integer filLimit = event.optInteger("limit");
+
+			bot.getDBUtil().guildVoice.setLimit(event.getGuild().getIdLong(), filLimit);
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done").replace("{value}", filLimit.toString()))
+				.build());
+		}
+	}
+
+	private class Strikes extends SlashCommand {
+
+		public Strikes(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "strikes";
+			this.path = "bot.guild.setup.strikes";
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "time", lu.getText(path+".time.help"), true)
+					.setRequiredRange(1, 30)
+			);
+			this.module = CmdModule.STRIKES;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Integer hours = event.optInteger("time");
+
+			bot.getDBUtil().guildSettings.setStrikeExpiresAfter(event.getGuild().getIdLong(), hours);
+
+			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done").formatted(hours))
+				.build());
+		}
+
+	}
+
 }

@@ -11,17 +11,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.Category;
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
+
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.utils.FileUpload;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
-
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.command.SlashCommand;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.constants.CmdCategory;
-import dev.fileeditor.votl.objects.constants.Constants;
 
 public class GenerateListCmd extends CommandBase {
 	
@@ -38,13 +40,14 @@ public class GenerateListCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {
 		List<SlashCommand> commands = event.getClient().getSlashCommands();
 		if (commands.size() == 0) {
+			createReply(event, "Commands not found");
 			return;
 		}
 
-		JSONObject result = new JSONObject();
-		for (Integer i = 0; i < commands.size(); i++) {
-			SlashCommand cmd = commands.get(i);
+		event.deferReply(true).queue();
 
+		JSONArray commandArray = new JSONArray();
+		for (SlashCommand cmd : commands) {
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("name", cmd.getName())
 				.put("description", getText(cmd.getHelpPath()))
@@ -70,19 +73,19 @@ public class GenerateListCmd extends CommandBase {
 				jsonObject.put("usage", getText(cmd.getUsagePath()));
 			}
 			
-			result.put(i.toString(), jsonObject);
+			commandArray.put(jsonObject);
 		}
 
 		File file = new File(Constants.DATA_PATH + "commands.json");
 		try {
 			file.createNewFile();
 			FileWriter writer = new FileWriter(file, Charset.forName("utf-8"));
-			writer.write(result.toString());
+			writer.write(commandArray.toString());
 			writer.flush();
 			writer.close();
-			event.replyFiles(FileUpload.fromData(file, "commands.json")).setEphemeral(true).queue(hook -> file.delete());
+			event.getHook().editOriginalAttachments(FileUpload.fromData(file, "commands.json")).queue(hook -> file.delete());
 		} catch (IOException | UncheckedIOException ex) {
-			createError(event, path+".error", ex.getMessage());
+			editError(event, path+".error", ex.getMessage());
 		}
 	}
 

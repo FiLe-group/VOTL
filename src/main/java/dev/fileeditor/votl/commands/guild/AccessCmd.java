@@ -1,22 +1,26 @@
 package dev.fileeditor.votl.commands.guild;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
+
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
-
-import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.command.SlashCommand;
-import dev.fileeditor.votl.objects.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.constants.CmdCategory;
-import dev.fileeditor.votl.objects.constants.Constants;
 
 public class AccessCmd extends CommandBase {
 
@@ -24,146 +28,19 @@ public class AccessCmd extends CommandBase {
 		super(bot);
 		this.name = "access";
 		this.path = "bot.guild.access";
-		this.children = new SlashCommand[]{new AddMod(bot), new AddAdmin(bot),
-			new View(bot), new RemoveMod(bot), new RemoveAdmin(bot)};
+		this.children = new SlashCommand[]{new View(bot), new AddRole(bot), new RemoveRole(bot), new AddOperator(bot), new RemoveOperator(bot)};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
-		this.mustSetup = true;
 	}
 
 	@Override
-	protected void execute(SlashCommandEvent event) {
-		
-	}
+	protected void execute(SlashCommandEvent event) {}
 
-	private class AddMod extends CommandBase {
-
-		public AddMod(App bot) {
-			super(bot);
-			this.name = "mod";
-			this.path = "bot.guild.access.add.mod";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.USER, "member", lu.getText("bot.guild.access.add.option_user"), true)
-			);
-			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.guild.access.add.help"));
-		}
-
-		@Override
-		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
-			Member targetMember = event.optMember("member");
-			if (targetMember == null) {
-				editError(event, "bot.guild.access.add.no_member");
-				return;
-			}
-
-			Member author = Objects.requireNonNull(event.getMember());
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
-
-			guild.retrieveMember(targetMember).queue(
-				member -> {
-					if (member.equals(author) || member.getUser().isBot()) {
-						editError(event, "bot.guild.access.add.not_self");
-						return;
-					}
-					if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-						editError(event, "bot.guild.access.add.is_higher");
-						return;
-					}
-					String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
-					if (access != null && access.equals("mod")) {
-						editError(event, "bot.guild.access.add.mod.already");
-						return;
-					}
-					if (access != null && access.equals("admin")) {
-						bot.getDBUtil().access.update(guildId, member.getId(), false);
-					} else {
-						bot.getDBUtil().access.add(guildId, member.getId(), false);
-					}
-
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getText(event, "bot.guild.access.add.mod.done").replace("{member}", member.getAsMention()))
-						.setColor(Constants.COLOR_SUCCESS);
-					editHookEmbed(event, embed.build());
-				},
-				error -> {
-					// remake to specify error response - not in this guild or user does not exist
-					// add errors - UNKNOWN_MEMBER & UNKNOWN_USER
-					editError(event, "bot.guild.access.add.no_member");
-				}
-			);
-		}
-
-	}
-
-	private class AddAdmin extends CommandBase {
-
-		public AddAdmin(App bot) {
-			super(bot);
-			this.name = "admin";
-			this.path = "bot.guild.access.add.admin";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.USER, "member", lu.getText("bot.guild.access.add.option_user"), true)
-			);
-			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.guild.access.add.help"));
-			this.accessLevel = CmdAccessLevel.OWNER;
-		}
-
-		@Override
-		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
-			Member targetMember = event.optMember("member");
-			if (targetMember == null) {
-				editError(event, "bot.guild.access.add.no_member");
-				return;
-			}
-			
-			Member author = Objects.requireNonNull(event.getMember());
-			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
-
-			guild.retrieveMember(targetMember).queue(
-				member -> {
-					if (member.equals(author) || member.getUser().isBot()) {
-						editError(event, "bot.guild.access.add.not_self");
-						return;
-					}
-					if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-						editError(event, "bot.guild.access.add.is_higher");
-						return;
-					}
-					String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
-					if (access != null && access.equals("admin")) {
-						editError(event, "bot.guild.access.add.admin.already");
-						return;
-					}
-					if (access != null && access.equals("mod")) {
-						bot.getDBUtil().access.update(guildId, member.getId(), true);
-					} else {
-						bot.getDBUtil().access.add(guildId, member.getId(), true);
-					}
-
-					EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getText(event, "bot.guild.access.add.admin.done").replace("{member}", member.getAsMention()))
-						.setColor(Constants.COLOR_SUCCESS);
-						editHookEmbed(event, embed.build());
-
-				}, 
-				failure -> {
-					editError(event, "bot.guild.access.add.no_member");
-				}
-			);
-		}
-
-	}
-
-	private class View extends CommandBase {
+	private class View extends SlashCommand {
 
 		public View(App bot) {
-			super(bot);
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
 			this.name = "view";
 			this.path = "bot.guild.access.view";
 		}
@@ -173,15 +50,16 @@ public class AccessCmd extends CommandBase {
 			event.deferReply(true).queue();
 
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			String guildId = guild.getId();
+			long guildId = guild.getIdLong();
 			
-			String[] modsId = bot.getDBUtil().access.getMods(guildId).toArray(new String[0]);
-			String[] adminsId = bot.getDBUtil().access.getAdmins(guildId).toArray(new String[0]);
+			List<Long> helperIds = bot.getDBUtil().access.getRoles(guildId, CmdAccessLevel.HELPER);
+			List<Long> modIds = bot.getDBUtil().access.getRoles(guildId, CmdAccessLevel.MOD);
+			List<Long> userIds = bot.getDBUtil().access.getAllUsers(guildId);
 
-			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(event)
+			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(event, "bot.guild.access.view.embed.title"));
 
-			if (adminsId.length == 0 && modsId.length == 0) {
+			if (helperIds.isEmpty() && modIds.isEmpty() && userIds.isEmpty()) {
 				editHookEmbed(event, 
 					embedBuilder.setDescription(
 						lu.getText(event, "bot.guild.access.view.embed.none_found")
@@ -191,50 +69,106 @@ public class AccessCmd extends CommandBase {
 			}
 
 			StringBuilder sb = new StringBuilder();
-			// Admins
-			sb.append(lu.getText(event, "bot.guild.access.view.embed.admin")).append("\n");
 
-			guild.retrieveMembersByIds(false, adminsId).onSuccess(
-				admins -> {
-					if (admins.isEmpty()) {
-						sb.append(lu.getText(event, "bot.guild.access.view.embed.none")).append("\n");
-					}
-					for (Member admin : admins) {
-						sb.append("> " + admin.getAsMention()).append(" (`"+admin.getUser().getAsTag()+"`, "+admin.getId()+")").append("\n");
-					}
-					sb.append("\n");
-					// Mods
-					sb.append(lu.getText(event, "bot.guild.access.view.embed.mod")).append("\n");
-
-					guild.retrieveMembersByIds(false, modsId).onSuccess(
-						mods -> {
-							if (mods.isEmpty()) {
-								sb.append(lu.getText(event, "bot.guild.access.view.embed.none"));
-							} else {
-								for (Member mod : mods) {
-									sb.append("> " + mod.getAsMention()).append(" (`"+mod.getUser().getAsTag()+"`, "+mod.getId()+")").append("\n");
-								}
-							}
-							embedBuilder.setDescription(sb);
-							editHookEmbed(event, embedBuilder.build());
-							guild.pruneMemberCache();
-						}
-					);
-					
+			sb.append(lu.getText(event, "bot.guild.access.view.embed.helper")).append("\n");
+			if (helperIds.isEmpty()) sb.append("> %s\n".formatted(lu.getText(event, "bot.guild.access.view.embed.none")));
+			else for (Long roleId : helperIds) {
+				Role role = guild.getRoleById(roleId);
+				if (role == null) {
+					bot.getDBUtil().access.removeRole(roleId);
+					continue;
 				}
+				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
+			}
+
+			sb.append(lu.getText(event, "bot.guild.access.view.embed.mod")).append("\n");
+			if (modIds.isEmpty()) sb.append("> %s".formatted(lu.getText(event, "bot.guild.access.view.embed.none")));
+			else for (Long roleId : modIds) {
+				Role role = guild.getRoleById(roleId);
+				if (role == null) {
+					bot.getDBUtil().access.removeRole(roleId);
+					continue;
+				}
+				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
+			}
+
+			sb.append("\n").append(lu.getText(event, "bot.guild.access.view.embed.operator")).append("\n");
+			if (userIds.isEmpty()) sb.append("> %s".formatted(lu.getText(event, "bot.guild.access.view.embed.none")));
+			else for (Long userId : userIds) {
+				UserSnowflake user = User.fromId(userId);
+				sb.append("> %s `%s`\n".formatted(user.getAsMention(), userId));
+			}
+
+			embedBuilder.setDescription(sb);
+			editHookEmbed(event, embedBuilder.build());
+		}
+
+	}
+
+	private class AddRole extends SlashCommand {
+
+		public AddRole(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "role";
+			this.path = "bot.guild.access.add.role";
+			this.options = List.of(
+				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true),
+				new OptionData(OptionType.INTEGER, "access_level", lu.getText(path+".access_level.help"), true)
+					.addChoice("Helper", CmdAccessLevel.HELPER.getLevel())
+					.addChoice("Moderator", CmdAccessLevel.MOD.getLevel())
+			);
+			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.guild.access.add.help"));
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+
+			Role role = event.optRole("role");
+			if (role == null) {
+				editError(event, "bot.guild.access.add.no_role");
+				return;
+			}
+
+			long roleId = role.getIdLong();
+			Guild guild = Objects.requireNonNull(event.getGuild());
+
+			if (role.isPublicRole() || role.isManaged() || !guild.getSelfMember().canInteract(role) || role.hasPermission(Permission.ADMINISTRATOR)) {
+				editError(event, "bot.guild.access.add.incorrect_role");
+				return;
+			}
+			if (bot.getDBUtil().access.isRole(roleId)) {
+				editError(event, "bot.guild.access.add.role.already");
+				return;
+			}
+
+			CmdAccessLevel level = CmdAccessLevel.byLevel(event.optInteger("access_level"));
+			bot.getDBUtil().access.addRole(guild.getIdLong(), roleId, level);
+
+			// Log
+			bot.getLogger().server.onAccessAdded(guild, event.getUser(), null, role, level);
+			// Send reply
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, "bot.guild.access.add.role.done")
+					.replace("{role}", role.getAsMention())
+					.replace("{level}", level.getName())
+				)
+				.build()
 			);
 		}
 
 	}
 
-	private class RemoveMod extends CommandBase {
+	private class RemoveRole extends SlashCommand {
 
-		public RemoveMod(App bot) {
-			super(bot);
-			this.name = "mod";
-			this.path = "bot.guild.access.remove.mod";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.USER, "member", lu.getText("bot.guild.access.remove.option_user"), true)
+		public RemoveRole(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "role";
+			this.path = "bot.guild.access.remove.role";
+			this.options = List.of(
+				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("remove", lu.getText("bot.guild.access.remove.help"));
 		}
@@ -243,54 +177,92 @@ public class AccessCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
 
-			Member targetMember = event.optMember("member");
-			if (targetMember == null) {
-				editError(event, "bot.guild.access.add.no_member");
-			} else {
-				Member author = Objects.requireNonNull(event.getMember());
-				Guild guild = Objects.requireNonNull(event.getGuild());
-				String guildId = guild.getId();
-
-				guild.retrieveMember(targetMember).queue(
-					member -> {
-						if (member.equals(author) || member.getUser().isBot()) {
-							editError(event, "bot.guild.access.remove.not_self");
-							return;
-						}
-						if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-							editError(event, "bot.guild.access.remove.is_higher");
-							return;
-						}
-						String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
-						if (access == null || access.equals("admin")) {
-							editError(event, "bot.guild.access.remove.mod.has_no_access");
-							return;
-						}
-						bot.getDBUtil().access.remove(guildId, member.getId());
-
-						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-							.setDescription(lu.getText(event, "bot.guild.access.remove.mod.done").replace("{member}", member.getAsMention()))
-							.setColor(Constants.COLOR_SUCCESS);
-							editHookEmbed(event, embed.build());
-
-					}, 
-					failure -> {
-						editError(event, "bot.guild.access.remove.no_member");
-					}
-				);
+			Role role = event.optRole("role");
+			if (role == null) {
+				editError(event, "bot.guild.access.remove.no_role");
+				return;
 			}
+
+			long roleId = role.getIdLong();
+
+			CmdAccessLevel level = bot.getDBUtil().access.getRoleLevel(roleId);
+			if (level.equals(CmdAccessLevel.ALL)) {
+				editError(event, "bot.guild.access.remove.role.no_access");
+			}
+
+			bot.getDBUtil().access.removeRole(roleId);
+
+			// Log
+			bot.getLogger().server.onAccessRemoved(event.getGuild(), event.getUser(), null, role, level);
+			// Send reply
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, "bot.guild.access.remove.role.done")
+					.replace("{role}", role.getAsMention())
+					.replace("{level}", level.getName())
+				)
+				.build()
+			);
 		}
 
 	}
 
-	private class RemoveAdmin extends CommandBase {
+	private class AddOperator extends SlashCommand {
 
-		public RemoveAdmin(App bot) {
-			super(bot);
-			this.name = "admin";
-			this.path = "bot.guild.access.remove.admin";
-			this.options = Collections.singletonList(
-				new OptionData(OptionType.USER, "member", lu.getText("bot.guild.access.remove.option_user"), true)
+		public AddOperator(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "operator";
+			this.path = "bot.guild.access.add.operator";
+			this.options = List.of(
+				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
+			);
+			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.guild.access.add.help"));
+			this.accessLevel = CmdAccessLevel.OWNER;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+
+			Member member = event.optMember("user");
+			if (member == null) {
+				editError(event, "bot.guild.access.add.no_member");
+				return;
+			}
+			if (member.isOwner() || member.getUser().isBot()) {
+				editError(event, "bot.guild.access.add.incorrect_user");
+				return;
+			}
+
+			long userId = member.getIdLong();
+			long guildId = event.getGuild().getIdLong();
+			if (bot.getDBUtil().access.isOperator(guildId, userId)) {
+				editError(event, "bot.guild.access.add.user_already");
+				return;
+			}
+
+			bot.getDBUtil().access.addUser(guildId, userId, CmdAccessLevel.OPERATOR);
+			
+			// Log
+			bot.getLogger().server.onAccessAdded(event.getGuild(), event.getUser(), member.getUser(), null, CmdAccessLevel.OPERATOR);
+			// Send reply
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, "bot.guild.access.add.operator.done").replace("{user}", member.getAsMention()))
+				.build()
+			);
+		}
+
+	}
+
+	private class RemoveOperator extends SlashCommand {
+
+		public RemoveOperator(App bot) {
+			this.bot = bot;
+			this.lu = bot.getLocaleUtil();
+			this.name = "operator";
+			this.path = "bot.guild.access.remove.operator";
+			this.options = List.of(
+				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("remove", lu.getText("bot.guild.access.remove.help"));
 			this.accessLevel = CmdAccessLevel.OWNER;
@@ -300,43 +272,30 @@ public class AccessCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
 
-			Member targetMember = event.optMember("member");
-			if (targetMember == null) {
-				editError(event, "bot.guild.access.add.no_member");
-			} else {
-				Member author = Objects.requireNonNull(event.getMember());
-				Guild guild = Objects.requireNonNull(event.getGuild());
-				String guildId = guild.getId();
-
-				guild.retrieveMember(targetMember).queue(
-					member -> {
-						if (member.equals(author) || member.getUser().isBot()) {
-							editError(event, "bot.guild.access.remove.not_self");
-							return;
-						}
-						if (bot.getCheckUtil().getAccessLevel(event.getClient(), member).getLevel() >= bot.getCheckUtil().getAccessLevel(event.getClient(), author).getLevel()) {
-							editError(event, "bot.guild.access.remove.is_higher");
-							return;
-						}
-						String access = bot.getDBUtil().access.hasAccess(guildId, member.getId());
-						if (access == null || access.equals("mod")) {
-							editError(event, "bot.guild.access.remove.admin.has_no_access");
-							return;
-						}
-						bot.getDBUtil().access.remove(guildId, member.getId());
-
-						EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-							.setDescription(lu.getText(event, "bot.guild.access.remove.admin.done").replace("{member}", member.getAsMention()))
-							.setColor(Constants.COLOR_SUCCESS);
-							editHookEmbed(event, embed.build());
-
-					}, 
-					failure -> {
-						editError(event, "bot.guild.access.remove.no_member");
-					}
-				);
+			User user = event.optUser("user");
+			if (user == null) {
+				editError(event, "bot.guild.access.remove.no_user");
+				return;
 			}
+
+			long userId = user.getIdLong();
+			long guildId = event.getGuild().getIdLong();
+			if (!bot.getDBUtil().access.isOperator(guildId, userId)) {
+				editError(event, "bot.guild.access.remove.operator.not_operator");
+				return;
+			}
+
+			bot.getDBUtil().access.removeUser(guildId, userId);
+
+			// Log
+			bot.getLogger().server.onAccessRemoved(event.getGuild(), event.getUser(), user, null, CmdAccessLevel.OPERATOR);
+			// Send reply
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, "bot.guild.access.remove.operator.done").replace("{user}", user.getAsMention()))
+				.build()
+			);
 		}
 
 	}
+
 }
