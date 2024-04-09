@@ -147,7 +147,7 @@ public class VerifyPanelCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			String imageUrl = event.optString("image_url");
 
-			if (!URL_PATTERN.matcher(imageUrl).matches()) {
+			if (!imageUrl.equals("NULL") && !URL_PATTERN.matcher(imageUrl).matches()) {
 				createError(event, path+".unknown_url", "URL: "+imageUrl);
 			}
 			bot.getDBUtil().verifySettings.setPanelImage(event.getGuild().getIdLong(), imageUrl);

@@ -54,7 +54,7 @@ public class VerifySettingsManager extends LiteBase {
 
 	public void setPanelImage(long guildId, String imageUrl) {
 		invalidateCache(guildId);
-		execute("INSERT INTO %s(guildId, panelImage) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelImage=%<s".formatted(table, guildId, imageUrl));
+		execute("INSERT INTO %s(guildId, panelImage) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelImage=%<s".formatted(table, guildId, quote(imageUrl)));
 	}
 
 	private void invalidateCache(long guildId) {
