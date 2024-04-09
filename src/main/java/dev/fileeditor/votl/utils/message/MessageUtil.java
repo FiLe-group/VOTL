@@ -5,7 +5,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 public class MessageUtil {
 
-	private static final Random random = new Random();
 	private final LocaleUtil lu;
 
 	private static final DecimalFormat decimalFormat = new DecimalFormat("# ### ###");
@@ -54,9 +53,9 @@ public class MessageUtil {
 		Color color = null;
 
 		if (input.equals("random")) {
-			int r = random.nextInt(256);
-			int g = random.nextInt(256);
-			int b = random.nextInt(256);
+			int r = ThreadLocalRandom.current().nextInt(256);
+			int g = ThreadLocalRandom.current().nextInt(256);
+			int b = ThreadLocalRandom.current().nextInt(256);
 
 			return new Color(r, g, b);
 		}

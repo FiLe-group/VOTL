@@ -177,7 +177,6 @@
 			"blacklist": {
 				"added": "Blacklisted | %s",
 				"removed": "Removed from blacklist | %s",
-				"steam": "SteamID",
 				"group": "Group"
 			}
 		},
@@ -1247,6 +1246,17 @@
 					"embed_value": "Select server from the list below to be removed from Group `{group_name}`.",
 					"done": "Successfully removed server __{guild_name}__ from Group `{group_name}`."
 				},
+				"generateinvite": {
+					"help": "Generate new invite code for Group",
+					"usage": "generateinvite",
+					"group_owned": {
+						"name": "group_owned",
+						"help": "Select Group"
+					},
+					"no_group": "Couldn't find requested server Group.",
+					"not_owned": "This server is not Group's owner (creator).",
+					"done": "New invite code for the Group `%s` -> `%s`."
+				},
 				"rename": {
 					"help": "Rename Group",
 					"usage": "rename <Group> <name>",
@@ -1281,6 +1291,28 @@
 					"embed_value": "Select server from the list below.",
 					"done": "Successfully set permission to `{manage}` for server __{guild_name}__ in Group `{group_name}`."
 				},
+				"join": {
+					"help": "Join the Group",
+					"usage": "join <Invite>",
+					"invite": {
+						"name": "invite",
+						"help": "Group's invite code"
+					},
+					"no_group": "Couldn't find Group by invite.",
+					"failed_join": "Failed to join the Group.",
+					"is_member": "This server is already member of this Group.",
+					"done": "Joined the Group `%s`!"
+				},
+				"leave": {
+					"help": "Leave the Group",
+					"usage": "leave <Group joined>",
+					"group_joined": {
+						"name": "group_joined",
+						"help": "Select Group in which this server is a member"
+					},
+					"no_group": "Couldn't find requested Group.",
+					"done": "Left the Group `%s`!"
+				},
 				"view": {
 					"help": "View information about servers Group",
 					"usage": "view [Group owned] [Group joined]",
@@ -1295,7 +1327,8 @@
 					"no_group": "Couldn't find requested server Group.",
 					"not_owned": "This server is not Group's owner (creator).",
 					"embed_title": "Group '{group_name}' (#{group_id})",
-					"embed_value": "Owner: {guild_name} (`{guild_id}`)\nGroup size: {size} server/-s\nOthers can join: {is_shared}",
+					"embed_value": "Owner: {guild_name} (`{guild_id}`)\nGroup size: {size} server/-s",
+					"embed_invite": "Invite code",
 					"embed_guilds": "Server name | size | ID",
 					"embed_groups": "Group name | #ID",
 					"embed_owned": "Owned Groups",

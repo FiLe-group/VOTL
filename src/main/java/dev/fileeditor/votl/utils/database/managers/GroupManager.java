@@ -57,6 +57,18 @@ public class GroupManager extends LiteBase {
 		return data==null ? 0L : data;
 	}
 
+	public void setInvite(int groupId, int invite) {
+		execute("UPDATE %s SET invite=%s WHERE (groupId=%s)".formatted(groups, invite, groupId));
+	}
+
+	public Integer getInvite(int groupId) {
+		return selectOne("SELECT invite FROM %s WHERE (groupId=%s)".formatted(table, groupId), "invite", Integer.class);
+	}
+
+	public Integer getGroupByInvite(int invite) {
+		return selectOne("SELECT groupId FROM %s WHERE (invite=%s)".formatted(table, invite), "groupId", Integer.class);
+	}
+
 	// groupMembers table
 	public void add(int groupId, long guildId, boolean canManage) {
 		execute("INSERT INTO %s(groupId, guildId, canManage) VALUES (%d, %d, %d)".formatted(members, groupId, guildId, canManage ? 1 : 0));
