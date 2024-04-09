@@ -1,11 +1,4 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
-
-name: Java CI with Gradle
+name: Publish Release
 
 on:
   push:
@@ -18,36 +11,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3.5.2
+    - uses: actions/checkout@v4.1.1
     - name: Set up JDK 17
-      uses: actions/setup-java@v3.11.0
+      uses: actions/setup-java@v4.2.1
       with:
         java-version: '17'
         distribution: 'adopt'
     - name: Gradle Wrapper Validation
       # You may pin to the exact commit or the version.
-      # uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
-      uses: gradle/wrapper-validation-action@v1.0.6
+      uses: gradle/wrapper-validation-action@v2.1.2
     - name: Build with Gradle
-      uses: gradle/gradle-build-action@v2.4.2
+      uses: gradle/actions/setup-gradle@v3.2.0
       with:
-        arguments: build
+        arguments: shadowjar
     - name: Get App Version
       id: get_version
-      run: echo "version=$(./gradlew getReleaseVersion --console=plain -q --warning-mode=none)" >> $GITHUB_ENV
-    - uses: actions/upload-artifact@v3.1.2
+      run: echo "version=$(./gradlew getVersion --console=plain -q --warning-mode=none)" >> $GITHUB_ENV
+    - uses: actions/upload-artifact@v4.3.1
       with:
         name: Package
         path: |
-          ./build/lib/VOTL-*
+          ./build/libs/VOTL-*
+        overwrite: true
     - name: Create Release
       # You may pin to the exact commit or the version.
-      # uses: ncipollo/release-action@40bb172bd05f266cf9ba4ff965cb61e9ee5f6d01
-      uses: ncipollo/release-action@v1.12.0
+      uses: ncipollo/release-action@v1.14.0
       with:
         allowUpdates: true
         # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
-        artifacts: ./build/lib/VOTL-*.jar
+        artifacts: ./build/libs/VOTL-*.jar
         artifactContentType: "raw"
         # Generate release notes. There needs to be a previous version for it to diff against.
         generateReleaseNotes: true

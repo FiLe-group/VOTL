@@ -47,11 +47,6 @@ dependencies {
 	implementation 'org.json:json:20240303'
 }
 
-// Changes builded libraries directory from 'libs' to 'lib'
-sourceSets {
-	libsDirName = 'lib'
-}
-
 java {
 	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
 }
