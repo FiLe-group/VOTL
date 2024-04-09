@@ -1,0 +1,84 @@
+package dev.fileeditor.votl.commands.moderation;
+
+import java.util.List;
+
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
+import dev.fileeditor.votl.utils.message.TimeUtil;
+
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+
+public class ModLogsCmd extends CommandBase {
+	
+	public ModLogsCmd(App bot) {
+		super(bot);
+		this.name = "modlogs";
+		this.path = "bot.moderation.modlogs";
+		this.options = List.of(
+			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help")),
+			new OptionData(OptionType.INTEGER, "page", lu.getText(path+".page.help")).setMinValue(1)
+		);
+		this.category = CmdCategory.MODERATION;
+		this.module = CmdModule.MODERATION;
+		this.cooldown = 10;
+		this.cooldownScope = CooldownScope.USER;
+	}
+
+	@Override
+	protected void execute(SlashCommandEvent event) {
+		event.deferReply().queue();
+
+		User tu;
+		if (event.hasOption("user")) {
+			tu = event.optUser("user", event.getUser());
+			if (!tu.equals(event.getUser()) && !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.MOD)) {
+				editError(event, path+".no_perms");
+				return;
+			}
+		} else {
+			tu = event.getUser();
+		}
+
+		long guildId = event.getGuild().getIdLong();
+		long userId = tu.getIdLong();
+		Integer page = event.optInteger("page", 1);
+		List<CaseData> cases = bot.getDBUtil().cases.getGuildUser(guildId, userId, event.optInteger("page", 1));
+		if (cases.isEmpty()) {
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty")).build());
+			return;
+		}
+		int pages = (int) Math.ceil(bot.getDBUtil().cases.countCases(guildId, userId)/10.0);
+
+		DiscordLocale locale = event.getUserLocale();
+		EmbedBuilder builder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
+			.setTitle(lu.getLocalized(locale, path+".title").formatted(tu.getName(), page, pages));
+		cases.forEach(c -> {
+			StringBuffer buffer = new StringBuffer()
+				.append(lu.getLocalized(locale, path+".type").formatted(lu.getLocalized(locale, c.getType().getPath())))
+				.append(lu.getLocalized(locale, path+".target").formatted(c.getTargetTag(), c.getTargetId()))
+				.append(lu.getLocalized(locale, path+".mod").formatted(c.getModTag()));
+			if (!c.getDuration().isNegative())
+				buffer.append(lu.getLocalized(locale, path+".duration").formatted(c.getDuration().isZero() ?
+					lu.getLocalized(locale, path+".permanent") :
+					TimeUtil.durationToLocalizedString(lu, locale, c.getDuration())
+				));
+			buffer.append(lu.getLocalized(locale, path+".reason").formatted(c.getReason()));
+
+			builder.addField((c.isActive() ? "🟥" : "⬜" ) + " " + lu.getLocalized(locale, path+".case").formatted(c.getCaseId()), buffer.toString(), false);
+		});
+
+		editHookEmbed(event, builder.build());
+	}
+
+}

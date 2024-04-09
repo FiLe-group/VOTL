@@ -1,7 +1,5 @@
 plugins {
 	id 'java'
-	// Apply the application plugin to add support for building a CLI application in Java.
-	id 'application'
 	// ShadowJar
 	id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
@@ -10,7 +8,7 @@ plugins {
 apply from: 'version.gradle'
 
 def version = loadVersion().getVersion()
-def group = 'votl.App'
+def group = 'dev.fileeditor.votl.App'
 
 repositories {
 	// Use Maven Central for resolving dependencies.
@@ -22,31 +20,35 @@ repositories {
 }
 
 dependencies {
-	// This dependency is used by the application.
-	implementation 'com.google.guava:guava:31.1-jre'
-
-	// JDA library
-	implementation 'net.dv8tion:JDA:5.0.0-beta.9'					// JDA library
-	implementation 'ch.qos.logback:logback-classic:1.4.7'			// Logging (required by JDA)
-
-	// Chewtils extentions
-	implementation 'pw.chew:jda-chewtils-commons:2.0-SNAPSHOT'		// Commons Package
+	// JDA library and additions
+	// https://mvnrepository.com/artifact/net.dv8tion/JDA
+	implementation('net.dv8tion:JDA:5.0.0-beta.22') {				// JDA library
+		exclude module: 'opus-java'
+	}
+	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+	implementation 'ch.qos.logback:logback-classic:1.5.3'			// Logging (required by JDA)
 
 	// Tools
-	implementation 'com.jayway.jsonpath:json-path:2.8.0'			// json path-er
-	implementation 'org.xerial:sqlite-jdbc:3.42.0.0'				// sqlite database
-	implementation 'com.mysql:mysql-connector-j:8.0.33'				// mysql database (Union)
+	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
+	implementation 'com.jayway.jsonpath:json-path:2.9.0'			// json path-er
+	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
+	implementation 'org.xerial:sqlite-jdbc:3.45.2.0'				// sqlite database
+	// https://mvnrepository.com/artifact/org.jsoup/jsoup
+	implementation 'org.jsoup:jsoup:1.17.2'							// HTML tools
+	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
+	implementation 'io.github.java-diff-utils:java-diff-utils:4.12'
 
 	// Eval
-	implementation 'org.apache.groovy:groovy:4.0.12'				// Groovy - code evaluation
+	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
+	implementation 'org.apache.groovy:groovy:4.0.20'				// Groovy - code evaluation
 
 	// Chewtils commands
-	implementation 'org.json:json:20230227'
+	// https://mvnrepository.com/artifact/org.json/json
+	implementation 'org.json:json:20240303'
 }
 
-// Changes builded libraries directory from 'libs' to 'lib'
-sourceSets {
-	libsDirName = 'lib'
+java {
+	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
 }
 
 javadoc {
@@ -56,7 +58,7 @@ javadoc {
 // jar's Manifest
 jar {
 	manifest {
-		attributes 'Implementation-Title': 'Gradle script',
+		attributes 'Implementation-Title': 'VOTL Bot',
 				   'Implementation-Version': version,
 				   'Implementation-Vendor': 'FiLe group',
 				   'Main-Class': group
@@ -68,11 +70,6 @@ shadowJar {
 	archiveBaseName.set('VOTL')
 	archiveVersion.set(version)
 	archiveClassifier.set('')
-}
-
-application {
-	// Define the main class for the application.
-	mainClass = group
 }
 
 compileJava.options.encoding = 'UTF-8'

@@ -1,0 +1,213 @@
+package dev.fileeditor.votl.commands.moderation;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CaseType;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
+import dev.fileeditor.votl.utils.exception.FormatterException;
+import dev.fileeditor.votl.utils.message.TimeUtil;
+
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.requests.ErrorResponse;
+
+public class BanCmd extends CommandBase {
+	
+	public BanCmd(App bot) {
+		super(bot);
+		this.name = "ban";
+		this.path = "bot.moderation.ban";
+		this.options = List.of(
+			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
+			new OptionData(OptionType.STRING, "time", lu.getText(path+".time.help")),
+			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")).setMaxLength(400),
+			new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".delete.help")),
+			new OptionData(OptionType.BOOLEAN, "dm", lu.getText(path+".dm.help"))
+		);
+		this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
+		this.category = CmdCategory.MODERATION;
+		this.module = CmdModule.MODERATION;
+		this.accessLevel = CmdAccessLevel.MOD;
+		this.cooldown = 5;
+		this.cooldownScope = CooldownScope.GUILD;
+	}
+
+	@Override
+	protected void execute(SlashCommandEvent event) {
+		event.deferReply().queue();
+		Guild guild = Objects.requireNonNull(event.getGuild());
+
+		User tu = event.optUser("user");
+		if (tu == null) {
+			editError(event, path+".not_found");
+			return;
+		}
+		if (event.getUser().equals(tu) || event.getJDA().getSelfUser().equals(tu)) {
+			editError(event, path+".not_self");
+			return;
+		}
+
+		final Duration duration;
+		try {
+			duration = TimeUtil.stringToDuration(event.optString("time"), false);
+		} catch (FormatterException ex) {
+			editError(event, ex.getPath());
+			return;
+		}
+
+		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
+		guild.retrieveBan(tu).queue(ban -> {
+			CaseData oldBanData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
+			if (oldBanData != null) {
+				// Active expirable ban
+				if (duration.isZero()) {
+					// make current temporary ban inactive
+					bot.getDBUtil().cases.setInactive(oldBanData.getCaseId());
+					// create new entry
+					Member mod = event.getMember();
+					bot.getDBUtil().cases.add(CaseType.BAN, tu.getIdLong(), tu.getName(), mod.getIdLong(), mod.getUser().getName(),
+						guild.getIdLong(), reason, Instant.now(), duration);
+					CaseData newBanData = bot.getDBUtil().cases.getMemberLast(tu.getIdLong(), guild.getIdLong());
+					// create embed
+					MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+						.setDescription(lu.getText(event, path+".ban_success")
+							.replace("{user_tag}", tu.getName())
+							.replace("{duration}", lu.getText(event, "misc.permanently"))
+							.replace("{reason}", reason))
+						.build();
+					// log ban
+					bot.getLogger().mod.onNewCase(guild, tu, newBanData);
+
+					// reply and add blacklist button
+					event.getHook().editOriginalEmbeds(embed).setActionRow(
+						Button.danger("blacklist:"+ban.getUser().getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨"))
+					).queue();
+				} else {
+					// already has expirable ban (show caseID and use /duration to change time)
+					MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
+						.setDescription(lu.getText(event, path+".already_temp").formatted(oldBanData.getCaseId()))
+						.build();
+					event.getHook().editOriginalEmbeds(embed).queue();
+				}
+			} else {
+				// user has permanent ban, but not in DB
+				// create new case for manual ban (that is not in DB)
+				Member mod = event.getMember();
+				bot.getDBUtil().cases.add(CaseType.BAN, tu.getIdLong(), tu.getName(), mod.getIdLong(), mod.getUser().getName(),
+					guild.getIdLong(), reason, Instant.now(), Duration.ZERO);
+				CaseData newBanData = bot.getDBUtil().cases.getMemberLast(tu.getIdLong(), guild.getIdLong());
+				// log
+				bot.getLogger().mod.onNewCase(guild, tu, newBanData);
+				// create embed
+				MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
+					.setDescription(lu.getText(event, path+".already_banned"))
+					.addField(lu.getText(event, "logger_embed.ban.short_title"), lu.getText(event, "logger_embed.ban.short_info")
+						.replace("{username}", ban.getUser().getEffectiveName())
+						.replace("{reason}", Optional.ofNullable(ban.getReason()).orElse("*none*"))
+						, false)
+					.build();
+				// reply and add blacklist button
+				event.getHook().editOriginalEmbeds(embed).setActionRow(
+					Button.danger("blacklist:"+ban.getUser().getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨"))
+				).queue();
+			}
+		},
+		failure -> {
+			// checks if thrown something except from "ban not found"
+			if (!failure.getMessage().startsWith("10026")) {
+				bot.getAppLogger().warn(failure.getMessage());
+				editError(event, path+".ban_abort", failure.getMessage());
+				return;
+			}
+
+			Member tm = event.optMember("user");
+			Member mod = event.getMember();
+			if (tm != null) {
+				if (!guild.getSelfMember().canInteract(tm)) {
+					editError(event, path+".ban_abort", "Bot can't interact with target member.");
+					return;
+				}
+				if (bot.getCheckUtil().hasHigherAccess(tm, mod)) {
+					editError(event, path+".higher_access");
+					return;
+				}
+				if (!mod.canInteract(tm)) {
+					editError(event, path+".ban_abort", "You can't interact with target member.");
+					return;
+				}
+			}
+
+			if (event.optBoolean("dm", true)) {
+				tu.openPrivateChannel().queue(pm -> {
+					DiscordLocale locale = guild.getLocale();
+					String link = bot.getDBUtil().getGuildSettings(guild).getAppealLink();
+					MessageEmbed embed = new EmbedBuilder().setColor(Constants.COLOR_FAILURE)
+						.setDescription(duration.isZero() ? 
+							lu.getLocalized(locale, "logger_embed.pm.banned").formatted(guild.getName(), reason)
+							:
+							lu.getLocalized(locale, "logger_embed.pm.banned_temp").formatted(guild.getName(), TimeUtil.durationToLocalizedString(lu, locale, duration), reason)
+						)
+						.appendDescription(link != null ? lu.getLocalized(locale, "logger_embed.pm.appeal").formatted(link) : "")
+						.build();
+					pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+				});
+			}
+
+			guild.ban(tu, (event.optBoolean("delete", true) ? 10 : 0), TimeUnit.HOURS).reason(reason).queueAfter(3, TimeUnit.SECONDS, done -> {
+				// fail-safe check if has expirable ban (to prevent auto unban)
+				CaseData oldBanData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
+				if (oldBanData != null) {
+					bot.getDBUtil().cases.setInactive(oldBanData.getCaseId());
+				}
+				// add info to db
+				bot.getDBUtil().cases.add(CaseType.BAN, tu.getIdLong(), tu.getName(), mod.getIdLong(), mod.getUser().getName(),
+					guild.getIdLong(), reason, Instant.now(), duration);
+				CaseData newBanData = bot.getDBUtil().cases.getMemberLast(tu.getIdLong(), guild.getIdLong());
+				// create embed
+				MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getText(event, path+".ban_success")
+						.replace("{user_tag}", tu.getName())
+						.replace("{duration}", TimeUtil.formatDuration(lu, event.getUserLocale(), Instant.now(), duration))
+						.replace("{reason}", reason))
+					.build();
+				// log ban
+				bot.getLogger().mod.onNewCase(guild, tu, newBanData);
+
+				// if permanent - add button to blacklist target
+				if (duration.isZero())
+					event.getHook().editOriginalEmbeds(embed).setActionRow(
+						Button.danger("blacklist:"+tu.getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨"))
+					).queue();
+				else
+					event.getHook().editOriginalEmbeds(embed).queue();
+			},
+			failed -> {
+				editError(event, path+".ban_abort", failed.getMessage());
+			});
+		});
+	}
+	
+}

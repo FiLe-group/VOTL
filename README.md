@@ -1,21 +1,24 @@
 # VOTL
- Voice of the Lord - discord bot written on Java using JDA library with Chewtils extention.
+ [![Publish Release](https://github.com/FileEditor97/VOTL/actions/workflows/gradle.yml/badge.svg)](https://github.com/FileEditor97/VOTL/actions/workflows/gradle.yml)  
+ Voice of the Lord - discord bot written in Java using JDA library.  
+ Functions: server moderation and managment, custom voice channels and verification, tickets.  
 
- Visit website https://votl.vercel.app/
+ Visit main website https://votl.fileeditor.dev/   
 
 ## Config file
- config.json:
+ data/config.json:
  ```json
  {
 	"bot-token": "",
-	"owner-id": "16-19 long ID",
-	"bot-invite": "generated link for inviting the bot",
+	"owner-id": "owner's ID",
 	"dev-servers": [
-		"dev server ID"
-	]
+		"dev server's IDs"
+	],
+	"webhook": "link to webhook, if you want to receive ERROR level logs"
  }
  ```
 
-## Inspiration
- Thanks to Chew (for JDA-Chewtils and Chewbotcca bot)  
- PurrBot by Andre_601 (purrbot.site / github.com/purrbot-site/PurrBot)
+## Inspiration/Credits
+ Thanks to Chew (JDA-Chewtils and Chewbotcca bot) and jagrosh (JDA-Utilities)  
+ [PurrBot](github.com/purrbot-site/PurrBot) by Andre_601 (purrbot.site)  
+ Inkception for [Discord (JDA) HTML Transcripts](https://github.com/Inkception/discord-html-transcripts)
