@@ -198,6 +198,7 @@ public class App {
 			.addContextMenus(
 				new ReportMenu(this)
 			)
+			.setListener(commandListener)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
 			.build();
 
@@ -235,7 +236,7 @@ public class App {
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
 			.addEventListeners(
-				commandClient, WAITER, acListener, interactionListener, commandListener,
+				commandClient, WAITER, acListener, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,
 				auditListener, memberListener
 			);
@@ -248,7 +249,7 @@ public class App {
 			try {
 				tempJda = mainBuilder.build();
 				break;
-			} catch (InvalidTokenException ex) {
+			} catch (IllegalArgumentException | InvalidTokenException ex) {
 				logger.error("Login failed due to Token", ex);
 				System.exit(0);
 			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits

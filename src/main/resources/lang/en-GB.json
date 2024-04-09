@@ -180,7 +180,7 @@
 				"group": "Group"
 			}
 		},
-		"groups": {
+		"group": {
 			"name": "Group logs",
 			"title": "Group '%s' (#%s)",
 			"master": "Main server's ID: ",
@@ -202,7 +202,7 @@
 			"added": "User verified | %s",
 			"discord": "Discord account"
 		},
-		"tickets": {
+		"ticket": {
 			"name": "Ticket logs",
 			"closed_title": "Ticket Closed",
 			"closed_value": "Ticket Name: {name}\nClosed By: {closed}\nCreated By: {created}\nClaimed By: {claimed}\n\n*If available, ticket's transcript is attached to this message.*",
@@ -214,7 +214,7 @@
 			"created": "Ticket Created",
 			"ticket_name": "Ticket's name"
 		},
-		"roles": {
+		"role": {
 			"name": "Role logs",
 			"create": "Role created | %s",
 			"update": "Role updated | %s",
@@ -228,7 +228,7 @@
 			"temp_updated": "Temporary role updated for user",
 			"temp_removed": "Temporaty role removed from user"
 		},
-		"server": {
+		"guild": {
 			"name": "Server logs",
 			"update": "Guild settings updated",
 			"emoji_create": "Emoji created",
@@ -244,7 +244,7 @@
 			"module_enabled": "Module enabled",
 			"module_disabled": "Module disabled"
 		},
-		"messages": {
+		"message": {
 			"name": "Message logs",
 			"delete": "Message deleted",
 			"bulk_delete": "Bulk messages deleted",
@@ -256,7 +256,7 @@
 			"new_content": "New content",
 			"count": "Message count"
 		},
-		"members": {
+		"member": {
 			"name": "Member logs",
 			"join": "Member joined | %s",
 			"leave": "Member left | %s",
@@ -274,7 +274,7 @@
 			"mute": "Muted",
 			"deaf": "Deafen"
 		},
-		"channels": {
+		"channel": {
 			"name": "Channel logs",
 			"create": "Channel created | %s",
 			"update": "Channel updated | %s",

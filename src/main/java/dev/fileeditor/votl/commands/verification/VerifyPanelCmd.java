@@ -149,6 +149,7 @@ public class VerifyPanelCmd extends CommandBase {
 
 			if (!imageUrl.equals("NULL") && !URL_PATTERN.matcher(imageUrl).matches()) {
 				createError(event, path+".unknown_url", "URL: "+imageUrl);
+				return;
 			}
 			bot.getDBUtil().verifySettings.setPanelImage(event.getGuild().getIdLong(), imageUrl);
 			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)

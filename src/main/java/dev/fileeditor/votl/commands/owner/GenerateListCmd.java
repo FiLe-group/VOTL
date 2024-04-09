@@ -48,6 +48,8 @@ public class GenerateListCmd extends CommandBase {
 
 		JSONArray commandArray = new JSONArray();
 		for (SlashCommand cmd : commands) {
+			if (cmd.isOwnerCommand()) continue;
+			
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("name", cmd.getName())
 				.put("description", getText(cmd.getHelpPath()))
