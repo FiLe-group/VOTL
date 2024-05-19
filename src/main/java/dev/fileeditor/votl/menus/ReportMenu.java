@@ -52,9 +52,7 @@ public class ReportMenu extends MessageContextMenu {
 				.setDescription(lu.getText(event, path+".done"))
 				.build()
 			).queue();
-		}, failure -> {
-			event.getHook().editOriginal(Constants.FAILURE).queue();
-		});
+		}, failure -> event.getHook().editOriginal(Constants.FAILURE).queue());
 		
 	}
 

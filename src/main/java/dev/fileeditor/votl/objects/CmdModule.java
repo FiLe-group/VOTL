@@ -1,8 +1,6 @@
 package dev.fileeditor.votl.objects;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public enum CmdModule {
@@ -17,16 +15,6 @@ public enum CmdModule {
 	
 	private final String path;
 	private final int value;
-
-	public static final Set<CmdModule> ALL = new HashSet<CmdModule>();
-	private static final Map<Integer, CmdModule> BY_VALUE = new HashMap<Integer, CmdModule>();
-
-	static {
-		for (CmdModule ct : CmdModule.values()) {
-			ALL.add(ct);
-			BY_VALUE.put(ct.getValue(), ct);
-		}
-	}
 	
 	CmdModule(String path, int value) {
 		this.path = path;
@@ -55,9 +43,5 @@ public enum CmdModule {
 			data += v.value;
 		}
 		return data;
-	}
-
-	public static CmdModule byValue(int type) {
-		return BY_VALUE.get(type);
 	}
 }

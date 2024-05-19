@@ -12,7 +12,6 @@ import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
-import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
 import net.dv8tion.jda.api.Permission;
@@ -65,16 +64,11 @@ public class UnmuteCmd extends CommandBase {
 				// log unban
 				bot.getLogger().mod.onNewCase(guild, tm.getUser(), unmuteData, muteData != null ? muteData.getReason() : null);
 				// reply
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".success")
-						.replace("{user_tag}", tm.getUser().getName())
-						.replace("{reason}", reason))
-					.build()
+				editHookEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), unmuteData.getCaseId(),
+					path+".success", tm.getUser(), mod.getUser(), reason)
 				);
 			},
-			failed -> {
-				editError(event, path+".abort", failed.getMessage());
-			});
+			failed -> editError(event, path+".abort", failed.getMessage()));
 		} else {
 			editError(event, path+".not_muted");
 		}

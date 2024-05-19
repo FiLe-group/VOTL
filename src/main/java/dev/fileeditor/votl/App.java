@@ -20,6 +20,8 @@ import dev.fileeditor.votl.commands.verification.*;
 import dev.fileeditor.votl.commands.voice.VoiceCmd;
 import dev.fileeditor.votl.commands.webhook.WebhookCmd;
 import dev.fileeditor.votl.listeners.*;
+import dev.fileeditor.votl.menus.ActiveModlogsMenu;
+import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
@@ -27,6 +29,7 @@ import dev.fileeditor.votl.services.CountingThreadFactory;
 import dev.fileeditor.votl.services.ScheduledCheck;
 import dev.fileeditor.votl.utils.CheckUtil;
 import dev.fileeditor.votl.utils.GroupHelper;
+import dev.fileeditor.votl.utils.ModerationUtil;
 import dev.fileeditor.votl.utils.TicketUtil;
 import dev.fileeditor.votl.utils.WebhookAppender;
 import dev.fileeditor.votl.utils.database.DBUtil;
@@ -55,11 +58,10 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 
+@SuppressWarnings("BusyWait")
 public class App {
 	
 	private final Logger logger = (Logger) LoggerFactory.getLogger(App.class);
-
-	private static App instance;
 
 	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
 
@@ -69,22 +71,9 @@ public class App {
 
 	private final FileManager fileManager = new FileManager();
 
-	private final GuildListener guildListener;
-	private final VoiceListener voiceListener;
-	private final AutoCompleteListener acListener;
-	private final InteractionListener interactionListener;
-	private final CommandListener commandListener;
-	private final ModerationListener moderationListener;
-	private final MessageListener messageListener;
-	private final AuditListener auditListener;
-	private final MemberListener memberListener;
-
 	private final GuildLogger guildLogger;
 	private final LogEmbedUtil logEmbedUtil;
-	
-	private final ScheduledExecutorService scheduledExecutor;
-	private final ScheduledCheck scheduledCheck;
-	
+
 	private final DBUtil dbUtil;
 	private final MessageUtil messageUtil;
 	private final EmbedUtil embedUtil;
@@ -92,6 +81,7 @@ public class App {
 	private final LocaleUtil localeUtil;
 	private final TicketUtil ticketUtil;
 	private final GroupHelper groupHelper;
+	private final ModerationUtil moderationUtil;
 
 	public App() {
 		try {
@@ -106,32 +96,33 @@ public class App {
 		
 		// Define for default
 		dbUtil		= new DBUtil(getFileManager());
-		localeUtil	= new LocaleUtil(this, "en-GB", DiscordLocale.ENGLISH_UK);
+		localeUtil	= new LocaleUtil(this, DiscordLocale.ENGLISH_UK);
 		messageUtil	= new MessageUtil(localeUtil);
 		embedUtil	= new EmbedUtil(localeUtil);
 		checkUtil	= new CheckUtil(this);
 		ticketUtil	= new TicketUtil(this);
+		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
 
 		guildLogger		= new GuildLogger(this);
 		logEmbedUtil	= new LogEmbedUtil(localeUtil);
 
 		WAITER			= new EventWaiter();
 		groupHelper		= new GroupHelper(this);
-		commandListener = new CommandListener(localeUtil);
-		interactionListener = new InteractionListener(this, WAITER);
+		CommandListener commandListener = new CommandListener(localeUtil);
+		InteractionListener interactionListener = new InteractionListener(this, WAITER);
 
-		guildListener	= new GuildListener(this);
-		voiceListener	= new VoiceListener(this);
-		moderationListener = new ModerationListener(this);
-		messageListener = new MessageListener(this);
-		auditListener	= new AuditListener(dbUtil, guildLogger);
-		memberListener	= new MemberListener(this);
+		GuildListener guildListener = new GuildListener(this);
+		VoiceListener voiceListener = new VoiceListener(this);
+		ModerationListener moderationListener = new ModerationListener(this);
+		MessageListener messageListener = new MessageListener(this);
+		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
+		MemberListener memberListener = new MemberListener(this);
 
-		scheduledExecutor	= new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
-		scheduledCheck		= new ScheduledCheck(this);
+		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
+		ScheduledCheck scheduledCheck = new ScheduledCheck(this);
 
-		scheduledExecutor.scheduleWithFixedDelay(() -> scheduledCheck.regularChecks(), 2, 5, TimeUnit.MINUTES);
-		scheduledExecutor.scheduleWithFixedDelay(() -> scheduledCheck.irregularChecks(), 3, 15, TimeUnit.MINUTES);
+		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 5, TimeUnit.MINUTES);
+		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 15, TimeUnit.MINUTES);
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()
@@ -154,6 +145,7 @@ public class App {
 				new DurationCmd(this),
 				new GroupCmd(this, WAITER),
 				new KickCmd(this, WAITER),
+				new MuteCmd(this),
 				new ModLogsCmd(this),
 				new ModStatsCmd(this),
 				new ReasonCmd(this),
@@ -196,14 +188,16 @@ public class App {
 				new WebhookCmd(this)
 			)
 			.addContextMenus(
-				new ReportMenu(this)
+				new ReportMenu(this),
+				new ModlogsMenu(this),
+				new ActiveModlogsMenu(this)
 			)
 			.setListener(commandListener)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
 			.build();
 
 		// Build
-		acListener = new AutoCompleteListener(commandClient, dbUtil);
+		AutoCompleteListener acListener = new AutoCompleteListener(commandClient, dbUtil);
 
 		final Set<GatewayIntent> intents = Set.of(
 			GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
@@ -241,7 +235,7 @@ public class App {
 				auditListener, memberListener
 			);
 			
-		JDA tempJda = null;
+		JDA tempJda;
 
 		int retries = 4; // how many times will it try to build
 		int cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
@@ -255,11 +249,11 @@ public class App {
 			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits
 				if (retries > 0) {
 					retries--;
-					logger.info("Retrying connecting in "+cooldown+" seconds... "+retries+" more attempts");
+					logger.info("Retrying connecting in {} seconds... {} more attempts", cooldown, retries);
 					try {
-						Thread.sleep(cooldown*1000);
+						Thread.sleep(cooldown*1000L);
 					} catch (InterruptedException e) {
-						logger.error("Thread sleep interupted", e);
+						logger.error("Thread sleep interrupted", e);
 					}
 					cooldown*=2;
 				} else {
@@ -320,8 +314,12 @@ public class App {
 		return groupHelper;
 	}
 
+	public ModerationUtil getModerationUtil() {
+		return moderationUtil;
+	}
+
 	public static void main(String[] args) {
-		instance = new App();
+		App instance = new App();
 		instance.createWebhookAppender();
 		instance.logger.info("Success start");
 	}

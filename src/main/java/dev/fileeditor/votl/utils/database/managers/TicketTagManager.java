@@ -20,6 +20,9 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.internal.interactions.component.ButtonImpl;
 
+import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
+import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
+
 public class TicketTagManager extends LiteBase {
 	
 	public TicketTagManager(ConnectionUtil cu) {
@@ -63,7 +66,7 @@ public class TicketTagManager extends LiteBase {
 	}
 
 	public void updateTag(int tagId, Integer tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, Integer buttonStyle) {
-		List<String> values = new ArrayList<String>();
+		List<String> values = new ArrayList<>();
 		if (tagType != null) 
 			values.add("tagType="+tagType);
 		if (buttonText != null) 
@@ -81,23 +84,15 @@ public class TicketTagManager extends LiteBase {
 		if (buttonStyle != -1) 
 			values.add("buttonStyle="+buttonStyle);
 		
-		if (values.size() > 0) execute("UPDATE %s SET %s WHERE (tagId=%d)".formatted(table, String.join(", ", values), tagId));
+		if (!values.isEmpty()) execute("UPDATE %s SET %s WHERE (tagId=%d)".formatted(table, String.join(", ", values), tagId));
 	}
 
 	public Long getGuildId(int tagId) {
 		return selectOne("SELECT guildId FROM %s WHERE (tagId=%d)".formatted(table, tagId), "guildId", Long.class);
 	}
 
-	public List<Integer> getTagIds(long guildId) {
-		return select("SELECT tagId FROM %s WHERE (guildId=%s)".formatted(table, guildId), "tagId", Integer.class);
-	}
-
 	public int countPanelTags(int panelId) {
 		return count("SELECT COUNT(*) FROM %s WHERE (panelId=%d)".formatted(table, panelId));
-	}
-
-	public Integer getPanelId(int tagId) {
-		return selectOne("SELECT panelId FROM %s WHERE (tagId=%d)".formatted(table, tagId), "panelId", Integer.class);
 	}
 
 	public String getTagText(int tagId) {
@@ -114,8 +109,8 @@ public class TicketTagManager extends LiteBase {
 		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (panelId=%s)".formatted(table, panelId),
 			Set.of("tagId", "buttonText", "buttonStyle", "emoji")
 		);
-		if (data.isEmpty()) return null;
-		return data.stream().map(map -> Tag.createButton(map)).toList();
+		if (data.isEmpty()) return Collections.emptyList();
+		return data.stream().map(Tag::createButton).toList();
 	}
 
 	public Tag getTagFull(int tagId) {
@@ -123,7 +118,7 @@ public class TicketTagManager extends LiteBase {
 			Set.of("buttonText", "buttonStyle", "emoji", "tagType", "location", "message", "supportRoles", "ticketName")
 		);
 		if (data==null) return null;
-		return new Tag(data);
+		return new Tag(data, true);
 	}
 
 	public Tag getTagInfo(int tagId) {
@@ -131,7 +126,7 @@ public class TicketTagManager extends LiteBase {
 			Set.of("tagType", "location", "message", "supportRoles", "ticketName")
 		);
 		if (data==null) return null;
-		return new Tag(data);
+		return new Tag(data, false);
 	}
 
 	// TOOLS
@@ -149,15 +144,21 @@ public class TicketTagManager extends LiteBase {
 		private final String message;
 		private final String supportRoles;
 
-		public Tag(Map<String, Object> map) {
+		public Tag(Map<String, Object> map, boolean includeButton) {
 			this.tagType = (Integer) map.get("tagType");
-			this.buttonText = (String) map.get("buttonText");
 			this.ticketName = (String) map.get("ticketName");
-			this.buttonStyle = ButtonStyle.fromKey((Integer) map.getOrDefault("buttonStyle", 0));
-			this.emoji = Optional.ofNullable((String) map.get("emoji")).map(Emoji::fromFormatted).orElse(null);
 			this.location = (String) map.get("location");
 			this.message = setNewline((String) map.get("message"));
 			this.supportRoles = (String) map.get("supportRoles");
+			if (includeButton) {
+				this.buttonText = requireNonNull(map.get("buttonText"));
+				this.buttonStyle = ButtonStyle.fromKey(getOrDefault(map.get("buttonStyle"), 0));
+				this.emoji = Optional.ofNullable((String) map.get("emoji")).map(Emoji::fromFormatted).orElse(null);
+			} else {
+				this.buttonText = null;
+				this.buttonStyle = null;
+				this.emoji = null;
+			}
 		}
 		
 		private String setNewline(String text) {

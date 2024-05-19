@@ -26,17 +26,12 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 	private Encoder<ILoggingEvent> encoder;
 
 	private String url;
-	private String json = "{"
-			+ "\"embeds\": [{"
-			+ "\"color\": 16711680, "
-			+ "\"description\": {message}"
-			+ "}]"
-			+ "}";
+	private final String json = "{\"embeds\": [{\"color\": 16711680, \"description\": {message}}]}";
 
 	private long lastSend = 0L;
-	private long interval = 10L;
+	private final long interval = 10L;
 
-	private OkHttpClient client = new OkHttpClient();
+	private final OkHttpClient client = new OkHttpClient();
 
 	@Override
 	protected void append(ILoggingEvent event) {
@@ -73,7 +68,7 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 				if (ex instanceof UnknownHostException) {
 					logger.warn("Webhook call failed. Can't resolve URL.");
 				} else {
-					logger.warn("Webhook call failed. Payload:\n"+payload, ex);
+					logger.warn("Webhook call failed. Payload:\n{}", payload, ex);
 				}
 			}
 

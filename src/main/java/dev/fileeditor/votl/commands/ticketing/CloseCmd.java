@@ -26,7 +26,7 @@ public class CloseCmd extends CommandBase {
 			createError(event, path+".not_ticket");
 			return;
 		}
-		if (!bot.getDBUtil().tickets.isOpened(channelId)) {
+		if (bot.getDBUtil().tickets.isClosed(channelId)) {
 			// Ticket is closed
 			event.getChannel().delete().queue();
 			return;
@@ -35,10 +35,10 @@ public class CloseCmd extends CommandBase {
 		event.replyEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.delete_countdown"))
 			.build()
-		).queue(hook -> {	
+		).queue(hook -> {
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
 				hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed")).queue();
-				bot.getAppLogger().error("Couldn't close ticket with channelID:"+channelId, failure);
+				bot.getAppLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
 			});
 		});
 	}

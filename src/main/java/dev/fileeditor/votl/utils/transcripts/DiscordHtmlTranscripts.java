@@ -33,8 +33,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
- /**
- * Created by Ryzeon, forked by Inkception
+/**
+ * Created by Ryzeon
+ * Contributors: Inkception
  * Project: discord-html-transcripts
  * Date: 1/3/2023 @ 10:50
  */
@@ -229,7 +230,7 @@ public class DiscordHtmlTranscripts {
                 messageContent.appendChild(messageContentContent);
             }
 
-            // messsage attachments
+            // message attachments
             if (!message.getAttachments().isEmpty()) {
                 for (Message.Attachment attach : message.getAttachments()) {
                     Element attachmentsDiv = document.createElement("div");
@@ -409,12 +410,12 @@ public class DiscordHtmlTranscripts {
             Element embedField = document.createElement("div");
             embedField.addClass("chatlog__embed-field");
 
-            // Field nmae
+            // Field name
             Element embedFieldName = document.createElement("div");
             embedFieldName.addClass("chatlog__embed-field-name");
 
             Element embedFieldNameMarkdown = document.createElement("div");
-            embedFieldNameMarkdown.addClass("markdown");
+            embedFieldNameMarkdown.addClass("markdown preserve-whitespace");
             embedFieldNameMarkdown.html(field.getName());
 
             embedFieldName.appendChild(embedFieldNameMarkdown);
@@ -426,7 +427,7 @@ public class DiscordHtmlTranscripts {
             embedFieldValue.addClass("chatlog__embed-field-value");
 
             Element embedFieldValueMarkdown = document.createElement("div");
-            embedFieldValueMarkdown.addClass("markdown");
+            embedFieldValueMarkdown.addClass("markdown preserve-whitespace");
             embedFieldValueMarkdown
                     .html(Formatter.format(field.getValue()));
 
@@ -444,7 +445,7 @@ public class DiscordHtmlTranscripts {
         embedDescription.addClass("chatlog__embed-description");
 
         Element embedDescriptionMarkdown = document.createElement("div");
-        embedDescriptionMarkdown.addClass("markdown");
+        embedDescriptionMarkdown.addClass("markdown preserve-whitespace");
         embedDescriptionMarkdown
                 .html(Formatter.format(embed.getDescription()));
 
@@ -462,14 +463,14 @@ public class DiscordHtmlTranscripts {
             embedTitleLink.attr("href", embed.getUrl());
 
             Element embedTitleMarkdown = document.createElement("div");
-            embedTitleMarkdown.addClass("markdown")
+            embedTitleMarkdown.addClass("markdown preserve-whitespace")
                     .html(Formatter.format(embed.getTitle()));
 
             embedTitleLink.appendChild(embedTitleMarkdown);
             embedTitle.appendChild(embedTitleLink);
         } else {
             Element embedTitleMarkdown = document.createElement("div");
-            embedTitleMarkdown.addClass("markdown")
+            embedTitleMarkdown.addClass("markdown preserve-whitespace")
                     .html(Formatter.format(embed.getTitle()));
 
             embedTitle.appendChild(embedTitleMarkdown);

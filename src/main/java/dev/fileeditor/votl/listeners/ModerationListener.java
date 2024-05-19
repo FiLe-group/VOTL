@@ -78,7 +78,7 @@ public class ModerationListener extends ListenerAdapter {
 					AuditLogEntry entry = list.get(0);
 					AuditLogChange change = entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT);
 					if (change == null) return;
-					//
+					// TODO
 				});
 		} else {
 			// Log
@@ -91,7 +91,7 @@ public class ModerationListener extends ListenerAdapter {
 					AuditLogEntry entry = list.get(0);
 					AuditLogChange change = entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT);
 					if (change == null) return;
-					//
+					// TODO
 				});
 		}
 	}

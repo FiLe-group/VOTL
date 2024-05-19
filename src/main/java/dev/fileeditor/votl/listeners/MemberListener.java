@@ -66,7 +66,7 @@ public class MemberListener extends ListenerAdapter {
 		}
 		db.user.remove(event.getUser().getIdLong());
 		if (db.getTicketSettings(event.getGuild()).autocloseLeftEnabled()) {
-			db.tickets.getOpenedChannel(userId, guildId).stream().forEach(channelId -> {
+			db.tickets.getOpenedChannel(userId, guildId).forEach(channelId -> {
 				db.tickets.closeTicket(Instant.now(), channelId, "Ticket's author left the server");
 				GuildChannel channel = event.getGuild().getGuildChannelById(channelId);
 				if (channel != null) channel.delete().reason("Author left").queue();
@@ -80,8 +80,5 @@ public class MemberListener extends ListenerAdapter {
 			bot.getLogger().member.onNickChange(event.getMember(), event.getOldValue(), event.getNewValue());
 		}
 	}
-
-	/* @Override
-	public void onGuildMemberUpdateAvatar(@NotNull GuildMemberUpdateAvatarEvent event) {} */
 	
 }

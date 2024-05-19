@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -107,44 +106,39 @@ public class ModuleCmd extends CommandBase {
 			StringSelectMenu menu = StringSelectMenu.create("disable-module")
 				.setPlaceholder(lu.getText(event, path+".select"))
 				.setRequiredRange(1, 1)
-				.addOptions(enabled.stream().map(
-					sModule -> {
-						return SelectOption.of(lu.getText(event, sModule.getPath()), sModule.toString());
-					}
-				).collect(Collectors.toList()))
+				.addOptions(enabled.stream()
+					.map(sModule -> SelectOption.of(lu.getText(event, sModule.getPath()), sModule.toString()))
+					.toList()
+				)
 				.build();
 
-			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(msg -> {
-				waiter.waitForEvent(
-					StringSelectInteractionEvent.class,
-					e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(msg.getId()),
-					actionEvent -> {
-						actionEvent.deferEdit().queue();
-						CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
-						if (bot.getDBUtil().getGuildSettings(guildId).isDisabled(sModule)) {
-							hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".already")).setComponents().queue();
-							return;
-						}
-						// set new data
-						final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() + sModule.getValue();
-						bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
-						// Send reply
-						hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-							.setTitle(lu.getText(event, path+".done").replace("{module}", lu.getText(event, sModule.getPath())))
-							.build()
-						).setComponents().queue();
-						// Log
-						bot.getLogger().server.onModuleDisabled(event.getGuild(), event.getUser(), sModule);
-					},
-					30,
-					TimeUnit.SECONDS,
-					() -> {
-						hook.editOriginalComponents(
-							ActionRow.of(menu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
-						).queue();
+			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(msg -> waiter.waitForEvent(
+				StringSelectInteractionEvent.class,
+				e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(msg.getId()),
+				actionEvent -> {
+					actionEvent.deferEdit().queue();
+					CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
+					if (bot.getDBUtil().getGuildSettings(guildId).isDisabled(sModule)) {
+						hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".already")).setComponents().queue();
+						return;
 					}
-				);
-			});
+					// set new data
+					final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() + sModule.getValue();
+					bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
+					// Send reply
+					hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+						.setTitle(lu.getText(event, path+".done").replace("{module}", lu.getText(event, sModule.getPath())))
+						.build()
+					).setComponents().queue();
+					// Log
+					bot.getLogger().server.onModuleDisabled(event.getGuild(), event.getUser(), sModule);
+				},
+				30,
+				TimeUnit.SECONDS,
+				() -> hook.editOriginalComponents(
+					ActionRow.of(menu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
+				).queue()
+			));
 		}
 
 	}
@@ -168,8 +162,8 @@ public class ModuleCmd extends CommandBase {
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(event, path+".embed_title"));
 
-			Set<CmdModule> enabled = getModules(guildId, false);
-			if (enabled.isEmpty()) {
+			Set<CmdModule> disabled = getModules(guildId, false);
+			if (disabled.isEmpty()) {
 				embed.setDescription(lu.getText(event, path+".none"))
 					.setColor(Constants.COLOR_FAILURE);
 				editHookEmbed(event, embed.build());
@@ -180,49 +174,39 @@ public class ModuleCmd extends CommandBase {
 			StringSelectMenu menu = StringSelectMenu.create("enable-module")
 				.setPlaceholder(lu.getText(event, path+".select"))
 				.setRequiredRange(1, 1)
-				.addOptions(enabled.stream().map(
-					sModule -> {
-						return SelectOption.of(lu.getText(event, sModule.getPath()), sModule.toString());
-					}
-				).collect(Collectors.toList()))
+				.addOptions(disabled.stream()
+					.map(sModule -> SelectOption.of(lu.getText(event, sModule.getPath()), sModule.toString()))
+					.toList())
 				.build();
 
-			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(msg -> {
-				waiter.waitForEvent(
-					StringSelectInteractionEvent.class,
-					e -> e.getComponentId().equals("enable-module") && e.getMessageId().equals(msg.getId()),
-					actionEvent -> {
-
-						actionEvent.deferEdit().queue(
-							actionHook -> {
-								CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
-								if (!bot.getDBUtil().getGuildSettings(guildId).isDisabled(sModule)) {
-									hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".already")).setComponents().queue();
-									return;
-								}
-								// set new data
-								final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() - sModule.getValue();
-								bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
-								// Send reply
-								hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-									.setTitle(lu.getText(event, path+".done").replace("{module}", lu.getText(event, sModule.getPath())))
-									.build()
-								).setComponents().queue();
-								// Log
-								bot.getLogger().server.onModuleEnabled(event.getGuild(), event.getUser(), sModule);
-							}
-						);
-
-					},
-					10,
-					TimeUnit.SECONDS,
-					() -> {
-						hook.editOriginalComponents(
-							ActionRow.of(menu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
-						).queue();
+			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(msg -> waiter.waitForEvent(
+				StringSelectInteractionEvent.class,
+				e -> e.getComponentId().equals("enable-module") && e.getMessageId().equals(msg.getId()),
+				actionEvent -> actionEvent.deferEdit().queue(
+					actionHook -> {
+						CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
+						if (!bot.getDBUtil().getGuildSettings(guildId).isDisabled(sModule)) {
+							hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".already")).setComponents().queue();
+							return;
+						}
+						// set new data
+						final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() - sModule.getValue();
+						bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
+						// Send reply
+						hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+							.setTitle(lu.getText(event, path+".done").replace("{module}", lu.getText(event, sModule.getPath())))
+							.build()
+						).setComponents().queue();
+						// Log
+						bot.getLogger().server.onModuleEnabled(event.getGuild(), event.getUser(), sModule);
 					}
-				);
-			});
+				),
+				10,
+				TimeUnit.SECONDS,
+				() -> hook.editOriginalComponents(
+					ActionRow.of(menu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
+				).queue()
+			));
 		}
 
 	}

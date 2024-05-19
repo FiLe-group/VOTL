@@ -389,9 +389,7 @@ public class VoiceCmd extends CommandBase {
 						.setDescription(lu.getText(event, path+".done").replace("{channel}", vc.getAsMention()))
 						.build()
 					);
-				}, failure -> {
-					editError(event, "errors.error", failure.getMessage());
-				}
+				}, failure -> editError(event, "errors.error", failure.getMessage())
 			);
 		}
 	}
@@ -461,9 +459,7 @@ public class VoiceCmd extends CommandBase {
 					.setDescription(lu.getUserText(event, path+".done", mentionStrings))
 					.build()
 				);
-			}, failure -> {
-				editPermError(event, Permission.MANAGE_PERMISSIONS, true);
-			});
+			}, failure -> editPermError(event, Permission.MANAGE_PERMISSIONS, true));
 		}
 
 	}
@@ -536,9 +532,7 @@ public class VoiceCmd extends CommandBase {
 					.setDescription(lu.getUserText(event, path+".done", mentionStrings))
 					.build()
 				);
-			}, failure -> {
-				editPermError(event, Permission.MANAGE_PERMISSIONS, true);
-			});
+			}, failure -> editPermError(event, Permission.MANAGE_PERMISSIONS, true));
 		}
 		
 	}
@@ -615,7 +609,7 @@ public class VoiceCmd extends CommandBase {
 			EmbedBuilder embedBuilder2 = embedBuilder;
 			List<PermissionOverride> ovs = overrides;
 
-			guild.retrieveMembersByIds(false, overrides.stream().map(ov -> ov.getId()).toArray(String[]::new)).onSuccess(
+			guild.retrieveMembersByIds(false, overrides.stream().map(PermissionOverride::getId).toArray(String[]::new)).onSuccess(
 				members -> {
 					if (members.isEmpty()) {
 						embedBuilder2.appendDescription(lu.getText(event, path+".embed.none") + "\n");

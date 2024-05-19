@@ -19,23 +19,26 @@ import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
+import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
-import net.dv8tion.jda.api.utils.TimeFormat;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 public class DeleteStikeCmd extends CommandBase {
 
-	private EventWaiter waiter;
+	private final EventWaiter waiter;
 	
 	public DeleteStikeCmd(App bot, EventWaiter waiter) {
 		super(bot);
@@ -89,18 +92,16 @@ public class DeleteStikeCmd extends CommandBase {
 			.setTitle(lu.getText(event, path+".select_title").formatted(tu.getName(), strikeData.getLeft()))
 			.setFooter("User ID: "+tu.getId())
 			.build()
-		).setActionRow(caseSelectMenu).queue(msg -> {
-			waiter.waitForEvent(
-				StringSelectInteractionEvent.class,
-				e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
-				selectAction -> strikeSelected(selectAction, msg, cases, tu),
-				60,
-				TimeUnit.SECONDS,
-				() -> msg.editMessageComponents(ActionRow.of(
-					caseSelectMenu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build()
-				)).queue()
-			);
-		});
+		).setActionRow(caseSelectMenu).queue(msg -> waiter.waitForEvent(
+			StringSelectInteractionEvent.class,
+			e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
+			selectAction -> strikeSelected(selectAction, msg, cases, tu),
+			60,
+			TimeUnit.SECONDS,
+			() -> msg.editMessageComponents(ActionRow.of(
+				caseSelectMenu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build()
+			)).queue()
+		));
 	}
 
 	private void strikeSelected(StringSelectInteractionEvent event, Message msg, String[] strikesInfoArray, User tu) {
@@ -118,7 +119,7 @@ public class DeleteStikeCmd extends CommandBase {
 			return;
 		}
 
-		Integer activeAmount = Integer.valueOf(selected[1]);
+		int activeAmount = Integer.parseInt(selected[1]);
 		if (activeAmount == 1) {
 			long guildId = event.getGuild().getIdLong();
 			// As only one strike remains - delete case from strikes data and set case inactive
@@ -147,28 +148,35 @@ public class DeleteStikeCmd extends CommandBase {
 			}
 			buttons.add(Button.secondary(caseId+"-"+activeAmount,
 				lu.getText(event, path+".button_all")+" "+getSquares(activeAmount, activeAmount, max)));
-			
+
+			// Send dm
+			tu.openPrivateChannel().queue(pm -> {
+				MessageEmbed embed = bot.getModerationUtil().getDelstrikeEmbed(1, event.getGuild(), event.getUser());
+				if (embed == null) return;
+				pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+			});
+			// Log
+			bot.getLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseId, 1, activeAmount);
+			// Reply
 			msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(event, path+".button_title"))
 				.build()
-			).setActionRow(buttons).queue(msgN -> {
-				waiter.waitForEvent(
-					ButtonInteractionEvent.class,
-					e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
-					buttonAction -> buttonPressed(buttonAction, msgN, strikesInfo, tu, activeAmount),
-					30,
-					TimeUnit.SECONDS,
-					() -> msg.editMessageEmbeds(new EmbedBuilder(msgN.getEmbeds().get(0)).appendDescription("\n\n"+lu.getText(event, "errors.timed_out")).build())
-						.setComponents().queue()
-				);
-			});
+			).setActionRow(buttons).queue(msgN -> waiter.waitForEvent(
+				ButtonInteractionEvent.class,
+				e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
+				buttonAction -> buttonPressed(buttonAction, msgN, strikesInfo, tu, activeAmount),
+				30,
+				TimeUnit.SECONDS,
+				() -> msg.editMessageEmbeds(new EmbedBuilder(msgN.getEmbeds().get(0)).appendDescription("\n\n"+lu.getText(event, "errors.timed_out")).build())
+					.setComponents().queue()
+			));
 		}
 	}
 
 	private void buttonPressed(ButtonInteractionEvent event, Message msg, List<String> cases, User tu, int activeAmount) {
 		event.deferEdit().queue();
 		String[] value = event.getComponentId().split("-");
-		Integer caseId = Integer.valueOf(value[0]);
+		int caseId = Integer.parseInt(value[0]);
 
 		CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
 		if (!caseData.isActive()) {
@@ -200,6 +208,12 @@ public class DeleteStikeCmd extends CommandBase {
 				removeAmount, String.join(";", cases)
 			);
 		}
+		// Send dm
+		tu.openPrivateChannel().queue(pm -> {
+			MessageEmbed embed = bot.getModerationUtil().getDelstrikeEmbed(removeAmount, event.getGuild(), event.getUser());
+			if (embed == null) return;
+			pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+		});
 		// Log
 		bot.getLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseId, removeAmount, activeAmount);
 		// Reply
@@ -213,14 +227,14 @@ public class DeleteStikeCmd extends CommandBase {
 		List<SelectOption> options = new ArrayList<>();
 		for (String c : cases) {
 			String[] args = c.split("-");
-			Integer caseId = Integer.valueOf(args[0]);
-			Integer strikeAmount = Integer.valueOf(args[1]);
+			int caseId = Integer.parseInt(args[0]);
+			int strikeAmount = Integer.parseInt(args[1]);
 			CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
 			options.add(SelectOption.of(
 				"%s | %s".formatted(getSquares(strikeAmount, caseData.getType().getValue()-20), MessageUtil.limitString(caseData.getReason(), 50)),
 				caseId+"-"+strikeAmount
-			).withDescription(TimeFormat.DATE_SHORT.format(caseData.getTimeStart())+" By: "+caseData.getModTag()));
-		};
+			).withDescription(TimeUtil.timeToString(caseData.getTimeStart())+" | By: "+caseData.getModTag()));
+		}
 		return options;
 	}
 

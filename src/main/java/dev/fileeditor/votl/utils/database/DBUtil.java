@@ -10,33 +10,13 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.utils.database.managers.AccessManager;
-import dev.fileeditor.votl.utils.database.managers.AutopunishManager;
-import dev.fileeditor.votl.utils.database.managers.BlacklistManager;
-import dev.fileeditor.votl.utils.database.managers.CaseManager;
-import dev.fileeditor.votl.utils.database.managers.GroupManager;
-import dev.fileeditor.votl.utils.database.managers.GuildLogsManager;
-import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
+import dev.fileeditor.votl.utils.database.managers.*;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager.GuildSettings;
 import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager.TicketSettings;
 import dev.fileeditor.votl.utils.database.managers.VerifySettingsManager.VerifySettings;
-import dev.fileeditor.votl.utils.database.managers.GuildVoiceManager;
-import dev.fileeditor.votl.utils.database.managers.LogExceptionsManager;
-import dev.fileeditor.votl.utils.database.managers.RoleManager;
-import dev.fileeditor.votl.utils.database.managers.StrikeManager;
-import dev.fileeditor.votl.utils.database.managers.TempRoleManager;
-import dev.fileeditor.votl.utils.database.managers.TicketManager;
-import dev.fileeditor.votl.utils.database.managers.TicketPanelManager;
-import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager;
-import dev.fileeditor.votl.utils.database.managers.TicketTagManager;
-import dev.fileeditor.votl.utils.database.managers.UserSettingsManager;
-import dev.fileeditor.votl.utils.database.managers.VerifySettingsManager;
-import dev.fileeditor.votl.utils.database.managers.VoiceChannelManager;
-import dev.fileeditor.votl.utils.database.managers.WebhookManager;
 import dev.fileeditor.votl.utils.database.managers.GuildLogsManager.LogSettings;
 import dev.fileeditor.votl.utils.file.FileManager;
 
@@ -73,6 +53,7 @@ public class DBUtil {
 	public final TicketManager tickets;
 	public final AutopunishManager autopunish;
 	public final BlacklistManager blacklist;
+	public final ModifyRoleManager modifyRole;
 
 	public DBUtil(FileManager fileManager) {
 		this.fileManager = fileManager;
@@ -98,8 +79,11 @@ public class DBUtil {
 		tickets = new TicketManager(connectionUtil);
 		autopunish = new AutopunishManager(connectionUtil);
 		blacklist = new BlacklistManager(connectionUtil);
+		modifyRole = new ModifyRoleManager(connectionUtil);
 
 		updateDB();
+
+		modifyRole.removeExpired(); // Remove expired selections
 	}
 
 	public GuildSettings getGuildSettings(Guild guild) {
@@ -175,8 +159,8 @@ public class DBUtil {
 		List<List<String>> result = new ArrayList<>();
 		lines.forEach(line -> {
 			String[] points = line.split(";");
-			List<String> list = points.length == 0 ? Arrays.asList(line) : Arrays.asList(points);
-			if (!list.isEmpty()) result.add(list);
+			List<String> list = points.length == 0 ? List.of(line) : List.of(points);
+			result.add(list);
 		});
 		return result;
 	}
@@ -191,12 +175,10 @@ public class DBUtil {
 		if (newVersion > activeVersion) {
 			try (Connection conn = DriverManager.getConnection(connectionUtil.getUrlSQLite());
 			Statement st = conn.createStatement()) {
-				if (activeVersion < newVersion) {
-					for (List<String> version : loadInstructions(activeVersion)) {
-						for (String sql : version) {
-							logger.debug(sql);
-							st.execute(sql);
-						}
+				for (List<String> version : loadInstructions(activeVersion)) {
+					for (String sql : version) {
+						logger.debug(sql);
+						st.execute(sql);
 					}
 				}
 			} catch(SQLException ex) {

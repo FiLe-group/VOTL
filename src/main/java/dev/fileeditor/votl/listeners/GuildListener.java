@@ -21,7 +21,7 @@ public class GuildListener extends ListenerAdapter {
 	@Override
 	public void onGuildJoin(@Nonnull GuildJoinEvent event) {
 		String guildId = event.getGuild().getId();
-		bot.getAppLogger().info("Joined guild '"+event.getGuild().getName()+"'("+guildId+")");
+		bot.getAppLogger().info("Joined guild '{}'({})", event.getGuild().getName(), guildId);
 	}
 
 	@Override
@@ -34,13 +34,13 @@ public class GuildListener extends ListenerAdapter {
 		for (Integer groupId : db.group.getGuildGroups(guildId)) {
 			try {
 				bot.getLogger().group.onGuildLeft(event.getGuild(), groupId);
-			} catch (Exception ex) {}
+			} catch (Exception ignored) {}
 		}
 		String ownerIcon = event.getGuild().getIconUrl();
 		for (Integer groupId : db.group.getOwnedGroups(guildId)) {
 			try {
 				bot.getLogger().group.onDeletion(guildId, ownerIcon, groupId);
-			} catch (Exception ex) {}
+			} catch (Exception ignored) {}
 			db.group.clearGroup(groupId);
 		}
 		db.group.removeGuildFromGroups(guildId);
@@ -53,7 +53,7 @@ public class GuildListener extends ListenerAdapter {
 		db.roles.removeAll(guildId);
 		db.guildVoice.remove(guildId);
 		db.ticketPanels.deleteAll(guildId);
-		db.ticketPanels.deleteAll(guildId);
+		db.ticketTags.deleteAll(guildId);
 		db.tempRoles.removeAll(guildId);
 		db.autopunish.removeGuild(guildId);
 		db.strikes.removeGuild(guildId);

@@ -19,7 +19,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 
 	private final List<SlashCommand> cmds;
 
-	private DBUtil db;
+	private final DBUtil db;
 
 	public AutoCompleteListener(CommandClient cc, DBUtil dbutil) {
 		cmds = cc.getSlashCommands();
@@ -70,7 +70,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 			}
 		}
 		else if (focusedOption.equals("group")) {
-			List<Integer> groupIds = new ArrayList<Integer>();
+			List<Integer> groupIds = new ArrayList<>();
 			groupIds.addAll(db.group.getOwnedGroups(event.getGuild().getIdLong()));
 			groupIds.addAll(db.group.getManagedGroups(event.getGuild().getIdLong()));
 			if (groupIds.isEmpty()) {
@@ -91,9 +91,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 			if (value.isBlank()) {
 				// if input is blank, show max 25 choices
 				List<Choice> choices = db.ticketPanels.getPanelsText(guildId).entrySet().stream()
-					.map(panel -> {
-						return new Choice("%s | %s".formatted(panel.getKey(), panel.getValue()), panel.getKey());
-					})
+					.map(panel -> new Choice("%s | %s".formatted(panel.getKey(), panel.getValue()), panel.getKey()))
 					.collect(Collectors.toList());
 				event.replyChoices(choices).queue();
 				return;
@@ -102,12 +100,12 @@ public class AutoCompleteListener extends ListenerAdapter {
 			Integer id = null;
 			try {
 				id = Integer.valueOf(value);
-			} catch(NumberFormatException ex) {}
+			} catch(NumberFormatException ignored) {}
 			if (id != null) {
 				// if able to convert input to Integer
 				String title = db.ticketPanels.getPanelTitle(id);
 				if (title != null) {
-					// if found panel with matching Id
+					// if found panel with matching ID
 					event.replyChoice("%s | %s".formatted(id, MessageUtil.limitString(title, 80)), id).queue();
 					return;
 				}
@@ -120,9 +118,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 			if (value.isBlank()) {
 				// if input is blank, show max 25 choices
 				List<Choice> choices = db.ticketTags.getTagsText(guildId).entrySet().stream()
-					.map(panel -> {
-						return new Choice("%s | %s".formatted(panel.getKey(), panel.getValue()), panel.getKey());
-					})
+					.map(panel -> new Choice("%s | %s".formatted(panel.getKey(), panel.getValue()), panel.getKey()))
 					.collect(Collectors.toList());
 				event.replyChoices(choices).queue();
 				return;
@@ -131,12 +127,12 @@ public class AutoCompleteListener extends ListenerAdapter {
 			Integer id = null;
 			try {
 				id = Integer.valueOf(value);
-			} catch(NumberFormatException ex) {}
+			} catch(NumberFormatException ignored) {}
 			if (id != null) {
 				// if able to convert input to Integer
 				String title = db.ticketTags.getTagText(id);
 				if (title != null) {
-					// if found panel with matching Id
+					// if found panel with matching ID
 					event.replyChoice("%s - %s".formatted(id, title), id).queue();
 					return;
 				}

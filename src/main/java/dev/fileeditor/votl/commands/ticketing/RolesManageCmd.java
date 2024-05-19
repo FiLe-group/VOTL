@@ -92,7 +92,7 @@ public class RolesManageCmd extends CommandBase {
 			if (type.equals(RoleType.ASSIGN.toString())) {
 				Integer row = event.optInteger("row", 0);
 				if (row == 0) {
-					for (Integer i = 1; i <= 3; i++) {
+					for (int i = 1; i <= 3; i++) {
 						if (bot.getDBUtil().roles.getRowSize(guildId, i) < 25) {
 							row = i;
 							break;
@@ -179,7 +179,7 @@ public class RolesManageCmd extends CommandBase {
 
 			if (event.hasOption("description")) {
 				String description = event.optString("description");
-				if (description.toLowerCase().equals("null")) description = null;
+				if (description.equalsIgnoreCase("null")) description = null;
 
 				if (bot.getDBUtil().roles.isToggleable(roleId)) {
 					if (description == null) {
@@ -279,7 +279,7 @@ public class RolesManageCmd extends CommandBase {
 						if (roles.isEmpty()) {
 							builder.addField(title, lu.getText(event, path+".none"), false);
 						} else {
-							generateField(guild, title, roles).forEach(field -> builder.addField(field));
+							generateField(guild, title, roles).forEach(builder::addField);
 						}
 					}
 				} else {
@@ -288,7 +288,7 @@ public class RolesManageCmd extends CommandBase {
 					if (roles.isEmpty()) {
 						builder.addField(title, lu.getText(event, path+".none"), false);
 					} else {
-						generateField(guild, title, roles).forEach(field -> builder.addField(field));
+						generateField(guild, title, roles).forEach(builder::addField);
 					}
 				}
 			}
@@ -299,7 +299,7 @@ public class RolesManageCmd extends CommandBase {
 	}
 	
 	private List<Field> generateField(final Guild guild, final String title, final List<Map<String, Object>> roles) {
-		List<Field> fields = new ArrayList<Field>();
+		List<Field> fields = new ArrayList<>();
 		StringBuffer buffer = new StringBuffer();
 		roles.forEach(data -> {
 			Long roleId = castLong(data.get("roleId"));
@@ -315,7 +315,7 @@ public class RolesManageCmd extends CommandBase {
 				buffer.setLength(0);
 			}
 		});
-		if (buffer.length() != 0) {
+		if (!buffer.isEmpty()) {
 			fields.add(new Field((fields.isEmpty() ? title : ""), buffer.toString(), false));
 		}
 		return fields;

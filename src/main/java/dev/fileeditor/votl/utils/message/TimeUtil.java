@@ -2,6 +2,7 @@ package dev.fileeditor.votl.utils.message;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.HashMap;
 import java.util.Optional;
@@ -17,8 +18,8 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 
 public class TimeUtil {
 
-	private static final Pattern timePatternFull = Pattern.compile("^(([0-9]+)([smhdw]{1}))+$", Pattern.CASE_INSENSITIVE);
-	private static final Pattern timePattern = Pattern.compile("([0-9]+)([smhdw]{1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern timePatternFull = Pattern.compile("^(([0-9]+)([smhdw]))+$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern timePattern = Pattern.compile("([0-9]+)([smhdw])", Pattern.CASE_INSENSITIVE);
 
 	private enum TimeUnit{
 		SECONDS('s', 1),
@@ -30,7 +31,7 @@ public class TimeUtil {
 		private final char character;
 		private final int multip;
 
-		private static final HashMap<Character, TimeUnit> BY_CHAR = new HashMap<Character, TimeUnit>();
+		private static final HashMap<Character, TimeUnit> BY_CHAR = new HashMap<>();
 
 		static {
 			for (TimeUnit format : TimeUnit.values()) {
@@ -53,13 +54,13 @@ public class TimeUtil {
 
 		@Nullable
 		public static Integer getMultipByChar(char c) {
-			return Optional.ofNullable(BY_CHAR.get(c)).map(tf -> tf.getMultip()).orElse(null);
+			return Optional.ofNullable(BY_CHAR.get(c)).map(TimeUnit::getMultip).orElse(null);
 		}
 	}
 
 	/*
 	 * Duration and Period class have parse() method,
-	 * but they are quite inconvinient, as we want to
+	 * but they are quite inconvenient, as we want to
 	 * use both duration(h m s) and period(w d).
 	 */
 	public static Duration stringToDuration(String text, boolean allowSeconds) throws FormatterException {
@@ -72,7 +73,7 @@ public class TimeUtil {
 		}
 		
 		Matcher timeMatcher = timePattern.matcher(text);
-		Long time = 0L;
+		long time = 0L;
 		while (timeMatcher.find()) {
 			Character c = timeMatcher.group(2).charAt(0);
 			if (c.equals('s') && !allowSeconds) {
@@ -84,7 +85,7 @@ public class TimeUtil {
 			}
 
 			try {
-				time = Math.addExact(time, Math.multiplyExact(Long.valueOf(timeMatcher.group(1)), multip));
+				time = Math.addExact(time, Math.multiplyExact(Long.parseLong(timeMatcher.group(1)), multip));
 			} catch (NumberFormatException ex) {
 				throw new FormatterException("errors.formatter.parse_long");
 			} catch (ArithmeticException ex) {
@@ -100,23 +101,36 @@ public class TimeUtil {
 			return "0 seconds";
 		}
 
-		StringBuffer buffer = new StringBuffer();
-		Long days = duration.toDaysPart();
-		if (days >= 7) {
-			Integer weeks = Math.floorMod(days, 7);
-			buffer.append(weeks+" weeks ");
-			days -= weeks*7;
-		}
-		if (days > 0) buffer.append(duration.toDays()+" days ");
-		
-		Integer value = duration.toHoursPart();
-		if (value > 0) buffer.append(value+" hours ");
-		value = duration.toMinutesPart();
-		if (value > 0) buffer.append(value+" minutes ");
-		value = duration.toSecondsPart();
-		if (value > 0) buffer.append(value+" seconds");
+		StringBuilder builder = new StringBuilder();
 
-		return buffer.toString();
+		long days = duration.toDaysPart();
+		if (days >= 7) {
+			int weeks = Math.floorMod(days, 7);
+			builder.append(weeks).append(" weeks ");
+			days -= weeks*7L;
+		}
+		if (days > 0) {
+			if (!builder.isEmpty()) builder.append(" ");
+			builder.append(days).append(" days");
+		}
+
+		int value = duration.toHoursPart();
+		if (value > 0) {
+			if (!builder.isEmpty()) builder.append(" ");
+			builder.append(value).append(" hours");
+		}
+		value = duration.toMinutesPart();
+		if (value > 0) {
+			if (!builder.isEmpty()) builder.append(" ");
+			builder.append(value).append(" minutes");
+		}
+		value = duration.toSecondsPart();
+		if (value > 0) {
+			if (!builder.isEmpty()) builder.append(" ");
+			builder.append(value).append(" seconds");
+		}
+
+		return builder.toString();
 	}
 
 	public static String durationToLocalizedString(LocaleUtil lu, DiscordLocale locale, Duration duration) {
@@ -124,23 +138,35 @@ public class TimeUtil {
 			return "0 %s".formatted(lu.getLocalized(locale, "misc.time.seconds"));
 		}
 
-		StringBuffer buffer = new StringBuffer();
-		Long days = duration.toDaysPart();
+		StringBuilder builder = new StringBuilder();
+		long days = duration.toDaysPart();
 		if (days >= 7L) {
-			Long weeks = Math.floorDiv(days, 7L);
-			buffer.append("%s %s ".formatted(weeks, lu.getLocalized(locale, "misc.time.weeks")));
-			days = Math.floorMod(days, 7L);
+			long weeks = Math.floorDiv(days, 7L);
+			builder.append("%s %s".formatted(weeks, lu.getLocalized(locale, "misc.time.weeks")));
+			days -= weeks*7;
 		}
-		if (days > 0) buffer.append("%s %s ".formatted(days, lu.getLocalized(locale, "misc.time.days")));
-		
-		Integer value = duration.toHoursPart();
-		if (value > 0) buffer.append("%s %s ".formatted(value, lu.getLocalized(locale, "misc.time.hours")));
-		value = duration.toMinutesPart();
-		if (value > 0) buffer.append("%s %s ".formatted(value, lu.getLocalized(locale, "misc.time.minutes")));
-		value = duration.toSecondsPart();
-		if (value > 0) buffer.append("%s %s".formatted(value, lu.getLocalized(locale, "misc.time.seconds")));
+		if (days > 0) {
+			if (!builder.isEmpty()) builder.append(" ");
+			builder.append("%s %s".formatted(days, lu.getLocalized(locale, "misc.time.days")));
+		}
 
-		return buffer.toString();
+		int value = duration.toHoursPart();
+		if (value > 0) {
+			if (!builder.isEmpty()) builder.append(" ");
+			builder.append("%s %s".formatted(value, lu.getLocalized(locale, "misc.time.hours")));
+		}
+		value = duration.toMinutesPart();
+		if (value > 0) {
+			if (!builder.isEmpty()) builder.append(" ");
+			builder.append("%s %s".formatted(value, lu.getLocalized(locale, "misc.time.minutes")));
+		}
+		value = duration.toSecondsPart();
+		if (value > 0) {
+			if (!builder.isEmpty()) builder.append(" ");
+			builder.append("%s %s".formatted(value, lu.getLocalized(locale, "misc.time.seconds")));
+		}
+
+		return builder.toString();
 	}
 
 	public static String formatTime(TemporalAccessor time, boolean full) {
@@ -157,6 +183,12 @@ public class TimeUtil {
 			TimeFormat.DATE_SHORT.format(time),
 			TimeFormat.TIME_SHORT.format(time)
 		);
+	}
+
+	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+	public static String timeToString(TemporalAccessor time) {
+		if (time == null) return "indefinitely";
+		return formatter.format(time);
 	}
 
 	public static String formatDuration(LocaleUtil lu, DiscordLocale locale, Instant startTime, Duration duration) {

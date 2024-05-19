@@ -72,7 +72,7 @@ public class MessageData {
 			List.of(newContent.split("\\n"))
 		);
 		
-		StringBuffer diff = new StringBuffer();
+		StringBuilder diff = new StringBuilder();
 		boolean skipped = false;
 		final int size = rows.size();
 		for (int i = 0; i<size; i++) {
@@ -91,14 +91,12 @@ public class MessageData {
 			}
 
 			switch (row.getTag()) {
-				case INSERT -> diff.append("+ "+row.getNewLine());
-				case DELETE -> diff.append("- "+row.getOldLine());
-				case CHANGE -> {
-					diff.append("- "+row.getOldLine())
-						.append("\n")
-						.append("+ "+row.getNewLine());
-				}
-				default -> diff.append(" "+row.getOldLine());
+				case INSERT -> diff.append("+ ").append(row.getNewLine());
+				case DELETE -> diff.append("- ").append(row.getOldLine());
+				case CHANGE -> diff.append("- ").append(row.getOldLine())
+					.append("\n")
+					.append("+ ").append(row.getNewLine());
+				default -> diff.append(" ").append(row.getOldLine());
 			}
 			diff.append("\n");
 		}

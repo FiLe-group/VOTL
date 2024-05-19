@@ -84,15 +84,15 @@ public class TicketPanelCmd extends CommandBase {
 			String footer = event.optString("embed_footer");
 
 			if (isInvalidURL(image)) {
-				createError(event, path+".image_not_valid", "Received unvalid URL: `%s`".formatted(image));
+				createError(event, path+".image_not_valid", "Received invalid URL: `%s`".formatted(image));
 				return;
 			}
 
 			bot.getDBUtil().ticketPanels.createPanel(event.getGuild().getIdLong(), title, description, image, footer);
-			Integer panelId = bot.getDBUtil().ticketPanels.getIncrement();
+			int panelId = bot.getDBUtil().ticketPanels.getIncrement();
 
 			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{title}", title).replace("{id}", panelId.toString()))
+				.setDescription(lu.getText(event, path+".done").replace("{title}", title).replace("{id}", Integer.toString(panelId)))
 				.build()
 			);
 		}
@@ -134,7 +134,7 @@ public class TicketPanelCmd extends CommandBase {
 			String footer = event.optString("embed_footer");
 
 			if (isInvalidURL(image)) {
-				editError(event, path+".image_not_valid", "Received unvalid URL: `%s`".formatted(image));
+				editError(event, path+".image_not_valid", "Received invalid URL: `%s`".formatted(image));
 				return;
 			}
 			
@@ -236,9 +236,8 @@ public class TicketPanelCmd extends CommandBase {
 						.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
 						.build()
 					).queue();
-				}, failure -> {
-					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getError(event, "errors.error", failure.getMessage())).queue();
-				});
+				},
+					failure -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getError(event, "errors.error", failure.getMessage())).queue());
 			}
 		}
 
@@ -336,7 +335,7 @@ public class TicketPanelCmd extends CommandBase {
 
 			List<Role> supportRoles = Optional.ofNullable(event.optMentions("support_roles")).map(Mentions::getRoles).orElse(Collections.emptyList());
 			String supportRoleIds = null;
-			if (supportRoles.size() > 0) {
+			if (!supportRoles.isEmpty()) {
 				if (supportRoles.size() > 6) {
 					editError(event, path+".too_many_roles", "Provided: %d".formatted(supportRoles.size()));
 					return;
@@ -345,10 +344,10 @@ public class TicketPanelCmd extends CommandBase {
 			}
 
 			bot.getDBUtil().ticketTags.createTag(guildId, panelId, type, buttonName, emoji, categoryId, message, supportRoleIds, ticketName, buttonStyle.getKey());
-			Integer tagId = bot.getDBUtil().ticketTags.getIncrement();
+			int tagId = bot.getDBUtil().ticketTags.getIncrement();
 
 			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{tag}", tagId.toString()).replace("{panel}", panelId.toString()))
+				.setDescription(lu.getText(event, path+".done").replace("{tag}", Integer.toString(tagId)).replace("{panel}", panelId.toString()))
 				.build()
 			);
 		}
@@ -406,7 +405,7 @@ public class TicketPanelCmd extends CommandBase {
 
 			List<Role> supportRoles = Optional.ofNullable(event.optMentions("support_roles")).map(Mentions::getRoles).orElse(Collections.emptyList());
 			String supportRoleIds = null;
-			if (supportRoles.size() > 0) {
+			if (!supportRoles.isEmpty()) {
 				if (supportRoles.size() > 6) {
 					editError(event, path+".too_many_roles", "Provided: %d".formatted(supportRoles.size()));
 					return;
@@ -421,7 +420,8 @@ public class TicketPanelCmd extends CommandBase {
 			if (type != null)			builder.addField(lu.getText(event, path+".changed_type"), (type > 1 ? "Channel" : "Thread"), true);
 			if (ticketName != null)		builder.addField(lu.getText(event, path+".changed_name"), ticketName, true);
 			if (category != null)		builder.addField(lu.getText(event, path+".changed_location"), category.getAsMention(), true);
-			if (supportRoleIds != null)	builder.addField(lu.getText(event, path+".changed_roles"), supportRoleIds, false);
+			if (supportRoleIds != null)	builder.addField(lu.getText(event, path+".changed_roles"),
+				supportRoles.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), false);
 			if (message != null)		builder.addField(lu.getText(event, path+".changed_message"), message, false);
 			
 			if (builder.getFields().isEmpty()) {
@@ -473,7 +473,7 @@ public class TicketPanelCmd extends CommandBase {
 			String message = Optional.ofNullable(tag.getMessage()).orElse(lu.getText(event, path+".none"));
 			String category = Optional.ofNullable(tag.getLocation()).map(id -> event.getGuild().getCategoryById(id).getAsMention()).orElse(lu.getText(event, path+".none"));
 			String roles = Optional.ofNullable(tag.getSupportRoles())
-				.map(ids -> ids.stream().map(id -> "<@&%s>".formatted(id)).collect(Collectors.joining(", ")))
+				.map(ids -> ids.stream().map("<@&%s>"::formatted).collect(Collectors.joining(", ")))
 				.orElse(lu.getText(event, path+".none"));
 			
 			builder.addField(lu.getText(event, path+".location"), category, true)
@@ -540,7 +540,7 @@ public class TicketPanelCmd extends CommandBase {
 			event.deferReply(true).queue();
 			long guildId = event.getGuild().getIdLong();
 			
-			StringBuffer response = new StringBuffer();
+			StringBuilder response = new StringBuilder();
 			if (event.hasOption("autoclose")) {
 				int time = event.optInteger("autoclose");
 				bot.getDBUtil().ticketSettings.setAutocloseTime(guildId, time);
@@ -578,7 +578,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private MessageEmbed buildPanelEmbed(Guild guild, Integer panelId) {
 		Panel panel = bot.getDBUtil().ticketPanels.getPanel(panelId);
-		return panel.getPrefiledEmbed(bot.getDBUtil().getGuildSettings(guild).getColor()).build();
+		return panel.getFilledEmbed(bot.getDBUtil().getGuildSettings(guild).getColor()).build();
 	}
 	
 }

@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.other;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.Category;
@@ -47,7 +46,7 @@ public class HelpCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(event.isFromGuild() ? !event.optBoolean("show", false) : false).queue();
+		event.deferReply(event.isFromGuild() && !event.optBoolean("show", false)).queue();
 
 		String findCmd = event.optString("command");
 				
@@ -92,11 +91,11 @@ public class HelpCmd extends CommandBase {
 	}
 
 	private String getUsageText(DiscordLocale locale, SlashCommand command) {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder builder = new StringBuilder();
 		if (command.getChildren().length > 0) {
 			String base = command.getName();
 			for (SlashCommand child : command.getChildren()) {
-				buffer.append(
+				builder.append(
 					lu.getLocalized(locale, "bot.help.command_info.usage_child")
 						.replace("{base}", base)
 						.replace("{usage}", lu.getLocalized(locale, child.getUsagePath()))
@@ -104,9 +103,9 @@ public class HelpCmd extends CommandBase {
 					).append("\n");
 			}
 		} else {
-			buffer.append(lu.getLocalized(locale, "bot.help.command_info.usage_value").replace("{usage}", lu.getLocalized(locale, command.getUsagePath()))).append("\n");
+			builder.append(lu.getLocalized(locale, "bot.help.command_info.usage_value").replace("{usage}", lu.getLocalized(locale, command.getUsagePath()))).append("\n");
 		}
-		return buffer.toString().substring(0, Math.min(1024, buffer.length()));
+		return builder.substring(0, Math.min(1024, builder.length()));
 	}
 
 	private void sendHelp(SlashCommandEvent event, String filCat) {
@@ -120,8 +119,11 @@ public class HelpCmd extends CommandBase {
 		StringBuilder fieldValue = new StringBuilder();
 		List<SlashCommand> commands = (
 			filCat == null ? 
-			event.getClient().getSlashCommands() : 
-			event.getClient().getSlashCommands().stream().filter(cmd -> cmd.getCategory().getName().contentEquals(filCat)).collect(Collectors.toList())
+			event.getClient().getSlashCommands() :
+				event.getClient().getSlashCommands().stream().filter(cmd -> {
+					if (cmd.getCategory() == null) return false;
+					return cmd.getCategory().getName().contentEquals(filCat);
+				}).toList()
 		);
 		for (SlashCommand command : commands) {
 			if (!command.isOwnerCommand() || bot.getCheckUtil().isBotOwner(event.getUser())) {
@@ -130,6 +132,7 @@ public class HelpCmd extends CommandBase {
 						builder.addField(fieldTitle, fieldValue.toString(), false);
 					}
 					category = command.getCategory();
+					if (category == null) continue;
 					fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.categories."+category.getName());
 					fieldValue = new StringBuilder();
 				}

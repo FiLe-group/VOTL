@@ -60,7 +60,7 @@ public class CommandClientBuilder
 	 */
 	public CommandClient build()
 	{
-		CommandClient client = new CommandClientImpl(ownerId, commandPreProcessFunction, activity, status, serverInvite,
+		CommandClient client = new CommandClientImpl(ownerId, activity, status, serverInvite,
 													 new ArrayList<>(slashCommands), new ArrayList<>(contextMenus), forcedGuildId, devGuildIds, manualUpsert,
 													 shutdownAutomatically, executor);
 		if(listener!=null)
@@ -131,7 +131,7 @@ public class CommandClientBuilder
 
 	/**
 	 * Sets the {@link net.dv8tion.jda.api.entities.Activity Game} the bot will use as the default:
-	 * 'Playing <b>Type [prefix]help</b>'
+	 * 'Playing <b>Type /help</b>'
 	 *
 	 * @return This builder
 	 */
@@ -248,7 +248,7 @@ public class CommandClientBuilder
 
 	/**
 	 * Set owner/developer Guild that will have access to owner set SlashCommands.
-	 * By default all SlashCommands/ContextMenus will be added globally (except if used {@link CommandClientBuilder#forceGuildOnly forceGuildOnly})
+	 * By default, all SlashCommands/ContextMenus will be added globally (except if used {@link CommandClientBuilder#forceGuildOnly forceGuildOnly})
 	 *
 	 * @param guildIds the guild IDs.
 	 * @return This Builder
@@ -261,19 +261,19 @@ public class CommandClientBuilder
 
 	/**
 	 * Set owner/developer Guild that will have access to owner set SlashCommands.
-	 * By default all SlashCommands/ContextMenus will be added globally (except if used {@link CommandClientBuilder#forceGuildOnly forceGuildOnly})
+	 * By default, all SlashCommands/ContextMenus will be added globally (except if used {@link CommandClientBuilder#forceGuildOnly forceGuildOnly})
 	 *
 	 * @param guildIds the guild IDs.
 	 * @return This Builder
 	 */
 	public CommandClientBuilder setDevGuildIds(long... guildIds)
 	{
-		this.devGuildIds = Arrays.stream(guildIds).mapToObj(String::valueOf).toArray(String[]::new);;
+		this.devGuildIds = Arrays.stream(guildIds).mapToObj(String::valueOf).toArray(String[]::new);
 		return this;
 	}
 
 	/**
-	 * Whether or not to manually upsert slash commands.
+	 * Whether to manually upsert slash commands.
 	 * This is designed if you want to handle upserting, instead of doing it every boot.
 	 * False by default.
 	 *

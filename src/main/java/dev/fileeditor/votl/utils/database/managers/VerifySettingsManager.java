@@ -25,7 +25,7 @@ public class VerifySettingsManager extends LiteBase {
 	public VerifySettings getSettings(long guildId) {
 		if (cache.contains(guildId))
 			return cache.get(guildId);
-		VerifySettings settings = applyNonNull(getData(guildId), data -> new VerifySettings(data));
+		VerifySettings settings = applyNonNull(getData(guildId), VerifySettings::new);
 		if (settings == null)
 			return blankSettings;
 		cache.put(guildId, settings);
@@ -61,7 +61,7 @@ public class VerifySettingsManager extends LiteBase {
 		cache.pull(guildId);
 	}
 
-	public class VerifySettings {
+	public static class VerifySettings {
 		private final Long roleId;
 		private final String panelText, panelImageUrl;
 

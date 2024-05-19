@@ -28,10 +28,6 @@ public class RoleManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 
-	public List<Map<String, Object>> getAll(long guildId) {
-		return select("SELECT * FROM %s WHERE (guildId=%s)".formatted(table, guildId), Set.of("roleId", "description", "type"));
-	}
-
 	public List<Map<String, Object>> getRolesByType(long guildId, RoleType type) {
 		return select("SELECT * FROM %s WHERE (guildId=%s AND type=%d)".formatted(table, guildId, type.getType()), Set.of("roleId", "description"));
 	}
@@ -72,17 +68,6 @@ public class RoleManager extends LiteBase {
 		return selectOne("SELECT description FROM %s WHERE (roleId=%s)".formatted(table, roleId), "description", String.class);
 	}
 
-	public int getRow(long roleId) {
-		Integer data = selectOne("SELECT row FROM %s WHERE (roleId=%s)".formatted(table, roleId), "row", Integer.class);
-		if (data == null) return 0;
-		return data;
-	}
-
-	public boolean isTimed(long roleId) {
-		Integer data = selectOne("SELECT timed FROM %s WHERE (roleId=%s)".formatted(table, roleId), "timed", Integer.class);
-		return data == null ? false : data==1;
-	}
-
 	public void setDescription(long roleId, String description) {
 		execute("UPDATE %s SET description=%s WHERE (roleId=%s)".formatted(table, quote(description), roleId));
 	}
@@ -97,7 +82,7 @@ public class RoleManager extends LiteBase {
 
 	public boolean isToggleable(long roleId) {
 		RoleType type = getType(roleId);
-		return type==null ? false : type.equals(RoleType.TOGGLE);
+		return type != null && type.equals(RoleType.TOGGLE);
 	}
 
 	public boolean existsRole(long roleId) {

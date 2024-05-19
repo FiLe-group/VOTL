@@ -60,9 +60,9 @@ public class TicketManager extends LiteBase {
 	}
 
 	// get status
-	public boolean isOpened(long channelId) {
+	public boolean isClosed(long channelId) {
 		Integer data = selectOne("SELECT closed FROM %s WHERE (channelId=%s)".formatted(table, channelId), "closed", Integer.class);
-		return data==null ? false : data==0;
+		return data == null || data != 0;
 	}
 
 	public Long getOpenedChannel(long userId, long guildId, int tagId) {
@@ -73,14 +73,6 @@ public class TicketManager extends LiteBase {
 	public List<Long> getOpenedChannel(long userId, long guildId) {
 		return select("SELECT channelId FROM %s WHERE (userId=%s AND guildId=%s AND closed=0)".formatted(table, userId, guildId),
 			"channelId", Long.class);
-	}
-
-	public int countOpenedByUser(long userId, long guildId, int tagId) {
-		return count("SELECT COUNT(*) FROM %s WHERE (userId=%s AND guildId=%s AND tagId=%s AND closed=0)".formatted(table, userId, guildId, tagId));
-	}
-
-	public int countAllOpenedByUser(long userId, long guildId) {
-		return count("SELECT COUNT(*) FROM %s WHERE (userId=%s AND guildId=%s AND closed=0)".formatted(table, userId, guildId));
 	}
 
 	public List<Long> getOpenedChannels() {
@@ -108,7 +100,7 @@ public class TicketManager extends LiteBase {
 
 	public boolean isRoleTicket(long channelId) {
 		Integer data = selectOne("SELECT tagId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "tagId", Integer.class);
-		return data==null ? false : data==0;
+		return data != null && data == 0;
 	}
 
 	public int countTicketsByMod(long guildId, long modId, Instant afterTime, Instant beforeTime, boolean roleTag) {
@@ -121,6 +113,12 @@ public class TicketManager extends LiteBase {
 		String tagType = roleTag ? "tagId=0" : "tagId>=1";
 		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%s AND modId=%s AND timeClosed>=%d AND %s)"
 			.formatted(table, guildId, modId, afterTime.getEpochSecond(), tagType));
+	}
+
+	public int countTicketsByMod(long guildId, long modId, boolean roleTag) {
+		String tagType = roleTag ? "tagId=0" : "tagId>=1";
+		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%s AND modId=%s AND %s)"
+				.formatted(table, guildId, modId, tagType));
 	}
 
 	/**

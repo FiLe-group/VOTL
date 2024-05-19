@@ -56,12 +56,8 @@ public class TicketPanelManager extends LiteBase {
 		return selectOne("SELECT guildId FROM %s WHERE (panelId=%d)".formatted(table, panelId), "guildId", Long.class);
 	}
 
-	public List<Integer> getPanelIds(long guildId) {
-		return select("SELECT panelId FROM %s WHERE (guildId=%s)".formatted(table, guildId), "panelId", Integer.class);
-	}
-
 	public void updatePanel(int panelId, String title, String description, String imageUrl, String footer) {
-		List<String> values = new ArrayList<String>();
+		List<String> values = new ArrayList<>();
 		if (title != null)
 			values.add("title="+quote(title));
 		if (description != null)
@@ -71,7 +67,7 @@ public class TicketPanelManager extends LiteBase {
 		if (footer != null)
 			values.add("footer="+replaceNewline(footer));
 
-		if (values.size() > 0) execute("UPDATE %s SET %s WHERE (panelId=%d)".formatted(table, String.join(", ", values), panelId));
+		if (!values.isEmpty()) execute("UPDATE %s SET %s WHERE (panelId=%d)".formatted(table, String.join(", ", values), panelId));
 	}
 
 	public Panel getPanel(int panelId) {
@@ -115,7 +111,7 @@ public class TicketPanelManager extends LiteBase {
 			return text.replaceAll("<br>", "\n");
 		}
 
-		public EmbedBuilder getPrefiledEmbed(final int color) {
+		public EmbedBuilder getFilledEmbed(final int color) {
 			EmbedBuilder builder = new EmbedBuilder()
 				.setColor(color)
 				.setTitle(title);

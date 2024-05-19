@@ -37,7 +37,7 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 
 public class KickCmd extends CommandBase {
 
-	private EventWaiter waiter;
+	private final EventWaiter waiter;
 	
 	public KickCmd (App bot, EventWaiter waiter) {
 		super(bot);
@@ -72,16 +72,6 @@ public class KickCmd extends CommandBase {
 			return;
 		}
 
-		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
-		if (event.optBoolean("dm", true)) {
-			tm.getUser().openPrivateChannel().queue(pm -> {
-				MessageEmbed embed = new EmbedBuilder().setColor(Constants.COLOR_FAILURE)
-					.setDescription(lu.getLocalized(guild.getLocale(), "logger_embed.pm.kicked").formatted(guild.getName(), reason))
-					.build();
-				pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
-			});
-		}
-
 		Member mod = event.getMember();
 		if (!guild.getSelfMember().canInteract(tm)) {
 			editError(event, path+".kick_abort", "Bot can't interact with target member.");
@@ -96,6 +86,15 @@ public class KickCmd extends CommandBase {
 			return;
 		}
 
+		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
+		if (event.optBoolean("dm", true)) {
+			tm.getUser().openPrivateChannel().queue(pm -> {
+				MessageEmbed embed = bot.getModerationUtil().getDmEmbed(CaseType.KICK, guild, reason, null, mod.getUser(), false);
+				if (embed == null) return;
+				pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+			});
+		}
+
 		tm.kick().reason(reason).queueAfter(2, TimeUnit.SECONDS, done -> {
 			// add info to db
 			bot.getDBUtil().cases.add(CaseType.KICK, tm.getIdLong(), tm.getUser().getName(), mod.getIdLong(), mod.getUser().getName(),
@@ -105,25 +104,19 @@ public class KickCmd extends CommandBase {
 			bot.getLogger().mod.onNewCase(guild, tm.getUser(), kickData);
 
 			// reply and ask for kick sync
-			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".kick_success")
-					.replace("{user_tag}", tm.getUser().getName())
-					.replace("{reason}", reason))
-				.build()
-			).queue(msg -> {
-				buttonSync(event, msg, tm.getUser(), reason);
-			});
+			event.getHook().editOriginalEmbeds(
+				bot.getModerationUtil().actionEmbed(guild.getLocale(), kickData.getCaseId(),
+					path+".success", tm.getUser(), mod.getUser(), reason)
+			).queue(msg -> buttonSync(event, msg, tm.getUser(), reason));
 		},
-		failure -> {
-			editError(event, "errors.error", failure.getMessage());
-		});
+		failure -> editError(event, "errors.error", failure.getMessage()));
 	}
 
 	private void buttonSync(SlashCommandEvent event, final Message message, User tu, String reason) {
 		if (!bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.OPERATOR)) return;
 		long guildId = event.getGuild().getIdLong();
 
-		List<Integer> groupIds = new ArrayList<Integer>();
+		List<Integer> groupIds = new ArrayList<>();
 		groupIds.addAll(bot.getDBUtil().group.getOwnedGroups(guildId));
 		groupIds.addAll(bot.getDBUtil().group.getManagedGroups(guildId));
 		if (groupIds.isEmpty()) return;
@@ -138,25 +131,23 @@ public class KickCmd extends CommandBase {
 			.setMaxValues(1)
 			.build();
 
-		message.replyEmbeds(builder.build()).setActionRow(menu).queue(msg -> {
-			waiter.waitForEvent(
-				StringSelectInteractionEvent.class,
-				e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
-				selectEvent -> {
-					List<SelectOption> selected = selectEvent.getSelectedOptions();
-					
-					for (SelectOption option : selected) {
-						Integer groupId = Integer.parseInt(option.getValue());
-						Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), tu, reason));
-					}
+		message.replyEmbeds(builder.build()).setActionRow(menu).queue(msg -> waiter.waitForEvent(
+			StringSelectInteractionEvent.class,
+			e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
+			selectEvent -> {
+				List<SelectOption> selected = selectEvent.getSelectedOptions();
 
-					selectEvent.editMessageEmbeds(builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".sync.done")).build())
-						.setComponents().queue();
-				},
-				15,
-				TimeUnit.SECONDS,
-				() -> msg.delete().queue()
-			);
-		});
+				for (SelectOption option : selected) {
+					int groupId = Integer.parseInt(option.getValue());
+					Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), tu, reason));
+				}
+
+				selectEvent.editMessageEmbeds(builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".sync.done")).build())
+					.setComponents().queue();
+			},
+			15,
+			TimeUnit.SECONDS,
+			() -> msg.delete().queue()
+		));
 	}
 }

@@ -30,11 +30,6 @@ public class CaseManager extends LiteBase {
 			timeStart.getEpochSecond(), duration == null ? -1 : duration.getSeconds(), type.isActiveInt()));
 	}
 
-	// get last case's ID
-	public Integer getIncrement() {
-		return getIncrement(table);
-	}
-
 	// update case reason
 	public void updateReason(int caseId, String reason) {
 		execute("UPDATE %s SET reason=%s WHERE (caseId=%d)".formatted(table, quote(reason), caseId));
@@ -57,28 +52,20 @@ public class CaseManager extends LiteBase {
 		return new CaseData(data);
 	}
 
-	// get 10 guild's cases sorted in pages 
-	public List<CaseData> getGuildAll(long guildId, int page) {
-		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (guildId=%d) ORDER BY caseId DESC LIMIT 10 OFFSET %d"
-			.formatted(table, guildId, (page-1)*10), fullCaseKeys);
-		if (data.isEmpty()) return Collections.emptyList();
-		return data.stream().map(map -> new CaseData(map)).toList();
-	}
-
 	// get 10 cases for guild's user sorted in pages
 	public List<CaseData> getGuildUser(long guildId, long userId, int page) {
 		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (guildId=%d AND targetId=%d) ORDER BY caseId DESC LIMIT 10 OFFSET %d"
 			.formatted(table, guildId, userId, (page-1)*10), fullCaseKeys);
 		if (data.isEmpty()) return Collections.emptyList();
-		return data.stream().map(map -> new CaseData(map)).toList();
+		return data.stream().map(CaseData::new).toList();
 	}
 
-	// get 10 active timed cases sorted in pages
-	public List<CaseData> getActiveTimed(long guildId, int page) {
-		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (active=1 AND duration>0 AND guildId=%d) ORDER BY caseId DESC LIMIT 10 OFFSET %d"
-			.formatted(table, guildId, (page-1)*10), fullCaseKeys);
+	// get 10 cases for guild's user sorted in pages, active or inactive only
+	public List<CaseData> getGuildUser(long guildId, long userId, int page, boolean active) {
+		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (guildId=%d AND targetId=%d AND active=%d) ORDER BY caseId DESC LIMIT 10 OFFSET %d"
+			.formatted(table, guildId, userId, active?1:0, (page-1)*10), fullCaseKeys);
 		if (data.isEmpty()) return Collections.emptyList();
-		return data.stream().map(map -> new CaseData(map)).toList();
+		return data.stream().map(CaseData::new).toList();
 	}
 
 	// get user active temporary cases data
@@ -87,14 +74,6 @@ public class CaseManager extends LiteBase {
 			.formatted(table, guildId, userId, type.getValue()), fullCaseKeys);
 		if (data == null) return null;
 		return new CaseData(data);
-	}
-
-	// get user active strikes
-	public List<CaseData> getMemberStrikes(long userId, long guildId) {
-		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (guildId=%d AND targetId=%d AND type>20 AND active=1)"
-			.formatted(table, guildId, userId), fullCaseKeys);
-		if (data.isEmpty()) return Collections.emptyList();
-		return data.stream().map(map -> new CaseData(map)).toList();
 	}
 
 	// set all ban cases for user inactive
@@ -132,7 +111,7 @@ public class CaseManager extends LiteBase {
 	public Map<Integer, Integer> countCasesByMod(long guildId, long modId) {
 		List<Map<String, Object>> data = select("SELECT type, COUNT(*) AS cc FROM %s WHERE (guildId=%d AND modId=%d) GROUP BY type"
 			.formatted(table, guildId, modId), Set.of("type", "cc"));
-		if (data.isEmpty()) return null;
+		if (data.isEmpty()) return Collections.emptyMap();
 		return data.stream().collect(Collectors.toMap(s -> (Integer) s.get("type"), s -> (Integer) s.get("cc")));
 	}
 
@@ -142,14 +121,15 @@ public class CaseManager extends LiteBase {
 		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (active=1 AND type<20 AND duration>0 AND timeStart+duration<%d) ORDER BY caseId DESC LIMIT 10"
 			.formatted(table, Instant.now().getEpochSecond()), fullCaseKeys);
 		if (data.isEmpty()) return Collections.emptyList();
-		return data.stream().map(map -> new CaseData(map)).toList();
+		return data.stream().map(CaseData::new).toList();
 	}
 
 
 	public static class CaseData {
 		private final int caseId;
 		private final CaseType type;
-		private final long targetId, modId, guildId;
+		private final long targetId, guildId;
+		private final Long modId;
 		private final String targetTag, modTag, reason;
 		private final Instant timeStart;
 		private final Duration duration;
@@ -184,7 +164,7 @@ public class CaseManager extends LiteBase {
 			return targetTag;
 		}
 
-		public long getModId() {
+		public Long getModId() {
 			return modId;
 		}
 		public String getModTag() {

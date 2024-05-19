@@ -11,6 +11,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
+import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -19,7 +20,6 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.utils.TimeFormat;
 
 public class RcloseCmd extends CommandBase {
 	
@@ -35,7 +35,7 @@ public class RcloseCmd extends CommandBase {
 		this.accessLevel = CmdAccessLevel.HELPER;
 	}
 
-	private final Integer CLOSE_AFTER_DELAY = 12; // hours
+	private final int CLOSE_AFTER_DELAY = 12; // hours
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
@@ -46,7 +46,7 @@ public class RcloseCmd extends CommandBase {
 			createError(event, path+".not_ticket");
 			return;
 		}
-		if (!bot.getDBUtil().tickets.isOpened(channelId)) {
+		if (bot.getDBUtil().tickets.isClosed(channelId)) {
 			// Ticket is closed
 			event.getChannel().delete().queue();
 			return;
@@ -67,8 +67,9 @@ public class RcloseCmd extends CommandBase {
 			.setColor(bot.getDBUtil().getGuildSettings(guild).getColor())
 			.setDescription(bot.getLocaleUtil().getLocalized(guild.getLocale(), "bot.ticketing.listener.close_request")
 				.replace("{user}", user.getAsMention())
-				.replace("{time}", TimeFormat.RELATIVE.atInstant(closeTime).toString()))
+				.replace("{time}", TimeUtil.formatTime(closeTime, false)))
 			.build();
+
 		Button close = Button.primary("ticket:close", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.close"));
 		Button cancel = Button.secondary("ticket:cancel", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.cancel"));
 		

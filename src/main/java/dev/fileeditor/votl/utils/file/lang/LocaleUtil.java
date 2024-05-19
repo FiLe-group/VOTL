@@ -18,19 +18,12 @@ public class LocaleUtil {
 
 	private final App bot;
 	private final LangUtil langUtil;
-	private final String defaultLanguage;
 	private final DiscordLocale defaultLocale;
 
-	public LocaleUtil(App bot, String defaultLanguage, DiscordLocale defaultLocale) {
+	public LocaleUtil(App bot, DiscordLocale defaultLocale) {
 		this.bot = bot;
 		this.langUtil = new LangUtil(bot.getFileManager());
-		this.defaultLanguage = defaultLanguage;
 		this.defaultLocale = defaultLocale;
-	}
-
-	@Nonnull
-	public String getDefaultLanguage() {
-		return defaultLanguage;
 	}
 
 	@Nonnull
@@ -46,7 +39,7 @@ public class LocaleUtil {
 	@Nonnull
 	public String getLocalized(DiscordLocale locale, String path, String user, boolean format) {
 		if (format)
-			user = bot.getMessageUtil().getFormattedMembers(locale, user);
+			user = bot.getMessageUtil().getFormattedMembers(user);
 
 		return Objects.requireNonNull(getLocalized(locale, path).replace("{user}", user));
 	}
@@ -65,7 +58,7 @@ public class LocaleUtil {
 
 	@Nonnull
 	public String getLocalized(DiscordLocale locale, String path, String user, List<String> targets, boolean format) {
-		String targetReplacement = targets.isEmpty() ? "null" : bot.getMessageUtil().getFormattedMembers(locale, targets.toArray(new String[0]));
+		String targetReplacement = targets.isEmpty() ? "null" : bot.getMessageUtil().getFormattedMembers(targets.toArray(new String[0]));
 
 		return Objects.requireNonNull(getLocalized(locale, path, user, format)
 			.replace("{target}", targetReplacement)
@@ -124,6 +117,11 @@ public class LocaleUtil {
 	@Nonnull
 	private String getUserText(IReplyCallback replyCallback, @Nonnull String path, List<String> targets, boolean format) {
 		return getLocalized(replyCallback.getUserLocale(), path, replyCallback.getUser().getEffectiveName(), targets, format);
+	}
+
+	@Nonnull
+	public String getGuildText(IReplyCallback replyCallback, @Nonnull String path) {
+		return getLocalized(replyCallback.getGuildLocale(), path);
 	}
 
 }

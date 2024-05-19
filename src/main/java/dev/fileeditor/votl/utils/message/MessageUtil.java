@@ -11,8 +11,6 @@ import java.util.regex.Pattern;
 
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
-import net.dv8tion.jda.api.interactions.DiscordLocale;
-
 public class MessageUtil {
 
 	private final LocaleUtil lu;
@@ -26,7 +24,7 @@ public class MessageUtil {
 	}
 
 	public static String capitalize(final String str) {
-		if (str == null || str.length() == 0) {
+		if (str == null || str.isEmpty()) {
 			return "";
 		}
 
@@ -50,7 +48,7 @@ public class MessageUtil {
 		if (!input.equals("random") && !(input.length() == 6 || input.contains(",")))
 			return null;
 
-		Color color = null;
+		Color color;
 
 		if (input.equals("random")) {
 			int r = ThreadLocalRandom.current().nextInt(256);
@@ -78,13 +76,13 @@ public class MessageUtil {
 		return color;
 	}
 
-	public String getFormattedMembers(DiscordLocale locale, String... members) {
+	public String getFormattedMembers(String... members) {
 		if (members.length == 1)
 			return "**" + escapeAll(members[0]) + "**";
 
 		StringBuilder builder = new StringBuilder();
 		for (String member : members) {
-			if (builder.length() > 0)
+			if (!builder.isEmpty())
 				builder.append(", ");
 
 			builder.append("**").append(escapeAll(member)).append("**");

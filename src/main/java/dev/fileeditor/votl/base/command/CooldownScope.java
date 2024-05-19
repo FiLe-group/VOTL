@@ -24,15 +24,15 @@ import dev.fileeditor.votl.objects.annotation.Nonnull;
  * <p>The purpose for these values is to allow easy, refined, and generally convenient keys
  * for cooldown scopes, allowing a command to remain on cooldown for more than just the user
  * calling it, with no unnecessary abstraction or developer input.
- *
+ * <p>
  * Cooldown keys are generated via {@link dev.fileeditor.votl.base.command.SlashCommand#getCooldownKey(SlashCommandEvent)
  * SlashCommand#getCooldownKey(SlashCommandEvent)} using 1-2 Snowflake ID's corresponding to the name
  * (IE: {@code USER_CHANNEL} uses the ID's of the User and the Channel from the CommandEvent).
  *
  * <p>However, the issue with generalizing and generating like this is that the command may
  * be called in a non-guild environment, causing errors internally.
- * <br>To prevent this, all of the values that contain "{@code GUILD}" in their name default
- * to their "{@code CHANNEL}" counterparts when commands using them are called outside of a
+ * <br>To prevent this, all the values that contain "{@code GUILD}" in their name default
+ * to their "{@code CHANNEL}" counterparts when commands using them are called outside a
  * {@link net.dv8tion.jda.api.entities.Guild Guild} environment.
  * <ul>
  *     <li>{@link CooldownScope#GUILD GUILD} defaults to
@@ -57,14 +57,14 @@ public enum CooldownScope
 {
 	/**
 	 * Applies the cooldown to the calling {@link net.dv8tion.jda.api.entities.User User} across all
-	 * locations on this instance (IE: TextChannels, PrivateChannels, etc).
+	 * locations on this instance (IE: TextChannels, PrivateChannels, etc.).
 	 *
 	 * <p>The key for this is generated in the format
 	 * <ul>
 	 *     <li>{@code <command-name>|U:<userID>}</li>
 	 * </ul>
 	 */
-	USER("U:%d",""),
+	USER("U:%d","errors.cooldown.user"),
 
 	/**
 	 * Applies the cooldown to the {@link net.dv8tion.jda.api.entities.channel.middleman.MessageChannel MessageChannel} the
