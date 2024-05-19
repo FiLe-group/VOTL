@@ -77,11 +77,13 @@ public class ScheduledCheck {
 						.setColor(db.getGuildSettings(guild).getColor())
 						.setDescription(bot.getLocaleUtil().getLocalized(guild.getLocale(), "bot.ticketing.listener.close_auto")
 							.replace("{user}", user.getAsMention())
-							.replace("{time}", TimeFormat.RELATIVE.atInstant(closeTime).toString()))
+							.replace("{time}", TimeFormat.RELATIVE.atInstant(closeTime).toString())
+						)
 						.build();
+
 					Button close = Button.primary("ticket:close", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.close"));
 					Button cancel = Button.secondary("ticket:cancel", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.cancel"));
-					
+
 					db.tickets.setRequestStatus(channelId, closeTime.getEpochSecond());
 					channel.sendMessage("||%s||".formatted(user.getAsMention())).addEmbeds(embed).addActionRow(close, cancel).queue();
 				}

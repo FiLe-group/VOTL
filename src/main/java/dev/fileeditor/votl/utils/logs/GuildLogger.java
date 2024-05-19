@@ -315,18 +315,6 @@ public class GuildLogger {
 			}
 		}
 
-		public void onGuildAdded(SlashCommandEvent event, Integer groupId, String name, long targetId, String targetName) {
-			long ownerId = event.getGuild().getIdLong();
-			String ownerIcon = event.getGuild().getIconUrl();
-
-			// Send log to added server
-			Guild member = JDA.getGuildById(targetId);
-			sendLog(member, type, () -> logUtil.groupMemberAddedEmbed(member.getLocale(), ownerId, ownerIcon, groupId, name));
-
-			// Master log
-			sendLog(event.getGuild(), type, () -> logUtil.groupOwnerAddedEmbed(event.getGuildLocale(), event.getMember().getAsMention(), ownerId, ownerIcon, targetName, targetId, groupId, name));
-		}
-
 		public void onGuildJoined(SlashCommandEvent event, Integer groupId, String name) {
 			long ownerId = db.group.getOwner(groupId);
 			Guild owner = JDA.getGuildById(ownerId);

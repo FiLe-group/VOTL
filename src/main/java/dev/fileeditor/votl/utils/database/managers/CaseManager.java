@@ -182,9 +182,6 @@ public class CaseManager extends LiteBase {
 		public Instant getTimeStart() {
 			return timeStart;
 		}
-		public Instant getTimeEnd() {
-			return timeStart.plus(duration);
-		}
 
 		public Duration getDuration() {
 			return duration;

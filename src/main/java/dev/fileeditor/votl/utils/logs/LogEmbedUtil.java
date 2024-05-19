@@ -588,24 +588,6 @@ public class LogEmbedUtil {
 	}
 
 	@Nonnull
-	public MessageEmbed groupMemberAddedEmbed(DiscordLocale locale, long ownerId, String ownerIcon, int groupId, String name) {
-		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
-			.setColor(GREEN_DARK)
-			.setTitle("groups.add")
-			.build();
-	}
-
-	@Nonnull
-	public MessageEmbed groupOwnerAddedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, String targetName, long targetId, int groupId, String name) {
-		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
-			.setColor(GREEN_DARK)
-			.setTitle("groups.added")
-			.addField("groups.guild", "*%s* (`%s`)".formatted(targetName, targetId))
-			.setEnforcer(adminMention)
-			.build();
-	}
-
-	@Nonnull
 	public MessageEmbed groupMemberLeftEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(RED_DARK)
