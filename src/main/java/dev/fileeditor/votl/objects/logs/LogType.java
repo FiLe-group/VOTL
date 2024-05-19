@@ -25,7 +25,7 @@ public enum LogType {
 	private final String name;
 	private final String path;
 
-	private static final Map<String, LogType> BY_NAME = new HashMap<String, LogType>();
+	private static final Map<String, LogType> BY_NAME = new HashMap<>();
 
 	static {
 		for (LogType lc : LogType.values()) {
@@ -55,7 +55,7 @@ public enum LogType {
 	}
 
 	public static Set<String> getAllNames() {
-		return Stream.of(values()).map(type -> type.getName()).collect(Collectors.toSet());
+		return Stream.of(values()).map(LogType::getName).collect(Collectors.toSet());
 	}
 
 	public static LogType of(String name) {

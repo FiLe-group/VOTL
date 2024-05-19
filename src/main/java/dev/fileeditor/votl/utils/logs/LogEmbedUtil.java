@@ -46,8 +46,6 @@ public class LogEmbedUtil {
 
 	private final LocaleUtil lu;
 
-	private final String pathHeader = "logger.";
-
 	private final int GREEN_DARK = 0x277236;
 	private final int GREEN_LIGHT = 0x67CB7B;
 	private final int AMBER_DARK = 0xCA8B02;
@@ -62,7 +60,7 @@ public class LogEmbedUtil {
 	}
 
 	private String localized(DiscordLocale locale, String pathFooter) {
-		return lu.getLocalized(locale, pathHeader+pathFooter);
+		return lu.getLocalized(locale, "logger."+pathFooter);
 	}
 
 	private class LogEmbedBuilder {
@@ -111,11 +109,6 @@ public class LogEmbedUtil {
 			}
 			return this;
 		}
-
-		/* public LogEmbedBuilder setHeader(LogEvent logEvent) {
-			builder.setAuthor(lu.getLocalized(locale, logEvent.getPath()));
-			return this;
-		} */
 
 		public LogEmbedBuilder setHeader(LogEvent logEvent, Object... args) {
 			builder.setAuthor(lu.getLocalized(locale, logEvent.getPath()).formatted(args));
@@ -433,22 +426,44 @@ public class LogEmbedUtil {
 	}
 
 	@Nonnull
-	public MessageEmbed roleAddedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, long roleId) {
+	public MessageEmbed roleAddedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String roleMention) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeaderIcon("roles.added", userUrl)
 			.setUser(userId)
-			.addField("roles.role", "<@&"+roleId+">")
+			.addField("roles.role", roleMention)
 			.setMod(modId)
 			.setId(userId)
 			.build();
 	}
 
 	@Nonnull
-	public MessageEmbed roleRemovedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, long roleId) {
+	public MessageEmbed rolesAddedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String rolesAdded) {
+		return new LogEmbedBuilder(locale, GREEN_LIGHT)
+			.setHeaderIcon("roles.added_m", userUrl)
+			.setUser(userId)
+			.addField("roles.roles", rolesAdded)
+			.setMod(modId)
+			.setId(userId)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed roleRemovedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String roleMention) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeaderIcon("roles.removed", userUrl)
 			.setUser(userId)
-			.addField("roles.role", "<@&"+roleId+">")
+			.addField("roles.role", roleMention)
+			.setMod(modId)
+			.setId(userId)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed rolesRemovedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String rolesRemoved) {
+		return new LogEmbedBuilder(locale, RED_LIGHT)
+			.setHeaderIcon("roles.removed_m", userUrl)
+			.setUser(userId)
+			.addField("roles.roles", rolesRemoved)
 			.setMod(modId)
 			.setId(userId)
 			.build();
@@ -460,6 +475,17 @@ public class LogEmbedUtil {
 			.setHeader("roles.removed_all")
 			.addField("roles.role", "<@&"+roleId+">")
 			.setEnforcer(modId)
+			.build();
+	}
+
+	@Nonnull
+	public MessageEmbed rolesModifiedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String rolesModified) {
+		return new LogEmbedBuilder(locale, RED_LIGHT)
+			.setHeaderIcon("roles.modified", userUrl)
+			.setUser(userId)
+			.addField("roles.roles", rolesModified)
+			.setMod(modId)
+			.setId(userId)
 			.build();
 	}
 
@@ -562,24 +588,6 @@ public class LogEmbedUtil {
 	}
 
 	@Nonnull
-	public MessageEmbed groupMemberAddedEmbed(DiscordLocale locale, long ownerId, String ownerIcon, int groupId, String name) {
-		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
-			.setColor(GREEN_DARK)
-			.setTitle("groups.add")
-			.build();
-	}
-
-	@Nonnull
-	public MessageEmbed groupOwnerAddedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, String targetName, long targetId, int groupId, String name) {
-		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
-			.setColor(GREEN_DARK)
-			.setTitle("groups.added")
-			.addField("groups.guild", "*%s* (`%s`)".formatted(targetName, targetId))
-			.setEnforcer(adminMention)
-			.build();
-	}
-
-	@Nonnull
 	public MessageEmbed groupMemberLeftEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(RED_DARK)
@@ -671,7 +679,7 @@ public class LogEmbedUtil {
 				.replace("{name}", channel.getName())
 				.replace("{closed}", Optional.ofNullable(userClosed).map(User::getAsMention).orElse(localized(locale, "tickets.autoclosed")))
 				.replace("{created}", User.fromId(authorId).getAsMention())
-				.replace("{claimed}", Optional.ofNullable(claimerId).map(id -> "<@%s>".formatted(id)).orElse(localized(locale, "tickets.unclaimed")))
+				.replace("{claimed}", Optional.ofNullable(claimerId).map("<@%s>"::formatted).orElse(localized(locale, "tickets.unclaimed")))
 			)
 			.setFooter("Channel ID: "+channel.getId())
 			.build();
@@ -942,7 +950,7 @@ public class LogEmbedUtil {
 	public MessageEmbed memberJoin(DiscordLocale locale, Member member) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeaderIcon(LogEvent.MEMBER_JOIN, member.getEffectiveAvatarUrl(), member.getUser().getName())
-			.setDescription("<@%s> (%<s)".formatted(member.getId()))
+			.setDescription("<@%s>".formatted(member.getId()))
 			.setId(member.getId())
 			.build();
 	}
@@ -951,7 +959,7 @@ public class LogEmbedUtil {
 	public MessageEmbed memberLeave(DiscordLocale locale, Member cachedMember, User user, List<Role> roles) {
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeaderIcon(LogEvent.MEMBER_LEAVE, user.getEffectiveAvatarUrl(), user.getName())
-			.setDescription("<@%s> (%<s)".formatted(user.getId()))
+			.setDescription("<@%s>".formatted(user.getId()))
 			.setId(user.getId());
 		if (!roles.isEmpty()) {
 			String text = roles.stream().map(Role::getName).collect(Collectors.joining(", "));
@@ -972,7 +980,7 @@ public class LogEmbedUtil {
 			.addField("messages.author", "<@%s>".formatted(newData.getAuthorId()))
 			.addField("messages.channel", "<#%s>".formatted(channelId))
 			.setFooter("Message ID: %s\nUser ID: %s".formatted(messageId, newData.getAuthorId()));
-		if (oldData != null && newData != null) {
+		if (oldData != null) {
 			if (oldData.getAttachment() != null && newData.getAttachment() == null) {
 				builder.appendDescription("Removed Attachment: "+oldData.getAttachment().getFileName()+"\n\n");
 			}
@@ -1053,59 +1061,57 @@ public class LogEmbedUtil {
 
 	// TOOLS
 	private String changesText(DiscordLocale locale, Collection<AuditLogChange> changes) {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder builder = new StringBuilder();
 		for (AuditLogChange change : changes) {
 			String key = change.getKey();
 			switch (key) {
 				case "$add" -> {
 					String text = lu.getLocalizedNullable(locale, "logger.keys.add_roles");
-					buffer.append("**"+text+"**: "+formatValue(key, change.getNewValue())+"\n");
+					builder.append("**").append(text).append("**: ").append(formatValue(key, change.getNewValue())).append("\n");
 					continue;
 				}
 				case "$remove" -> {
 					String text = lu.getLocalizedNullable(locale, "logger.keys.remove_roles");
-					buffer.append("**"+text+"**: "+formatValue(key, change.getNewValue())+"\n");
+					builder.append("**").append(text).append("**: ").append(formatValue(key, change.getNewValue())).append("\n");
 					continue;
 				}
 				case "permissions" -> {
-					buffer.append(parseRolePermissions(locale, change));
+					builder.append(parseRolePermissions(locale, change));
 					continue;
 				}
 				case "permission_overwrites" -> {
-					buffer.append(parseChannelOverrides(locale, change));
+					builder.append(parseChannelOverrides(change));
 					continue;
 				}
 				default -> {}
-			};
+			}
 			String text = lu.getLocalizedNullable(locale, "logger.keys."+key);
 			if (text == null) continue;
 			Object oldValue = change.getOldValue();
 			Object newValue = change.getNewValue();
 			if (oldValue == null) {
 				// Created
-				buffer.append("\u2795 **"+text+"**: "+formatValue(key, newValue));
+				builder.append("➕ **").append(text).append("**: ").append(formatValue(key, newValue));
 			} else if (newValue == null || newValue.toString().isBlank()) {
 				// Deleted
-				buffer.append("\u2796 **"+text+"**: "+formatValue(key, oldValue));
+				builder.append("➖ **").append(text).append("**: ").append(formatValue(key, oldValue));
 			} else {
 				// Changed
-				buffer.append("**"+text+"**: ||"+formatValue(key, oldValue)+"|| -> "+formatValue(key, newValue));
+				builder.append("**").append(text).append("**: ||").append(formatValue(key, oldValue)).append("|| -> ").append(formatValue(key, newValue));
 			}
-			buffer.append("\n");
+			builder.append("\n");
 		}
-		if (buffer.isEmpty()) return "";
-		return buffer.toString();
+		if (builder.isEmpty()) return "";
+		return builder.toString();
 	}
 
 	private final String guildIconLink = "[Image](https://cdn.discordapp.com/icons/{guild}/%s.png)";
 	private final String guildSplashLink = "[Image](https://cdn.discordapp.com/splashes/{guild}/%s.png)";
 
 	private String formatValue(String key, @Nonnull Object object) {
-		if (object instanceof Boolean) {
-			Boolean value = (Boolean) object;
+		if (object instanceof Boolean value) {
 			return value ? Constants.SUCCESS : Constants.FAILURE;
-		} else if (object instanceof String) {
-			String value = (String) object;
+		} else if (object instanceof String value) {
 			if (value.isEmpty()) return Constants.NONE;
 			return switch (key) {
 				case "afk_channel_id", "system_channel_id", "rules_channel_id", "public_updates_channel_id" -> "<#"+value+">";
@@ -1115,8 +1121,7 @@ public class LogEmbedUtil {
 				case "communication_disabled_until" -> TimeUtil.formatTime(Instant.parse(value), false);
 				default -> "`"+MessageUtil.limitString(value, 1024)+"`";
 			};
-		} else if (object instanceof Integer) {
-			Integer value = (Integer) object;
+		} else if (object instanceof Integer value) {
 			return switch (key) {
 				case "type" -> formatType(ChannelType.fromId(value));
 				case "color" -> "`#"+Integer.toHexString(value)+"`";
@@ -1125,8 +1130,7 @@ public class LogEmbedUtil {
 				case "default_message_notifications" -> formatType(NotificationLevel.fromKey(value));
 				default -> String.valueOf(value);
 			};
-		} else if (object instanceof List<?>) {
-			List<?> values = (List<?>) object;
+		} else if (object instanceof List<?> values) {
 			if (values.isEmpty()) return "";
 			if (values.get(0) instanceof HashMap) {
 				return values.stream()
@@ -1146,24 +1150,25 @@ public class LogEmbedUtil {
 		return MessageUtil.formatKey(value.name());
 	}
 
-	private String parseChannelOverrides(DiscordLocale locale, AuditLogChange change) {
-		List<?> values = (List<?>) change.getNewValue();
+	private String parseChannelOverrides(AuditLogChange change) {
+		List<?> values = change.getNewValue();
 		if (values == null || values.isEmpty()) return "";
 
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder builder = new StringBuilder();
 		values.forEach(v -> {
 			long permsLong = castLong(JsonPath.read(v, "$.allow"));
 			if (permsLong == 0) return;
 			EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 
-			String id = (String) JsonPath.read(v, "$.id");
-			int type = (Integer) JsonPath.read(v, "$.type");
+			String id = JsonPath.read(v, "$.id");
+			int type = JsonPath.read(v, "$.type");
 			//buffer.append("> <@%s%s> (%<s)\n".formatted(type==0?"&":"", id))
-			buffer.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id))
-				.append("Permissions: `"+perms.stream().map(Permission::getName).collect(Collectors.joining(", ")))
+			builder.append("> %s%s>\n".formatted(type == 0 ? "Role <@&" : "Member <@", id))
+				.append("Permissions: `")
+				.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")))
 				.append("`\n");
 		});
-		return buffer.append("").toString();
+		return builder.toString();
 	}
 
 	private String parseRolePermissions(DiscordLocale locale, AuditLogChange change) {
@@ -1172,13 +1177,13 @@ public class LogEmbedUtil {
 
 		StringBuffer buffer = new StringBuffer();
 		if (!changes.getRight().isEmpty()) {
-			buffer.append("**"+lu.getLocalized(locale, "logger.keys.add_permissions")+"**: ```\n");
-			changes.getRight().forEach(perm -> buffer.append(perm.getName()+"\n"));
+			buffer.append("**").append(lu.getLocalized(locale, "logger.keys.add_permissions")).append("**: ```\n");
+			changes.getRight().forEach(perm -> buffer.append(perm.getName()).append("\n"));
 			buffer.append("```\n");
 		}
 		if (!changes.getLeft().isEmpty()) {
-			buffer.append("**"+lu.getLocalized(locale, "logger.keys.remove_permissions")+"**: ```\n");
-			changes.getLeft().forEach(perm -> buffer.append(perm.getName()+"\n"));
+			buffer.append("**").append(lu.getLocalized(locale, "logger.keys.remove_permissions")).append("**: ```\n");
+			changes.getLeft().forEach(perm -> buffer.append(perm.getName()).append("\n"));
 			buffer.append("```\n");
 		}
 		return buffer.append("\n").toString();
@@ -1187,66 +1192,66 @@ public class LogEmbedUtil {
 	private String permissionOverrides(DiscordLocale locale, AuditLogEntry entry) {
 		switch (entry.getType()) {
 			case CHANNEL_OVERRIDE_CREATE: {
-				StringBuffer buffer = new StringBuffer();
+				StringBuilder builder = new StringBuilder();
 				String id = entry.getChangeByKey("id").getNewValue();
 				int type = entry.getChangeByKey("type").getNewValue();
-				buffer.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
+				builder.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
 
 				long permsLong = castLong(entry.getChangeByKey("allow").getNewValue());
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
-					buffer.append(lu.getLocalized(locale, "logger.keys.allow")+": `");
-					buffer.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
-					buffer.append("`\n");
+					builder.append(lu.getLocalized(locale, "logger.keys.allow")).append(": `");
+					builder.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
+					builder.append("`\n");
 				}
 				permsLong = castLong(entry.getChangeByKey("deny").getNewValue());
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
-					buffer.append(lu.getLocalized(locale, "logger.keys.deny")+": `");
-					buffer.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
-					buffer.append("`\n");
+					builder.append(lu.getLocalized(locale, "logger.keys.deny")).append(": `");
+					builder.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
+					builder.append("`\n");
 				}
 
-				return buffer.toString();
+				return builder.toString();
 			}
 			case CHANNEL_OVERRIDE_DELETE: {
-				StringBuffer buffer = new StringBuffer();
+				StringBuilder builder = new StringBuilder();
 				String id = entry.getChangeByKey("id").getOldValue();
 				int type = entry.getChangeByKey("type").getOldValue();
-				buffer.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
+				builder.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
 
 				long permsLong = castLong(entry.getChangeByKey("allow").getOldValue());
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
-					buffer.append(lu.getLocalized(locale, "logger.keys.allow")+": `");
-					buffer.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
-					buffer.append("`\n");
+					builder.append(lu.getLocalized(locale, "logger.keys.allow")).append(": `");
+					builder.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
+					builder.append("`\n");
 				}
 				permsLong = castLong(entry.getChangeByKey("deny").getOldValue());
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
-					buffer.append(lu.getLocalized(locale, "logger.keys.deny")+": `");
-					buffer.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
-					buffer.append("`\n");
+					builder.append(lu.getLocalized(locale, "logger.keys.deny")).append(": `");
+					builder.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
+					builder.append("`\n");
 				}
 
-				return buffer.toString();
+				return builder.toString();
 			}
 			case CHANNEL_OVERRIDE_UPDATE: {
 				StringBuffer buffer = new StringBuffer();
 				Pair<EnumSet<Permission>, EnumSet<Permission>> changes = getChangedPerms(entry.getChangeByKey("allow"));
 				if (changes != null) {
-					buffer.append("**"+lu.getLocalized(locale, "logger.keys.allow")+"**: ```\n");
-					changes.getLeft().forEach(perm -> buffer.append("\u2796 "+perm.getName()+"\n"));
-					changes.getRight().forEach(perm -> buffer.append("\u2795 "+perm.getName()+"\n"));
+					buffer.append("**").append(lu.getLocalized(locale, "logger.keys.allow")).append("**: ```\n");
+					changes.getLeft().forEach(perm -> buffer.append("➖ ").append(perm.getName()).append("\n"));
+					changes.getRight().forEach(perm -> buffer.append("➕ ").append(perm.getName()).append("\n"));
 					buffer.append("```\n");
 				}
 				
 				changes = getChangedPerms(entry.getChangeByKey("deny"));
 				if (changes != null) {
-					buffer.append("**"+lu.getLocalized(locale, "logger.keys.deny")+"**: ```\n");
-					changes.getLeft().forEach(perm -> buffer.append("\u2796 "+perm.getName()+"\n"));
-					changes.getRight().forEach(perm -> buffer.append("\u2795 "+perm.getName()+"\n"));
+					buffer.append("**").append(lu.getLocalized(locale, "logger.keys.deny")).append("**: ```\n");
+					changes.getLeft().forEach(perm -> buffer.append("➖ ").append(perm.getName()).append("\n"));
+					changes.getRight().forEach(perm -> buffer.append("➕ ").append(perm.getName()).append("\n"));
 					buffer.append("```\n");
 				}
 

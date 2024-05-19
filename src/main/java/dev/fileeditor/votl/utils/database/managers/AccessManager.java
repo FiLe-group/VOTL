@@ -59,10 +59,6 @@ public class AccessManager extends LiteBase {
 		return select("SELECT userId FROM %s WHERE (guildId=%s)".formatted(table_user, guildId), "userId", Long.class);
 	}
 
-	public List<Long> getUsers(long guildId, CmdAccessLevel level) {
-		return select("SELECT userId FROM %s WHERE (guildId=%s AND level=%d)".formatted(table_user, guildId, level.getLevel()), "userId", Long.class);
-	}
-
 	public boolean isRole(long roleId) {
 		return selectOne("SELECT roleId FROM %s WHERE (roleId=%s)".formatted(table_role, roleId), "roleId", Long.class) != null;
 	}

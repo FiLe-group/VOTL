@@ -55,7 +55,7 @@ public class FileManager {
 	}
 	
 	// Add new language by locale
-	public FileManager addLang(@Nonnull String localeTag) throws Exception {
+	public FileManager addLang(@Nonnull String localeTag) {
 		DiscordLocale locale = DiscordLocale.from(localeTag);
 		if (locale.equals(DiscordLocale.UNKNOWN)) {
 			throw new IllegalArgumentException("Unknown locale tag was provided: "+localeTag);
@@ -76,7 +76,7 @@ public class FileManager {
 	public void createUpdateLoad(String name, String internal, String external) {
 		File file = new File(external);
 		
-		String[] split = external.contains("/") ? external.split(File.separator) : external.split(Pattern.quote(File.separator));
+		String[] split = external.contains("/") ? external.split(Constants.SEPAR) : external.split(Pattern.quote(Constants.SEPAR));
 
 		try {
 			if (!file.exists()) {
@@ -135,7 +135,7 @@ public class FileManager {
 	}
 	
 	/**
-	 * @param name - json file to be saerched
+	 * @param name - json file to be searched
 	 * @param path - string's json path
 	 * @return Returns null-able string. 
 	 */
@@ -143,7 +143,7 @@ public class FileManager {
 	public String getNullableString(String name, String path) {
 		File file = files.get(name);
 
-		String text = null;
+		String text;
 		try {
 			if (file == null)
 				throw new FileNotFoundException();
@@ -173,9 +173,7 @@ public class FileManager {
 		if (file == null) return null;
 		
 		try {
-			Boolean res = JsonPath.using(CONF).parse(file).read("$." + path);
-			
-			return res;
+			return JsonPath.using(CONF).parse(file).read("$." + path);
 		} catch (FileNotFoundException ex) {
 			logger.error("Couldn't find file {}.json", name);
 		} catch (IOException ex) {

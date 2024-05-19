@@ -67,20 +67,20 @@ public class RolesPanelCmd extends CommandBase {
 				return;
 			}
 
-			Integer assignRolesSize = bot.getDBUtil().roles.countRoles(guildId, RoleType.ASSIGN);
+			int assignRolesSize = bot.getDBUtil().roles.countRoles(guildId, RoleType.ASSIGN);
 			List<Map<String, Object>> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
 			if (assignRolesSize == 0 && toggleRoles.isEmpty()) {
 				createError(event, path+".empty_roles");
 				return;
 			}
-			List<ActionRow> actionRows = new ArrayList<ActionRow>();
+			List<ActionRow> actionRows = new ArrayList<>();
 
 			if (assignRolesSize > 0) {
 				actionRows.add(ActionRow.of(Button.success("role:start_request", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.button_request"))));
 			}
 			actionRows.add(ActionRow.of(Button.danger("role:remove", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.button_remove"))));
 			if (!toggleRoles.isEmpty()) {
-				List<Button> buttons = new ArrayList<Button>();
+				List<Button> buttons = new ArrayList<>();
 				toggleRoles.forEach(data -> {
 					if (buttons.size() >= 5) return;
 					String roleId = data.get("roleId").toString();
@@ -140,20 +140,20 @@ public class RolesPanelCmd extends CommandBase {
 					return;
 				}
 
-				Integer assignRolesSize = bot.getDBUtil().roles.countRoles(guildId, RoleType.ASSIGN);
+				int assignRolesSize = bot.getDBUtil().roles.countRoles(guildId, RoleType.ASSIGN);
 				List<Map<String, Object>> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
 				if (assignRolesSize == 0 && toggleRoles.isEmpty()) {
 					createError(event, path+".empty_roles");
 					return;
 				}
-				List<ActionRow> actionRows = new ArrayList<ActionRow>();
+				List<ActionRow> actionRows = new ArrayList<>();
 
 				if (assignRolesSize > 0) {
 					actionRows.add(ActionRow.of(Button.success("role:start_request", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.button_request"))));
 				}
 				actionRows.add(ActionRow.of(Button.danger("role:remove", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.button_remove"))));
 				if (!toggleRoles.isEmpty()) {
-					List<Button> buttons = new ArrayList<Button>();
+					List<Button> buttons = new ArrayList<>();
 					toggleRoles.forEach(data -> {
 						if (buttons.size() >= 5) return;
 						String roleId = data.get("roleId").toString();
@@ -171,9 +171,8 @@ public class RolesPanelCmd extends CommandBase {
 					.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention()))
 					.build()
 				);
-			}, failure -> {
-				createError(event, path+".not_found", failure.getMessage());
-			});
+			},
+				failure -> createError(event, path+".not_found", failure.getMessage()));
 		}
 
 	}

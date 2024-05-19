@@ -89,13 +89,10 @@ public class UnbanCmd extends CommandBase {
 
 			// reply and ask for unban sync
 			event.getHook().editOriginalEmbeds(
-				bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".unban_success")
-						.replace("{user_tag}", tu.getName())
-						.replace("{reason}", reason))
-					.build()
+				bot.getModerationUtil().actionEmbed(guild.getLocale(), unbanData.getCaseId(),
+					path+".success", tu, mod.getUser(), reason)
 			).setActionRow(
-				Button.primary("unban_sync:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
+				Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
 			).queue();
 		},
 		failure -> {
@@ -106,7 +103,7 @@ public class UnbanCmd extends CommandBase {
 						.replace("{user_tag}", tu.getName()))
 					.build()
 			).setActionRow(
-				Button.primary("unban_sync:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
+				Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
 			).queue();
 		});
 	}

@@ -79,7 +79,7 @@ public class SyncCmd extends CommandBase {
 			Integer groupId = event.optInteger("group");
 			long guildId = event.getGuild().getIdLong();
 			if ( !(bot.getDBUtil().group.isOwner(groupId, guildId) || bot.getDBUtil().group.canManage(groupId, guildId)) ) {
-				editError(event, path+".no_group", "Group ID: `"+groupId.toString()+"`");
+				editError(event, path+".no_group", "Group ID: `"+groupId+"`");
 				return;
 			}
 
@@ -89,30 +89,26 @@ public class SyncCmd extends CommandBase {
 			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 				.setDescription(lu.getText(event, path+".embed_title"))
 				.build()
-			).setComponents(button).queue(msg -> {
-				waiter.waitForEvent(
-					ButtonInteractionEvent.class,
-					e -> msg.getId().equals(e.getMessageId()) && e.getComponentId().equals("button:confirm"),
-					action -> {
-						if (bot.getDBUtil().group.countMembers(groupId) < 1) {
-							editError(event, path+".no_guilds");
-							return;
-						};
-
-						event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-							.setDescription(lu.getText(event, path+".done"))
-							.build()
-						).setComponents().queue();
-						// Perform action using Helper bot
-						Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), target, "Manual kick"));
-					},
-					20,
-					TimeUnit.SECONDS,
-					() -> {
-						event.getHook().editOriginalComponents(ActionRow.of(Button.of(ButtonStyle.SECONDARY, "timed_out", "Timed out").asDisabled())).queue();
+			).setComponents(button).queue(msg -> waiter.waitForEvent(
+				ButtonInteractionEvent.class,
+				e -> msg.getId().equals(e.getMessageId()) && e.getComponentId().equals("button:confirm"),
+				action -> {
+					if (bot.getDBUtil().group.countMembers(groupId) < 1) {
+						editError(event, path+".no_guilds");
+						return;
 					}
-				);
-			});
+
+					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+						.setDescription(lu.getText(event, path+".done"))
+						.build()
+					).setComponents().queue();
+					// Perform action using Helper bot
+					Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), target, "Manual kick"));
+				},
+				20,
+				TimeUnit.SECONDS,
+				() -> event.getHook().editOriginalComponents(ActionRow.of(Button.of(ButtonStyle.SECONDARY, "timed_out", "Timed out").asDisabled())).queue()
+			));
 		}
 	}
 

@@ -100,22 +100,24 @@ public abstract class ContextMenu extends Interaction
 	 */
 	public String getCooldownKey(GenericCommandInteractionEvent event)
 	{
-		switch (cooldownScope)
-		{
-			case USER:         return cooldownScope.genKey(name,event.getUser().getIdLong());
-			case USER_GUILD:   return Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name,event.getUser().getIdLong(),g.getIdLong()))
-				.orElse(CooldownScope.USER_CHANNEL.genKey(name,event.getUser().getIdLong(), event.getChannel().getIdLong()));
-			case USER_CHANNEL: return cooldownScope.genKey(name,event.getUser().getIdLong(),event.getChannel().getIdLong());
-			case GUILD:        return Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name,g.getIdLong()))
-				.orElse(CooldownScope.CHANNEL.genKey(name,event.getChannel().getIdLong()));
-			case CHANNEL:      return cooldownScope.genKey(name,event.getChannel().getIdLong());
-			case SHARD:        return event.getJDA().getShardInfo() != JDA.ShardInfo.SINGLE ? cooldownScope.genKey(name, event.getJDA().getShardInfo().getShardId()) :
-				CooldownScope.GLOBAL.genKey(name, 0);
-			case USER_SHARD:   return event.getJDA().getShardInfo() != JDA.ShardInfo.SINGLE ? cooldownScope.genKey(name,event.getUser().getIdLong(),event.getJDA().getShardInfo().getShardId()) :
-				CooldownScope.USER.genKey(name, event.getUser().getIdLong());
-			case GLOBAL:       return cooldownScope.genKey(name, 0);
-			default:           return "";
-		}
+		return switch (cooldownScope) {
+			case USER -> cooldownScope.genKey(name, event.getUser().getIdLong());
+			case USER_GUILD ->
+				Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name, event.getUser().getIdLong(), g.getIdLong()))
+					.orElse(CooldownScope.USER_CHANNEL.genKey(name, event.getUser().getIdLong(), event.getChannel().getIdLong()));
+			case USER_CHANNEL ->
+				cooldownScope.genKey(name, event.getUser().getIdLong(), event.getChannel().getIdLong());
+			case GUILD -> Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name, g.getIdLong()))
+				.orElse(CooldownScope.CHANNEL.genKey(name, event.getChannel().getIdLong()));
+			case CHANNEL -> cooldownScope.genKey(name, event.getChannel().getIdLong());
+			case SHARD ->
+				event.getJDA().getShardInfo() != JDA.ShardInfo.SINGLE ? cooldownScope.genKey(name, event.getJDA().getShardInfo().getShardId()) :
+					CooldownScope.GLOBAL.genKey(name, 0);
+			case USER_SHARD ->
+				event.getJDA().getShardInfo() != JDA.ShardInfo.SINGLE ? cooldownScope.genKey(name, event.getUser().getIdLong(), event.getJDA().getShardInfo().getShardId()) :
+					CooldownScope.USER.genKey(name, event.getUser().getIdLong());
+			case GLOBAL -> cooldownScope.genKey(name, 0);
+		};
 	}
 
 	/**
@@ -131,21 +133,19 @@ public abstract class ContextMenu extends Interaction
 	 * @return A String error message for this menu if {@code remaining > 0},
 	 *         else {@code null}.
 	 */
-	public <T> MessageCreateData getCooldownError(IReplyCallback event, Guild guild, int remaining) {
+	public MessageCreateData getCooldownError(IReplyCallback event, Guild guild, int remaining) {
 		if (remaining <= 0)
 			return null;
 		
 		StringBuilder front = new StringBuilder(lu.getText(event, "errors.cooldown.cooldown_command")
 			.replace("{time}", Integer.toString(remaining))
 		);
-		if(cooldownScope.equals(CooldownScope.USER))
-			{}
-		else if(cooldownScope.equals(CooldownScope.USER_GUILD) && guild==null)
-			front.append(" " + lu.getText(event, CooldownScope.USER_CHANNEL.errorPath));
+		if(cooldownScope.equals(CooldownScope.USER_GUILD) && guild==null)
+			front.append(" ").append(lu.getText(event, CooldownScope.USER_CHANNEL.errorPath));
 		else if(cooldownScope.equals(CooldownScope.GUILD) && guild==null)
-			front.append(" " + lu.getText(event, CooldownScope.CHANNEL.errorPath));
-		else
-			front.append(" " + lu.getText(event, cooldownScope.errorPath));
+			front.append(" ").append(lu.getText(event, CooldownScope.CHANNEL.errorPath));
+		else if (!cooldownScope.equals(CooldownScope.USER))
+			front.append(" ").append(lu.getText(event, cooldownScope.errorPath));
 		
 		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
 	}
@@ -153,7 +153,7 @@ public abstract class ContextMenu extends Interaction
 	/**
 	 * Builds CommandData for the ContextMenu upsert.
 	 * This code is executed when we need to upsert the menu.
-	 *
+	 * <p>
 	 * Useful for manual upserting.
 	 *
 	 * @return the built command data

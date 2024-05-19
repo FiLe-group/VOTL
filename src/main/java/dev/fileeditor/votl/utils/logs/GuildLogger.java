@@ -208,19 +208,31 @@ public class GuildLogger {
 
 		public void onApproved(Member member, Member admin, Guild guild, List<Role> roles, int ticketId) {
 			sendLog(guild, type, () -> logUtil.rolesApprovedEmbed(guild.getLocale(), ticketId, member.getIdLong(),
-				roles.stream().map(role -> role.getAsMention()).collect(Collectors.joining(" ")), admin.getIdLong()));
+				roles.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), admin.getIdLong()));
 		}
 
 		public void onRoleAdded(Guild guild, User mod, User target, Role role) {
-			sendLog(guild, type, () -> logUtil.roleAddedEmbed(guild.getLocale(), mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), role.getIdLong()));
+			sendLog(guild, type, () -> logUtil.roleAddedEmbed(guild.getLocale(), mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), role.getAsMention()));
+		}
+
+		public void onRolesAdded(Guild guild, User mod, User target, String rolesAdded) {
+			sendLog(guild, type, () -> logUtil.rolesAddedEmbed(guild.getLocale(), mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), rolesAdded));
 		}
 
 		public void onRoleRemoved(Guild guild, User mod, User target, Role role) {
-			sendLog(guild, type, () -> logUtil.roleRemovedEmbed(guild.getLocale(), mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), role.getIdLong()));
+			sendLog(guild, type, () -> logUtil.roleRemovedEmbed(guild.getLocale(), mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), role.getAsMention()));
+		}
+
+		public void onRolesRemoved(Guild guild, User mod, User target, String rolesRemoved) {
+			sendLog(guild, type, () -> logUtil.rolesRemovedEmbed(guild.getLocale(), mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), rolesRemoved));
 		}
 
 		public void onRoleRemovedAll(Guild guild, User mod, Role role) {
 			sendLog(guild, type, () -> logUtil.roleRemovedAllEmbed(guild.getLocale(), mod.getIdLong(), role.getIdLong()));
+		}
+
+		public void onRolesModified(Guild guild, User mod, User target, String rolesModified) {
+			sendLog(guild, type, () -> logUtil.rolesModifiedEmbed(guild.getLocale(), mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), rolesModified));
 		}
 
 		public void onTempRoleAdded(Guild guild, User mod, User target, Role role, Duration duration) {
@@ -281,9 +293,9 @@ public class GuildLogger {
 			List<Long> memberIds = db.group.getGroupMembers(groupId);
 			for (Long memberId : memberIds) {
 				db.group.remove(groupId, memberId);
-				Guild membed = JDA.getGuildById(memberId);
+				Guild member = JDA.getGuildById(memberId);
 
-				sendLog(membed, type, () -> logUtil.groupMemberDeletedEmbed(membed.getLocale(), ownerId, ownerIcon, groupId, name));
+				sendLog(member, type, () -> logUtil.groupMemberDeletedEmbed(member.getLocale(), ownerId, ownerIcon, groupId, name));
 			}
 
 			// Master log
@@ -297,22 +309,10 @@ public class GuildLogger {
 			List<Long> memberIds = db.group.getGroupMembers(groupId);
 			for (Long memberId : memberIds) {
 				db.group.remove(groupId, memberId);
-				Guild membed = JDA.getGuildById(memberId);
+				Guild member = JDA.getGuildById(memberId);
 
-				sendLog(membed, type, () -> logUtil.groupMemberDeletedEmbed(membed.getLocale(), ownerId, ownerIcon, groupId, groupName));
+				sendLog(member, type, () -> logUtil.groupMemberDeletedEmbed(member.getLocale(), ownerId, ownerIcon, groupId, groupName));
 			}
-		}
-
-		public void onGuildAdded(SlashCommandEvent event, Integer groupId, String name, long targetId, String targetName) {
-			long ownerId = event.getGuild().getIdLong();
-			String ownerIcon = event.getGuild().getIconUrl();
-
-			// Send log to added server
-			Guild member = JDA.getGuildById(targetId);
-			sendLog(member, type, () -> logUtil.groupMemberAddedEmbed(member.getLocale(), ownerId, ownerIcon, groupId, name));
-
-			// Master log
-			sendLog(event.getGuild(), type, () -> logUtil.groupOwnerAddedEmbed(event.getGuildLocale(), event.getMember().getAsMention(), ownerId, ownerIcon, targetName, targetId, groupId, name));
 		}
 
 		public void onGuildJoined(SlashCommandEvent event, Integer groupId, String name) {
@@ -408,7 +408,7 @@ public class GuildLogger {
 				client.sendMessageEmbeds(
 					logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
 				).addFiles(file).queue();
-			} catch (Exception ex) {}
+			} catch (Exception ignored) {}
 		}
 
 		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId) {

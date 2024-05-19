@@ -18,7 +18,6 @@ import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.exception.FormatterException;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -81,14 +80,14 @@ public class MuteCmd extends CommandBase {
 			// Case already exists, change duration
 			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
 				.setDescription(lu.getText(event, path+".already_muted").formatted(caseData.getCaseId()))
-				.addField(lu.getText(event, "logger_embed.mute.short_title"), lu.getText(event, "logger_embed.mute.short_info")
+				.addField(lu.getText(event, "logger.moderation.mute.short_title"), lu.getText(event, "logger.moderation.mute.short_info")
 					.replace("{username}", tm.getAsMention())
 					.replace("{until}", TimeUtil.formatTime(tm.getTimeOutEnd(), false))
 					, false)
 				.build()
 			);
 		} else {
-			// No case -> ovveride current timeout
+			// No case -> override current timeout
 			// No case and not timed out -> timeout
 			Member mod = event.getMember();
 			if (!guild.getSelfMember().canInteract(tm)) {
@@ -106,13 +105,12 @@ public class MuteCmd extends CommandBase {
 			
 			tm.timeoutFor(duration).reason(reason).queue(done -> {
 				tm.getUser().openPrivateChannel().queue(pm -> {
-					MessageEmbed embed = new EmbedBuilder().setColor(Constants.COLOR_FAILURE)
-						.setDescription(lu.getLocalized(guild.getLocale(), "logger_embed.pm.muted").formatted(guild.getName(), reason))
-						.build();
+					MessageEmbed embed = bot.getModerationUtil().getDmEmbed(CaseType.MUTE, guild, reason, duration, mod.getUser(), false);
+					if (embed == null) return;
 					pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 				});
 
-				// Set previous mute case inactive, as member is not timedout
+				// Set previous mute case inactive, as member is not timeout
 				if (caseData != null) bot.getDBUtil().cases.setInactive(caseData.getCaseId());
 				// add info to db
 				bot.getDBUtil().cases.add(CaseType.MUTE, tm.getIdLong(), tm.getUser().getName(), mod.getIdLong(), mod.getUser().getName(),
@@ -122,18 +120,11 @@ public class MuteCmd extends CommandBase {
 				bot.getLogger().mod.onNewCase(guild, tm.getUser(), muteDate);
 				
 				// send embed
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".success")
-						.replace("{user_tag}", tm.getUser().getName())
-						.replace("{duration}", lu.getText(event, "misc.temporary")
-							.formatted(TimeUtil.formatTime(Instant.now().plus(duration), true)))
-						.replace("{reason}", reason))
-					.build()
+				editHookEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), muteDate.getCaseId(),
+					path+".success", tm.getUser(), mod.getUser(), reason, duration)
 				);
 			},
-			failed -> {
-				editError(event, "errors.error", failed.getMessage());
-			});
+			failed -> editError(event, "errors.error", failed.getMessage()));
 		}
 	}
 

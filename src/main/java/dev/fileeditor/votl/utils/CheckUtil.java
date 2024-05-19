@@ -48,20 +48,19 @@ public class CheckUtil {
 		if (userLevel != null)
 			return userLevel;
 		
-		// Check if has Administrator privileges
+		// Check if user has Administrator privileges
 		if (member.hasPermission(Permission.ADMINISTRATOR))
 			return CmdAccessLevel.ADMIN;
 
 		// Check for role level
 		List<Long> roleIds = bot.getDBUtil().access.getAllRoles(member.getGuild().getIdLong());
-		CmdAccessLevel level = member.getRoles()
+
+		return member.getRoles()
 			.stream()
 			.filter(role -> roleIds.contains(role.getIdLong()))
 			.map(role -> bot.getDBUtil().access.getRoleLevel(role.getIdLong()))
 			.max(CmdAccessLevel::compareTo)
 			.orElse(CmdAccessLevel.ALL);
-		
-		return level;
 	}
 
 	public Boolean hasHigherAccess(Member who, Member than) {
@@ -70,9 +69,7 @@ public class CheckUtil {
 
 	public Boolean hasAccess(Member member, CmdAccessLevel accessLevel) {
 		if (accessLevel.equals(CmdAccessLevel.ALL)) return true;
-		if (accessLevel.isHigherThan(getAccessLevel(member)))
-			return false;
-		return true;
+		return !accessLevel.isHigherThan(getAccessLevel(member));
 	}
 
 	public CheckUtil hasAccess(IReplyCallback replyCallback, Member member, CmdAccessLevel accessLevel) throws CheckException {

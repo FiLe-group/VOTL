@@ -1,9 +1,7 @@
 package dev.fileeditor.votl.objects;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,14 +15,6 @@ public enum PunishAction {
 	private final int type;
 	private final String path;
 	private final String pattern;
-	
-	private static final Map<Integer, PunishAction> BY_TYPE = new HashMap<Integer, PunishAction>();
-
-	static {
-		for (PunishAction ct : PunishAction.values()) {
-			BY_TYPE.put(ct.getType(), ct);
-		}
-	}
 
 	PunishAction(int type, String path, String pattern) {
 		this.type = type;
@@ -64,10 +54,6 @@ public enum PunishAction {
 			data += v.type;
 		}
 		return data;
-	}
-
-	public static PunishAction byType(int type) {
-		return BY_TYPE.get(type);
 	}
 
 	public String getMatchedValue(String data) {

@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandListener;
@@ -47,7 +45,6 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.events.interaction.command.MessageContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
@@ -88,9 +85,8 @@ public class CommandClientImpl implements CommandClient, EventListener
 	private final ScheduledExecutorService executor;
 
 	private CommandListener listener = null;
-	private int totalGuilds;
 
-	public CommandClientImpl(String ownerId, Function<MessageReceivedEvent, Boolean> commandPreProcessFunction, Activity activity, OnlineStatus status, String serverInvite,
+	public CommandClientImpl(String ownerId, Activity activity, OnlineStatus status, String serverInvite,
 							 ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus, String forcedGuildId, String[] devGuildIds, boolean manualUpsert,
 							 boolean shutdownAutomatically, ScheduledExecutorService executor)
 	{
@@ -212,7 +208,7 @@ public class CommandClientImpl implements CommandClient, EventListener
 	{
 		OffsetDateTime now = OffsetDateTime.now();
 		cooldowns.keySet().stream().filter((str) -> (cooldowns.get(str).isBefore(now)))
-				.collect(Collectors.toList()).forEach(cooldowns::remove);
+				.toList().forEach(cooldowns::remove);
 	}
 
 	@Override
@@ -247,7 +243,7 @@ public class CommandClientImpl implements CommandClient, EventListener
 			//shift if not append
 			if(index<slashCommands.size())
 			{
-				slashCommandIndex.entrySet().stream().filter(entry -> entry.getValue()>=index).collect(Collectors.toList())
+				slashCommandIndex.entrySet().stream().filter(entry -> entry.getValue()>=index).toList()
 					.forEach(entry -> slashCommandIndex.put(entry.getKey(), entry.getValue()+1));
 			}
 			//add
@@ -280,7 +276,7 @@ public class CommandClientImpl implements CommandClient, EventListener
 			//shift if not append
 			if(index<contextMenuIndex.size())
 			{
-				contextMenuIndex.entrySet().stream().filter(entry -> entry.getValue()>=index).collect(Collectors.toList())
+				contextMenuIndex.entrySet().stream().filter(entry -> entry.getValue()>=index).toList()
 					.forEach(entry -> contextMenuIndex.put(entry.getKey(), entry.getValue()+1));
 			}
 			//add
@@ -311,12 +307,6 @@ public class CommandClientImpl implements CommandClient, EventListener
 	public String getServerInvite()
 	{
 		return serverInvite;
-	}
-
-	@Override
-	public int getTotalGuilds()
-	{
-		return totalGuilds;
 	}
 
 	@Override
@@ -414,13 +404,13 @@ public class CommandClientImpl implements CommandClient, EventListener
 			// Upsert the commands + their privileges
 			server.updateCommands().addCommands(data)
 				.queue(
-					priv -> LOG.debug("Successfully added " + slashCommands.size() + " slash commands and " + contextMenus.size() + " menus to server " + server.getName()),
-					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?" + error)
+					priv -> LOG.debug("Successfully added {} slash commands and {} menus to server {}", slashCommands.size(), contextMenus.size(), server.getName()),
+					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?", error)
 				);
 		}
 		else
 			jda.updateCommands().addCommands(data)
-				.queue(commands -> LOG.debug("Successfully added " + commands.size() + " slash commands!"));
+				.queue(commands -> LOG.debug("Successfully added {} slash commands!", commands.size()));
 	}
 
 	@Override
@@ -449,7 +439,7 @@ public class CommandClientImpl implements CommandClient, EventListener
 		}
 
 		jda.updateCommands().addCommands(data)
-			.queue(commands -> LOG.debug("Successfully added " + commands.size() + " slash commands globally!"));
+			.queue(commands -> LOG.debug("Successfully added {} slash commands globally!", commands.size()));
 
 		// Upsert the commands
 		for (String serverId : serverIds) {
@@ -467,8 +457,8 @@ public class CommandClientImpl implements CommandClient, EventListener
 			// Upsert the commands + their privileges
 			server.updateCommands().addCommands(dataDev)
 				.queue(
-					priv -> LOG.debug("Successfully added " + dataDev.size() + " slash commands to server " + server.getName()),
-					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?" + error)
+					priv -> LOG.debug("Successfully added {} slash commands to server {}", dataDev.size(), server.getName()),
+					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?", error)
 				);
 		}
 	}
@@ -516,26 +506,27 @@ public class CommandClientImpl implements CommandClient, EventListener
 		if (command == null)
 			return null;
 
-		switch (parts.length) {
-			case 1: // Slash command with no children
-				return command;
-			case 2: // Slash command with children
+		return switch (parts.length) {
+			case 1 -> // Slash command with no children
+				command;
+			case 2 -> {
+				for (SlashCommand cmd : command.getChildren())
+					if (cmd.isCommandFor(parts[1]))
+						yield cmd;
+				yield null; // Slash command with children
 				// child check
-				for(SlashCommand cmd: command.getChildren())
-					if(cmd.isCommandFor(parts[1]))
-						return cmd;
+			}
+			case 3 -> {
+				for (SlashCommand cmd : command.getChildren())
+					if (cmd.isCommandFor(parts[2]) && cmd.getSubcommandGroup().getName().equals(parts[1]))
+						yield cmd;
+				yield null; // Slash command with a group and a child
+			}
+			default ->
+				// How did we get here?
+				null;
+		};
 
-				return null;
-			case 3: // Slash command with a group and a child
-				for(SlashCommand cmd: command.getChildren())
-					if(cmd.isCommandFor(parts[2]) && cmd.getSubcommandGroup().getName().equals(parts[1]))
-						return cmd;
-
-				return null;
-		}
-
-		// How did we get here?
-		return null;
 	}
 
 	private void onUserContextMenu(UserContextInteractionEvent event)

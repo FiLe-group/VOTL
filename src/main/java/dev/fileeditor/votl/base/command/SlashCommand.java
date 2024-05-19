@@ -141,23 +141,23 @@ public abstract class SlashCommand extends Interaction
 	/**
 	 * The subcommand/child group this is associated with.
 	 * Will be in format {@code /<parent name> <subcommandGroup name> <subcommand name>}.
-	 *
+	 * <p>
 	 * <b>This only works in a child/subcommand.</b>
-	 *
+	 * <p>
 	 * To instantiate: <code>{@literal new SubcommandGroupData(name, description)}</code><br>
 	 * It's important the instantiations are the same across children if you intend to keep them in the same group.
-	 *
+	 * <p>
 	 * Can be null, and it will not be assigned to a group.
 	 */
 	protected SubcommandGroupData subcommandGroup = null;
 
 	/**
 	 * An array list of OptionData.
-	 *
+	 * <p>
 	 * <b>This is incompatible with children. You cannot have a child AND options.</b>
-	 *
+	 * <p>
 	 * This is to specify different options for arguments and the stuff.
-	 *
+	 * <p>
 	 * For example, to add an argument for "input", you can do this:<br>
 	 * <pre><code>
 	 *     OptionData data = new OptionData(OptionType.STRING, "input", "The input for the command").setRequired(true);
@@ -210,19 +210,14 @@ public abstract class SlashCommand extends Interaction
 			String key = getCooldownKey(event);
 			int remaining = client.getRemainingCooldown(key);
 			if (remaining > 0) {
-				terminate(event, getCooldownErrorEmbed(event, remaining, client), client);
+				terminate(event, getCooldownErrorEmbed(event, remaining), client);
 				return;
 			} else {
 				client.applyCooldown(key, cooldown);
 			}
 		}
 
-		// this check is unnecessary 
-		/* if (guildOnly && !event.isFromGuild()) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.guild_only"), client);
-			return;
-		} */
-		// check db and permisisons
+		// check db and permissions
 		if (event.isFromGuild() && !ownerCommand) {
 			Guild guild = event.getGuild();
 			Member author = event.getMember();
@@ -265,7 +260,7 @@ public abstract class SlashCommand extends Interaction
 	}
 
 	/**
-	 * Tests whether or not the {@link net.dv8tion.jda.api.entities.User User} who triggered this
+	 * Tests whether the {@link net.dv8tion.jda.api.entities.User User} who triggered this
 	 * event is an owner of the bot.
 	 *
 	 * @param event the event that triggered the command
@@ -273,9 +268,7 @@ public abstract class SlashCommand extends Interaction
 	 * @return {@code true} if the User is the Owner, else {@code false}
 	 */
 	public boolean isOwner(SlashCommandEvent event, CommandClient client) {
-		if (client.getOwnerIdLong() == event.getUser().getIdLong())
-			return true;
-		return false;
+		return client.getOwnerIdLong() == event.getUser().getIdLong();
 	}
 
 	/**
@@ -288,9 +281,7 @@ public abstract class SlashCommand extends Interaction
 	 */
 	public boolean isCommandFor(String input)
 	{
-		if(name.equalsIgnoreCase(input))
-			return true;
-		return false;
+		return name.equalsIgnoreCase(input);
 	}
 
 	/**
@@ -346,7 +337,7 @@ public abstract class SlashCommand extends Interaction
 	/**
 	 * Builds CommandData for the SlashCommand upsert.
 	 * This code is executed when we need to upsert the command.
-	 *
+	 * <p>
 	 * Useful for manual upserting.
 	 *
 	 * @return the built command data
@@ -392,14 +383,14 @@ public abstract class SlashCommand extends Interaction
 			// Temporary map for easy group storage
 			Map<String, SubcommandGroupData> groupData = new HashMap<>();
 			for (SlashCommand child : children) {
-				// Inherite
+				// Inherit
 				if (child.userPermissions.length == 0) {
 					child.userPermissions = getUserPermissions();
 				}
 				if (child.botPermissions.length == 0) {
 					child.botPermissions = getBotPermissions();
 				}
-				if (child.getAccessLevel().getLevel() == CmdAccessLevel.ALL.getLevel()) {
+				if (Objects.equals(child.getAccessLevel().getLevel(), CmdAccessLevel.ALL.getLevel())) {
 					child.accessLevel = getAccessLevel();
 				}
 				if (child.module == null) {
@@ -490,23 +481,26 @@ public abstract class SlashCommand extends Interaction
 	 * @return A String key to use when applying a cooldown.
 	 */
 	public String getCooldownKey(SlashCommandEvent event) {
-		switch (cooldownScope) {
-			case USER:         return cooldownScope.genKey(name,event.getUser().getIdLong());
-			case USER_GUILD:   return Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name,event.getUser().getIdLong(),g.getIdLong()))
-				.orElse(CooldownScope.USER_CHANNEL.genKey(name,event.getUser().getIdLong(), event.getChannel().getIdLong()));
-			case USER_CHANNEL: return cooldownScope.genKey(name,event.getUser().getIdLong(),event.getChannel().getIdLong());
-			case GUILD:        return Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name,g.getIdLong()))
-				.orElse(CooldownScope.CHANNEL.genKey(name,event.getChannel().getIdLong()));
-			case CHANNEL:      return cooldownScope.genKey(name,event.getChannel().getIdLong());
-			case SHARD:
+		return switch (cooldownScope) {
+			case USER -> cooldownScope.genKey(name, event.getUser().getIdLong());
+			case USER_GUILD ->
+				Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name, event.getUser().getIdLong(), g.getIdLong()))
+					.orElse(CooldownScope.USER_CHANNEL.genKey(name, event.getUser().getIdLong(), event.getChannel().getIdLong()));
+			case USER_CHANNEL ->
+				cooldownScope.genKey(name, event.getUser().getIdLong(), event.getChannel().getIdLong());
+			case GUILD -> Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name, g.getIdLong()))
+				.orElse(CooldownScope.CHANNEL.genKey(name, event.getChannel().getIdLong()));
+			case CHANNEL -> cooldownScope.genKey(name, event.getChannel().getIdLong());
+			case SHARD -> {
 				event.getJDA().getShardInfo();
-				return cooldownScope.genKey(name, event.getJDA().getShardInfo().getShardId());
-			case USER_SHARD:
+				yield cooldownScope.genKey(name, event.getJDA().getShardInfo().getShardId());
+			}
+			case USER_SHARD -> {
 				event.getJDA().getShardInfo();
-				return cooldownScope.genKey(name,event.getUser().getIdLong(),event.getJDA().getShardInfo().getShardId());
-			case GLOBAL:       return cooldownScope.genKey(name, 0);
-			default:           return "";
-		}
+				yield cooldownScope.genKey(name, event.getUser().getIdLong(), event.getJDA().getShardInfo().getShardId());
+			}
+			case GLOBAL -> cooldownScope.genKey(name, 0);
+		};
 	}
 
 	/**
@@ -517,27 +511,23 @@ public abstract class SlashCommand extends Interaction
 	 *         The CommandEvent to generate the error message for.
 	 * @param  remaining
 	 *         The remaining number of seconds a command is on cooldown for.
-	 * @param client
-	 *         The CommandClient for checking stuff
 	 *
 	 * @return A String error message for this command if {@code remaining > 0},
 	 *         else {@code null}.
 	 */
-	private MessageCreateData getCooldownErrorEmbed(SlashCommandEvent event, int remaining, CommandClient client) {
+	private MessageCreateData getCooldownErrorEmbed(SlashCommandEvent event, int remaining) {
 		if (remaining <= 0)
 			return null;
 		
 		StringBuilder front = new StringBuilder(lu.getText(event,"errors.cooldown.cooldown_command")
 			.replace("{time}", Integer.toString(remaining))
 		);
-		if (cooldownScope.equals(CooldownScope.USER))
-			{}
-		else if (cooldownScope.equals(CooldownScope.USER_GUILD) && event.getGuild()==null)
-			front.append(" " + lu.getText(event, CooldownScope.USER_CHANNEL.errorPath));
+		if (cooldownScope.equals(CooldownScope.USER_GUILD) && event.getGuild()==null)
+			front.append(" ").append(lu.getText(event, CooldownScope.USER_CHANNEL.errorPath));
 		else if (cooldownScope.equals(CooldownScope.GUILD) && event.getGuild()==null)
-			front.append(" " + lu.getText(event, CooldownScope.CHANNEL.errorPath));
-		else
-			front.append(" " + lu.getText(event, cooldownScope.errorPath));
+			front.append(" ").append(lu.getText(event, CooldownScope.CHANNEL.errorPath));
+		else if (!cooldownScope.equals(CooldownScope.USER))
+			front.append(" ").append(lu.getText(event, cooldownScope.errorPath));
 
 		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
 	}

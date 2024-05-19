@@ -140,7 +140,4 @@ public class MessageListener extends ListenerAdapter {
 			});
 	}
 
-	/* @Override
-	public void onMessageReactionRemoveAll(@Nonnull MessageReactionRemoveAllEvent event) {} */
-
 }
