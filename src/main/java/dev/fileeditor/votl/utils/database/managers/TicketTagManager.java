@@ -135,21 +135,17 @@ public class TicketTagManager extends LiteBase {
 	}
 
 	public static class Tag {
-		private final Integer tagType;
-		private final String buttonText;
-		private final String ticketName;
+		private final int tagType;
+		private final String buttonText, ticketName, location, message, supportRoles;
 		private final ButtonStyle buttonStyle;
 		private final Emoji emoji;
-		private final String location;
-		private final String message;
-		private final String supportRoles;
 
 		public Tag(Map<String, Object> map, boolean includeButton) {
-			this.tagType = (Integer) map.get("tagType");
-			this.ticketName = (String) map.get("ticketName");
-			this.location = (String) map.get("location");
-			this.message = setNewline((String) map.get("message"));
-			this.supportRoles = (String) map.get("supportRoles");
+			this.tagType = requireNonNull(map.get("tagType"));
+			this.ticketName = requireNonNull(map.get("ticketName"));
+			this.location = getOrDefault(map.get("location"), null);
+			this.message = setNewline(getOrDefault(map.get("message"), null));
+			this.supportRoles = getOrDefault(map.get("supportRoles"), null);
 			if (includeButton) {
 				this.buttonText = requireNonNull(map.get("buttonText"));
 				this.buttonStyle = ButtonStyle.fromKey(getOrDefault(map.get("buttonStyle"), 0));
@@ -179,9 +175,9 @@ public class TicketTagManager extends LiteBase {
 		}
 
 		public static Button createButton(Map<String, Object> map) {
-			Integer tagId = (Integer) map.get("tagId");
-			String buttonText = (String) map.get("buttonText");
-			ButtonStyle style = ButtonStyle.fromKey((int) map.get("buttonStyle"));
+			int tagId = requireNonNull(map.get("tagId"));
+			String buttonText = requireNonNull(map.get("buttonText"));
+			ButtonStyle style = ButtonStyle.fromKey(requireNonNull(map.get("buttonStyle")));
 			Emoji emoji = Optional.ofNullable((String) map.get("emoji")).map(Emoji::fromFormatted).orElse(null);
 			return new ButtonImpl("tag:"+tagId, buttonText, style, null, false, emoji);
 		}

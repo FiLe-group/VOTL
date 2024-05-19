@@ -618,8 +618,12 @@ public class VoiceCmd extends CommandBase {
 							String view2 = contains(ov, Permission.VIEW_CHANNEL);
 							String join2 = contains(ov, Permission.VOICE_CONNECT);
 
-							Member find = members.stream().filter(m -> m.getId().equals(ov.getId())).findFirst().get(); 
-							embedBuilder2.appendDescription(formatHolder(find.getEffectiveName(), view2, join2) + "\n");
+							String name = members.stream()
+								.filter(m -> m.getId().equals(ov.getId()))
+								.findFirst()
+								.map(Member::getEffectiveName)
+								.orElse("Unknown");
+							embedBuilder2.appendDescription(formatHolder(name, view2, join2) + "\n");
 						}
 					}
 

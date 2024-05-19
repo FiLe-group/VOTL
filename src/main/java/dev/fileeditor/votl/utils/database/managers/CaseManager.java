@@ -137,7 +137,7 @@ public class CaseManager extends LiteBase {
 
 		public CaseData(Map<String, Object> map) {
 			this.caseId = requireNonNull(map.get("caseId"));
-			this.type = requireNonNull(map.get("type"));
+			this.type = CaseType.byType(requireNonNull(map.get("type")));
 			this.targetId = requireNonNull(map.get("targetId"));
 			this.targetTag = getOrDefault(map.get("targetTag"), null);
 			this.modId = getOrDefault(map.get("modId"), 0L);

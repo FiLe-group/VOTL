@@ -12,6 +12,9 @@ import dev.fileeditor.votl.utils.database.LiteBase;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 
+import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
+import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
+
 public class TicketPanelManager extends LiteBase {
 	
 	public TicketPanelManager(ConnectionUtil cu) {
@@ -100,10 +103,10 @@ public class TicketPanelManager extends LiteBase {
 		private final String title, description, imageUrl, footer;
 
 		public Panel(Map<String, Object> map) {
-			this.title = (String) map.get("title");
-			this.description = setNewline((String) map.get("description"));
-			this.imageUrl = (String) map.get("image");
-			this.footer = setNewline((String) map.get("footer"));
+			this.title = requireNonNull(map.get("title"));
+			this.description = setNewline(getOrDefault(map.get("description"), null));
+			this.imageUrl = getOrDefault(map.get("image"), null);
+			this.footer = setNewline(getOrDefault(map.get("footer"), null));
 		}
 		
 		private String setNewline(String text) {
