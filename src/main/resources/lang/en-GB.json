@@ -1433,11 +1433,21 @@
 			},
 			"modstats": {
 				"help": "View moderation statistics for mod/admin",
-				"usage": "modstats [@User]",
+				"usage": "modstats [@User] [start date] [end date]",
 				"user": {
 					"name": "user",
 					"help": "Select user"
 				},
+				"start_date": {
+					"name": "start_date",
+					"help": "Enter start date (year-month-day)"
+				},
+				"end_date": {
+					"name": "end_date",
+					"help": "Enter end date (year-month-day)"
+				},
+				"failed_parse": "Failed to parse input date! Use format `year-month-day`.",
+				"wrong_date": "Wrong dates provided (before and after inputs).",
 				"empty": "No statistics for this user.",
 				"title": "Moderation statistics",
 				"seven": "7 days",
@@ -1447,6 +1457,7 @@
 				"kicks": "Kick",
 				"bans": "Ban",
 				"strikes": "Strike",
+				"game-strikes": "Gm strikes",
 				"roles": "Roles",
 				"total": "Total"
 			},
@@ -1749,20 +1760,20 @@
 			},
 			"tcount": {
 				"help": "Count how many tickets where accepted by moderator",
-				"usage": "tcount <@User> [days (1-31)]",
+				"usage": "tcount <@User> [start date] [end date]",
 				"user": {
 					"name": "user",
 					"help": "Enter ID/mention the user"
 				},
 				"start_date": {
 					"name": "start_date",
-					"help": "Enter start date (day-month-year)"
+					"help": "Enter start date (year-month-day)"
 				},
 				"end_date": {
 					"name": "end_date",
-					"help": "Enter end date (day-month-year)"
+					"help": "Enter end date (year-month-day)"
 				},
-				"failed_parse": "Failed to parse input date! Use format `day-month-year`.",
+				"failed_parse": "Failed to parse input date! Use format `year-month-day`.",
 				"wrong_date": "Wrong dates provided (before and after inputs).",
 				"done": "Moderator: {user} ({id})\nAccepted role tickets: `{roles}`\nClaimed tickets: `{other}`"
 			},
