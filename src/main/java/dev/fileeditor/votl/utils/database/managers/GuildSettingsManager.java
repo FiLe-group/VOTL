@@ -21,7 +21,8 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 public class GuildSettingsManager extends LiteBase {
 
 	private final Set<String> columns = Set.of(
-			"color", "lastWebhookId", "appealLink", "reportChannelId", "strikeExpires", "modulesOff",
+			"color", "lastWebhookId", "appealLink", "reportChannelId",
+			"strikeExpires", "strikeCooldown", "modulesOff",
 			"informBan", "informKick", "informMute", "informStrike", "informDelstrike"
 	);
 
@@ -77,6 +78,11 @@ public class GuildSettingsManager extends LiteBase {
 		execute("INSERT INTO %s(guildId, strikeExpires) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET strikeExpires=%<d".formatted(table, guildId, expiresAfter));
 	}
 
+	public void setStrikeCooldown(long guildId, int cooldown) {
+		invalidateCache(guildId);
+		execute("INSERT INTO %s(guildId, strikeCooldown) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET strikeCooldown=%<d".formatted(table, guildId, cooldown));
+	}
+
 	public void setModuleDisabled(long guildId, int modulesOff) {
 		invalidateCache(guildId);
 		execute("INSERT INTO %s(guildId, modulesOff) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET modulesOff=%<d".formatted(table, guildId, modulesOff));
@@ -114,7 +120,7 @@ public class GuildSettingsManager extends LiteBase {
 
 	public static class GuildSettings {
 		private final Long lastWebhookId, reportChannelId;
-		private final int color, strikeExpires, modulesOff;
+		private final int color, strikeExpires, strikeCooldown, modulesOff;
 		private final String appealLink;
 		private final ModerationInformLevel informBan, informKick, informMute, informStrike, informDelstrike;
 
@@ -124,6 +130,7 @@ public class GuildSettingsManager extends LiteBase {
 			this.appealLink = null;
 			this.reportChannelId = null;
 			this.strikeExpires = 7;
+			this.strikeCooldown = 0;
 			this.modulesOff = 0;
 			this.informBan = ModerationInformLevel.DEFAULT;
 			this.informKick = ModerationInformLevel.DEFAULT;
@@ -138,6 +145,7 @@ public class GuildSettingsManager extends LiteBase {
 			this.appealLink = getOrDefault(data.get("appealLink"), null);
 			this.reportChannelId = getOrDefault(data.get("reportChannelId"), null);
 			this.strikeExpires = getOrDefault(data.get("strikeExpires"), 7);
+			this.strikeCooldown = getOrDefault(data.get("strikeCooldown"), 0);
 			this.modulesOff = getOrDefault(data.get("modulesOff"), 0);
 			this.informBan = ModerationInformLevel.byLevel(getOrDefault(data.get("informBan"), 1));
 			this.informKick = ModerationInformLevel.byLevel(getOrDefault(data.get("informKick"), 1));
@@ -166,6 +174,10 @@ public class GuildSettingsManager extends LiteBase {
 			return strikeExpires;
 		}
 
+		public int getStrikeCooldown() {
+			return strikeCooldown;
+		}
+		
 		public int getModulesOff() {
 			return modulesOff;
 		}

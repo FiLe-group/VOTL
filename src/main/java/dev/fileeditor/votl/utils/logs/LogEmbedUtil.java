@@ -319,7 +319,7 @@ public class LogEmbedUtil {
 			.setMod(modId)
 			.setId(target.getId())
 			.build();
-	} 
+	}
 
 	//  Mute
 	@Nonnull
@@ -409,6 +409,15 @@ public class LogEmbedUtil {
 			.addField("moderation.blacklist.group", groupInfo)
 			.setEnforcer(enforcer.getIdLong())
 			.setId(target.getId())
+			.build();
+	}
+
+	//  Game
+	@Nonnull
+	public MessageEmbed gameStrikeEmbed(DiscordLocale locale, CaseData caseData, String userIcon, String text) {
+		return moderationEmbedBuilder(locale, caseData, userIcon)
+			.setColor(RED_LIGHT)
+			.addField("moderation.game.strikes", text)
 			.build();
 	}
 

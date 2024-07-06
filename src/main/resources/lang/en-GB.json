@@ -70,6 +70,7 @@
 		"report": "Report function",
 		"roles": "Role management",
 		"strikes": "Strike punishments",
+		"games": "Games",
 		"module_disabled": "This command(module) is disabled."
 	},
 	"role_type": {
@@ -86,7 +87,8 @@
 		"strike1": "Strike [1]",
 		"strike2": "Strike [2]",
 		"strike3": "Strike [3]",
-		"blacklist": "Blacklist"
+		"blacklist": "Blacklist",
+		"game_strike": "Game strike"
 	},
 	"punish_action": {
 		"mute": "Time out",
@@ -125,7 +127,8 @@
 			"delstrike": "%s warning removed from you in by server's {guild} moderation.",
 			"appeal": "\nAppeal this action by following this link:\n> %s",
 			"reason_mute": "Reason changed for a mute issued by %s server's moderation at %s.",
-			"reason_strike": "Reason changed for a warning issued by %s server's moderation at %s."
+			"reason_strike": "Reason changed for a warning issued by %s server's moderation at %s.",
+			"gamestrike": "You received Game strike in [__#%s__](%s) in {guild} server."
 		},
 		"inform": {
 			"0": "Do not dm offender",
@@ -184,6 +187,10 @@
 				"added": "Blacklisted | %s",
 				"removed": "Removed from blacklist | %s",
 				"group": "Group"
+			},
+			"game": {
+				"strike": "Game strike | %s",
+				"strikes": "Strike count"
 			}
 		},
 		"group": {
@@ -498,13 +505,20 @@
 					}
 				},
 				"strikes": {
-					"help": "Set time (days), after which strikes expires",
-					"usage": "strikes <days>",
-					"time": {
-						"name": "time",
+					"help": "Manage strike settings",
+					"usage": "strikes [expire time] [cooldown time]",
+					"expires_after": {
+						"name": "expires_after",
 						"help": "Enter time in days, after which strikes expires"
 					},
-					"done": "Expiration time set to %d days."
+					"cooldown": {
+						"name": "cooldown",
+						"help": "Enter time in minutes, cooldown between two strikes for the user"
+					},
+					"no_options": "No options provided.",
+					"embed_title": "**Strike settings changed.**\n",
+					"expires_changed": "\n> One strike expires after `%s` day/-s.",
+					"cooldown_changed": "\n> Cooldown between strikes set to `%s` minute/-s."
 				},
 				"dm_inform": {
 					"help": "Set what information is sent to offender when action is performed",
@@ -1121,6 +1135,7 @@
 				},
 				"not_found": "Member not found or input error",
 				"not_self": "You can't select yourself or the bot.",
+				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
 				"success": "\uD83D\uDEA9 **User received %s.**",
 				"autopunish_title": "Applying punishment for %d strikes",
 				"autopunish_reason": "Autopunish: user has %d active strikes",
@@ -1573,6 +1588,7 @@
 					"ticketing": "Tickets",
 					"voice": "Voice",
 					"roles": "Roles",
+					"games": "Games",
 					"other": "Other",
 					"title": "Categories"
 				},
@@ -2267,6 +2283,77 @@
 					"empty": "No temporary assigned roles.",
 					"title": "Temporary roles"
 				}
+			}
+		},
+		"games": {
+			"game": {
+				"help": "Setup game controls",
+				"usage": "game",
+				"add": {
+					"help": "Add channel to games list",
+					"usage": "add <@Channel> [max strikes]",
+					"channel": {
+						"name": "channel",
+						"help": "Select channel"
+					},
+					"max_strikes": {
+						"name": "max_strikes",
+						"help": "Enter max amount of strikes user can receive before game ban. (3)"
+					},
+					"already": "This channel is already registered.",
+					"done": "Channel %s registered!\n*Max strikes: `%s`*"
+				},
+				"remove": {
+					"help": "Remove channel from games list",
+					"usage": "remove <@Channel>",
+					"channel": {
+						"name": "channel",
+						"help": "Select channel"
+					},
+					"not_found": "This channel is not registered.",
+					"done": "Channel %s was removed from games list!"
+				},
+				"view-channels": {
+					"help": "View games list",
+					"usage": "view-channels",
+					"none": "No registered channels.",
+					"embed_title": "Game channels"
+				},
+				"clear": {
+					"help": "Clear all strikes for user in one game",
+					"usage": "clear <@User> <@Channel>",
+					"channel": {
+						"name": "channel",
+						"help": "Select channel"
+					},
+					"user": {
+						"name": "user",
+						"help": "Select user/Enter ID"
+					},
+					"not_found": "This channel is not registered.",
+					"no_user": "User not found",
+					"done": "Cleared games strikes for %s in %s."
+				}
+			},
+			"gamestrike": {
+				"help": "Give a user game strike",
+				"usage": "gamestrike <#Channel> <@User> <reason>",
+				"channel": {
+					"name": "channel",
+					"help": "Select channel"
+				},
+				"user": {
+					"name": "user",
+					"help": "Mention user/Enter ID"
+				},
+				"reason": {
+					"name": "reason",
+					"help": "Enter strike reason"
+				},
+				"not_found": "This channel is not registered.",
+				"not_member": "Selected user is not a member of this server or can't be selected.",
+				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
+				"done": "User %s received Game strike in %s."
 			}
 		}
 	},

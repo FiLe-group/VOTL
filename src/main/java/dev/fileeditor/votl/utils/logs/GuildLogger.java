@@ -84,7 +84,7 @@ public class GuildLogger {
 			onNewCase(guild, target, caseData, null);
 		}
 		
-		public void onNewCase(Guild guild, User target, @Nonnull CaseData caseData, String oldReason) {
+		public void onNewCase(Guild guild, User target, @Nonnull CaseData caseData, String optionalData) {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 
@@ -99,13 +99,13 @@ public class GuildLogger {
 					embed = logUtil.banEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
 					break;
 				case UNBAN:
-					embed = logUtil.unbanEmbed(guild.getLocale(), caseData, oldReason);
+					embed = logUtil.unbanEmbed(guild.getLocale(), caseData, optionalData);
 					break;
 				case MUTE:
 					embed = logUtil.muteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
 					break;
 				case UNMUTE:
-					embed = logUtil.unmuteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), oldReason);
+					embed = logUtil.unmuteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
 					break;
 				case KICK:
 					embed = logUtil.kickEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
@@ -117,6 +117,9 @@ public class GuildLogger {
 					break;
 				case BLACKLIST:
 					embed = null;
+					break;
+				case GAME_STRIKE:
+					embed = logUtil.gameStrikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
 					break;
 				default:
 					break;

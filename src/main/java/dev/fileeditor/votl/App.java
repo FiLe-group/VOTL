@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandClientBuilder;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
+import dev.fileeditor.votl.commands.games.GameCmd;
+import dev.fileeditor.votl.commands.games.GameStrikeCmd;
 import dev.fileeditor.votl.commands.guild.*;
 import dev.fileeditor.votl.commands.moderation.*;
 import dev.fileeditor.votl.commands.other.*;
@@ -188,7 +190,10 @@ public class App {
 				// voice
 				new VoiceCmd(this),
 				// webhook
-				new WebhookCmd(this)
+				new WebhookCmd(this),
+				// game
+				new GameCmd(this),
+				new GameStrikeCmd(this)
 			)
 			.addContextMenus(
 				new ReportMenu(this),
