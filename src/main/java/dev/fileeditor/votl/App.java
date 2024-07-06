@@ -163,6 +163,8 @@ public class App {
 				new ForceAccessCmd(this),
 				new GenerateListCmd(this),
 				new ShutdownCmd(this),
+				new DebugCmd(this),
+				new MessageCmd(this),
 				// role
 				new RoleCmd(this),
 				new TempRoleCmd(this),
@@ -331,7 +333,7 @@ public class App {
 		
 		LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
 		PatternLayoutEncoder ple = new PatternLayoutEncoder();
-		ple.setPattern("%d{dd.MM.yyyy HH:mm:ss} [%thread] [%logger{0}] %msg%n");
+		ple.setPattern("%d{dd.MM.yyyy HH:mm:ss} [%thread] [%logger{0}] %ex{10}%n");
 		ple.setContext(lc);
 		ple.start();
 		WebhookAppender webhookAppender = new WebhookAppender();

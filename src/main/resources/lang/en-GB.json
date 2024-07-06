@@ -379,6 +379,30 @@
 				},
 				"no_guild": "Selected server not found.",
 				"done": "Assigned {target} access {level}."
+			},
+			"debug": {
+				"help": "Returns logs file",
+				"usage": "debug [debug logs?] [date]",
+				"debug_logs": {
+					"name": "debug_logs",
+					"help": "Debug logs"
+				},
+				"date": {
+					"name": "date",
+					"help": "Formated as yyyy-MM-dd"
+				}
+			},
+			"message": {
+				"help": "Send text message",
+				"usage": "message <Channel ID> <text>",
+				"channel_id": {
+					"name": "channel_id",
+					"help": "Enter channel ID"
+				},
+				"content": {
+					"name": "content",
+					"help": "Enter text"
+				}
 			}
 		},
 		"guild": {
