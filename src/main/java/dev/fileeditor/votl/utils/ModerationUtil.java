@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 public class ModerationUtil {
@@ -145,5 +146,15 @@ public class ModerationUtil {
 			.addField(lu.getLocalized(locale, "logger.moderation.mod"), "%s (%s)".formatted(mod.getName(), mod.getAsMention()), false)
 			.setTimestamp(Instant.now())
 			.setFooter("#"+caseId);
+	}
+
+	@Nullable
+	public MessageEmbed getGameStrikeEmbed(GuildChannel channel, User mod, String reason) {
+		int level = dbUtil.getGuildSettings(channel.getGuild()).getInformStrike().getLevel();
+		if (level == 0) return null;
+		String text = lu.getLocalized(channel.getGuild().getLocale(), "logger_embed.pm.gamestrike").formatted(channel.getName(), channel.getJumpUrl());
+		return new EmbedBuilder().setColor(Constants.COLOR_WARNING)
+			.setDescription(formatText(text, channel.getGuild(), reason, null, level >= 3 ? mod : null))
+			.build();
 	}
 }

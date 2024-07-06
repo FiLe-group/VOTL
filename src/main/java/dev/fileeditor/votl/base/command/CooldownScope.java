@@ -64,7 +64,7 @@ public enum CooldownScope
 	 *     <li>{@code <command-name>|U:<userID>}</li>
 	 * </ul>
 	 */
-	USER("U:%d","errors.cooldown.user"),
+	USER("U:%d"),
 
 	/**
 	 * Applies the cooldown to the {@link net.dv8tion.jda.api.entities.channel.middleman.MessageChannel MessageChannel} the
@@ -159,25 +159,26 @@ public enum CooldownScope
 	GLOBAL("Global", "errors.cooldown.global");
 
 	private final String format;
-	@Nonnull final String errorPath;
+	private final String errorPath;
 
-	CooldownScope(String format, @Nonnull String errorPath)
-	{
+	CooldownScope(String format, @Nonnull String errorPath) {
 		this.format = format;
 		this.errorPath = errorPath;
 	}
 
-	public String genKey(String name, long id)
+	CooldownScope(String format)
 	{
+		this.format = format;
+		this.errorPath = null;
+	}
+
+	public String genKey(String name, long id) {
 		return genKey(name, id, -1);
 	}
 
-	public String genKey(String name, long idOne, long idTwo)
-	{
-		if(this.equals(GLOBAL))
-			return name+"|"+format;
-		else if(idTwo==-1)
-			return name+"|"+String.format(format,idOne);
+	public String genKey(String name, long idOne, long idTwo) {
+		if (this.equals(GLOBAL)) return name+"|"+format;
+		else if (idTwo==-1) return name+"|"+String.format(format,idOne);
 		else return name+"|"+String.format(format,idOne,idTwo);
 	}
 

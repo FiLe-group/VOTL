@@ -1,6 +1,7 @@
 package dev.fileeditor.votl.utils.database.managers;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -21,13 +22,14 @@ public class TicketManager extends LiteBase {
 	 */
 
 	// add new ticket
-	public void addRoleTicket(int ticketId, long userId, long guildId, long channelId, String roleIds) {
-		execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, roleIds) VALUES (%d, %s, %s, %s, 0, %s)"
-			.formatted(table, ticketId, userId, guildId, channelId, quote(roleIds)));
+	public void addRoleTicket(int ticketId, long userId, long guildId, long channelId, String roleIds, int replyTime) {
+		execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, roleIds, replyWait) VALUES (%d, %s, %s, %s, 0, %s, %d)"
+			.formatted(table, ticketId, userId, guildId, channelId, quote(roleIds), replyTime>0 ? Instant.now().plus(replyTime, ChronoUnit.HOURS).getEpochSecond() : 0));
 	}
 
-	public void addTicket(int ticketId, long userId, long guildId, long channelId, int tagId) {
-		execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId) VALUES (%d, %s, %s, %s, %d)".formatted(table, ticketId, userId, guildId, channelId, tagId));
+	public void addTicket(int ticketId, long userId, long guildId, long channelId, int tagId, int replyTime) {
+		execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, replyWait) VALUES (%d, %s, %s, %s, %d, %d)"
+			.formatted(table, ticketId, userId, guildId, channelId, tagId, replyTime>0 ? Instant.now().plus(replyTime, ChronoUnit.HOURS).getEpochSecond() : 0));
 	}
 
 	// get last ticket's ID
@@ -79,8 +81,13 @@ public class TicketManager extends LiteBase {
 		return select("SELECT channelId FROM %s WHERE (closed=0 AND closeRequested=0)".formatted(table), "channelId", Long.class);
 	}
 
-	public List<Long> getExpiredTickets() {
+	public List<Long> getCloseMarkedTickets() {
 		return select("SELECT channelId FROM %s WHERE (closed=0 AND closeRequested>0 AND closeRequested<=%d)".formatted(table, Instant.now().getEpochSecond()),
+			"channelId", Long.class);
+	}
+
+	public List<Long> getReplyExpiredTickets() {
+		return select("SELECT channelId FROM %s WHERE (closed=0 AND replyWait>0 AND replyWait<=%d)".formatted(table, Instant.now().getEpochSecond()),
 			"channelId", Long.class);
 	}
 
@@ -133,9 +140,17 @@ public class TicketManager extends LiteBase {
 		execute("UPDATE %s SET closeRequested=%d WHERE (channelId=%s)".formatted(table, closeRequested, channelId));
 	}
 
+	public void setRequestStatus(long channelId, long closeRequested, String reason) {
+		execute("UPDATE %s SET closeRequested=%d, reasonClosed=%s WHERE (channelId=%s)".formatted(table, closeRequested, quote(reason), channelId));
+	}
+
 	public long getTimeClosing(long channelId) {
 		Long data = selectOne("SELECT closeRequested FROM %s WHERE (channelId=%s);".formatted(table, channelId), "closeRequested", Long.class);
 		return data == null ? 0L : data;
-
 	}
+
+	public void setWaitTime(long channelId, long time) {
+		execute("UPDATE %s SET replyWait=%d WHERE (channelId=%s)".formatted(table, time, channelId));
+	}
+
 }

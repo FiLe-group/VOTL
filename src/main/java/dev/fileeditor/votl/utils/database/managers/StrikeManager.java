@@ -17,8 +17,8 @@ public class StrikeManager extends LiteBase {
 	}
 
 	public void addStrikes(long guildId, long userId, Instant expiresAt, int count, String caseInfo) {
-		execute("INSERT INTO %s(guildId, userId, expiresAt, count, data) VALUES (%d, %d, %d, %d, %s) ON CONFLICT(guildId, userId) DO UPDATE SET count=count+%5$d, data=data || ';' || %6$s"
-			.formatted(table, guildId, userId, expiresAt.getEpochSecond(), count, quote(caseInfo)));
+		execute("INSERT INTO %s(guildId, userId, expiresAt, count, data, lastAddition) VALUES (%d, %d, %d, %d, %s, %s) ON CONFLICT(guildId, userId) DO UPDATE SET count=count+%5$d, data=data || ';' || %6$s, lastAddition=%7$s"
+			.formatted(table, guildId, userId, expiresAt.getEpochSecond(), count, quote(caseInfo), Instant.now().getEpochSecond()));
 	}
 
 	public Integer getStrikeCount(long guildId, long userId) {
@@ -51,5 +51,10 @@ public class StrikeManager extends LiteBase {
 
 	public void removeGuild(long guildId) {
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
+	}
+	
+	public Instant getLastAddition(long guildId, long userId) {
+		Long data = selectOne("SELECT lastAddition FROM %s WHERE (guildId=%d AND userId=%d)".formatted(table, guildId, userId), "lastAddition", Long.class);
+		return data==null ? null : Instant.ofEpochSecond(data);
 	}
 }

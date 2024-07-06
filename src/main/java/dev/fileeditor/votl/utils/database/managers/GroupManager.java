@@ -52,6 +52,10 @@ public class GroupManager extends LiteBase {
 			.formatted(groups, groupId, guildId), "ownerId", Long.class) != null;
 	}
 
+	public void setAppealGuildId(int groupId, long appealGuildId) {
+		execute("UPDATE %s SET appealGuildId=%s WHERE (groupId=%d)".formatted(groups, appealGuildId, groupId));
+	}
+
 	public Long getAppealGuildId(int groupId) {
 		Long data = selectOne("SELECT appealGuildId FROM %s WHERE (groupId=%d)".formatted(groups, groupId), "appealGuildId", Long.class);
 		return data==null ? 0L : data;

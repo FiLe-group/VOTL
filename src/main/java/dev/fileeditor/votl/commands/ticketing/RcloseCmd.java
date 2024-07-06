@@ -74,7 +74,7 @@ public class RcloseCmd extends CommandBase {
 		Button cancel = Button.secondary("ticket:cancel", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.cancel"));
 		
 		event.getHook().editOriginal("||%s||".formatted(user.getAsMention())).setEmbeds(embed).setActionRow(close, cancel).queue();
-		bot.getDBUtil().tickets.setRequestStatus(channelId, closeTime.getEpochSecond());
+		bot.getDBUtil().tickets.setRequestStatus(channelId, closeTime.getEpochSecond(), event.optString("reason", "Closed by Support"));
 	}
 
 }

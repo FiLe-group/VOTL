@@ -413,7 +413,8 @@ public class InteractionListener extends ListenerAdapter {
 		int ticketId = 1 + db.tickets.lastIdByTag(guildId, 0);
 		event.getChannel().asTextChannel().createThreadChannel(lu.getLocalized(event.getGuildLocale(), "ticket.role")+"-"+ticketId, true).setInvitable(false).queue(
 			channel -> {
-				db.tickets.addRoleTicket(ticketId, event.getMember().getIdLong(), guildId, channel.getIdLong(), String.join(";", roleIds));
+				int time = bot.getDBUtil().getTicketSettings(guild).getTimeToReply();
+				db.tickets.addRoleTicket(ticketId, event.getMember().getIdLong(), guildId, channel.getIdLong(), String.join(";", roleIds), time);
 				
 				StringBuffer mentions = new StringBuffer(event.getMember().getAsMention());
 				db.access.getRoles(guildId, CmdAccessLevel.MOD).forEach(roleId -> mentions.append(" <@&").append(roleId).append(">"));
@@ -613,7 +614,8 @@ public class InteractionListener extends ListenerAdapter {
 		if (tag.getTagType() == 1) {
 			// Thread ticket
 			event.getChannel().asTextChannel().createThreadChannel(ticketName, true).setInvitable(false).queue(channel -> {
-				db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId);
+				int time = bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply();
+				db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time);
 				
 				bot.getTicketUtil().createTicket(event, channel, mentions.toString(), message);
 			},
@@ -631,9 +633,10 @@ public class InteractionListener extends ListenerAdapter {
 			action.addPermissionOverride(event.getGuild().getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
 				.addMemberPermissionOverride(user.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), null)
 				.queue(channel -> {
-				db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId);
+					int time = bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply();
+					db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time);
 
-				bot.getTicketUtil().createTicket(event, channel, mentions.toString(), message);
+					bot.getTicketUtil().createTicket(event, channel, mentions.toString(), message);
 			}, 
 			failure -> sendTicketError(event, "Unable to create new channel in target category, with ID: "+tag.getLocation()));
 		}

@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandClientBuilder;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
+import dev.fileeditor.votl.commands.games.GameCmd;
+import dev.fileeditor.votl.commands.games.GameStrikeCmd;
 import dev.fileeditor.votl.commands.guild.*;
 import dev.fileeditor.votl.commands.moderation.*;
 import dev.fileeditor.votl.commands.other.*;
@@ -83,6 +85,7 @@ public class App {
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
 
+	@SuppressWarnings("BusyWait")
 	public App() {
 		try {
 			fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "config.json")
@@ -93,13 +96,15 @@ public class App {
 			logger.error("Error while interacting with File Manager", ex);
 			System.exit(0);
 		}
+
+		final String ownerId = fileManager.getString("config", "owner-id");
 		
 		// Define for default
 		dbUtil		= new DBUtil(getFileManager());
 		localeUtil	= new LocaleUtil(this, DiscordLocale.ENGLISH_UK);
 		messageUtil	= new MessageUtil(localeUtil);
 		embedUtil	= new EmbedUtil(localeUtil);
-		checkUtil	= new CheckUtil(this);
+		checkUtil	= new CheckUtil(this, ownerId);
 		ticketUtil	= new TicketUtil(this);
 		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
 
@@ -126,7 +131,7 @@ public class App {
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()
-			.setOwnerId(fileManager.getString("config", "owner-id"))
+			.setOwnerId(ownerId)
 			.setServerInvite(Links.DISCORD)
 			.setScheduleExecutor(scheduledExecutor)
 			.setStatus(OnlineStatus.ONLINE)
@@ -162,6 +167,8 @@ public class App {
 				new ForceAccessCmd(this),
 				new GenerateListCmd(this),
 				new ShutdownCmd(this),
+				new DebugCmd(this),
+				new MessageCmd(this),
 				// role
 				new RoleCmd(this),
 				new TempRoleCmd(this),
@@ -185,7 +192,10 @@ public class App {
 				// voice
 				new VoiceCmd(this),
 				// webhook
-				new WebhookCmd(this)
+				new WebhookCmd(this),
+				// game
+				new GameCmd(this),
+				new GameStrikeCmd(this)
 			)
 			.addContextMenus(
 				new ReportMenu(this),
@@ -330,7 +340,7 @@ public class App {
 		
 		LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
 		PatternLayoutEncoder ple = new PatternLayoutEncoder();
-		ple.setPattern("%d{dd.MM.yyyy HH:mm:ss} [%thread] [%logger{0}] %msg%n");
+		ple.setPattern("%d{dd.MM.yyyy HH:mm:ss} [%thread] [%logger{0}] %ex{10}%n");
 		ple.setContext(lc);
 		ple.start();
 		WebhookAppender webhookAppender = new WebhookAppender();

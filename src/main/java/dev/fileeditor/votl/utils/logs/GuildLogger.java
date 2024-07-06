@@ -84,7 +84,7 @@ public class GuildLogger {
 			onNewCase(guild, target, caseData, null);
 		}
 		
-		public void onNewCase(Guild guild, User target, @Nonnull CaseData caseData, String oldReason) {
+		public void onNewCase(Guild guild, User target, @Nonnull CaseData caseData, String optionalData) {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 
@@ -99,13 +99,13 @@ public class GuildLogger {
 					embed = logUtil.banEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
 					break;
 				case UNBAN:
-					embed = logUtil.unbanEmbed(guild.getLocale(), caseData, oldReason);
+					embed = logUtil.unbanEmbed(guild.getLocale(), caseData, optionalData);
 					break;
 				case MUTE:
 					embed = logUtil.muteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
 					break;
 				case UNMUTE:
-					embed = logUtil.unmuteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), oldReason);
+					embed = logUtil.unmuteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
 					break;
 				case KICK:
 					embed = logUtil.kickEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
@@ -117,6 +117,9 @@ public class GuildLogger {
 					break;
 				case BLACKLIST:
 					embed = null;
+					break;
+				case GAME_STRIKE:
+					embed = logUtil.gameStrikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
 					break;
 				default:
 					break;
@@ -405,9 +408,15 @@ public class GuildLogger {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 			try {
-				client.sendMessageEmbeds(
-					logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
-				).addFiles(file).queue();
+				if (file == null) {
+					client.sendMessageEmbeds(
+						logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
+					).queue();
+				} else {
+					client.sendMessageEmbeds(
+						logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
+					).addFiles(file).queue();
+				}	
 			} catch (Exception ignored) {}
 		}
 
@@ -633,7 +642,7 @@ public class GuildLogger {
 						.addFiles(fileUpload)
 						.queue();
 					return;
-				}	
+				}
 			}
 			client.sendMessageEmbeds(logUtil.messageBulkDelete(guild.getLocale(), channel.getIdLong(), count, modId)).queue();			
 		}
@@ -678,14 +687,17 @@ public class GuildLogger {
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				baos.write("Channel ID: %s\n\n".formatted(channelId).getBytes());
+				int cached = 0;
 				for (MessageData data : messages) {
 					if (data.isEmpty()) continue;
+					cached++;
 					baos.write("[%s (%s)]:\n".formatted(data.getAuthorName(), data.getAuthorId()).getBytes());
 					if (data.getAttachment() != null)
 						baos.write("[Attachment: %s]\n".formatted(data.getAttachment().getFileName()).getBytes(StandardCharsets.UTF_8));
 					baos.write(data.getContent().getBytes(StandardCharsets.UTF_8));
 					baos.write("\n\n-------===-------\n\n".getBytes());
 				}
+				if (cached == 0) return null;
 				return FileUpload.fromData(baos.toByteArray(), channelId+"-"+Instant.now().toEpochMilli()+".txt");
 			} catch (IOException ex) {
 				LOG.error("Error at bulk deleted messages content upload.", ex);

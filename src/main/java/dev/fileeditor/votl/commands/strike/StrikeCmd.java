@@ -33,6 +33,7 @@ import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 public class StrikeCmd extends CommandBase {
@@ -44,9 +45,9 @@ public class StrikeCmd extends CommandBase {
 		this.options = List.of(
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
 			new OptionData(OptionType.INTEGER, "severity", lu.getText(path+".severity.help"), true).addChoices(List.of(
-				new Choice(lu.getText(path+".severity.minor"), 1).setNameLocalizations(lu.getFullLocaleMap(path+".severity.minor")),
-				new Choice(lu.getText(path+".severity.severe"), 2).setNameLocalizations(lu.getFullLocaleMap(path+".severity.severe")),
-				new Choice(lu.getText(path+".severity.extreme"), 3).setNameLocalizations(lu.getFullLocaleMap(path+".severity.extreme"))
+				new Choice(lu.getText(path+".severity.minor"), 1).setNameLocalizations(lu.getLocaleMap(path+".severity.minor")),
+				new Choice(lu.getText(path+".severity.severe"), 2).setNameLocalizations(lu.getLocaleMap(path+".severity.severe")),
+				new Choice(lu.getText(path+".severity.extreme"), 3).setNameLocalizations(lu.getLocaleMap(path+".severity.extreme"))
 			)),
 			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"), true).setMaxLength(400)
 		);
@@ -71,7 +72,21 @@ public class StrikeCmd extends CommandBase {
 			return;
 		}
 
+		// Check if target has strike cooldown
 		Guild guild = Objects.requireNonNull(event.getGuild());
+		int strikeCooldown = bot.getDBUtil().getGuildSettings(guild).getStrikeCooldown();
+		if (strikeCooldown > 0) {
+			Instant lastAddition = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), tm.getIdLong());
+			if (lastAddition != null && lastAddition.isAfter(Instant.now().minus(strikeCooldown, ChronoUnit.MINUTES))) {
+				// Cooldown active
+				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
+					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.format(lastAddition.plus(strikeCooldown, ChronoUnit.MINUTES))))
+					.build()
+				);
+				return;
+			}
+		}
+
 		String reason = event.optString("reason");
 		Integer strikeAmount = event.optInteger("severity", 1);
 		CaseType type = CaseType.byType(20 + strikeAmount);
@@ -119,7 +134,7 @@ public class StrikeCmd extends CommandBase {
 		if (actions.isEmpty()) return null;
 		String data = punishActions.getRight();
 
-		// Check if bot can interact and target is not server's moderator or higher
+		// Check if user can interact and target is not automod exception or higher
 		if (!guild.getSelfMember().canInteract(target)) return null;
 		if (bot.getCheckUtil().getAccessLevel(target).isHigherThan(CmdAccessLevel.ALL)) return null;
 
@@ -176,36 +191,6 @@ public class StrikeCmd extends CommandBase {
 					.append("\n");
 			}
 		}
-		if (actions.contains(PunishAction.MUTE)) {
-			Duration duration = null;
-			try {
-				duration = Duration.ofSeconds(Long.parseLong(PunishAction.MUTE.getMatchedValue(data)));
-			} catch (NumberFormatException ignored) {}
-			if (duration != null && !duration.isZero()) {
-				String reason = lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes);
-				// Send PM to user
-				target.getUser().openPrivateChannel().queue(pm -> {
-					MessageEmbed embed = bot.getModerationUtil().getDmEmbed(CaseType.MUTE, guild, reason, null, null, false);
-					if (embed == null) return;
-					pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
-				});
-
-				Duration durationCopy = duration;
-				guild.timeoutFor(target, duration).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
-					// add case to DB
-					bot.getDBUtil().cases.add(CaseType.MUTE, target.getIdLong(), target.getUser().getName(), 0, "Autopunish",
-						guild.getIdLong(), reason, Instant.now(), durationCopy);
-					CaseData caseData = bot.getDBUtil().cases.getMemberLast(target.getIdLong(), guild.getIdLong());
-					// log case
-					bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData);
-				},
-				failure -> bot.getAppLogger().error("Strike punishment execution, Mute member", failure));
-				builder.append(lu.getLocalized(locale, PunishAction.MUTE.getPath())).append(" ")
-					.append(lu.getLocalized(locale, path + ".for")).append(" ")
-					.append(TimeUtil.durationToLocalizedString(lu, locale, duration))
-					.append("\n");
-			}
-		}
 		if (actions.contains(PunishAction.REMOVE_ROLE)) {
 			Long roleId = null;
 			try {
@@ -244,6 +229,36 @@ public class StrikeCmd extends CommandBase {
 						.append(role.getName())
 						.append("\n");
 				}
+			}
+		}
+		if (actions.contains(PunishAction.MUTE)) {
+			Duration duration = null;
+			try {
+				duration = Duration.ofSeconds(Long.parseLong(PunishAction.MUTE.getMatchedValue(data)));
+			} catch (NumberFormatException ignored) {}
+			if (duration != null && !duration.isZero()) {
+				String reason = lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes);
+				// Send PM to user
+				target.getUser().openPrivateChannel().queue(pm -> {
+					MessageEmbed embed = bot.getModerationUtil().getDmEmbed(CaseType.MUTE, guild, reason, null, null, false);
+					if (embed == null) return;
+					pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+				});
+
+				Duration durationCopy = duration;
+				guild.timeoutFor(target, duration).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
+					// add case to DB
+					bot.getDBUtil().cases.add(CaseType.MUTE, target.getIdLong(), target.getUser().getName(), 0, "Autopunish",
+						guild.getIdLong(), reason, Instant.now(), durationCopy);
+					CaseData caseData = bot.getDBUtil().cases.getMemberLast(target.getIdLong(), guild.getIdLong());
+					// log case
+					bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData);
+				},
+				failure -> bot.getAppLogger().error("Strike punishment execution, Mute member", failure));
+				builder.append(lu.getLocalized(locale, PunishAction.MUTE.getPath())).append(" ")
+					.append(lu.getLocalized(locale, path + ".for")).append(" ")
+					.append(TimeUtil.durationToLocalizedString(lu, locale, duration))
+					.append("\n");
 			}
 		}
 

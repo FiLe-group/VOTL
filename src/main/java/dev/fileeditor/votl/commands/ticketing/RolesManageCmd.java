@@ -90,7 +90,7 @@ public class RolesManageCmd extends CommandBase {
 			
 			String type = event.optString("type");
 			if (type.equals(RoleType.ASSIGN.toString())) {
-				Integer row = event.optInteger("row", 0);
+				int row = event.optInteger("row", 0);
 				if (row == 0) {
 					for (int i = 1; i <= 3; i++) {
 						if (bot.getDBUtil().roles.getRowSize(guildId, i) < 25) {

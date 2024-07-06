@@ -27,7 +27,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 public class MessageListener extends ListenerAdapter {
 
 	// Cache
-	FixedCache<Long, MessageData> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE*60); // messageId, message
+	private final FixedCache<Long, MessageData> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE*60); // messageId, message
 
 	private final App bot;
 	
