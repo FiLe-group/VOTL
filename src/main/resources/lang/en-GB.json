@@ -1259,7 +1259,7 @@
 				"help": "Server Groups management",
 				"create": {
 					"help": "Create new server Group",
-					"usage": "create <name> [shared?]",
+					"usage": "create <name> [appeal server]",
 					"name": {
 						"name": "name",
 						"help": "Enter name for new Group"
@@ -1269,7 +1269,7 @@
 						"help": "(Optional) Enter appeal server's ID. This server will be excluded from sync bans."
 					},
 					"max_amount": "This server has reached maximum amount of groups which it can be master of (max - 3).",
-					"done": "Group `{group_name}` successfully created!\n\n*Group ID: `{group_id}`*\n*Others can join: {is_shared}*"
+					"done": "Group `%s` successfully created!\n\n*Group ID: `%s`*"
 				},
 				"delete": {
 					"help": "Delete existing Group that this server owns",
@@ -1280,28 +1280,7 @@
 					},
 					"no_group": "Couldn't find requested server Group.",
 					"not_owned": "This server is not Group's owner (creator).",
-					"done": "Group `{group_name}` successfully deleted!\n\n*Group ID: `{group_id}`*"
-				},
-				"add": {
-					"help": "Add server to Group",
-					"usage": "add <Group> <server ID> [can manage?]",
-					"group_owned": {
-						"name": "group_owned",
-						"help": "Select Group"
-					},
-					"server": {
-						"name": "server",
-						"help": "Enter server's ID to be added to this Group"
-					},
-					"manage": {
-						"name": "manage",
-						"help": "Can selected server perform action in this Group? (false)"
-					},
-					"no_group": "Couldn't find requested server Group.",
-					"not_owned": "This server is not Group's owner (creator).",
-					"is_member": "Selected server is already member of this Group.",
-					"no_guild": "Selected server not found.",
-					"done": "Added server __{server_name}__ (`{server_id}`) to Group `{group_name}`!"
+					"done": "Group `%s` successfully deleted!\n\n*Group ID: `%s`*"
 				},
 				"remove": {
 					"help": "Remove server from Group",
@@ -1314,8 +1293,8 @@
 					"not_owned": "This server is not Group's owner (creator).",
 					"no_guilds": "There are no other servers in the selected Group.",
 					"embed_title": "Server to be removed",
-					"embed_value": "Select server from the list below to be removed from Group `{group_name}`.",
-					"done": "Successfully removed server __{guild_name}__ from Group `{group_name}`."
+					"embed_value": "Select server from the list below to be removed from Group `%s`.",
+					"done": "Successfully removed server __%s__ from Group `%s`."
 				},
 				"generateinvite": {
 					"help": "Generate new invite code for Group",
@@ -1328,9 +1307,9 @@
 					"not_owned": "This server is not Group's owner (creator).",
 					"done": "New invite code for the Group `%s` -> `%s`."
 				},
-				"rename": {
-					"help": "Rename Group",
-					"usage": "rename <Group> <name>",
+				"modify": {
+					"help": "Modify Group settings",
+					"usage": "modify <Group> [name] [appeal server]",
 					"group_owned": {
 						"name": "group_owned",
 						"help": "Select Group"
@@ -1339,9 +1318,16 @@
 						"name": "name",
 						"help": "Enter new name for this Group"
 					},
+					"appeal_server": {
+						"name": "appeal_server",
+						"help": "Enter appeal server's ID. This server will be excluded from sync bans."
+					},
 					"no_group": "Couldn't find requested server Group.",
 					"not_owned": "This server is not Group's owner (creator).",
-					"done": "Group `{old_name}` successfully renamed to `{new_name}`!\n\n*Group ID: {group_id}*"
+					"empty": "No changes.",
+					"embed_title": "Group **%s** updated.",
+					"changed_name": "\n> Renamed from ~~%s~~ to __%s__.",
+					"changed_appeal": "\n> Appeal server ID set to `%s`."
 				},
 				"manage": {
 					"help": "Set whether the server can perform actions in the Group",
@@ -1360,7 +1346,7 @@
 					"is_shared": "Selected Group is set as `Shared`. Unable to add manage permission to any server in this Group.",
 					"embed_title": "Server",
 					"embed_value": "Select server from the list below.",
-					"done": "Successfully set permission to `{manage}` for server __{guild_name}__ in Group `{group_name}`."
+					"done": "Successfully set permission to `%s` for server __%s__ in Group `%s`."
 				},
 				"join": {
 					"help": "Join the Group",
@@ -1397,8 +1383,9 @@
 					},
 					"no_group": "Couldn't find requested server Group.",
 					"not_owned": "This server is not Group's owner (creator).",
-					"embed_title": "Group '{group_name}' (#{group_id})",
-					"embed_value": "Owner: {guild_name} (`{guild_id}`)\nGroup size: {size} server/-s",
+					"embed_title": "Group '%s' (#%s)",
+					"embed_full": "Owner: %s (`%s`)\nGroup size: %d server/-s\nAppeal server ID: `%s`",
+					"embed_short": "Owner: %s (`%s`)\nGroup size: %d server/-s",
 					"embed_invite": "Invite code",
 					"embed_guilds": "Server name | size | ID",
 					"embed_groups": "Group name | #ID",
