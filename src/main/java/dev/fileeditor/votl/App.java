@@ -83,6 +83,7 @@ public class App {
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
 
+	@SuppressWarnings("BusyWait")
 	public App() {
 		try {
 			fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "config.json")

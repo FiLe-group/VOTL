@@ -128,6 +128,7 @@ public class AuditListener extends ListenerAdapter {
 
 				logger.member.onRoleChange(entry);
 			}
+			default -> {}
 		}
 	}
 
