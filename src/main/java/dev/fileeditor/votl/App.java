@@ -96,13 +96,15 @@ public class App {
 			logger.error("Error while interacting with File Manager", ex);
 			System.exit(0);
 		}
+
+		final String ownerId = fileManager.getString("config", "owner-id");
 		
 		// Define for default
 		dbUtil		= new DBUtil(getFileManager());
 		localeUtil	= new LocaleUtil(this, DiscordLocale.ENGLISH_UK);
 		messageUtil	= new MessageUtil(localeUtil);
 		embedUtil	= new EmbedUtil(localeUtil);
-		checkUtil	= new CheckUtil(this);
+		checkUtil	= new CheckUtil(this, ownerId);
 		ticketUtil	= new TicketUtil(this);
 		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
 
@@ -129,7 +131,7 @@ public class App {
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()
-			.setOwnerId(fileManager.getString("config", "owner-id"))
+			.setOwnerId(ownerId)
 			.setServerInvite(Links.DISCORD)
 			.setScheduleExecutor(scheduledExecutor)
 			.setStatus(OnlineStatus.ONLINE)

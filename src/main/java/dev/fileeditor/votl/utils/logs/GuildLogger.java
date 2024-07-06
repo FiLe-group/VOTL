@@ -642,7 +642,7 @@ public class GuildLogger {
 						.addFiles(fileUpload)
 						.queue();
 					return;
-				}	
+				}
 			}
 			client.sendMessageEmbeds(logUtil.messageBulkDelete(guild.getLocale(), channel.getIdLong(), count, modId)).queue();			
 		}
@@ -687,14 +687,17 @@ public class GuildLogger {
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				baos.write("Channel ID: %s\n\n".formatted(channelId).getBytes());
+				int cached = 0;
 				for (MessageData data : messages) {
 					if (data.isEmpty()) continue;
+					cached++;
 					baos.write("[%s (%s)]:\n".formatted(data.getAuthorName(), data.getAuthorId()).getBytes());
 					if (data.getAttachment() != null)
 						baos.write("[Attachment: %s]\n".formatted(data.getAttachment().getFileName()).getBytes(StandardCharsets.UTF_8));
 					baos.write(data.getContent().getBytes(StandardCharsets.UTF_8));
 					baos.write("\n\n-------===-------\n\n".getBytes());
 				}
+				if (cached == 0) return null;
 				return FileUpload.fromData(baos.toByteArray(), channelId+"-"+Instant.now().toEpochMilli()+".txt");
 			} catch (IOException ex) {
 				LOG.error("Error at bulk deleted messages content upload.", ex);

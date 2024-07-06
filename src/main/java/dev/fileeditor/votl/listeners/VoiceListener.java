@@ -95,7 +95,7 @@ public class VoiceListener extends ListenerAdapter {
 
 		if (db.voice.existsUser(userId)) {
 			member.getUser().openPrivateChannel()
-				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue());
+				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
 			return;
 		}
 		Long categoryId = db.guildVoice.getCategoryId(guildId);
@@ -115,7 +115,7 @@ public class VoiceListener extends ListenerAdapter {
 			.reason(member.getUser().getEffectiveName()+" private channel")
 			.setUserlimit(channelLimit)
 			.syncPermissionOverrides()
-			.addPermissionOverride(member, EnumSet.of(Permission.MANAGE_CHANNEL), null)
+			.addPermissionOverride(member, EnumSet.of(Permission.MANAGE_CHANNEL, Permission.VOICE_SET_STATUS, Permission.VOICE_MOVE_OTHERS), null)
 			.queue(
 				channel -> {
 					db.voice.add(userId, channel.getIdLong());
