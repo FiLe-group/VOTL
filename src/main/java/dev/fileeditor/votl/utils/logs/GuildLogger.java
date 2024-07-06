@@ -408,9 +408,15 @@ public class GuildLogger {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 			try {
-				client.sendMessageEmbeds(
-					logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
-				).addFiles(file).queue();
+				if (file == null) {
+					client.sendMessageEmbeds(
+						logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
+					).queue();
+				} else {
+					client.sendMessageEmbeds(
+						logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
+					).addFiles(file).queue();
+				}	
 			} catch (Exception ignored) {}
 		}
 
