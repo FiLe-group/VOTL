@@ -140,12 +140,12 @@ public abstract class ContextMenu extends Interaction
 		StringBuilder front = new StringBuilder(lu.getText(event, "errors.cooldown.cooldown_command")
 			.replace("{time}", Integer.toString(remaining))
 		);
-		if(cooldownScope.equals(CooldownScope.USER_GUILD) && guild==null)
-			front.append(" ").append(lu.getText(event, CooldownScope.USER_CHANNEL.errorPath));
-		else if(cooldownScope.equals(CooldownScope.GUILD) && guild==null)
-			front.append(" ").append(lu.getText(event, CooldownScope.CHANNEL.errorPath));
+		if (cooldownScope.equals(CooldownScope.USER_GUILD) && guild==null)
+			front.append(" ").append(lu.getText(event, CooldownScope.USER_CHANNEL.getErrorPath()));
+		else if (cooldownScope.equals(CooldownScope.GUILD) && guild==null)
+			front.append(" ").append(lu.getText(event, CooldownScope.CHANNEL.getErrorPath()));
 		else if (!cooldownScope.equals(CooldownScope.USER))
-			front.append(" ").append(lu.getText(event, cooldownScope.errorPath));
+			front.append(" ").append(lu.getText(event, cooldownScope.getErrorPath()));
 		
 		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
 	}
@@ -161,7 +161,7 @@ public abstract class ContextMenu extends Interaction
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.lu = bot.getLocaleUtil();
-		this.nameLocalization = lu.getFullLocaleMap(getPath()+".name");
+		this.nameLocalization = lu.getFullLocaleMap(getPath()+".name", lu.getText(getPath()+".name"));
 
 		// Make the command data
 		CommandData data = Commands.context(getType(), name);
