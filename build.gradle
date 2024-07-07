@@ -13,10 +13,6 @@ def group = 'dev.fileeditor.votl.App'
 repositories {
 	// Use Maven Central for resolving dependencies.
 	mavenCentral()
-	// JDA-Chewtils SNAPSHOTs
-	maven {
-		url 'https://m2.chew.pro/snapshots/'
-	}
 }
 
 dependencies {
@@ -43,6 +39,12 @@ dependencies {
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
 	implementation 'org.apache.groovy:groovy:4.0.22'				// Groovy - code evaluation
+
+	// Backend
+	// https://mvnrepository.com/artifact/io.javalin/javalin
+	implementation 'io.javalin:javalin:6.1.6'
+	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
 }
 
 java {

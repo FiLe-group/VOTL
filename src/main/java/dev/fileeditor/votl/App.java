@@ -29,6 +29,8 @@ import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
 import dev.fileeditor.votl.services.ScheduledCheck;
+import dev.fileeditor.votl.servlet.WebServlet;
+import dev.fileeditor.votl.servlet.routes.GetGuild;
 import dev.fileeditor.votl.utils.CheckUtil;
 import dev.fileeditor.votl.utils.GroupHelper;
 import dev.fileeditor.votl.utils.ModerationUtil;
@@ -62,6 +64,8 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 
 @SuppressWarnings("BusyWait")
 public class App {
+
+	protected static App instance;
 	
 	private final Logger logger = (Logger) LoggerFactory.getLogger(App.class);
 
@@ -85,8 +89,12 @@ public class App {
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
 
+	private final WebServlet servlet;
+
 	@SuppressWarnings("BusyWait")
 	public App() {
+		App.instance = this;
+
 		try {
 			fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "config.json")
 				.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
@@ -128,6 +136,10 @@ public class App {
 
 		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 5, TimeUnit.MINUTES);
 		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 15, TimeUnit.MINUTES);
+
+		servlet = new WebServlet(WebServlet.defaultPort);
+		// Register handlers here TODO
+		servlet.registerGet("/guilds/{guild}", new GetGuild());
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()
@@ -276,6 +288,10 @@ public class App {
 		this.JDA = tempJda;
 	}
 
+	public static App getInstance() {
+		return instance;
+	}
+
 	public CommandClient getClient() {
 		return commandClient;
 	}
@@ -328,8 +344,12 @@ public class App {
 		return moderationUtil;
 	}
 
+	public WebServlet getServlet() {
+		return servlet;
+	}
+
 	public static void main(String[] args) {
-		App instance = new App();
+		instance = new App();
 		instance.createWebhookAppender();
 		instance.logger.info("Success start");
 	}
