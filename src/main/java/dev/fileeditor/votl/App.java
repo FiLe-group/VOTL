@@ -30,7 +30,10 @@ import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
 import dev.fileeditor.votl.services.ScheduledCheck;
 import dev.fileeditor.votl.servlet.WebServlet;
+import dev.fileeditor.votl.servlet.routes.GetChannels;
 import dev.fileeditor.votl.servlet.routes.GetGuild;
+import dev.fileeditor.votl.servlet.routes.GetMemberSelf;
+import dev.fileeditor.votl.servlet.routes.GetRoles;
 import dev.fileeditor.votl.utils.CheckUtil;
 import dev.fileeditor.votl.utils.GroupHelper;
 import dev.fileeditor.votl.utils.ModerationUtil;
@@ -62,7 +65,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 
-@SuppressWarnings("BusyWait")
 public class App {
 
 	protected static App instance;
@@ -140,6 +142,9 @@ public class App {
 		servlet = new WebServlet(WebServlet.defaultPort);
 		// Register handlers here TODO
 		servlet.registerGet("/guilds/{guild}", new GetGuild());
+		servlet.registerGet("/guilds/{guild}/roles", new GetRoles());
+		servlet.registerGet("/guilds/{guild}/channels", new GetChannels());
+		servlet.registerGet("/guilds/{guild}/members/@me", new GetMemberSelf());
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()

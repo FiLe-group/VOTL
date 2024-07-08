@@ -16,6 +16,7 @@
 package dev.fileeditor.votl.servlet.oauth2.requests;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import dev.fileeditor.votl.servlet.oauth2.OAuth2Client;
@@ -38,6 +39,7 @@ import okhttp3.Response;
  *
  * @author Kaidan Gustave
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class OAuth2Action<T> {
 	protected static final Consumer DEFAULT_SUCCESS = t -> {};
 	protected static final Consumer<Throwable> DEFAULT_FAILURE = t -> {
@@ -138,6 +140,10 @@ public abstract class OAuth2Action<T> {
 	 */
 	public T complete() throws IOException {
 		return client.getRequester().submitSync(this);
+	}
+
+	public CompletableFuture<T> getFuture() {
+		return client.getRequester().returnAsync(this);
 	}
 
 	/**

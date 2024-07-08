@@ -16,7 +16,11 @@
 package dev.fileeditor.votl.servlet.oauth2.requests;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
+
+import dev.fileeditor.votl.servlet.oauth2.OkHttpResponseFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +85,26 @@ public class OAuth2Requester {
 			logSuccessfulRequest(request);
 			return value;
 		}
+	}
+
+	<T> CompletableFuture<T> returnAsync(OAuth2Action<T> request) {
+		OkHttpResponseFuture callback = new OkHttpResponseFuture();
+		httpClient.newCall(request.buildRequest()).enqueue(callback);
+
+		return callback.future.thenApply(response -> {
+			try {
+				T value = request.handle(response);
+				logSuccessfulRequest(request);
+
+				if (value == null)
+					throw new NullPointerException("User not found.");
+				return value;
+			} catch (Throwable t) {
+				throw new CompletionException(t);
+			} finally {
+				response.close();
+			}
+		});
 	}
 
 	private static <T> void logSuccessfulRequest(OAuth2Action<T> request) {

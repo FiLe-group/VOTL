@@ -27,7 +27,7 @@ public class Checks {
 			});
 		},
 		failure -> {
-			throw new NotFoundResponse("Unable to get user.");
+			throw new NotFoundResponse("Unable to get the user.");
 		});
 	}
 	

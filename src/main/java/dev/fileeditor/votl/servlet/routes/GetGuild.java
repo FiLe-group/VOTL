@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.http.HttpStatus;
 import io.javalin.http.NotFoundResponse;
 
 public class GetGuild implements Handler {
@@ -18,7 +17,7 @@ public class GetGuild implements Handler {
 	@Override
 	public void handle(Context ctx) {
 		long id = ctx.pathParamAsClass("guild", Long.class)
-			.getOrThrow(e -> new BadRequestResponse());
+			.getOrThrow(e -> new BadRequestResponse("Incorrect guild ID provided."));
 		
 		Guild guild = App.getInstance().JDA.getGuildById(id);
 		if (guild == null) {
@@ -36,7 +35,7 @@ public class GetGuild implements Handler {
 		// NOTE: add enabled 'features' info
 
 		// Send response
-		ctx.status(HttpStatus.OK).json(guildNode);	
+		ctx.json(guildNode);	
 	}
 	
 }
