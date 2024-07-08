@@ -11,6 +11,17 @@
 		</encoder>
 	</appender>
 
+	<appender name="CONSOLE-DEBUG" class="ch.qos.logback.core.ConsoleAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>DEBUG</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} %-24.-24thread %10.10X{jda.shard} %-15.-15logger{0} [ %-6level] %msg%n</pattern>
+		</encoder>
+	</appender>
+
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${DEV_HOME}/App.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -54,6 +65,11 @@
 	</appender>
 
 	<logger name="dev.fileeditor.votl" level="DEBUG" additivity="true">
+		<appender-ref ref="FILE-DEBUG"/>
+		<appender-ref ref="CONSOLE-DEBUG" />
+	</logger>
+
+	<logger name="net.dv8tion" level="DEBUG" additivity="true">
 		<appender-ref ref="FILE-DEBUG"/>
 	</logger>
 

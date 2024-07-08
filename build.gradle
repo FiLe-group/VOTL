@@ -8,7 +8,7 @@ plugins {
 apply from: 'version.gradle'
 
 def version = loadVersion().getVersion()
-def group = 'dev.fileeditor.votl.App'
+def mainClassName = 'dev.fileeditor.votl.Main'
 
 repositories {
 	// Use Maven Central for resolving dependencies.
@@ -18,7 +18,7 @@ repositories {
 dependencies {
 	// JDA library and additions
 	// https://mvnrepository.com/artifact/net.dv8tion/JDA
-	implementation('net.dv8tion:JDA:5.0.0-beta.24') {				// JDA library
+	implementation('net.dv8tion:JDA:5.0.0') {				// JDA library
 		exclude module: 'opus-java'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
@@ -61,7 +61,7 @@ jar {
 		attributes 'Implementation-Title': 'VOTL Bot',
 				   'Implementation-Version': version,
 				   'Implementation-Vendor': 'FiLe group',
-				   'Main-Class': group
+				   'Main-Class': mainClassName
 	}
 }
 

@@ -103,7 +103,7 @@ public class App {
 				.addLang("en-GB")
 				.addLang("ru");
 		} catch (Exception ex) {
-			logger.error("Error while interacting with File Manager", ex);
+			System.out.println(ex.getMessage());
 			System.exit(0);
 		}
 
@@ -139,12 +139,19 @@ public class App {
 		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 5, TimeUnit.MINUTES);
 		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 15, TimeUnit.MINUTES);
 
-		servlet = new WebServlet(WebServlet.defaultPort);
-		// Register handlers here TODO
-		servlet.registerGet("/guilds/{guild}", new GetGuild());
-		servlet.registerGet("/guilds/{guild}/roles", new GetRoles());
-		servlet.registerGet("/guilds/{guild}/channels", new GetChannels());
-		servlet.registerGet("/guilds/{guild}/members/@me", new GetMemberSelf());
+		// Start backend server
+		final Boolean servletEnabled = fileManager.getBoolean("config", "web-servlet.enabled");
+		if (servletEnabled != null && servletEnabled) {
+			final Integer port = fileManager.getInteger("config", "web-servlet.port");
+			servlet = new WebServlet(port != null ? port : WebServlet.defaultPort);
+			// Register routes
+			servlet.registerGet("/guilds/{guild}", new GetGuild());
+			servlet.registerGet("/guilds/{guild}/roles", new GetRoles());
+			servlet.registerGet("/guilds/{guild}/channels", new GetChannels());
+			servlet.registerGet("/guilds/{guild}/members/@me", new GetMemberSelf());
+		} else {
+			servlet = null;
+		}
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()
@@ -264,6 +271,7 @@ public class App {
 			
 		JDA tempJda;
 
+		// try to login
 		int retries = 4; // how many times will it try to build
 		int cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
 		while (true) {
@@ -291,6 +299,10 @@ public class App {
 		}
 
 		this.JDA = tempJda;
+
+		createWebhookAppender();
+
+		instance.logger.info("Success start");
 	}
 
 	public static App getInstance() {
@@ -351,12 +363,6 @@ public class App {
 
 	public WebServlet getServlet() {
 		return servlet;
-	}
-
-	public static void main(String[] args) {
-		instance = new App();
-		instance.createWebhookAppender();
-		instance.logger.info("Success start");
 	}
 
 	private void createWebhookAppender() {
