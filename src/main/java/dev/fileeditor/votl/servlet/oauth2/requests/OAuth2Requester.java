@@ -35,7 +35,7 @@ import okhttp3.Response;
  * @author Kaidan Gustave
  */
 public class OAuth2Requester {
-	public static final Logger log = (Logger) LoggerFactory.getLogger(OAuth2Requester.class);
+	public static final Logger log = LoggerFactory.getLogger(OAuth2Requester.class);
 	protected static final String USER_AGENT = "VOTL Bot | JDA-Utils Oauth2";
 	protected static final RequestBody EMPTY_BODY = RequestBody.create(new byte[0]);
 
@@ -49,26 +49,24 @@ public class OAuth2Requester {
 		httpClient.newCall(request.buildRequest()).enqueue(new Callback() {
 			@Override
 			public void onResponse(Call call, Response response) {
-				try {
+				try (response) {
 					T value = request.handle(response);
 					logSuccessfulRequest(request);
 
 					// Handle end-user exception differently
 					try {
-						if(value != null)
+						if (value != null)
 							success.accept(value);
-					} catch(Throwable t) {
+					} catch (Throwable t) {
 						log.error("OAuth2Action success callback threw an exception!", t);
 					}
-				} catch(Throwable t) {
+				} catch (Throwable t) {
 					// Handle end-user exception differently
 					try {
 						failure.accept(t);
-					} catch(Throwable t1) {
+					} catch (Throwable t1) {
 						log.error("OAuth2Action success callback threw an exception!", t1);
 					}
-				} finally {
-					response.close();
 				}
 			}
 
@@ -92,7 +90,7 @@ public class OAuth2Requester {
 		httpClient.newCall(request.buildRequest()).enqueue(callback);
 
 		return callback.future.thenApply(response -> {
-			try {
+			try (response) {
 				T value = request.handle(response);
 				logSuccessfulRequest(request);
 
@@ -101,8 +99,6 @@ public class OAuth2Requester {
 				return value;
 			} catch (Throwable t) {
 				throw new CompletionException(t);
-			} finally {
-				response.close();
 			}
 		});
 	}

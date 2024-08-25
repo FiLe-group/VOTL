@@ -147,7 +147,7 @@ public abstract class OAuth2Action<T> {
 	}
 
 	/**
-	 * Gets the {@link com.jagrosh.jdautilities.oauth2.OAuth2Client client} responsible
+	 * Gets the {@link dev.fileeditor.votl.servlet.oauth2.OAuth2Client client} responsible
 	 * for creating this OAuth2Action.
 	 *
 	 * @return The OAuth2Client responsible for creating this.

@@ -25,7 +25,7 @@ import net.dv8tion.jda.api.entities.User;
 /**
  * OAuth2 representation of a Discord User.
  * <br>More specifically, this is the User that the session is currently managing when retrieved using
- * {@link com.jagrosh.jdautilities.oauth2.OAuth2Client#getUser(Session) OAuth2Client#getUser}.
+ * {@link dev.fileeditor.votl.servlet.oauth2.OAuth2Client#getUser(Session) OAuth2Client#getUser}.
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  * @author Kaidan Gustave
@@ -51,7 +51,7 @@ public class OAuth2User {
 	}
 	
 	/**
-	 * Gets the underlying {@link com.jagrosh.jdautilities.oauth2.OAuth2Client OAuth2Client}
+	 * Gets the underlying {@link dev.fileeditor.votl.servlet.oauth2.OAuth2Client OAuth2Client}
 	 * that created this OAuth2User.
 	 *
 	 * @return The OAuth2Client that created this OAuth2User.
@@ -62,7 +62,7 @@ public class OAuth2User {
 
 
 	/**
-	 * Gets the originating {@link com.jagrosh.jdautilities.oauth2.Session}
+	 * Gets the originating {@link dev.fileeditor.votl.servlet.oauth2.Session}
 	 * that is responsible for this OAuth2User.
 	 *
 	 * @return The Session responsible for this OAuth2User.
@@ -234,9 +234,8 @@ public class OAuth2User {
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof OAuth2User))
+		if (!(o instanceof OAuth2User oUser))
 			return false;
-		OAuth2User oUser = (OAuth2User) o;
 		return this == oUser || this.id == oUser.id;
 	}
 

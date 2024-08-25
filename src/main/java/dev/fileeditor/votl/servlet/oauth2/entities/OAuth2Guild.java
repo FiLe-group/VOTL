@@ -25,8 +25,8 @@ import net.dv8tion.jda.api.Permission;
 /**
  * OAuth2 representation of a Discord Server/Guild.
  *
- * <p>Note that this is effectively a wrapper for both the Guild info, as well
- * as the info on the user in the guild represented by the session that got this Guild.
+ * <p>Note that this is effectively a wrapper for both the Guild info, and
+ * the info on the user in the guild represented by the session that got this Guild.
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  * @author Kaidan Gustave
@@ -50,7 +50,7 @@ public class OAuth2Guild {
 	/**
 	 * The Snowflake id of this entity. This is unique to every entity and will never change.
 	 *
-	 * @return Never-null String containing the Id.
+	 * @return Never-null String containing the ID.
 	 */
 	@Nonnull
 	public String getId() {
@@ -60,14 +60,14 @@ public class OAuth2Guild {
 	/**
 	 * The Snowflake id of this entity. This is unique to every entity and will never change.
 	 *
-	 * @return Long containing the Id.
+	 * @return Long containing the ID.
 	 */
 	public long getIdLong() {
 		return id;
 	}
 	
 	/**
-	 * Gets the underlying {@link com.jagrosh.jdautilities.oauth2.OAuth2Client OAuth2Client}
+	 * Gets the underlying {@link dev.fileeditor.votl.servlet.oauth2.OAuth2Client OAuth2Client}
 	 * that created this OAuth2Guild.
 	 *
 	 * @return The OAuth2Client that created this OAuth2Guild.
@@ -122,7 +122,7 @@ public class OAuth2Guild {
 	}
 
 	/**
-	 * Whether or not the Session User is the owner of the Guild.
+	 * Whether the Session User is the owner of the Guild.
 	 *
 	 * @return {@code true} if the Session User is the owner of
 	 *         the Guild, {@code false} otherwise.
@@ -132,13 +132,13 @@ public class OAuth2Guild {
 	}
 
 	/**
-	 * Whether or not the Session User has all of the specified
+	 * Whether the Session User has all the specified
 	 * {@link net.dv8tion.jda.api.Permission Permissions} in the Guild.
 	 *
 	 * @param  perms
 	 *         The Permissions to check for.
 	 *
-	 * @return {@code true} if and only if the Session User has all of the
+	 * @return {@code true} if and only if the Session User has all the
 	 *         specified Permissions, {@code false} otherwise.
 	 */
 	public boolean hasPermission(Permission... perms) {

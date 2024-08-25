@@ -12,7 +12,7 @@ public class WebHandler {
 
 	public static ExceptionHandler<Exception> exceptionHandler() {
 		return (ex, ctx) -> {
-			WebServlet.log.error(ctx.req().getMethod()+" "+ctx.req().getPathInfo(), ex);
+			WebServlet.log.error("{} {}", ctx.req().getMethod(), ctx.req().getPathInfo(), ex);
 
 			ctx.json(response(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage()));
 		};

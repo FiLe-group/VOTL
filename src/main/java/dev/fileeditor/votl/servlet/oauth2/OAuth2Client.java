@@ -44,9 +44,6 @@ import okhttp3.Response;
 /**
  * The central controller for OAuth2 state and session management using the Discord API.
  *
- * <p>OAuth2Client's are made using a {@link com.jagrosh.jdautilities.oauth2.OAuth2Client.Builder OAuth2Client.Builder},
- * and sessions can be appended using {@link OAuth2Client#startSession(String, String, String, Scope...)}.
- *
  * @author John Grosh (john.a.grosh@gmail.com)
  * @author Kaidan Gustave
  */
@@ -66,8 +63,8 @@ public class OAuth2Client {
 	public static int DISCORD_REST_VERSION = 10;
 
 	/**
-	 * Requests a {@link com.jagrosh.jdautilities.oauth2.entities.OAuth2User OAuth2User}
-	 * from the {@link com.jagrosh.jdautilities.oauth2.session.Session Session}.
+	 * Requests a {@link dev.fileeditor.votl.servlet.oauth2.entities.OAuth2User OAuth2User}
+	 * from the {@link dev.fileeditor.votl.servlet.oauth2.Session Session}.
 	 *
 	 * <p>All Sessions should handle an individual Discord User, and as such this method retrieves
 	 * data on that User when the session is provided.
@@ -75,12 +72,12 @@ public class OAuth2Client {
 	 * @param  session
 	 *         The Session to get a OAuth2User for.
 	 *
-	 * @return A {@link com.jagrosh.jdautilities.oauth2.requests.OAuth2Action OAuth2Action} for
+	 * @return A {@link dev.fileeditor.votl.servlet.oauth2.requests.OAuth2Action OAuth2Action} for
 	 *         the OAuth2User to be retrieved.
 	 */
 	public OAuth2Action<OAuth2User> getUser(Session session) {
 		Checks.notNull(session, "Session");
-		return new OAuth2Action<OAuth2User>(this, Method.GET, OAuth2URL.CURRENT_USER.compile()) {
+		return new OAuth2Action<>(this, Method.GET, OAuth2URL.CURRENT_USER.compile()) {
 
 			@Override
 			protected Headers getHeaders() {
@@ -101,30 +98,23 @@ public class OAuth2Client {
 	}
 
 	/**
-	 * Requests a list of {@link com.jagrosh.jdautilities.oauth2.entities.OAuth2Guild OAuth2Guilds}
-	 * from the {@link com.jagrosh.jdautilities.oauth2.session.Session Session}.
+	 * Requests a list of {@link dev.fileeditor.votl.servlet.oauth2.entities.OAuth2Guild OAuth2Guilds}
+	 * from the {@link dev.fileeditor.votl.servlet.oauth2.Session Session}.
 	 *
 	 * <p>All Sessions should handle an individual Discord User, and as such this method retrieves
 	 * data on all the various Discord Guilds that user is a part of when the session is provided.
 	 *
-	 * <p>Note that this can only be performed for Sessions who have the necessary
-	 * {@link com.jagrosh.jdautilities.oauth2.Scope#GUILDS 'guilds'} scope.
-	 * <br>Trying to call this using a Session without the scope will cause a
-	 * {@link com.jagrosh.jdautilities.oauth2.exceptions.MissingScopeException MissingScopeException}
-	 * to be thrown.
+	 * <p>Note that this can only be performed for Sessions who have the necessary 'guilds' scope.
 	 *
 	 * @param  session
 	 *         The Session to get OAuth2Guilds for.
 	 *
-	 * @return A {@link com.jagrosh.jdautilities.oauth2.requests.OAuth2Action OAuth2Action} for
+	 * @return A {@link dev.fileeditor.votl.servlet.oauth2.requests.OAuth2Action OAuth2Action} for
 	 *         the OAuth2Guilds to be retrieved.
-	 *
-	 * @throws com.jagrosh.jdautilities.oauth2.exceptions.MissingScopeException
-	 *         If the provided Session does not have the 'guilds' scope.
 	 */
 	public OAuth2Action<List<OAuth2Guild>> getGuilds(Session session) {
 		Checks.notNull(session, "session");
-		return new OAuth2Action<List<OAuth2Guild>>(this, Method.GET, OAuth2URL.CURRENT_USER_GUILDS.compile()) {
+		return new OAuth2Action<>(this, Method.GET, OAuth2URL.CURRENT_USER_GUILDS.compile()) {
 			@Override
 			protected Headers getHeaders() {
 				return Headers.of("Authorization", generateAuthorizationHeader(session));

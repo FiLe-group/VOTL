@@ -9,7 +9,7 @@ public class WebFilter {
 
 	public static Handler filterRequest() {
 		return (ctx) -> {
-			WebServlet.log.debug(ctx.req().getMethod()+" "+ctx.req().getPathInfo());
+			WebServlet.log.debug("{} {}", ctx.req().getMethod(), ctx.req().getPathInfo());
 
 			ctx.res().setHeader("Access-Control-Allow-Origin", "*");
 			ctx.res().setContentType(ContentType.JSON);

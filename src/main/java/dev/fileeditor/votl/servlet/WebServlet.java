@@ -57,10 +57,10 @@ public class WebServlet {
 	}
 
 	/**
-	 * Map the route for HTTP GET requests
+	 * Map the handler for HTTP GET requests
 	 *
 	 * @param path  the path
-	 * @param route The route
+	 * @param handler The handler
 	 */
 	public synchronized void registerGet(final String path, final Handler handler) {
 		if (!initialized) initialize();
@@ -70,10 +70,10 @@ public class WebServlet {
 	}
 
 	/**
-	 * Map the route for HTTP POST requests
+	 * Map the handler for HTTP POST requests
 	 *
 	 * @param path  the path
-	 * @param route The route
+	 * @param handler The handler
 	 */
 	public synchronized void registerPost(final String path, final Handler handler) {
 		if (!initialized) initialize();
@@ -83,10 +83,10 @@ public class WebServlet {
 	}
 
 	/**
-	 * Map the route for HTTP PUT requests
+	 * Map the handler for HTTP PUT requests
 	 *
 	 * @param path  the path
-	 * @param route The route
+	 * @param handler The handler
 	 */
 	public synchronized void registerPut(final String path, final Handler handler) {
 		if (!initialized) initialize();
@@ -96,10 +96,10 @@ public class WebServlet {
 	}
 
 	/**
-	 * Map the route for HTTP PATCH requests
+	 * Map the handler for HTTP PATCH requests
 	 *
 	 * @param path  the path
-	 * @param route The route
+	 * @param handler The handler
 	 */
 	public synchronized void registerPatch(final String path, final Handler handler) {
 		if (!initialized) initialize();
@@ -109,10 +109,10 @@ public class WebServlet {
 	}
 
 	/**
-	 * Map the route for HTTP DELETE requests
+	 * Map the handler for HTTP DELETE requests
 	 *
 	 * @param path  the path
-	 * @param route The route
+	 * @param handler The handler
 	 */
 	public synchronized void registerDelete(final String path, final Handler handler) {
 		if (!initialized) initialize();
@@ -122,10 +122,10 @@ public class WebServlet {
 	}
 
 	/**
-	 * Map the route for HTTP HEAD requests
+	 * Map the handler for HTTP HEAD requests
 	 *
 	 * @param path  the path
-	 * @param route The route
+	 * @param handler The handler
 	 */
 	public synchronized void registerHead(final String path, final Handler handler) {
 		if (!initialized) initialize();
@@ -135,10 +135,10 @@ public class WebServlet {
 	}
 
 	/**
-	 * Map the route for HTTP OPTIONS requests
+	 * Map the handler for HTTP OPTIONS requests
 	 *
 	 * @param path  the path
-	 * @param route The route
+	 * @param handler The handler
 	 */
 	public synchronized void registerOptions(final String path, final Handler handler) {
 		if (!initialized) initialize();

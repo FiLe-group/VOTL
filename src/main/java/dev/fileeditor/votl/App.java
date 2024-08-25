@@ -271,7 +271,7 @@ public class App {
 			
 		JDA tempJda;
 
-		// try to login
+		// try to log in
 		int retries = 4; // how many times will it try to build
 		int cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
 		while (true) {

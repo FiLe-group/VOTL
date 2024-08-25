@@ -58,7 +58,7 @@ public enum OAuth2URL {
 				b.append(queryParams[i]);
 			}
 
-			this.formattableRoute = route + b.toString();
+			this.formattableRoute = route + b;
 			this.queryParams = b.toString();
 		} else {
 			this.formattableRoute = route;
