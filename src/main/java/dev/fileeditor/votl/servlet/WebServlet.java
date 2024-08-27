@@ -22,12 +22,14 @@ public class WebServlet {
 
 	private static Javalin web;
 	private final int port;
+	private final String allowedHost;
 	private static boolean initialized;
 
 	private static OAuth2Client webClient;
 
-	public WebServlet(int port) {
+	public WebServlet(int port, String allowedHost) {
 		this.port = port;
+		this.allowedHost = allowedHost;
 		WebServlet.initialized = false;
 	}
 
@@ -40,6 +42,13 @@ public class WebServlet {
 
 		web = Javalin.create(config -> {
 				config.http.asyncTimeout = 10_000;
+				config.bundledPlugins.enableCors(cors -> {
+					cors.addRule(it -> {
+						it.allowHost(allowedHost);
+						it.allowCredentials = true;
+						//it.exposeHeader("Content-Type");
+					});
+				});
 			})
 			.beforeMatched(WebFilter.authCheck())
 			.before(WebFilter.filterRequest())

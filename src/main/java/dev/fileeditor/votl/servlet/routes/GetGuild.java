@@ -1,16 +1,21 @@
 package dev.fileeditor.votl.servlet.routes;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.fileeditor.votl.App;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.javalin.http.InternalServerErrorResponse;
 import net.dv8tion.jda.api.entities.Guild;
 
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.NotFoundResponse;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GetGuild implements Handler {
 
@@ -24,7 +29,8 @@ public class GetGuild implements Handler {
 			throw new NotFoundResponse("Guild not found.");
 		}
 
-		ObjectNode guildNode = new ObjectMapper().createObjectNode();
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode guildNode = mapper.createObjectNode();
 
 		guildNode.put("id", guild.getId());
 		guildNode.put("name", guild.getName());
@@ -32,7 +38,12 @@ public class GetGuild implements Handler {
 		
 		guildNode.put("size", guild.getMemberCount());
 
-		// NOTE: add enabled 'features' info
+		List<String> disabledModules = new ArrayList<>();
+		try {
+			guildNode.put("disabledModules", mapper.writeValueAsString(disabledModules));
+		} catch (JsonProcessingException ex) {
+			throw new InternalServerErrorResponse("Unable to parse disabled modules. "+ex.getMessage());
+		}
 
 		// Send response
 		ctx.json(guildNode);	

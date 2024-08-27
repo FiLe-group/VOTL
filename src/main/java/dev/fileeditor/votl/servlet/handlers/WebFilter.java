@@ -11,7 +11,6 @@ public class WebFilter {
 		return (ctx) -> {
 			WebServlet.log.debug("{} {}", ctx.req().getMethod(), ctx.req().getPathInfo());
 
-			ctx.res().setHeader("Access-Control-Allow-Origin", "*");
 			ctx.res().setContentType(ContentType.JSON);
 		};
 	}

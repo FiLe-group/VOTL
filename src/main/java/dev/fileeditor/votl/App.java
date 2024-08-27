@@ -143,7 +143,8 @@ public class App {
 		final Boolean servletEnabled = fileManager.getBoolean("config", "web-servlet.enabled");
 		if (servletEnabled != null && servletEnabled) {
 			final Integer port = fileManager.getInteger("config", "web-servlet.port");
-			servlet = new WebServlet(port != null ? port : WebServlet.defaultPort);
+			final String allowedHost = fileManager.getString("config", "web-servlet.allow-host");
+			servlet = new WebServlet(port != null ? port : WebServlet.defaultPort, allowedHost);
 			// Register routes
 			servlet.registerGet("/guilds/{guild}", new GetGuild());
 			servlet.registerGet("/guilds/{guild}/roles", new GetRoles());

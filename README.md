@@ -17,7 +17,8 @@
 	"webhook": "link to webhook, if you want to receive ERROR level logs",
 	"web-servlet": {
 		"enabled": false,
-		"port": 8080
+		"port": 8080,
+        "allow-host": "* OR host origin (http://localhost:3000)"
 	}
  }
  ```
