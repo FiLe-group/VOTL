@@ -25,6 +25,7 @@ import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
@@ -282,11 +283,12 @@ public class InteractionListener extends ListenerAdapter {
 		List<SelectOption> options = new ArrayList<>();
 		for (Map<String, Object> data : assignRoles) {
 			if (options.size() >= 25) break;
-			String roleId = (String) data.getOrDefault("roleId", "0");
+			Long roleId = CastUtil.castLong(data.getOrDefault("roleId", 0L));
+			if (roleId == null) continue;
 			Role role = guild.getRoleById(roleId);
 			if (role == null) continue;
-			String description = (String) data.getOrDefault("description", "-");
-			options.add(SelectOption.of(role.getName(), roleId).withDescription(description));
+			String description = String.valueOf(data.getOrDefault("description", "-"));
+			options.add(SelectOption.of(role.getName(), roleId.toString()).withDescription(description));
 		}
 		StringSelectMenu menu = StringSelectMenu.create("menu:role_row:"+row)
 			.setPlaceholder(db.getTicketSettings(guild).getRowText(row))
