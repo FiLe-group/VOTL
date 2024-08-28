@@ -19,9 +19,8 @@ import io.javalin.http.InternalServerErrorResponse;
 import io.javalin.http.NotFoundResponse;
 
 public class GetRoles implements Handler {
-
 	@Override
-	public void handle(Context ctx) {
+	public void handle(Context ctx) throws Exception {
 		long id = ctx.pathParamAsClass("guild", Long.class)
 			.getOrThrow(e -> new BadRequestResponse("Incorrect guild ID provided."));
 		
@@ -37,7 +36,8 @@ public class GetRoles implements Handler {
 			map.put("id", role.getIdLong());
 			map.put("name", role.getName());
 			map.put("color", role.getColorRaw());
-			map.put("bot", role.getTags().isBot());
+			map.put("position", role.getPosition());
+			map.put("icon", null);
 			
 			data.add(map);
 		});
@@ -49,5 +49,4 @@ public class GetRoles implements Handler {
 			throw new InternalServerErrorResponse("Unable to parse roles data. "+ex.getMessage());
 		}
 	}
-	
 }

@@ -6,6 +6,7 @@ import dev.fileeditor.votl.App;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import dev.fileeditor.votl.objects.CmdModule;
 import io.javalin.http.InternalServerErrorResponse;
 import net.dv8tion.jda.api.entities.Guild;
 
@@ -18,9 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GetGuild implements Handler {
-
 	@Override
-	public void handle(Context ctx) {
+	public void handle(Context ctx) throws Exception {
 		long id = ctx.pathParamAsClass("guild", Long.class)
 			.getOrThrow(e -> new BadRequestResponse("Incorrect guild ID provided."));
 		
@@ -35,10 +35,15 @@ public class GetGuild implements Handler {
 		guildNode.put("id", guild.getId());
 		guildNode.put("name", guild.getName());
 		guildNode.put("icon", guild.getIconUrl());
+		guildNode.put("bannerUrl", guild.getBannerUrl());
 		
 		guildNode.put("size", guild.getMemberCount());
 
-		List<String> disabledModules = new ArrayList<>();
+		List<String> disabledModules = App.getInstance().getDBUtil().getGuildSettings(guild)
+			.getDisabledModules()
+			.stream()
+			.map(m -> m.name().toLowerCase())
+			.toList();
 		try {
 			guildNode.put("disabledModules", mapper.writeValueAsString(disabledModules));
 		} catch (JsonProcessingException ex) {
@@ -46,7 +51,6 @@ public class GetGuild implements Handler {
 		}
 
 		// Send response
-		ctx.json(guildNode);	
+		ctx.json(guildNode);
 	}
-	
 }

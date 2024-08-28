@@ -16,9 +16,8 @@ import io.javalin.http.InternalServerErrorResponse;
 import io.javalin.http.NotFoundResponse;
 
 public class GetMemberSelf implements Handler {
-	
 	@Override
-	public void handle(Context ctx) {
+	public void handle(Context ctx) throws Exception {
 		long id = ctx.pathParamAsClass("guild", Long.class)
 			.getOrThrow(e -> new BadRequestResponse("Incorrect guild ID provided."));
 		
@@ -42,6 +41,5 @@ public class GetMemberSelf implements Handler {
 					throw new InternalServerErrorResponse("Unable to get the user.");
 				});
 		});
-		
 	}
 }
