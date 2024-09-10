@@ -25,9 +25,9 @@ import net.dv8tion.jda.api.Permission;
 
 /**
  * A class that represents an interaction with a user.
- *
+ * <p>
  * This is all information used for all forms of interactions. Namely, permissions and cooldowns.
- *
+ * <p>
  * Any content here is safely functionality equivalent regardless of the source of the interaction.
  */
 public abstract class Interaction
