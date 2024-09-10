@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.strike;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -18,8 +17,7 @@ import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 public class ClearStrikesCmd extends CommandBase {
 
-	public ClearStrikesCmd(App bot) {
-		super(bot);
+	public ClearStrikesCmd() {
 		this.name = "clearstrikes";
 		this.path = "bot.moderation.clearstrikes";
 		this.options = List.of(

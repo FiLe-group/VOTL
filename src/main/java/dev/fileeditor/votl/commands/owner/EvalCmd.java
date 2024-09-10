@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.owner;
 import java.util.List;
 import java.util.Map;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -23,8 +22,7 @@ import groovy.lang.GroovyShell;
 
 public class EvalCmd extends CommandBase {
 	
-	public EvalCmd(App bot) {
-		super(bot);
+	public EvalCmd() {
 		this.name = "eval";
 		this.path = "bot.owner.eval";
 		this.options = List.of(

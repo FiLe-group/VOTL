@@ -8,7 +8,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -25,8 +24,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class ModStatsCmd extends CommandBase {
 	
-	public ModStatsCmd(App bot) {
-		super(bot);
+	public ModStatsCmd() {
 		this.name = "modstats";
 		this.path = "bot.moderation.modstats";
 		this.options = List.of(

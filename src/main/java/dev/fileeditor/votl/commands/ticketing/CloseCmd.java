@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.ticketing;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -13,8 +12,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class CloseCmd extends CommandBase {
 
-	public CloseCmd(App bot) {
-		super(bot);
+	public CloseCmd() {
 		this.name = "close";
 		this.path = "bot.ticketing.close";
 		this.options = List.of(

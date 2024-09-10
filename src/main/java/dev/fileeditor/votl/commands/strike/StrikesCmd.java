@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.strike;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -20,8 +19,7 @@ import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 public class StrikesCmd extends CommandBase {
 	
-	public StrikesCmd(App bot) {
-		super(bot);
+	public StrikesCmd() {
 		this.name = "strikes";
 		this.path = "bot.moderation.strikes";
 		this.options = List.of(

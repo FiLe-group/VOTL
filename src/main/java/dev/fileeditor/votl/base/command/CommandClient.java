@@ -237,33 +237,6 @@ public interface CommandClient
 	void cleanCooldowns();
 
 	/**
-	 * Gets the number of uses for the provide {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}
-	 * during this session, or {@code 0} if the command is not registered to this CommandClient.
-	 *
-	 * @param  command
-	 *         The Command
-	 *
-	 * @return The number of uses for the Command
-	 */
-	int getCommandUses(SlashCommand command);
-
-	/**
-	 * Gets the number of uses for a {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}
-	 * during this session matching the provided String name, or {@code 0} if there is no Command
-	 * with the name.
-	 *
-	 * <p><b>NOTE:</b> 
-	 * {@link dev.fileeditor.votl.base.command.SlashCommand#children child commands} <b>ARE NOT</b>
-	 * tracked and providing names or effective names of child commands will return {@code 0}.
-	 *
-	 * @param  name
-	 *         The name of the Command
-	 *
-	 * @return The number of uses for the Command, or {@code 0} if the name does not match with a Command
-	 */
-	int getCommandUses(String name);
-
-	/**
 	 * Gets the ID of the owner of this bot as a String.
 	 *
 	 * @return The String ID of the owner of the bot

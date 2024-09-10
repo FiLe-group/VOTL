@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -29,8 +28,7 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 
 public class MuteCmd extends CommandBase {
 	
-	public MuteCmd(App bot) {
-		super(bot);
+	public MuteCmd() {
 		this.name = "mute";
 		this.path = "bot.moderation.mute";
 		this.options = List.of(

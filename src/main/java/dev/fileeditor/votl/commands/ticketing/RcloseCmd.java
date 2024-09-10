@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -23,8 +22,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class RcloseCmd extends CommandBase {
 	
-	public RcloseCmd(App bot) {
-		super(bot);
+	public RcloseCmd() {
 		this.name = "rclose";
 		this.path = "bot.ticketing.rclose";
 		this.options = List.of(

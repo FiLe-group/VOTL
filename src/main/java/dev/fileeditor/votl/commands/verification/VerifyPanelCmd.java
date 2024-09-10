@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.verification;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -28,11 +27,10 @@ import net.dv8tion.jda.api.interactions.modals.Modal;
 
 public class VerifyPanelCmd extends CommandBase {
 	
-	public VerifyPanelCmd(App bot) { 
-		super(bot);
+	public VerifyPanelCmd() {
 		this.name = "vfpanel";
 		this.path = "bot.verification.vfpanel";
-		this.children = new SlashCommand[]{new Create(bot), new Preview(bot), new SetText(bot), new SetImage(bot)};
+		this.children = new SlashCommand[]{new Create(), new Preview(), new SetText(), new SetImage()};
 		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
 		this.module = CmdModule.VERIFICATION;
 		this.category = CmdCategory.VERIFICATION;
@@ -43,9 +41,7 @@ public class VerifyPanelCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Create extends SlashCommand {
-		public Create(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Create() {
 			this.name = "create";
 			this.path = "bot.verification.vfpanel.create";
 			this.options = List.of(
@@ -89,9 +85,7 @@ public class VerifyPanelCmd extends CommandBase {
 	}
 
 	private class Preview extends SlashCommand {
-		public Preview(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Preview() {
 			this.name = "preview";
 			this.path = "bot.verification.vfpanel.preview";
 		}
@@ -112,9 +106,7 @@ public class VerifyPanelCmd extends CommandBase {
 	}
 
 	private class SetText extends SlashCommand {
-		public SetText(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public SetText() {
 			this.name = "text";
 			this.path = "bot.verification.vfpanel.text";
 		}
@@ -133,9 +125,7 @@ public class VerifyPanelCmd extends CommandBase {
 	private class SetImage extends SlashCommand {
 		public final static Pattern URL_PATTERN = Pattern.compile("\\s*https?://\\S+\\s*", Pattern.CASE_INSENSITIVE);
 
-		public SetImage(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public SetImage() {
 			this.name = "image";
 			this.path = "bot.verification.vfpanel.image";
 			this.options = List.of(

@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -16,8 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class CaseCmd extends CommandBase {
 
-	public CaseCmd(App bot) {
-		super(bot);
+	public CaseCmd() {
 		this.name = "case";
 		this.path = "bot.moderation.case";
 		this.options = List.of(

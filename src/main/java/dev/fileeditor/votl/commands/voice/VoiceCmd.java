@@ -5,7 +5,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -31,13 +30,12 @@ import net.dv8tion.jda.api.managers.channel.concrete.VoiceChannelManager;
 
 public class VoiceCmd extends CommandBase {
 	
-	public VoiceCmd(App bot) {
-		super(bot);
+	public VoiceCmd() {
 		this.name = "voice";
 		this.path = "bot.voice.voice";
-		this.children = new SlashCommand[]{new Lock(bot), new Unlock(bot), new Ghost(bot), new Unghost(bot),
-			new NameSet(bot), new NameReset(bot), new LimitSet(bot), new LimitReset(bot),
-			new Claim(bot), new Permit(bot), new Reject(bot), new PermsView(bot), new PermsReset(bot)
+		this.children = new SlashCommand[]{new Lock(), new Unlock(), new Ghost(), new Unghost(),
+			new NameSet(), new NameReset(), new LimitSet(), new LimitReset(),
+			new Claim(), new Permit(), new Reject(), new PermsView(), new PermsReset()
 		};
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
@@ -48,9 +46,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class Lock extends SlashCommand {
 
-		public Lock(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Lock() {
 			this.name = "lock";
 			this.path = "bot.voice.voice.lock";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
@@ -90,9 +86,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class Unlock extends SlashCommand {
 
-		public Unlock(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Unlock() {
 			this.name = "unlock";
 			this.path = "bot.voice.voice.unlock";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
@@ -132,9 +126,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class Ghost extends SlashCommand {
 
-		public Ghost(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Ghost() {
 			this.name = "ghost";
 			this.path = "bot.voice.voice.ghost";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL};
@@ -174,9 +166,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class Unghost extends SlashCommand {
 
-		public Unghost(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Unghost() {
 			this.name = "unghost";
 			this.path = "bot.voice.voice.unghost";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL};
@@ -216,9 +206,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class NameSet extends SlashCommand {
 
-		public NameSet(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public NameSet() {
 			this.name = "set";
 			this.path = "bot.voice.voice.name.set";
 			this.options = List.of(
@@ -238,9 +226,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class NameReset extends SlashCommand {
 
-		public NameReset(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public NameReset() {
 			this.name = "reset";
 			this.path = "bot.voice.voice.name.reset";
 			this.subcommandGroup = new SubcommandGroupData("name", lu.getText("bot.voice.voice.name.help"));
@@ -280,9 +266,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class LimitSet extends SlashCommand {
 
-		public LimitSet(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public LimitSet() {
 			this.name = "set";
 			this.path = "bot.voice.voice.limit.set";
 			this.options = List.of(
@@ -302,9 +286,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class LimitReset extends SlashCommand {
 
-		public LimitReset(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public LimitReset() {
 			this.name = "reset";
 			this.path = "bot.voice.voice.limit.reset";
 			this.subcommandGroup = new SubcommandGroupData("limit", lu.getText("bot.voice.voice.limit.help"));
@@ -338,9 +320,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class Claim extends SlashCommand {
 
-		public Claim(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Claim() {
 			this.name = "claim";
 			this.path = "bot.voice.voice.claim";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
@@ -398,9 +378,7 @@ public class VoiceCmd extends CommandBase {
 
 		private final List<Permission> AdminPerms = List.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
 
-		public Permit(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Permit() {
 			this.name = "permit";
 			this.path = "bot.voice.voice.permit";
 			this.options = List.of(
@@ -468,9 +446,7 @@ public class VoiceCmd extends CommandBase {
 
 		private final List<Permission> AdminPerms = List.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
 
-		public Reject(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Reject() {
 			this.name = "reject";
 			this.path = "bot.voice.voice.reject";
 			this.options = List.of(
@@ -539,9 +515,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class PermsView extends SlashCommand {
 
-		public PermsView(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public PermsView() {
 			this.name = "view";
 			this.path = "bot.voice.voice.perms.view";
 			this.subcommandGroup = new SubcommandGroupData("perms", lu.getText("bot.voice.voice.perms.help"));
@@ -651,9 +625,7 @@ public class VoiceCmd extends CommandBase {
 
 	private class PermsReset extends SlashCommand {
 
-		public PermsReset(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public PermsReset() {
 			this.name = "reset";
 			this.path = "bot.voice.voice.perms.reset";
 			this.subcommandGroup = new SubcommandGroupData("perms", lu.getText("bot.voice.voice.perms.help"));

@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CaseType;
@@ -22,8 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class DurationCmd extends CommandBase {
 	
-	public DurationCmd(App bot) {
-		super(bot);
+	public DurationCmd() {
 		this.name = "duration";
 		this.path = "bot.moderation.duration";
 		this.options = List.of(

@@ -13,10 +13,7 @@ import dev.fileeditor.votl.objects.annotation.Nonnull;
 
 public abstract class CommandBase extends SlashCommand {
 	
-	public CommandBase(App bot) {
-		this.bot = bot;
-		this.lu = bot.getLocaleUtil();
-	}
+	public CommandBase() {}
 
 	// reply to event
 	public final void createReply(SlashCommandEvent event, @Nonnull String msg) {

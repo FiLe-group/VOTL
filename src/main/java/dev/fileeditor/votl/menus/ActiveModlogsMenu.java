@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.menus;
 
 import net.dv8tion.jda.api.entities.User;
-import dev.fileeditor.votl.App;
+
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
@@ -14,9 +14,7 @@ import java.util.List;
 
 public class ActiveModlogsMenu extends UserContextMenu {
 
-	public ActiveModlogsMenu(App bot) {
-		this.bot = bot;
-		this.lu = bot.getLocaleUtil();
+	public ActiveModlogsMenu() {
 		this.name = "activelogs";
 		this.path = "menus.activelogs";
 		this.module = CmdModule.MODERATION;

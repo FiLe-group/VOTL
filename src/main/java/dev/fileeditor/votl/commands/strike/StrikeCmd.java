@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -38,8 +37,7 @@ import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 public class StrikeCmd extends CommandBase {
 	
-	public StrikeCmd(App bot) {
-		super(bot);
+	public StrikeCmd() {
 		this.name = "strike";
 		this.path = "bot.moderation.strike";
 		this.options = List.of(

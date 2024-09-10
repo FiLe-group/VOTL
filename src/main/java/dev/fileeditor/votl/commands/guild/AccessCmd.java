@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.guild;
 import java.util.List;
 import java.util.Objects;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -24,11 +23,10 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
 public class AccessCmd extends CommandBase {
 
-	public AccessCmd(App bot) {
-		super(bot);
+	public AccessCmd() {
 		this.name = "access";
 		this.path = "bot.guild.access";
-		this.children = new SlashCommand[]{new View(bot), new AddRole(bot), new RemoveRole(bot), new AddOperator(bot), new RemoveOperator(bot)};
+		this.children = new SlashCommand[]{new View(), new AddRole(), new RemoveRole(), new AddOperator(), new RemoveOperator()};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 	}
@@ -38,9 +36,7 @@ public class AccessCmd extends CommandBase {
 
 	private class View extends SlashCommand {
 
-		public View(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public View() {
 			this.name = "view";
 			this.path = "bot.guild.access.view";
 		}
@@ -119,9 +115,7 @@ public class AccessCmd extends CommandBase {
 
 	private class AddRole extends SlashCommand {
 
-		public AddRole(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public AddRole() {
 			this.name = "role";
 			this.path = "bot.guild.access.add.role";
 			this.options = List.of(
@@ -175,9 +169,7 @@ public class AccessCmd extends CommandBase {
 
 	private class RemoveRole extends SlashCommand {
 
-		public RemoveRole(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public RemoveRole() {
 			this.name = "role";
 			this.path = "bot.guild.access.remove.role";
 			this.options = List.of(
@@ -221,9 +213,7 @@ public class AccessCmd extends CommandBase {
 
 	private class AddOperator extends SlashCommand {
 
-		public AddOperator(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public AddOperator() {
 			this.name = "operator";
 			this.path = "bot.guild.access.add.operator";
 			this.options = List.of(
@@ -269,9 +259,7 @@ public class AccessCmd extends CommandBase {
 
 	private class RemoveOperator extends SlashCommand {
 
-		public RemoveOperator(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public RemoveOperator() {
 			this.name = "operator";
 			this.path = "bot.guild.access.remove.operator";
 			this.options = List.of(

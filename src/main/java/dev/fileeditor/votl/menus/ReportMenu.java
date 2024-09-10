@@ -1,6 +1,5 @@
 package dev.fileeditor.votl.menus;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.MessageContextMenu;
 import dev.fileeditor.votl.base.command.MessageContextMenuEvent;
@@ -17,9 +16,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class ReportMenu extends MessageContextMenu {
 	
-	public ReportMenu(App bot) {
-		this.bot = bot;
-		this.lu = bot.getLocaleUtil();
+	public ReportMenu() {
 		this.name = "report";
 		this.path = "menus.report";
 		this.module = CmdModule.REPORT;

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -30,11 +29,10 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class RolesPanelCmd extends CommandBase {
 	
-	public RolesPanelCmd(App bot) {
-		super(bot);
+	public RolesPanelCmd() {
 		this.name = "rolepanel";
 		this.path = "bot.ticketing.rolespanel";
-		this.children = new SlashCommand[]{new Create(bot), new Update(bot), new RowText(bot), new OtherRole(bot)};
+		this.children = new SlashCommand[]{new Create(), new Update(), new RowText(), new OtherRole()};
 		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
@@ -46,9 +44,7 @@ public class RolesPanelCmd extends CommandBase {
 
 	private class Create extends SlashCommand {
 
-		public Create(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Create() {
 			this.name = "create";
 			this.path = "bot.ticketing.rolespanel.create";
 			this.options = List.of(
@@ -111,9 +107,7 @@ public class RolesPanelCmd extends CommandBase {
 
 	private class Update extends SlashCommand {
 
-		public Update(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Update() {
 			this.name = "update";
 			this.path = "bot.ticketing.rolespanel.update";
 			this.options = List.of(
@@ -179,9 +173,7 @@ public class RolesPanelCmd extends CommandBase {
 
 	private class RowText extends SlashCommand {
 
-		public RowText(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public RowText() {
 			this.name = "row";
 			this.path = "bot.ticketing.rolespanel.row";
 			this.options = List.of(
@@ -208,9 +200,7 @@ public class RolesPanelCmd extends CommandBase {
 
 	private class OtherRole extends SlashCommand {
 
-		public OtherRole(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public OtherRole() {
 			this.name = "other";
 			this.path = "bot.ticketing.rolespanel.other";
 			this.options = List.of(

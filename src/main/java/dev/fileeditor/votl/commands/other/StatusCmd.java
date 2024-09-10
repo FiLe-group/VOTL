@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.other;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -16,8 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class StatusCmd extends CommandBase {
 
-	public StatusCmd(App bot) {
-		super(bot);
+	public StatusCmd() {
 		this.name = "status";
 		this.path = "bot.other.status";
 		this.options = List.of(

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -28,11 +27,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class RolesManageCmd extends CommandBase {
 	
-	public RolesManageCmd(App bot) {
-		super(bot);
+	public RolesManageCmd() {
 		this.name = "rolesmanage";
 		this.path = "bot.ticketing.rolesmanage";
-		this.children = new SlashCommand[]{new Add(bot), new Update(bot), new Remove(bot), new View(bot)};
+		this.children = new SlashCommand[]{new Add(), new Update(), new Remove(), new View()};
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -43,9 +41,7 @@ public class RolesManageCmd extends CommandBase {
 
 	private class Add extends SlashCommand {
 
-		public Add(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Add() {
 			this.name = "add";
 			this.path = "bot.ticketing.rolesmanage.add";
 			this.options = List.of(
@@ -142,9 +138,7 @@ public class RolesManageCmd extends CommandBase {
 
 	private class Update extends SlashCommand {
 
-		public Update(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Update() {
 			this.name = "update";
 			this.path = "bot.ticketing.rolesmanage.update";
 			this.options = List.of(
@@ -229,9 +223,7 @@ public class RolesManageCmd extends CommandBase {
 
 	private class Remove extends SlashCommand {
 
-		public Remove(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Remove() {
 			this.name = "remove";
 			this.path = "bot.ticketing.rolesmanage.remove";
 			this.options = List.of(
@@ -256,9 +248,7 @@ public class RolesManageCmd extends CommandBase {
 
 	private class View extends SlashCommand {
 
-		public View(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public View() {
 			this.name = "view";
 			this.path = "bot.ticketing.rolesmanage.view";
 		}
