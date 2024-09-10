@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -16,6 +18,7 @@ import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
+import dev.fileeditor.votl.utils.CastUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -24,6 +27,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.internal.utils.Checks;
 
 public class RolesManageCmd extends CommandBase {
 	
@@ -157,18 +161,19 @@ public class RolesManageCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+
 			Role role = event.optRole("role");
 			if (role == null) {
-				createError(event, path+".no_role");
+				editError(event, path+".no_role");
 				return;
 			}
 			long roleId = role.getIdLong();
 			if (!bot.getDBUtil().roles.existsRole(roleId)) {
-				createError(event, path+".not_exists");
+				editError(event, path+".not_exists");
 				return;
 			}
-			
-			event.deferReply(true).queue();
+
 			StringBuffer response = new StringBuffer();
 
 			if (event.hasOption("description")) {
@@ -228,19 +233,34 @@ public class RolesManageCmd extends CommandBase {
 			this.path = "bot.ticketing.rolesmanage.remove";
 			this.options = List.of(
 				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true)
+					.setMaxLength(30)
 			);
 		}
 
+		Pattern rolePattern = Pattern.compile("^<@[\\d+]>$");
+
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Long roleId = castLong(event.optString("id"));
-			if (!bot.getDBUtil().roles.existsRole(roleId)) {
-				createError(event, path+".no_role");
+			event.deferReply(true).queue();
+			String input = event.optString("id");
+
+			Matcher matcher = rolePattern.matcher(input);
+			String roleId = matcher.find() ? matcher.group(1) : input;
+			try {
+				Checks.isSnowflake(roleId);
+			} catch (IllegalArgumentException e) {
+				editError(event, path+".no_role", "ID: "+roleId);
 				return;
 			}
-			bot.getDBUtil().roles.remove(roleId);
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{id}", String.valueOf(roleId)))
+			long roleIdLong = CastUtil.castLong(roleId);
+
+			if (!bot.getDBUtil().roles.existsRole(roleIdLong)) {
+				editError(event, path+".no_role");
+				return;
+			}
+			bot.getDBUtil().roles.remove(roleIdLong);
+			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done").replace("{id}", roleId))
 				.build());
 		}
 		
