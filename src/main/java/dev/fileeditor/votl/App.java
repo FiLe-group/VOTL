@@ -171,6 +171,7 @@ public class App {
 				new ShutdownCmd(),
 				new DebugCmd(),
 				new MessageCmd(),
+				new SetStatusCmd(),
 				// role
 				new RoleCmd(),
 				new TempRoleCmd(),
