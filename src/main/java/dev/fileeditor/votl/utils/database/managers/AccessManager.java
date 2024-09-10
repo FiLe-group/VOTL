@@ -1,8 +1,14 @@
 package dev.fileeditor.votl.utils.database.managers;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.CastUtil;
+import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
@@ -10,28 +16,38 @@ public class AccessManager extends LiteBase {
 
 	private final String table_role = "accessRole";
 	private final String table_user = "accessUser";
+
+	// Cache
+	private final FixedCache<Long, Map<Long, CmdAccessLevel>> roleCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE/2);
+	private final FixedCache<Long, List<Long>> operatorCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE/5);
 	
 	public AccessManager(ConnectionUtil cu) {
 		super(cu, null);
 	}
 
 	public void addRole(long guildId, long roleId, CmdAccessLevel level) {
+		invalidateRoleCache(guildId);
 		execute("INSERT INTO %s(guildId, roleId, level) VALUES (%s, %s, %d)".formatted(table_role, guildId, roleId, level.getLevel()));
 	}
 
-	public void addUser(long guildId, long userId, CmdAccessLevel level) {
-		execute("INSERT INTO %s(guildId, userId, level) VALUES (%s, %s, %d)".formatted(table_user, guildId, userId, level.getLevel()));
+	public void addOperator(long guildId, long userId) {
+		invalidateOperatorCache(guildId);
+		execute("INSERT INTO %s(guildId, userId, level) VALUES (%s, %s, %d)".formatted(table_user, guildId, userId, CmdAccessLevel.OPERATOR.getLevel()));
 	}
 
-	public void removeRole(long roleId) {
+	public void removeRole(long guildId, long roleId) {
+		invalidateRoleCache(guildId);
 		execute("DELETE FROM %s WHERE (roleId=%s)".formatted(table_role, roleId));
 	}
 	
 	public void removeUser(long guildId, long userId) {
+		invalidateOperatorCache(guildId);
 		execute("DELETE FROM %s WHERE (guildId=%s AND userId=%s)".formatted(table_user, guildId, userId));
 	}
 
 	public void removeAll(long guildId) {
+		invalidateRoleCache(guildId);
+		invalidateOperatorCache(guildId);
 		execute("DELETE FROM %1$s WHERE (guildId=%3$s); DELETE FROM %2$s WHERE (guildId=%3$s);".formatted(table_role, table_user, guildId));
 	}
 
@@ -47,16 +63,28 @@ public class AccessManager extends LiteBase {
 		return CmdAccessLevel.byLevel(data);
 	}
 
-	public List<Long> getAllRoles(long guildId) {
-		return select("SELECT roleId FROM %s WHERE (guildId=%s)".formatted(table_role, guildId), "roleId", Long.class);
+	public Map<Long, CmdAccessLevel> getAllRoles(long guildId) {
+		if (roleCache.contains(guildId))
+			return roleCache.get(guildId);
+		Map<Long, CmdAccessLevel> data = applyNonNull(getRoleData(guildId), this::parseRoleData);
+		if (data.isEmpty())
+			return null;
+		roleCache.put(guildId, data);
+		return data;
 	}
 
 	public List<Long> getRoles(long guildId, CmdAccessLevel level) {
-		return select("SELECT roleId FROM %s WHERE (guildId=%s AND level=%d)".formatted(table_role, guildId, level.getLevel()), "roleId", Long.class);
+		return select("SELECT roleId FROM %s WHERE (guildId=%s AND level=%s)".formatted(table_role, guildId, level.getLevel()), "roleId", Long.class);
 	}
 
-	public List<Long> getAllUsers(long guildId) {
-		return select("SELECT userId FROM %s WHERE (guildId=%s)".formatted(table_user, guildId), "userId", Long.class);
+	public List<Long> getOperators(long guildId) {
+		if (operatorCache.contains(guildId))
+			return operatorCache.get(guildId);
+		List<Long> data = getOperatorsData(guildId);
+		if (data.isEmpty())
+			return List.of();
+		operatorCache.put(guildId, data);
+		return data;
 	}
 
 	public boolean isRole(long roleId) {
@@ -64,8 +92,29 @@ public class AccessManager extends LiteBase {
 	}
 
 	public boolean isOperator(long guildId, long userId) {
-		return selectOne("SELECT userId FROM %s WHERE (guildId=%s AND userId=%s AND level=%d)"
-			.formatted(table_user, guildId, userId, CmdAccessLevel.OPERATOR.getLevel()), "userId", Long.class) != null;
+		return getOperators(guildId).contains(userId);
+	}
+
+	private List<Map<String, Object>> getRoleData(long guildId) {
+		return select("SELECT * FROM %s WHERE (guildId=%d)".formatted(table_role, guildId), Set.of("roleId", "level"));
+	}
+
+	private List<Long> getOperatorsData(long guildId) {
+		return select("SELECT userId FROM %s WHERE (guildId=%d and level=%d)"
+			.formatted(table_user, guildId, CmdAccessLevel.OPERATOR.getLevel()), "userId", Long.class);
+	}
+
+	private void invalidateRoleCache(long guildId) {
+		roleCache.pull(guildId);
+	}
+
+	private void invalidateOperatorCache(long guildId) {
+		operatorCache.pull(guildId);
+	}
+
+	public Map<Long, CmdAccessLevel> parseRoleData(List<Map<String, Object>> data) {
+		if (data == null || data.isEmpty()) return null;
+		return data.stream().collect(Collectors.toMap(k-> CastUtil.castLong(k.get("roleId")), k-> CmdAccessLevel.byLevel((int) k.get("level"))));
 	}
 
 }
