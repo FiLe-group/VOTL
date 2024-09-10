@@ -46,7 +46,6 @@ public class WebServlet {
 					cors.addRule(it -> {
 						it.allowHost(allowedHost);
 						it.allowCredentials = true;
-						//it.exposeHeader("Content-Type");
 					});
 				});
 			})

@@ -126,6 +126,8 @@ public class StrikeCmd extends CommandBase {
 			addAmount, caseId+"-"+addAmount);
 		// Get strike new strike amount
 		Integer strikes = bot.getDBUtil().strikes.getStrikeCount(guild.getIdLong(), target.getIdLong());
+		// Check if strikes is null (how?)
+		if (strikes == null) return null;
 		// Get actions for strike amount
 		Pair<Integer, String> punishActions = bot.getDBUtil().autopunish.getAction(guild.getIdLong(), strikes);
 		if (punishActions == null) return null;

@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.servlet.routes;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import dev.fileeditor.votl.servlet.WebServlet;
@@ -23,12 +24,24 @@ public class Checks {
 				success.accept(member);
 			},
 			failure -> {
-				throw new NotFoundResponse("User is member of the guild.");
+				throw new NotFoundResponse("User is not member of the guild.");
 			});
 		},
 		failure -> {
 			throw new NotFoundResponse("Unable to get the user.");
 		});
+	}
+
+	// TODO
+	public static CompletableFuture<Void> checkPermissionsAsync(Session session, Guild guild, Consumer<Member> success) {
+		return WebServlet.getWebClient().getUser(session).getFuture()
+			.thenCompose(user -> guild.retrieveMemberById(user.getIdLong()).submit())
+			.thenAccept((member) -> {
+				if (!member.isOwner() && !member.hasPermission(Permission.ADMINISTRATOR))
+					throw new ForbiddenResponse("User has no permission.");
+				// Execute code
+				success.accept(member);
+			});
 	}
 	
 }

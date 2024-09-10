@@ -30,10 +30,13 @@ import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
 import dev.fileeditor.votl.services.ScheduledCheck;
 import dev.fileeditor.votl.servlet.WebServlet;
+import dev.fileeditor.votl.servlet.routes.DeleteModule;
 import dev.fileeditor.votl.servlet.routes.GetChannels;
 import dev.fileeditor.votl.servlet.routes.GetGuild;
 import dev.fileeditor.votl.servlet.routes.GetMemberSelf;
+import dev.fileeditor.votl.servlet.routes.GetModule;
 import dev.fileeditor.votl.servlet.routes.GetRoles;
+import dev.fileeditor.votl.servlet.routes.PutModule;
 import dev.fileeditor.votl.utils.CheckUtil;
 import dev.fileeditor.votl.utils.GroupHelper;
 import dev.fileeditor.votl.utils.ModerationUtil;
@@ -146,10 +149,19 @@ public class App {
 			final String allowedHost = fileManager.getString("config", "web-servlet.allow-host");
 			servlet = new WebServlet(port != null ? port : WebServlet.defaultPort, allowedHost);
 			// Register routes
+			// Get
 			servlet.registerGet("/guilds/{guild}", new GetGuild());
 			servlet.registerGet("/guilds/{guild}/roles", new GetRoles());
 			servlet.registerGet("/guilds/{guild}/channels", new GetChannels());
 			servlet.registerGet("/guilds/{guild}/members/@me", new GetMemberSelf());
+			servlet.registerGet("/guilds/{guild}/modules/{module}", new GetModule());
+			// Delete - Disable module
+			servlet.registerDelete("/guilds/{guild}/modules/{module}", new DeleteModule());
+			// Put - Enable module
+			servlet.registerPut("/guilds/{guild}/modules/{module}", new PutModule());
+			// Patch
+			//servlet.registerPatch("/guilds/{guild}/modules/{module}", new GetModule());
+			//servlet.registerPatch("/guilds/{guild}", new GetModule());
 		} else {
 			servlet = null;
 		}
