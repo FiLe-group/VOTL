@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.annotation.Nullable;
@@ -44,7 +45,7 @@ import com.jayway.jsonpath.JsonPath;
 
 public class LogEmbedUtil {
 
-	private final LocaleUtil lu;
+	private final @Nonnull LocaleUtil lu;
 
 	private final int GREEN_DARK = 0x277236;
 	private final int GREEN_LIGHT = 0x67CB7B;
@@ -55,8 +56,8 @@ public class LogEmbedUtil {
 	private final int WHITE = 0xFFFFFF;
 	private final int DEFAULT = Constants.COLOR_DEFAULT;
 
-	public LogEmbedUtil(LocaleUtil localeUtil) {
-		this.lu = localeUtil;
+	public LogEmbedUtil() {
+		this.lu = App.getInstance().getLocaleUtil();
 	}
 
 	private String localized(DiscordLocale locale, String pathFooter) {

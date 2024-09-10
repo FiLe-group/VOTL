@@ -68,7 +68,7 @@ public class AccessManager extends LiteBase {
 			return roleCache.get(guildId);
 		Map<Long, CmdAccessLevel> data = applyNonNull(getRoleData(guildId), this::parseRoleData);
 		if (data.isEmpty())
-			return null;
+			return Map.of();
 		roleCache.put(guildId, data);
 		return data;
 	}
@@ -113,7 +113,7 @@ public class AccessManager extends LiteBase {
 	}
 
 	public Map<Long, CmdAccessLevel> parseRoleData(List<Map<String, Object>> data) {
-		if (data == null || data.isEmpty()) return null;
+		if (data == null || data.isEmpty()) return Map.of();
 		return data.stream().collect(Collectors.toMap(k-> CastUtil.castLong(k.get("roleId")), k-> CmdAccessLevel.byLevel((int) k.get("level"))));
 	}
 
