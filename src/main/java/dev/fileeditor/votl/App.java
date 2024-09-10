@@ -110,8 +110,8 @@ public class App {
 		ticketUtil	= new TicketUtil(this);
 		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
 
-		guildLogger		= new GuildLogger(this);
-		logEmbedUtil	= new LogEmbedUtil(localeUtil);
+		logEmbedUtil	= new LogEmbedUtil();
+		guildLogger		= new GuildLogger();
 
 		WAITER			= new EventWaiter();
 		groupHelper		= new GroupHelper(this);
