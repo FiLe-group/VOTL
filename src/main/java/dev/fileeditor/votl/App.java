@@ -60,8 +60,8 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 
-@SuppressWarnings("BusyWait")
 public class App {
+	protected static App instance;
 	
 	private final Logger logger = (Logger) LoggerFactory.getLogger(App.class);
 
@@ -87,13 +87,15 @@ public class App {
 
 	@SuppressWarnings("BusyWait")
 	public App() {
+		App.instance = this;
+
 		try {
 			fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "config.json")
 				.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
 				.addLang("en-GB")
 				.addLang("ru");
 		} catch (Exception ex) {
-			logger.error("Error while interacting with File Manager", ex);
+			System.out.println(ex.getMessage());
 			System.exit(0);
 		}
 
@@ -247,6 +249,7 @@ public class App {
 			
 		JDA tempJda;
 
+		// try to log in
 		int retries = 4; // how many times will it try to build
 		int cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
 		while (true) {
@@ -274,6 +277,14 @@ public class App {
 		}
 
 		this.JDA = tempJda;
+
+		createWebhookAppender();
+
+		instance.logger.info("Success start");
+	}
+
+	public static App getInstance() {
+		return instance;
 	}
 
 	public CommandClient getClient() {
@@ -326,12 +337,6 @@ public class App {
 
 	public ModerationUtil getModerationUtil() {
 		return moderationUtil;
-	}
-
-	public static void main(String[] args) {
-		App instance = new App();
-		instance.createWebhookAppender();
-		instance.logger.info("Success start");
 	}
 
 	private void createWebhookAppender() {

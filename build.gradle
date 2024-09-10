@@ -8,33 +8,29 @@ plugins {
 apply from: 'version.gradle'
 
 def version = loadVersion().getVersion()
-def group = 'dev.fileeditor.votl.App'
+def mainClassName = 'dev.fileeditor.votl.Main'
 
 repositories {
-	// Use Maven Central for resolving dependencies.
+	// Use Maven Central for resolving dependencies
 	mavenCentral()
-	// JDA-Chewtils SNAPSHOTs
-	maven {
-		url 'https://m2.chew.pro/snapshots/'
-	}
 }
 
 dependencies {
 	// JDA library and additions
 	// https://mvnrepository.com/artifact/net.dv8tion/JDA
-	implementation('net.dv8tion:JDA:5.0.0-beta.24') {				// JDA library
+	implementation('net.dv8tion:JDA:5.1.0') {				// JDA library
 		exclude module: 'opus-java'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-	implementation 'ch.qos.logback:logback-classic:1.5.6'			// Logging (required by JDA)
+	implementation 'ch.qos.logback:logback-classic:1.5.8'			// Logging (required by JDA)
 
 	// Tools
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:2.9.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.46.0.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.46.1.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
-	implementation 'org.jsoup:jsoup:1.17.2'							// HTML tools
+	implementation 'org.jsoup:jsoup:1.18.1'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
 	implementation 'io.github.java-diff-utils:java-diff-utils:4.12'
 	// https://mvnrepository.com/artifact/org.json/json
@@ -59,7 +55,7 @@ jar {
 		attributes 'Implementation-Title': 'VOTL Bot',
 				   'Implementation-Version': version,
 				   'Implementation-Vendor': 'FiLe group',
-				   'Main-Class': group
+				   'Main-Class': mainClassName
 	}
 }
 
