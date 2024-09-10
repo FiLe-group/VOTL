@@ -75,7 +75,7 @@ public class GuildSettingsManager extends LiteBase {
 
 	public void setStrikeExpiresAfter(long guildId, int expiresAfter) {
 		invalidateCache(guildId);
-		execute("INSERT INTO %s(guildId, strikeExpire) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET strikeExpires=%<d".formatted(table, guildId, expiresAfter));
+		execute("INSERT INTO %s(guildId, strikeExpire) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET strikeExpire=%<d".formatted(table, guildId, expiresAfter));
 	}
 
 	public void setStrikeCooldown(long guildId, int cooldown) {
@@ -144,7 +144,7 @@ public class GuildSettingsManager extends LiteBase {
 			this.lastWebhookId = getOrDefault(data.get("lastWebhookId"), null);
 			this.appealLink = getOrDefault(data.get("appealLink"), null);
 			this.reportChannelId = getOrDefault(data.get("reportChannelId"), null);
-			this.strikeExpire = getOrDefault(data.get("strikeExpires"), 7);
+			this.strikeExpire = getOrDefault(data.get("strikeExpire"), 7);
 			this.strikeCooldown = getOrDefault(data.get("strikeCooldown"), 0);
 			this.modulesOff = getOrDefault(data.get("modulesOff"), 0);
 			this.informBan = ModerationInformLevel.byLevel(getOrDefault(data.get("informBan"), 1));
