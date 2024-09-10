@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -19,8 +18,7 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 
 public class ReasonCmd extends CommandBase {
 	
-	public ReasonCmd(App bot) {
-		super(bot);
+	public ReasonCmd() {
 		this.name = "reason";
 		this.path = "bot.moderation.reason";
 		this.options = List.of(

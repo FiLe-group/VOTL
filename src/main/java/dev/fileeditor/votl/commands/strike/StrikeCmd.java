@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -38,8 +37,7 @@ import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 public class StrikeCmd extends CommandBase {
 	
-	public StrikeCmd(App bot) {
-		super(bot);
+	public StrikeCmd() {
 		this.name = "strike";
 		this.path = "bot.moderation.strike";
 		this.options = List.of(
@@ -126,8 +124,10 @@ public class StrikeCmd extends CommandBase {
 			addAmount, caseId+"-"+addAmount);
 		// Get strike new strike amount
 		Integer strikes = bot.getDBUtil().strikes.getStrikeCount(guild.getIdLong(), target.getIdLong());
+		// Check if strikes is null (how?)
+		if (strikes == null) return null;
 		// Get actions for strike amount
-		Pair<Integer, String> punishActions = bot.getDBUtil().autopunish.getAction(guild.getIdLong(), strikes);
+		Pair<Integer, String> punishActions = bot.getDBUtil().autopunish.getTopAction(guild.getIdLong(), strikes);
 		if (punishActions == null) return null;
 
 		List<PunishAction> actions = PunishAction.decodeActions(punishActions.getLeft());
@@ -135,11 +135,19 @@ public class StrikeCmd extends CommandBase {
 		String data = punishActions.getRight();
 
 		// Check if user can interact and target is not automod exception or higher
-		if (!guild.getSelfMember().canInteract(target)) return null;
-		if (bot.getCheckUtil().getAccessLevel(target).isHigherThan(CmdAccessLevel.ALL)) return null;
+		if (!guild.getSelfMember().canInteract(target)) return new Field(
+			lu.getLocalized(locale, path+".autopunish_error"),
+			lu.getLocalized(locale, path+".autopunish_higher"),
+			false
+		);
+		if (bot.getCheckUtil().getAccessLevel(target).isHigherThan(CmdAccessLevel.ALL)) return new Field(
+			lu.getLocalized(locale, path+".autopunish_error"),
+			lu.getLocalized(locale, path+".autopunish_exception"),
+			false
+		);
 
 		// Execute
-		StringBuilder builder = new StringBuilder();	// message
+		StringBuilder builder = new StringBuilder();
 		if (actions.contains(PunishAction.KICK)) {
 			String reason = lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes);
 			// Send PM to user
@@ -200,7 +208,8 @@ public class StrikeCmd extends CommandBase {
 				Role role = guild.getRoleById(roleId);
 				if (role != null && guild.getSelfMember().canInteract(role)) {
 					// Apply action, result will be in logs
-					guild.removeRoleFromMember(target, role).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
+					guild.removeRoleFromMember(target, role).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes))
+						.queueAfter(5, TimeUnit.SECONDS, done -> {
 						// log action
 						bot.getLogger().role.onRoleRemoved(guild, bot.JDA.getSelfUser(), target.getUser(), role);
 					},
@@ -220,7 +229,8 @@ public class StrikeCmd extends CommandBase {
 				Role role = guild.getRoleById(roleId);
 				if (role != null && guild.getSelfMember().canInteract(role)) {
 					// Apply action, result will be in logs
-					guild.addRoleToMember(target, role).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
+					guild.addRoleToMember(target, role).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes))
+						.queueAfter(5, TimeUnit.SECONDS, done -> {
 						// log action
 						bot.getLogger().role.onRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), role);
 					},
@@ -269,7 +279,6 @@ public class StrikeCmd extends CommandBase {
 			builder.toString(),
 			false
 		);
-
 	}
 
 }

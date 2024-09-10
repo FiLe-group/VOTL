@@ -48,7 +48,7 @@ public class TicketUtil {
 
 				bot.getLogger().ticket.onClose(guild, channel, userClosed, authorId);
 			}, failure -> {
-				bot.getAppLogger().error("Error while closing ticket, unable to delete", failure);
+				bot.getAppLogger().warn("Error while closing ticket, unable to delete", failure);
 				closeHandle.accept(failure);
 			});
 		} else {
@@ -73,7 +73,7 @@ public class TicketUtil {
 
 						bot.getLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
 					}, failure -> {
-						bot.getAppLogger().error("Error while closing ticket, unable to delete", failure);
+						bot.getAppLogger().warn("Error while closing ticket, unable to delete", failure);
 						closeHandle.accept(failure);
 					});
 				},

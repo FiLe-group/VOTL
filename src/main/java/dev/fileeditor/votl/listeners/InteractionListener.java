@@ -25,6 +25,7 @@ import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
@@ -282,11 +283,12 @@ public class InteractionListener extends ListenerAdapter {
 		List<SelectOption> options = new ArrayList<>();
 		for (Map<String, Object> data : assignRoles) {
 			if (options.size() >= 25) break;
-			String roleId = (String) data.getOrDefault("roleId", "0");
+			Long roleId = CastUtil.castLong(data.getOrDefault("roleId", 0L));
+			if (roleId == null) continue;
 			Role role = guild.getRoleById(roleId);
 			if (role == null) continue;
-			String description = (String) data.getOrDefault("description", "-");
-			options.add(SelectOption.of(role.getName(), roleId).withDescription(description));
+			String description = String.valueOf(data.getOrDefault("description", "-"));
+			options.add(SelectOption.of(role.getName(), roleId.toString()).withDescription(description));
 		}
 		StringSelectMenu menu = StringSelectMenu.create("menu:role_row:"+row)
 			.setPlaceholder(db.getTicketSettings(guild).getRowText(row))
@@ -549,7 +551,7 @@ public class InteractionListener extends ListenerAdapter {
 		Button close = Button.danger("ticket:close", lu.getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒"));
 		Button claimed = Button.primary("ticket:claimed", lu.getLocalized(event.getGuildLocale(), "ticket.claimed").formatted(event.getUser().getName())).asDisabled();
 		Button unclaim = Button.primary("ticket:unclaim", lu.getLocalized(event.getGuildLocale(), "ticket.unclaim"));
-		event.getMessage().editMessageComponents(ActionRow.of(close, claimed, unclaim)).queue();
+		event.getMessage().editMessageComponents(ActionRow.of(close, claimed, unclaim)).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
 	}
 
 	private void buttonTicketUnclaim(ButtonInteractionEvent event) {
@@ -572,7 +574,7 @@ public class InteractionListener extends ListenerAdapter {
 
 		Button close = Button.danger("ticket:close", lu.getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒"));
 		Button claim = Button.primary("ticket:claim", lu.getLocalized(event.getGuildLocale(), "ticket.claim"));
-		event.getMessage().editMessageComponents(ActionRow.of(close, claim)).queue();
+		event.getMessage().editMessageComponents(ActionRow.of(close, claim)).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
 	}
 
 	// Tag, create ticket
@@ -1100,9 +1102,16 @@ public class InteractionListener extends ListenerAdapter {
 	// Strikes
 	private void buttonShowStrikes(ButtonInteractionEvent event) {
 		long guildId = Long.parseLong(event.getComponentId().split(":")[1]);
+		Guild guild = event.getJDA().getGuildById(guildId);
+		if (guild == null) {
+			sendError(event, "errors.error", "Server not found.");
+			return;
+		}
 		Pair<Integer, Integer> strikeData = bot.getDBUtil().strikes.getDataCountAndDate(guildId, event.getUser().getIdLong());
 		if (strikeData == null) {
-			event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, "bot.moderation.no_strikes")).build()).queue();
+			event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed()
+				.setDescription(lu.getText(event, "bot.moderation.no_strikes").formatted(guild.getName()))
+				.build()).queue();
 			return;
 		}
 		

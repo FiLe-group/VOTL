@@ -37,7 +37,7 @@
 		},
 		"interaction": {
 			"no_values": "None of the values has been selected.",
-			"no_access": "You cannot perform this action because you do not have the required access level."
+			"no_access": "You cannot perform this action because you do not have the required access."
 		},
 		"timed_out": "Timed out"
 	},
@@ -339,7 +339,8 @@
 			"permission_overwrites": "Channel overwrites",
 			"allow": "Allowed",
 			"deny": "Denied",
-			"communication_disabled_until": "Timeout"
+			"communication_disabled_until": "Timeout",
+			"preferred_locale": "Community language"
 		}
 	},
 	"bot": {
@@ -409,6 +410,25 @@
 					"name": "content",
 					"help": "Enter text"
 				}
+			},
+			"setstatus": {
+				"help": "Set bot status",
+				"usage": "setstatus <Type> <message> [URL]",
+				"type": {
+					"name": "type",
+					"help": "Select activity type"
+				},
+				"text": {
+					"name": "text",
+					"help": "Enter activity message"
+				},
+				"url": {
+					"name": "url",
+					"help": "Enter url for 'streaming' activity"
+				},
+				"invalid_url": "Invalid URL provided.",
+				"clear": "Activity cleared.",
+				"set": "%s activity set.\n> %s"
 			}
 		},
 		"guild": {
@@ -777,6 +797,7 @@
 			"listener": {
 				"default_name": "{user}'s channel",
 				"cooldown": "Creating voice channels to quickly, wait a bit! Or you already own maximum VoiceChannels.",
+				"failed": "Failed to create the voice channel.\n> %s",
 				"not_in_voice": "You are not connected to any voice channel.",
 				"panel": {
 					"lock": "Channel locked!",
@@ -1138,6 +1159,9 @@
 				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
 				"success": "\uD83D\uDEA9 **User received %s.**",
 				"autopunish_title": "Applying punishment for %d strikes",
+				"autopunish_error": "Unable to apply auto punishment.",
+				"autopunish_higher": "User is higher than bot.",
+				"autopunish_exception": "User is an exception.",
 				"autopunish_reason": "Autopunish: user has %d active strikes",
 				"for": "for"
 			},
@@ -1535,15 +1559,16 @@
 				"embed": {
 					"stats_title": "Stats",
 					"stats" : {
-						"guilds": "{value} Servers",
-						"shard": "Shard {this}/{all}"
+						"guilds": "%s Servers",
+						"shard": "Shard %s/%s",
+						"memory": "Memory: %sMb / %sMb"
 					},
 					"shard_title": "This shard",
 					"shard": {
-						"users": "Cached users {value}",
-						"guilds": "Cached server {value}",
-						"text_channels": "{value} Text Channels",
-						"voice_channels": "{value} Voice Channels"
+						"users": "Cached users %s",
+						"guilds": "Cached server %s",
+						"text_channels": "%s Text Channels",
+						"voice_channels": "%s Voice Channels"
 					},
 					"last_restart": "Last restart"
 				}
@@ -2154,7 +2179,7 @@
 					"invalid_args":"You haven't selected any role/-s.",
 					"incorrect_role": "Selected roles can't be added.",
 					"no_member": "Member not found.",
-					"done": "Added roles {roles} to {user}",
+					"done": "Added roles {roles} to {user}.",
 					"failed": "Unable to add selected roles to the user."
 				},
 				"remove": {
@@ -2179,7 +2204,7 @@
 					"invalid_args":"You haven't selected any role/-s.",
 					"incorrect_role": "Selected roles can't be removed.",
 					"no_member": "Member not found.",
-					"done": "Removed roles {roles} from {user}",
+					"done": "Removed roles {roles} from {user}.",
 					"failed": "Unable to remove selected roles from the user."
 				},
 				"removeall": {

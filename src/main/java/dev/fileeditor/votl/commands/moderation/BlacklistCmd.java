@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -24,11 +23,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class BlacklistCmd extends CommandBase {
 	
-	public BlacklistCmd(App bot) {
-		super(bot);
+	public BlacklistCmd() {
 		this.name = "blacklist";
 		this.path = "bot.moderation.blacklist";
-		this.children = new SlashCommand[]{new View(bot), new Remove(bot)};
+		this.children = new SlashCommand[]{new View(), new Remove()};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.OPERATOR;
@@ -38,9 +36,7 @@ public class BlacklistCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class View extends SlashCommand {
-		public View(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public View() {
 			this.name = "view";
 			this.path = "bot.moderation.blacklist.view";
 			this.options = List.of(
@@ -84,9 +80,7 @@ public class BlacklistCmd extends CommandBase {
 	}
 
 	private class Remove extends SlashCommand {
-		public Remove(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Remove() {
 			this.name = "remove";
 			this.path = "bot.moderation.blacklist.remove";
 			this.options = List.of(

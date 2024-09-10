@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
@@ -39,8 +38,7 @@ public class KickCmd extends CommandBase {
 
 	private final EventWaiter waiter;
 	
-	public KickCmd (App bot, EventWaiter waiter) {
-		super(bot);
+	public KickCmd (EventWaiter waiter) {
 		this.name = "kick";
 		this.path = "bot.moderation.kick";
 		this.options = List.of(

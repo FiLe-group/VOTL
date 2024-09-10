@@ -25,9 +25,9 @@ import net.dv8tion.jda.api.Permission;
 
 /**
  * A class that represents an interaction with a user.
- *
+ * <p>
  * This is all information used for all forms of interactions. Namely, permissions and cooldowns.
- *
+ * <p>
  * Any content here is safely functionality equivalent regardless of the source of the interaction.
  */
 public abstract class Interaction
@@ -169,21 +169,13 @@ public abstract class Interaction
 		return path;
 	}
 
-	protected App bot = null;
+	protected final App bot = App.getInstance();
 
-	protected LocaleUtil lu = null;
+	protected final LocaleUtil lu = bot.getLocaleUtil();
 
 	protected CmdModule module = null;
 
 	protected CmdAccessLevel accessLevel = CmdAccessLevel.ALL;
-
-	public App getApp() {
-		return bot;
-	}
-
-	public LocaleUtil getLocaleUtil() {
-		return lu;
-	}
 
 	public CmdAccessLevel getAccessLevel() {
 		return accessLevel;

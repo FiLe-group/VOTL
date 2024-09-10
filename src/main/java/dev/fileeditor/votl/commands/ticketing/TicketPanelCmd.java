@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -34,13 +33,12 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class TicketPanelCmd extends CommandBase {
 	
-	public TicketPanelCmd(App bot) {
-		super(bot);
+	public TicketPanelCmd() {
 		this.name = "ticket";
 		this.path = "bot.ticketing.ticket";
-		this.children = new SlashCommand[]{new NewPanel(bot), new ModifyPanel(bot), new ViewPanel(bot), new SendPanel(bot), new DeletePanel(bot),
-			new CreateTag(bot), new ModifyTag(bot), new ViewTag(bot), new DeleteTag(bot),
-			new Automation(bot)};
+		this.children = new SlashCommand[]{new NewPanel(), new ModifyPanel(), new ViewPanel(), new SendPanel(), new DeletePanel(),
+			new CreateTag(), new ModifyTag(), new ViewTag(), new DeleteTag(),
+			new Automation()};
 		this.category = CmdCategory.TICKETING;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 	}
@@ -53,9 +51,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private class NewPanel extends SlashCommand {
 
-		public NewPanel(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public NewPanel() {
 			this.name = "new";
 			this.path = "bot.ticketing.ticket.panels.new";
 			this.options = List.of(
@@ -101,9 +97,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private class ModifyPanel extends SlashCommand {
 
-		public ModifyPanel(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public ModifyPanel() {
 			this.name = "modify";
 			this.path = "bot.ticketing.ticket.panels.modify";
 			this.options = List.of(
@@ -158,9 +152,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private class ViewPanel extends SlashCommand {
 
-		public ViewPanel(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public ViewPanel() {
 			this.name = "view";
 			this.path = "bot.ticketing.ticket.panels.view";
 			this.options = List.of(
@@ -194,9 +186,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private class SendPanel extends SlashCommand {
 
-		public SendPanel(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public SendPanel() {
 			this.name = "send";
 			this.path = "bot.ticketing.ticket.panels.send";
 			this.options = List.of(
@@ -245,9 +235,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private class DeletePanel extends SlashCommand {
 
-		public DeletePanel(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public DeletePanel() {
 			this.name = "delete";
 			this.path = "bot.ticketing.ticket.panels.delete";
 			this.options = List.of(
@@ -281,9 +269,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private class CreateTag extends SlashCommand {
 
-		public CreateTag(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public CreateTag() {
 			this.name = "create";
 			this.path = "bot.ticketing.ticket.tags.create";
 			this.options = List.of(
@@ -356,9 +342,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private class ModifyTag extends SlashCommand {
 
-		public ModifyTag(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public ModifyTag() {
 			this.name = "modify";
 			this.path = "bot.ticketing.ticket.tags.modify";
 			this.options = List.of(
@@ -439,9 +423,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private class ViewTag extends SlashCommand {
 
-		public ViewTag(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public ViewTag() {
 			this.name = "view";
 			this.path = "bot.ticketing.ticket.tags.view";
 			this.options = List.of(
@@ -487,9 +469,7 @@ public class TicketPanelCmd extends CommandBase {
 
 	private class DeleteTag extends SlashCommand {
 
-		public DeleteTag(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public DeleteTag() {
 			this.name = "delete";
 			this.path = "bot.ticketing.ticket.tags.delete";
 			this.options = List.of(
@@ -522,9 +502,7 @@ public class TicketPanelCmd extends CommandBase {
 	// Ticket autoclose
 	private class Automation extends SlashCommand {
 
-		public Automation(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Automation() {
 			this.name = "automation";
 			this.path = "bot.ticketing.ticket.automation";
 			this.options = List.of(

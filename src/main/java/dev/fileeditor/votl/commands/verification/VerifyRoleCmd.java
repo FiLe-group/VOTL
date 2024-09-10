@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.verification;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -17,8 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class VerifyRoleCmd extends CommandBase {
 	
-	public VerifyRoleCmd(App bot) { 
-		super(bot);
+	public VerifyRoleCmd() {
 		this.name = "verifyrole";
 		this.path = "bot.verification.verifyrole";
 		this.options = List.of(

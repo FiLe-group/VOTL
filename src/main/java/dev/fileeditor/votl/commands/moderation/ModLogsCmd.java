@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -23,8 +22,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 
 public class ModLogsCmd extends CommandBase {
 
-	public ModLogsCmd(App bot) {
-		super(bot);
+	public ModLogsCmd() {
 		this.name = "modlogs";
 		this.path = "bot.moderation.modlogs";
 		this.options = List.of(

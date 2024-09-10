@@ -80,6 +80,8 @@ public class FileManager {
 
 		try {
 			if (!file.exists()) {
+				if (App.class.getResource(internal) == null)
+					throw new FileNotFoundException("Resource file '"+internal+"' not found.");
 				if ((split.length == 2 && !split[0].equals(".")) || (split.length >= 3 && split[0].equals("."))) {
 					if (!file.getParentFile().mkdirs() && !file.getParentFile().exists()) {
 						logger.error("Failed to create directory {}", split[1]);

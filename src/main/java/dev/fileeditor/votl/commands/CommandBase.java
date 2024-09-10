@@ -6,17 +6,15 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.annotation.Nonnull;
 
+import java.util.concurrent.TimeUnit;
+
 public abstract class CommandBase extends SlashCommand {
 	
-	public CommandBase(App bot) {
-		this.bot = bot;
-		this.lu = bot.getLocaleUtil();
-	}
+	public CommandBase() {}
 
 	// reply to event
 	public final void createReply(SlashCommandEvent event, @Nonnull String msg) {
@@ -41,6 +39,16 @@ public abstract class CommandBase extends SlashCommand {
 
 	public final void createReplyEmbed(SlashCommandEvent event, boolean ephemeral, @Nonnull MessageEmbed... embeds) {
 		event.deferReply(ephemeral).addEmbeds(embeds).queue();
+	}
+
+	public final void editErrorDeletable(SlashCommandEvent event, @Nonnull String path) {
+		editErrorDeletable(event, path, null);
+	}
+
+	public final void editErrorDeletable(SlashCommandEvent event, @Nonnull String path, String reason) {
+		event.getHook().editOriginal(lu.getText(event, "misc.temp_msg"))
+			.setEmbeds(bot.getEmbedUtil().getError(event, path, reason))
+			.queue(msg -> msg.delete().queueAfter(10, TimeUnit.SECONDS));
 	}
 
 	// Error

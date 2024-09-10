@@ -60,8 +60,8 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 
-@SuppressWarnings("BusyWait")
 public class App {
+	protected static App instance;
 	
 	private final Logger logger = (Logger) LoggerFactory.getLogger(App.class);
 
@@ -87,13 +87,15 @@ public class App {
 
 	@SuppressWarnings("BusyWait")
 	public App() {
+		App.instance = this;
+
 		try {
 			fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "config.json")
 				.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
 				.addLang("en-GB")
 				.addLang("ru");
 		} catch (Exception ex) {
-			logger.error("Error while interacting with File Manager", ex);
+			System.out.println(ex.getMessage());
 			System.exit(0);
 		}
 
@@ -138,69 +140,70 @@ public class App {
 			.setActivity(Activity.customStatus("/help"))
 			.addSlashCommands(
 				// guild
-				new AccessCmd(this),
-				new AutopunishCmd(this),
-				new LogsCmd(this),
-				new ModuleCmd(this, WAITER),
-				new SetupCmd(this),
+				new AccessCmd(),
+				new AutopunishCmd(),
+				new LogsCmd(),
+				new ModuleCmd(WAITER),
+				new SetupCmd(),
 				// moderation
-				new BanCmd(this),
-				new BlacklistCmd(this),
-				new CaseCmd(this),
-				new DurationCmd(this),
-				new GroupCmd(this, WAITER),
-				new KickCmd(this, WAITER),
-				new MuteCmd(this),
-				new ModLogsCmd(this),
-				new ModStatsCmd(this),
-				new ReasonCmd(this),
-				new SyncCmd(this, WAITER),
-				new UnbanCmd(this),
-				new UnmuteCmd(this),
+				new BanCmd(),
+				new BlacklistCmd(),
+				new CaseCmd(),
+				new DurationCmd(),
+				new GroupCmd(WAITER),
+				new KickCmd(WAITER),
+				new MuteCmd(),
+				new ModLogsCmd(),
+				new ModStatsCmd(),
+				new ReasonCmd(),
+				new SyncCmd(WAITER),
+				new UnbanCmd(),
+				new UnmuteCmd(),
 				// other
-				new AboutCmd(this),
-				new HelpCmd(this),
-				new PingCmd(this),
-				new StatusCmd(this),
+				new AboutCmd(),
+				new HelpCmd(),
+				new PingCmd(),
+				new StatusCmd(),
 				// owner
-				new EvalCmd(this),
-				new ForceAccessCmd(this),
-				new GenerateListCmd(this),
-				new ShutdownCmd(this),
-				new DebugCmd(this),
-				new MessageCmd(this),
+				new EvalCmd(),
+				new ForceAccessCmd(),
+				new GenerateListCmd(),
+				new ShutdownCmd(),
+				new DebugCmd(),
+				new MessageCmd(),
+				new SetStatusCmd(),
 				// role
-				new RoleCmd(this),
-				new TempRoleCmd(this),
+				new RoleCmd(),
+				new TempRoleCmd(),
 				// strike
-				new ClearStrikesCmd(this),
-				new DeleteStikeCmd(this, WAITER),
-				new StrikeCmd(this),
-				new StrikesCmd(this),
+				new ClearStrikesCmd(),
+				new DeleteStikeCmd(WAITER),
+				new StrikeCmd(),
+				new StrikesCmd(),
 				// ticketing
-				new AddUserCmd(this),
-				new CloseCmd(this),
-				new RcloseCmd(this),
-				new RemoveUserCmd(this),
-				new RolesManageCmd(this),
-				new RolesPanelCmd(this),
-				new TicketCountCmd(this),
-				new TicketPanelCmd(this),
+				new AddUserCmd(),
+				new CloseCmd(),
+				new RcloseCmd(),
+				new RemoveUserCmd(),
+				new RolesManageCmd(),
+				new RolesPanelCmd(),
+				new TicketCountCmd(),
+				new TicketPanelCmd(),
 				// verification
-				new VerifyPanelCmd(this),
-				new VerifyRoleCmd(this),
+				new VerifyPanelCmd(),
+				new VerifyRoleCmd(),
 				// voice
-				new VoiceCmd(this),
+				new VoiceCmd(),
 				// webhook
-				new WebhookCmd(this),
+				new WebhookCmd(),
 				// game
-				new GameCmd(this),
-				new GameStrikeCmd(this)
+				new GameCmd(),
+				new GameStrikeCmd()
 			)
 			.addContextMenus(
-				new ReportMenu(this),
-				new ModlogsMenu(this),
-				new ActiveModlogsMenu(this)
+				new ReportMenu(),
+				new ModlogsMenu(),
+				new ActiveModlogsMenu()
 			)
 			.setListener(commandListener)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
@@ -247,6 +250,7 @@ public class App {
 			
 		JDA tempJda;
 
+		// try to log in
 		int retries = 4; // how many times will it try to build
 		int cooldown = 8; // in seconds; cooldown amount, will doubles after each retry
 		while (true) {
@@ -274,6 +278,14 @@ public class App {
 		}
 
 		this.JDA = tempJda;
+
+		createWebhookAppender();
+
+		instance.logger.info("Success start");
+	}
+
+	public static App getInstance() {
+		return instance;
 	}
 
 	public CommandClient getClient() {
@@ -326,12 +338,6 @@ public class App {
 
 	public ModerationUtil getModerationUtil() {
 		return moderationUtil;
-	}
-
-	public static void main(String[] args) {
-		App instance = new App();
-		instance.createWebhookAppender();
-		instance.logger.info("Success start");
 	}
 
 	private void createWebhookAppender() {

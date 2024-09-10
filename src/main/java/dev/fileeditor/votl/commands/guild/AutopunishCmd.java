@@ -3,9 +3,7 @@ package dev.fileeditor.votl.commands.guild;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -14,6 +12,7 @@ import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.PunishAction;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.database.managers.AutopunishManager;
 import dev.fileeditor.votl.utils.exception.FormatterException;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 
@@ -23,11 +22,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class AutopunishCmd extends CommandBase {
 
-	public AutopunishCmd(App bot) {
-		super(bot);
+	public AutopunishCmd() {
 		this.name = "autopunish";
 		this.path = "bot.guild.autopunish";
-		this.children = new SlashCommand[]{new Add(bot), new Remove(bot), new View(bot)};
+		this.children = new SlashCommand[]{new Add(), new Remove(), new View()};
 		this.category = CmdCategory.GUILD;
 		this.module = CmdModule.STRIKES;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -38,9 +36,7 @@ public class AutopunishCmd extends CommandBase {
 
 	private class Add extends SlashCommand {
 
-		public Add(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Add() {
 			this.name = "add";
 			this.path = "bot.guild.autopunish.add";
 			this.options = List.of(
@@ -148,9 +144,7 @@ public class AutopunishCmd extends CommandBase {
 
 	private class Remove extends SlashCommand {
 
-		public Remove(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Remove() {
 			this.name = "remove";
 			this.path = "bot.guild.autopunish.remove";
 			this.options = List.of(
@@ -196,9 +190,7 @@ public class AutopunishCmd extends CommandBase {
 
 	private class View extends SlashCommand {
 
-		public View(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public View() {
 			this.name = "view";
 			this.path = "bot.guild.autopunish.view";
 		}
@@ -206,25 +198,33 @@ public class AutopunishCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
-			
-			List<Map<String, Object>> list = bot.getDBUtil().autopunish.getAllActions(event.getGuild().getIdLong());
+
+			List<AutopunishManager.Autopunish> list = bot.getDBUtil().autopunish.getAllActions(event.getGuild().getIdLong());
 			if (list.isEmpty()) {
 				editError(event, path+".empty");
 				return;
 			}
 
-			StringBuffer buffer = new StringBuffer();
-			list.forEach(map -> {
-				Integer strikeCount = (Integer) map.get("strike");
-				List<PunishAction> actions = PunishAction.decodeActions((Integer) map.get("actions"));
-				if (actions.isEmpty()) return;
-				String data = (String) map.getOrDefault("data", "");
+			StringBuilder builder = new StringBuilder();
+			for (int i = 0; i < list.size(); i++) {
+				AutopunishManager.Autopunish map = list.get(i);
 
-				buffer.append("`%2d` ".formatted(strikeCount));
+				List<PunishAction> actions = map.getActions();
+				if (actions.isEmpty()) continue;
+				int strikeCount = map.getCount();
+				String data = map.getData();
+
+				// Check if to add '>'
+				String prefix = "";
+				if (i+1 >= list.size() || list.get(i+1).getCount() > strikeCount+1)
+					// Last element or next element strikeCount>this+1
+					prefix = ">";
+
+				builder.append("`%3s` ".formatted(prefix+strikeCount));
 				actions.forEach(action -> {
 					switch (action) {
 						case KICK:
-							buffer.append(lu.getText(event, action.getPath()));
+							builder.append(lu.getText(event, action.getPath()));
 							break;
 						case MUTE:
 						case BAN:
@@ -234,7 +234,7 @@ public class AutopunishCmd extends CommandBase {
 							} catch (NumberFormatException ex) {
 								break;
 							}
-							buffer.append("%s (%s)".formatted(lu.getText(event, action.getPath()), TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
+							builder.append("%s (%s)".formatted(lu.getText(event, action.getPath()), TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
 							break;
 						case REMOVE_ROLE:
 						case ADD_ROLE:
@@ -244,18 +244,18 @@ public class AutopunishCmd extends CommandBase {
 							} catch (NumberFormatException ex) {
 								break;
 							}
-							buffer.append("%s (<@&%d>)".formatted(lu.getText(event, action.getPath()), roleId));
+							builder.append("%s (<@&%d>)".formatted(lu.getText(event, action.getPath()), roleId));
 							break;
 						default:
 							break;
 					}
-					buffer.append(" ");
+					builder.append(" ");
 				});
-				buffer.append("\n");
-			});
+				builder.append("\n");
+			}
 
 			editHookEmbed(event, bot.getEmbedUtil().getEmbed()
-				.setDescription(buffer.toString())
+				.setDescription(builder.toString())
 				.build());
 		}
 		
