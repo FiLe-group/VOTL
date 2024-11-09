@@ -435,7 +435,7 @@ public class LogEmbedUtil {
 	@NotNull
 	public MessageEmbed blacklistAddedEmbed(DiscordLocale locale, User enforcer, User target, String groupInfo) {
 		return new LogEmbedBuilder(locale, RED_DARK)
-			.setHeaderIcon( "moderation.blacklist.added", target.getEffectiveAvatarUrl(), target.getName())
+			.setHeaderIcon("moderation.blacklist.added", target.getEffectiveAvatarUrl(), target.getName())
 			.setUser(target.getIdLong())
 			.addField("moderation.blacklist.group", groupInfo)
 			.setEnforcer(enforcer.getIdLong())
@@ -446,7 +446,7 @@ public class LogEmbedUtil {
 	@NotNull
 	public MessageEmbed blacklistRemovedEmbed(DiscordLocale locale, User enforcer, User target, String groupInfo) {
 		return new LogEmbedBuilder(locale, GREEN_DARK)
-			.setHeaderIcon( "moderation.blacklist.removed", target.getEffectiveAvatarUrl(), target.getName())
+			.setHeaderIcon("moderation.blacklist.removed", target.getEffectiveAvatarUrl(), target.getName())
 			.setUser(target.getIdLong())
 			.addField("moderation.blacklist.group", groupInfo)
 			.setEnforcer(enforcer.getIdLong())
@@ -461,6 +461,18 @@ public class LogEmbedUtil {
 			.setColor(RED_LIGHT)
 			.addProof(proofFileName)
 			.addField("moderation.game.strikes", text)
+			.build();
+	}
+
+	//  Purge
+	@NotNull
+	public MessageEmbed messagePurge(DiscordLocale locale, User enforcer, User target, int messageCount, GuildChannel channel) {
+		return new LogEmbedBuilder(locale, RED_LIGHT)
+			.setHeader("moderation.purge")
+			.setUser(target==null?null:target.getIdLong())
+			.addField("messages.count", String.valueOf(messageCount))
+			.addField("messages.channel", channel.getAsMention())
+			.setEnforcer(enforcer.getIdLong())
 			.build();
 	}
 

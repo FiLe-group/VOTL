@@ -159,6 +159,7 @@ public class App {
 				new SyncCmd(WAITER),
 				new UnbanCmd(),
 				new UnmuteCmd(),
+				new PurgeCmd(),
 				// other
 				new AboutCmd(),
 				new HelpCmd(),

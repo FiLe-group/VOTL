@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
-import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
