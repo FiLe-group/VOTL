@@ -61,11 +61,11 @@ public class StrikesCmd extends CommandBase {
 		StringBuilder builder = new StringBuilder();
 		for (String c : strikesInfoArray) {
 			String[] args = c.split("-");
-			int caseId = Integer.parseInt(args[0]);
+			final int caseRowId = Integer.parseInt(args[0]);
 			int strikeAmount = Integer.parseInt(args[1]);
-			CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
+			CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
 			builder.append("`%4d` %s | %s - %s\nBy: %s\n".formatted(
-				caseId,
+				caseData.getLocalIdInt(),
 				getSquares(strikeAmount, caseData.getType().getValue()-20),
 				MessageUtil.limitString(caseData.getReason(), 50),
 				TimeFormat.DATE_SHORT.format(caseData.getTimeStart()),

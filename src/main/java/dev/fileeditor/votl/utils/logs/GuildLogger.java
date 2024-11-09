@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -44,8 +45,7 @@ import ch.qos.logback.classic.Logger;
 public class GuildLogger {
 
 	private final Logger LOG = (Logger) LoggerFactory.getLogger(GuildLogger.class);
-	
-	//private final App bot;
+
 	private final @NotNull JDA JDA;
 	private final @NotNull DBUtil db;
 	private final @NotNull LogEmbedUtil logUtil;
@@ -76,16 +76,20 @@ public class GuildLogger {
 		webhookUtil.sendMessageEmbed(guild, type, embedSupplier);
 	}
 
-	private void sendLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed) {
-		webhookClient.sendMessageEmbeds(embed).queue();
+	private CompletableFuture<String> submitLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed) {
+		return webhookClient.sendMessageEmbeds(embed).submit()
+			.exceptionally(ex -> null)
+			.thenApply(msg -> msg==null ? null : msg.getJumpUrl());
 	}
 
-	private void sendLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed, CaseProofUtil.ProofData proofData) {
+	private CompletableFuture<String> submitLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed, CaseProofUtil.ProofData proofData) {
 		try (final InputStream is = new AttachmentProxy(proofData.proxyUrl).download().join()) {
-			webhookClient.sendMessageEmbeds(embed).addFiles(FileUpload.fromData(is.readAllBytes(), proofData.fileName)).queue();
+			return webhookClient.sendMessageEmbeds(embed).addFiles(FileUpload.fromData(is.readAllBytes(), proofData.fileName)).submit()
+				.exceptionally(ex -> null)
+				.thenApply(msg -> msg==null ? null : msg.getJumpUrl());
 		} catch (IOException e) {
-			LOG.error(e.getMessage());
-			webhookClient.sendMessageEmbeds(embed).queue();
+			LOG.error("Exception at log submission.", e);
+			return submitLog(webhookClient, embed);
 		}
 	}
 
@@ -93,23 +97,23 @@ public class GuildLogger {
 	public class ModerationLogs {
 		private final LogType type = LogType.MODERATION;
 
-		public void onNewCase(Guild guild, User target, CaseData caseData) {
-			onNewCase(guild, target, caseData, null, null);
+		public CompletableFuture<String> onNewCase(Guild guild, User target, CaseData caseData) {
+			return onNewCase(guild, target, caseData, null, null);
 		}
 
-		public void onNewCase(Guild guild, User target, CaseData caseData, String optionalData) {
-			onNewCase(guild, target, caseData, null, optionalData);
+		public CompletableFuture<String> onNewCase(Guild guild, User target, CaseData caseData, String optionalData) {
+			return onNewCase(guild, target, caseData, null, optionalData);
 		}
 
-		public void onNewCase(Guild guild, User target, CaseData caseData, CaseProofUtil.ProofData proofData) {
-			onNewCase(guild, target, caseData, proofData, null);
+		public CompletableFuture<String> onNewCase(Guild guild, User target, CaseData caseData, CaseProofUtil.ProofData proofData) {
+			return onNewCase(guild, target, caseData, proofData, null);
 		}
 		
-		public void onNewCase(Guild guild, User target, @NotNull CaseData caseData, @Nullable CaseProofUtil.ProofData proofData, String optionalData) {
+		public CompletableFuture<String> onNewCase(Guild guild, User target, @NotNull CaseData caseData, @Nullable CaseProofUtil.ProofData proofData, String optionalData) {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
-			if (client == null) return;
+			if (client == null) return CompletableFuture.completedFuture(null);
 
-			String proofFileName = proofData==null ? null : proofData.setFileName(caseData.getCaseId());
+			String proofFileName = proofData==null ? null : proofData.setFileName(caseData.getRowId());
 			MessageEmbed embed = switch (caseData.getType()) {
 				case BAN ->
 					logUtil.banEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName);
@@ -128,18 +132,16 @@ public class GuildLogger {
 				case GAME_STRIKE ->
 					logUtil.gameStrikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName, optionalData);
 			};
-			if (embed!=null) {
-				if (proofData==null) sendLog(client, embed);
-				else sendLog(client, embed, proofData);
-			}
+			if (embed == null) return CompletableFuture.completedFuture(null);
+			return proofData==null ? submitLog(client, embed) : submitLog(client, embed, proofData);
 		}
 
 		public void onStrikesCleared(Guild guild, User target, User mod) {
 			sendLog(guild, type, () -> logUtil.strikesClearedEmbed(guild.getLocale(), target.getName(), target.getIdLong(), mod.getIdLong()));
 		}
 
-		public void onStrikeDeleted(Guild guild, User target, User mod, int caseId, int deletedAmount, int maxAmount) {
-			sendLog(guild, type, () -> logUtil.strikeDeletedEmbed(guild.getLocale(), target.getName(), target.getIdLong(), mod.getIdLong(), caseId, deletedAmount, maxAmount));
+		public void onStrikeDeleted(Guild guild, User target, User mod, int caseLocalId, int deletedAmount, int maxAmount) {
+			sendLog(guild, type, () -> logUtil.strikeDeletedEmbed(guild.getLocale(), target.getName(), target.getIdLong(), mod.getIdLong(), caseLocalId, deletedAmount, maxAmount));
 		}
 
 		public void onAutoUnban(CaseData caseData, Guild guild) {

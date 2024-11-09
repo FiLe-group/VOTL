@@ -55,7 +55,7 @@ public class UnbanCmd extends CommandBase {
 		// Remove active ban log
 		CaseData banData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 		if (banData != null) {
-			bot.getDBUtil().cases.setInactive(banData.getCaseId());
+			bot.getDBUtil().cases.setInactive(banData.getRowId());
 		}
 
 		guild.retrieveBan(tu).queue(ban -> {
@@ -77,21 +77,27 @@ public class UnbanCmd extends CommandBase {
 			Member mod = event.getMember();
 			final String reason = event.optString("reason", lu.getText(event, path+".no_reason"));
 			// add info to db
-			bot.getDBUtil().cases.add(CaseType.UNBAN, tu.getIdLong(), tu.getName(), mod.getIdLong(), mod.getUser().getName(),
-				guild.getIdLong(), reason, Instant.now(), null);
-			CaseData unbanData = bot.getDBUtil().cases.getMemberLast(tu.getIdLong(), guild.getIdLong());
+			CaseData unbanData = bot.getDBUtil().cases.add(
+				CaseType.UNBAN, tu.getIdLong(), tu.getName(),
+				mod.getIdLong(), mod.getUser().getName(),
+				guild.getIdLong(), reason, Instant.now(), null
+			);
+			if (unbanData == null) {
+				editErrorOther(event, "Failed to create action data.");
+				return;
+			}
 			// perform unban
 			guild.unban(tu).reason(reason).queue();
 			// log unban
-			bot.getLogger().mod.onNewCase(guild, tu, unbanData, banData != null ? banData.getReason() : ban.getReason());
-
-			// reply and ask for unban sync
-			event.getHook().editOriginalEmbeds(
-				bot.getModerationUtil().actionEmbed(guild.getLocale(), unbanData.getCaseId(),
-					path+".success", tu, mod.getUser(), reason)
-			).setActionRow(
-				Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
-			).queue();
+			bot.getLogger().mod.onNewCase(guild, tu, unbanData, banData != null ? banData.getReason() : ban.getReason()).thenAccept(logUrl -> {
+				// reply and ask for unban sync
+				event.getHook().editOriginalEmbeds(
+					bot.getModerationUtil().actionEmbed(guild.getLocale(), unbanData.getLocalIdInt(),
+						path+".success", tu, mod.getUser(), reason, logUrl)
+				).setActionRow(
+					Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
+				).queue();
+			});
 		},
 		failure -> {
 			// reply and ask for unban sync

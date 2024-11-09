@@ -32,7 +32,7 @@ public class ModLogsCmd extends CommandBase {
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.cooldown = 10;
+		this.cooldown = 15;
 		this.cooldownScope = CooldownScope.USER;
 	}
 
@@ -51,20 +51,17 @@ public class ModLogsCmd extends CommandBase {
 			tu = event.getUser();
 		}
 
-		long guildId = event.getGuild().getIdLong();
-		long userId = tu.getIdLong();
-		Integer page = event.optInteger("page", 1);
-		List<CaseData> cases;
-		if (event.optBoolean("only_active", false)) {
-			cases = bot.getDBUtil().cases.getGuildUser(guildId, userId, page, true);
-		} else {
-			cases = bot.getDBUtil().cases.getGuildUser(guildId, userId, page);
-		}
+		final long guildId = event.getGuild().getIdLong();
+		final long userId = tu.getIdLong();
+		final int page = event.optInteger("page", 1);
+		final List<CaseData> cases = event.optBoolean("only_active", false) ?
+			bot.getDBUtil().cases.getGuildUser(guildId, userId, page, true) :
+			bot.getDBUtil().cases.getGuildUser(guildId, userId, page);
 		if (cases.isEmpty()) {
 			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty")).build());
 			return;
 		}
-		int pages = (int) Math.ceil(bot.getDBUtil().cases.countCases(guildId, userId)/10.0);
+		final int pages = (int) Math.ceil(bot.getDBUtil().cases.countCases(guildId, userId)/10.0);
 
 		editEmbed(event, buildEmbed(lu, event.getUserLocale(), tu, cases, page, pages).build());
 	}
@@ -74,15 +71,19 @@ public class ModLogsCmd extends CommandBase {
 			.setTitle(lu.getLocalized(locale, "bot.moderation.modlogs.title").formatted(tu.getName(), page, pages))
 			.setFooter(lu.getLocalized(locale, "bot.moderation.modlogs.footer").formatted(tu.getId()));
 		cases.forEach(c -> {
+			final String temp = c.getLogUrl()==null ? "" : " - [Link](%s)".formatted(c.getLogUrl());
 			StringBuilder stringBuilder = new StringBuilder()
-				.append("> ").append(TimeFormat.DATE_TIME_SHORT.format(c.getTimeStart())).append("\n")
+				.append("> ").append(TimeFormat.DATE_TIME_SHORT.format(c.getTimeStart())).append(temp).append("\n")
 				.append(lu.getLocalized(locale, "bot.moderation.modlogs.mod").formatted(c.getModTag()));
 			if (!c.getDuration().isNegative())
 				stringBuilder.append(lu.getLocalized(locale, "bot.moderation.modlogs.duration").formatted(TimeUtil.formatDuration(lu, locale, c.getTimeStart(), c.getDuration())));
 			stringBuilder.append(lu.getLocalized(locale, "bot.moderation.modlogs.reason").formatted(c.getReason()));
 
-			builder.addField("%s  #`%s`| %s".formatted(c.isActive()?"🟥":"⬛", c.getCaseId(), lu.getLocalized(locale, c.getType().getPath())),
-				stringBuilder.toString(), false);
+			builder.addField("%s  #`%s`| %s"
+				.formatted(c.isActive() ? "🟥" : "⬛", c.getLocalId(), lu.getLocalized(locale, c.getType().getPath())),
+				stringBuilder.toString(),
+				false
+			);
 		});
 
 		return builder;

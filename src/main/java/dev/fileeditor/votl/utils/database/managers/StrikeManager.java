@@ -31,13 +31,13 @@ public class StrikeManager extends LiteBase {
 
 	public Pair<Integer, String> getData(long guildId, long userId) {
 		Map<String, Object> data = selectOne("SELECT count, data FROM %s WHERE (guildId=%d AND userId=%d)".formatted(table, guildId, userId), Set.of("count", "data"));
-		if (data == null) return null;
+		if (data == null || data.isEmpty()) return null;
 		return Pair.of((Integer) data.get("count"), String.valueOf(data.getOrDefault("data", "")));
 	}
 
 	public Pair<Integer, Integer> getDataCountAndDate(long guildId, long userId) {
 		Map<String, Object> data = selectOne("SELECT count, expiresAt FROM %s WHERE (guildId=%d AND userId=%d)".formatted(table, guildId, userId), Set.of("count", "expiresAt"));
-		if (data == null) return null;
+		if (data == null || data.isEmpty()) return null;
 		return Pair.of((Integer) data.get("count"), (Integer) data.get("expiresAt"));
 	}
 

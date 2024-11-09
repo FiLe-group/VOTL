@@ -187,17 +187,17 @@ public class ScheduledCheck {
 					// Update data
 					if (!cases[0].isEmpty()) {
 						String[] caseInfo = cases[0].split("-");
-						String caseId = caseInfo[0];
+						String caseRowId = caseInfo[0];
 						int newCount = Integer.parseInt(caseInfo[1]) - 1;
 
 						StringBuilder newData = new StringBuilder();
 						if (newCount > 0) {
-							newData.append(caseId).append("-").append(newCount);
+							newData.append(caseRowId).append("-").append(newCount);
 							if (cases.length > 1)
 								newData.append(";");
 						} else {
 							// Set case inactive
-							db.cases.setInactive(Integer.parseInt(caseId));
+							db.cases.setInactive(Integer.parseInt(caseRowId));
 						}
 						if (cases.length > 1) {
 							List<String> list = new ArrayList<>(List.of(cases));
@@ -231,7 +231,7 @@ public class ScheduledCheck {
 		
 		expired.forEach(caseData -> {
 			if (caseData.getType().equals(CaseType.MUTE)) {
-				db.cases.setInactive(caseData.getCaseId());
+				db.cases.setInactive(caseData.getRowId());
 				return;
 			}
 			Guild guild = bot.JDA.getGuildById(caseData.getGuildId());
@@ -240,7 +240,7 @@ public class ScheduledCheck {
 				s -> bot.getLogger().mod.onAutoUnban(caseData, guild),
 				f -> logger.warn("Exception at unban attempt.", f)
 			);
-			db.cases.setInactive(caseData.getCaseId());
+			db.cases.setInactive(caseData.getRowId());
 		});
 	}
 	

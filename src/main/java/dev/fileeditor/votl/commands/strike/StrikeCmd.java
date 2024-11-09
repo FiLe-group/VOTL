@@ -110,30 +110,35 @@ public class StrikeCmd extends CommandBase {
 		});
 
 		// add info to db
-		bot.getDBUtil().cases.add(type, tm.getIdLong(), tm.getUser().getName(), mod.getIdLong(), mod.getUser().getName(),
-			guild.getIdLong(), reason, Instant.now(), null);
-		CaseData caseData = bot.getDBUtil().cases.getMemberLast(tm.getIdLong(), guild.getIdLong());
+		CaseData caseData = bot.getDBUtil().cases.add(
+			type, tm.getIdLong(), tm.getUser().getName(),
+			mod.getIdLong(), mod.getUser().getName(),
+			guild.getIdLong(), reason, Instant.now(), null
+		);
+		if (caseData == null) {
+			editErrorOther(event, "Failed to create action data.");
+			return;
+		}
 		// add strikes
-		Field action = executeStrike(guild.getLocale(), guild, tm, strikeAmount, caseData.getCaseId());
-		// log
-		bot.getLogger().mod.onNewCase(guild, tm.getUser(), caseData, proofData);
-		// send reply
-		EmbedBuilder builder = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getGuildText(event, path+".success")
-				.formatted(lu.getGuildText(event, type.getPath())))
-			.addField(lu.getGuildText(event, "logger.user"), "%s (%s)".formatted(tm.getUser().getName(), tm.getAsMention()), true)
-			.addField(lu.getGuildText(event, "logger.reason"), reason, true)
-			.addField(lu.getGuildText(event, "logger.moderation.mod"), "%s (%s)".formatted(mod.getUser().getName(), mod.getAsMention()), false);
-		if (action != null) builder.addField(action);
+		Field action = executeStrike(guild.getLocale(), guild, tm, strikeAmount, caseData.getRowId());
+		// log strike
+		bot.getLogger().mod.onNewCase(guild, tm.getUser(), caseData, proofData).thenAccept(logUrl -> {
+			// Add log url to db
+			bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
+			// send reply
+			EmbedBuilder builder = bot.getModerationUtil().actionEmbed(guild.getLocale(), caseData.getLocalIdInt(),
+				path+".success", type.getPath(), tm.getUser(), mod.getUser(), reason, logUrl);
+			if (action != null) builder.addField(action);
 
-		editEmbed(event, builder.build());
+			editEmbed(event, builder.build());
+		});
 	}
 
-	private Field executeStrike(DiscordLocale locale, Guild guild, Member target, Integer addAmount, Integer caseId) {
+	private Field executeStrike(DiscordLocale locale, Guild guild, Member target, int addAmount, int caseRowId) {
 		// Add strike(-s) to DB
 		bot.getDBUtil().strikes.addStrikes(guild.getIdLong(), target.getIdLong(),
 			Instant.now().plus(bot.getDBUtil().getGuildSettings(guild).getStrikeExpires(), ChronoUnit.DAYS),
-			addAmount, caseId+"-"+addAmount);
+			addAmount, caseRowId+"-"+addAmount);
 		// Get strike new strike amount
 		Integer strikes = bot.getDBUtil().strikes.getStrikeCount(guild.getIdLong(), target.getIdLong());
 		// Check if strikes is null (how?)
@@ -171,11 +176,15 @@ public class StrikeCmd extends CommandBase {
 
 			guild.kick(target).reason(reason).queueAfter(3, TimeUnit.SECONDS, done -> {
 				// add case to DB
-				bot.getDBUtil().cases.add(CaseType.KICK, target.getIdLong(), target.getUser().getName(), 0, "Autopunish",
-					guild.getIdLong(), reason, Instant.now(), null);
-				CaseData caseData = bot.getDBUtil().cases.getMemberLast(target.getIdLong(), guild.getIdLong());
+				CaseData caseData = bot.getDBUtil().cases.add(
+					CaseType.KICK, target.getIdLong(), target.getUser().getName(),
+					0, "Autopunish",
+					guild.getIdLong(), reason, Instant.now(), null
+				);
 				// log case
-				bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData);
+				bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+					bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
+				});
 			},
 			failure -> bot.getAppLogger().error("Strike punishment execution, Kick member", failure));
 			builder.append(lu.getLocalized(locale, PunishAction.KICK.getPath()))
@@ -198,11 +207,15 @@ public class StrikeCmd extends CommandBase {
 
 				guild.ban(target, 0, TimeUnit.SECONDS).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
 					// add case to DB
-					bot.getDBUtil().cases.add(CaseType.BAN, target.getIdLong(), target.getUser().getName(), 0, "Autopunish",
-						guild.getIdLong(), reason, Instant.now(), durationCopy);
-					CaseData caseData = bot.getDBUtil().cases.getMemberLast(target.getIdLong(), guild.getIdLong());
+					CaseData caseData = bot.getDBUtil().cases.add(
+						CaseType.BAN, target.getIdLong(), target.getUser().getName(),
+						0, "Autopunish",
+						guild.getIdLong(), reason, Instant.now(), durationCopy
+					);
 					// log case
-					bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData);
+					bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+						bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
+					});
 				},
 				failure -> bot.getAppLogger().error("Strike punishment execution, Ban member", failure));
 				builder.append(lu.getLocalized(locale, PunishAction.BAN.getPath())).append(" ")
@@ -270,11 +283,15 @@ public class StrikeCmd extends CommandBase {
 				Duration durationCopy = duration;
 				guild.timeoutFor(target, duration).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
 					// add case to DB
-					bot.getDBUtil().cases.add(CaseType.MUTE, target.getIdLong(), target.getUser().getName(), 0, "Autopunish",
-						guild.getIdLong(), reason, Instant.now(), durationCopy);
-					CaseData caseData = bot.getDBUtil().cases.getMemberLast(target.getIdLong(), guild.getIdLong());
+					CaseData caseData = bot.getDBUtil().cases.add(
+						CaseType.MUTE, target.getIdLong(), target.getUser().getName(),
+						0, "Autopunish",
+						guild.getIdLong(), reason, Instant.now(), durationCopy
+					);
 					// log case
-					bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData);
+					bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+						bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
+					});
 				},
 				failure -> bot.getAppLogger().error("Strike punishment execution, Mute member", failure));
 				builder.append(lu.getLocalized(locale, PunishAction.MUTE.getPath())).append(" ")

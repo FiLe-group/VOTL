@@ -107,17 +107,27 @@ public class KickCmd extends CommandBase {
 
 		tm.kick().reason(reason).queueAfter(2, TimeUnit.SECONDS, done -> {
 			// add info to db
-			bot.getDBUtil().cases.add(CaseType.KICK, tm.getIdLong(), tm.getUser().getName(), mod.getIdLong(), mod.getUser().getName(),
-				guild.getIdLong(), reason, Instant.now(), null);
-			CaseData kickData = bot.getDBUtil().cases.getMemberLast(tm.getIdLong(), guild.getIdLong());
-			// log ban
-			bot.getLogger().mod.onNewCase(guild, tm.getUser(), kickData, proofData);
-
-			// reply and ask for kick sync
-			event.getHook().editOriginalEmbeds(
-				bot.getModerationUtil().actionEmbed(guild.getLocale(), kickData.getCaseId(),
-					path+".success", tm.getUser(), mod.getUser(), reason)
-			).queue(msg -> buttonSync(event, msg, tm.getUser(), reason));
+			CaseData kickData = bot.getDBUtil().cases.add(
+				CaseType.KICK, tm.getIdLong(), tm.getUser().getName(),
+				mod.getIdLong(), mod.getUser().getName(),
+				guild.getIdLong(), reason, Instant.now(), null
+			);
+			if (kickData == null) {
+				editErrorOther(event, "Failed to create action data.");
+				return;
+			}
+			// log kick
+			bot.getLogger().mod.onNewCase(guild, tm.getUser(), kickData, proofData).thenAccept(logUrl -> {
+				// Add log url to db
+				bot.getDBUtil().cases.setLogUrl(kickData.getRowId(), logUrl);
+				// reply and ask for kick sync
+				event.getHook().editOriginalEmbeds(
+					bot.getModerationUtil().actionEmbed(guild.getLocale(), kickData.getLocalIdInt(),
+						path+".success", tm.getUser(), mod.getUser(), reason, logUrl)
+				).queue(msg -> {
+					buttonSync(event, msg, tm.getUser(), reason);
+				});
+			});
 		},
 		failure -> editErrorOther(event, failure.getMessage()));
 	}

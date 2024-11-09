@@ -84,12 +84,12 @@ public class MuteCmd extends CommandBase {
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
-		CaseData caseData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
+		CaseData oldMuteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 
-		if (tm.isTimedOut() && caseData != null) {
+		if (tm.isTimedOut() && oldMuteData != null) {
 			// Case already exists, change duration
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
-				.setDescription(lu.getText(event, path+".already_muted").formatted(caseData.getCaseId()))
+				.setDescription(lu.getText(event, path+".already_muted").formatted(oldMuteData.getLocalId()))
 				.addField(lu.getText(event, "logger.moderation.mute.short_title"), lu.getText(event, "logger.moderation.mute.short_info")
 					.replace("{username}", tm.getAsMention())
 					.replace("{until}", TimeUtil.formatTime(tm.getTimeOutEnd(), false))
@@ -121,18 +121,26 @@ public class MuteCmd extends CommandBase {
 				});
 
 				// Set previous mute case inactive, as member is not timeout
-				if (caseData != null) bot.getDBUtil().cases.setInactive(caseData.getCaseId());
+				if (oldMuteData != null) bot.getDBUtil().cases.setInactive(oldMuteData.getRowId());
 				// add info to db
-				bot.getDBUtil().cases.add(CaseType.MUTE, tm.getIdLong(), tm.getUser().getName(), mod.getIdLong(), mod.getUser().getName(),
-					guild.getIdLong(), reason, Instant.now(), duration);
-				CaseData muteDate = bot.getDBUtil().cases.getMemberLast(tm.getIdLong(), guild.getIdLong());
-				// log mute
-				bot.getLogger().mod.onNewCase(guild, tm.getUser(), muteDate, proofData);
-				
-				// send embed
-				editEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), muteDate.getCaseId(),
-					path+".success", tm.getUser(), mod.getUser(), reason, duration)
+				CaseData newMuteData = bot.getDBUtil().cases.add(
+					CaseType.MUTE, tm.getIdLong(), tm.getUser().getName(),
+					mod.getIdLong(), mod.getUser().getName(),
+					guild.getIdLong(), reason, Instant.now(), duration
 				);
+				if (newMuteData == null) {
+					editErrorOther(event, "Failed to create action data.");
+					return;
+				}
+				// log mute
+				bot.getLogger().mod.onNewCase(guild, tm.getUser(), newMuteData, proofData).thenAccept(logUrl -> {
+					// Add log url to db
+					bot.getDBUtil().cases.setLogUrl(newMuteData.getRowId(), logUrl);
+					// send embed
+					editEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), newMuteData.getLocalIdInt(),
+						path+".success", tm.getUser(), mod.getUser(), reason, duration, logUrl)
+					);
+				});
 			},
 			failure -> editErrorOther(event, failure.getMessage()));
 		}

@@ -130,6 +130,11 @@ public class LogEmbedUtil {
 			return this;
 		}
 
+		public LogEmbedBuilder addEmptyField(String value) {
+			builder.addField("", value, false);
+			return this;
+		}
+
 		public LogEmbedBuilder addField(String path, String value) {
 			return addField(path, value, true);
 		}
@@ -213,7 +218,7 @@ public class LogEmbedUtil {
 	@NotNull
 	private LogEmbedBuilder moderationEmbedBuilder(DiscordLocale locale, CaseData caseData, String userIcon) {
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, caseData.getTimeStart())
-			.setHeaderIcon("moderation.case", userIcon, caseData.getCaseId(), lu.getLocalized(locale, caseData.getType().getPath()), caseData.getTargetTag())
+			.setHeaderIcon("moderation.case", userIcon, caseData.getLocalId(), lu.getLocalized(locale, caseData.getType().getPath()), caseData.getTargetTag())
 			.setUser(caseData.getTargetId())
 			.setMod(caseData.getModId()>0 ? caseData.getModId() : null)
 			.setReason(caseData.getReason())
@@ -224,7 +229,10 @@ public class LogEmbedUtil {
 	}
 
 	public MessageEmbed getCaseEmbed(DiscordLocale locale, CaseData caseData) {
-		return moderationEmbedBuilder(locale, caseData).build();
+		LogEmbedBuilder embedBuilder = moderationEmbedBuilder(locale, caseData);
+		if (caseData.getLogUrl() != null)
+			embedBuilder.addEmptyField(lu.getLocalized(locale, "logger.moderation.log_url").formatted(caseData.getLogUrl()));
+		return embedBuilder.build();
 	}
 
 	//  Ban
@@ -387,10 +395,10 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	public MessageEmbed strikeDeletedEmbed(DiscordLocale locale, String userTag, long userId, long modId, int caseId, int deletedAmount, int maxAmount) {
+	public MessageEmbed strikeDeletedEmbed(DiscordLocale locale, String userTag, long userId, long modId, int caseLocalId, int deletedAmount, int maxAmount) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader("moderation.strike.deleted", userTag)
-			.addField("moderation.strike.case", String.valueOf(caseId))
+			.addField("moderation.strike.case", String.valueOf(caseLocalId))
 			.addField("moderation.strike.amount", deletedAmount+"/"+maxAmount)
 			.setUser(userId)
 			.setMod(modId)
@@ -402,7 +410,7 @@ public class LogEmbedUtil {
 	@NotNull
 	public MessageEmbed reasonChangedEmbed(DiscordLocale locale, CaseData caseData, long modId, String newReason) {
 		return new LogEmbedBuilder(locale)
-			.setHeader("moderation.change.reason", caseData.getCaseId(), caseData.getTargetTag())
+			.setHeader("moderation.change.reason", caseData.getLocalId(), caseData.getTargetTag())
 			.setDescription("> %s\n\n🔴 ~~%s~~\n🟢 %s".formatted(lu.getLocalized(locale, caseData.getType().getPath()), Optional.ofNullable(caseData.getReason()).orElse("None"), newReason))
 			.setUser(caseData.getTargetId())
 			.setMod(modId)
@@ -415,7 +423,7 @@ public class LogEmbedUtil {
 	public MessageEmbed durationChangedEmbed(DiscordLocale locale, CaseData caseData, long modId, String newTime) {
 		String oldTime = TimeUtil.formatDuration(lu, locale, caseData.getTimeStart(), caseData.getDuration());
 		return new LogEmbedBuilder(locale)
-			.setHeader("moderation.change.duration", caseData.getCaseId(), caseData.getTargetTag())
+			.setHeader("moderation.change.duration", caseData.getLocalId(), caseData.getTargetTag())
 			.setDescription("> %s\n\n🔴 ~~%s~~\n🟢 %s".formatted(lu.getLocalized(locale, caseData.getType().getPath()), oldTime, newTime))
 			.setUser(caseData.getTargetId())
 			.setMod(modId)

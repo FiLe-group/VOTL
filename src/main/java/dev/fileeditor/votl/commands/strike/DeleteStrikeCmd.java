@@ -109,26 +109,26 @@ public class DeleteStrikeCmd extends CommandBase {
 	private void strikeSelected(StringSelectInteractionEvent event, Message msg, String[] strikesInfoArray, User tu) {
 		event.deferEdit().queue();
 
-		List<String> strikesInfo = new ArrayList<>(List.of(strikesInfoArray));
-		String[] selected = event.getValues().get(0).split("-");
-		Integer caseId = Integer.valueOf(selected[0]);
+		final List<String> strikesInfo = new ArrayList<>(List.of(strikesInfoArray));
+		final String[] selected = event.getValues().get(0).split("-");
+		final int caseRowId = Integer.parseInt(selected[0]);
 		
-		CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
+		final CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
 		if (!caseData.isActive()) {
 			msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "errors.unknown", "Case is not active (strike can't be removed)"))
 				.setComponents().queue();
-			bot.getAppLogger().error("At DeleteStrike: Case inside strikes info is not active. Unable to remove. Perform manual removal.\nCase ID: {}", caseId);
+			bot.getAppLogger().error("At DeleteStrike: Case inside strikes info is not active. Unable to remove. Perform manual removal.\nCase ID: {}", caseRowId);
 			return;
 		}
 
-		int activeAmount = Integer.parseInt(selected[1]);
+		final int activeAmount = Integer.parseInt(selected[1]);
 		if (activeAmount == 1) {
-			long guildId = event.getGuild().getIdLong();
+			final long guildId = event.getGuild().getIdLong();
 			// As only one strike remains - delete case from strikes data and set case inactive
 			
 			strikesInfo.remove(event.getValues().get(0));
 
-			bot.getDBUtil().cases.setInactive(caseId);
+			bot.getDBUtil().cases.setInactive(caseRowId);
 			if (strikesInfo.isEmpty())
 				bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong());
 			else
@@ -143,12 +143,12 @@ public class DeleteStrikeCmd extends CommandBase {
 			).setComponents().queue();
 		} else {
 			// Provide user with options, delete 1,2 or 3(maximum) strikes for user
-			int max = caseData.getType().getValue()-20;
-			List<Button> buttons = new ArrayList<>();
+			final int max = caseData.getType().getValue()-20;
+			final List<Button> buttons = new ArrayList<>();
 			for (int i=1; i<activeAmount; i++) {
-				buttons.add(Button.secondary(caseId+"-"+i, getSquares(activeAmount, i, max)));
+				buttons.add(Button.secondary(caseRowId+"-"+i, getSquares(activeAmount, i, max)));
 			}
-			buttons.add(Button.secondary(caseId+"-"+activeAmount,
+			buttons.add(Button.secondary(caseRowId+"-"+activeAmount,
 				lu.getText(event, path+".button_all")+" "+getSquares(activeAmount, activeAmount, max)));
 
 			// Send dm
@@ -158,7 +158,7 @@ public class DeleteStrikeCmd extends CommandBase {
 				pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 			});
 			// Log
-			bot.getLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseId, 1, activeAmount);
+			bot.getLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseData.getLocalIdInt(), 1, activeAmount);
 			// Reply
 			msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(event, path+".button_title"))
@@ -177,24 +177,24 @@ public class DeleteStrikeCmd extends CommandBase {
 
 	private void buttonPressed(ButtonInteractionEvent event, Message msg, List<String> cases, User tu, int activeAmount) {
 		event.deferEdit().queue();
-		String[] value = event.getComponentId().split("-");
-		int caseId = Integer.parseInt(value[0]);
+		final String[] value = event.getComponentId().split("-");
+		final int caseRowId = Integer.parseInt(value[0]);
 
-		CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
+		final CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
 		if (!caseData.isActive()) {
 			msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "errors.unknown", "Case is not active (strike can't be removed)"))
 				.setComponents().queue();
-			bot.getAppLogger().error("At DeleteStrike: Case inside strikes info is not active. Unable to remove. Perform manual removal.\nCase ID: {}", caseId);
+			bot.getAppLogger().error("At DeleteStrike: Case inside strikes info is not active. Unable to remove. Perform manual removal.\nCase ID: {}", caseRowId);
 			return;
 		}
 
-		long guildId = event.getGuild().getIdLong();
-		int removeAmount = Integer.parseInt(value[1]);
+		final long guildId = event.getGuild().getIdLong();
+		final int removeAmount = Integer.parseInt(value[1]);
 		if (removeAmount == activeAmount) {
 			
 			// Delete all strikes, set case inactive
 			cases.remove(event.getComponentId());
-			bot.getDBUtil().cases.setInactive(caseId);
+			bot.getDBUtil().cases.setInactive(caseRowId);
 			if (cases.isEmpty())
 				bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong());
 			else
@@ -204,7 +204,7 @@ public class DeleteStrikeCmd extends CommandBase {
 				);
 		} else {
 			// Delete selected amount of strikes (not all)
-			Collections.replaceAll(cases, caseId+"-"+activeAmount, caseId+"-"+(activeAmount-removeAmount));
+			Collections.replaceAll(cases, caseRowId+"-"+activeAmount, caseRowId+"-"+(activeAmount-removeAmount));
 			bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
 				Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
 				removeAmount, String.join(";", cases)
@@ -217,7 +217,7 @@ public class DeleteStrikeCmd extends CommandBase {
 			pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 		});
 		// Log
-		bot.getLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseId, removeAmount, activeAmount);
+		bot.getLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseData.getLocalIdInt(), removeAmount, activeAmount);
 		// Reply
 		msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, path+".done").formatted(removeAmount, activeAmount, caseData.getReason(), tu.getName()))
@@ -226,15 +226,15 @@ public class DeleteStrikeCmd extends CommandBase {
 	}
 
 	private List<SelectOption> buildOptions(String[] cases) {
-		List<SelectOption> options = new ArrayList<>();
+		final List<SelectOption> options = new ArrayList<>();
 		for (String c : cases) {
-			String[] args = c.split("-");
-			int caseId = Integer.parseInt(args[0]);
-			int strikeAmount = Integer.parseInt(args[1]);
-			CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
+			final String[] args = c.split("-");
+			final int caseRowId = Integer.parseInt(args[0]);
+			final int strikeAmount = Integer.parseInt(args[1]);
+			final CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
 			options.add(SelectOption.of(
 				"%s | %s".formatted(getSquares(strikeAmount, caseData.getType().getValue()-20), MessageUtil.limitString(caseData.getReason(), 50)),
-				caseId+"-"+strikeAmount
+				caseRowId+"-"+strikeAmount
 			).withDescription(TimeUtil.timeToString(caseData.getTimeStart())+" | By: "+caseData.getModTag()));
 		}
 		return options;

@@ -33,11 +33,11 @@ public class CaseProofUtil {
 			this.extension = proof.getFileExtension();
 		}
 		/**
-		 * @param caseId Case ID
+		 * @param caseRowId Case rowId
 		 * @return fileName like proof_CASEID.png
 		 */
-		public String setFileName(int caseId) {
-			this.fileName = "proof_%s.%s".formatted(caseId, extension);
+		public String setFileName(int caseRowId) {
+			this.fileName = "proof_%s.%s".formatted(caseRowId, extension);
 			return fileName;
 		}
 	}
