@@ -11,7 +11,9 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager;
+import dev.fileeditor.votl.utils.exception.AttachmentParseException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -36,7 +38,8 @@ public class GameStrikeCmd extends CommandBase {
 				.setChannelTypes(ChannelType.TEXT),
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
 			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"), true)
-				.setMaxLength(200)
+				.setMaxLength(200),
+			new OptionData(OptionType.ATTACHMENT, "proof", lu.getText(path+".proof.help"))
 		);
 		this.category = CmdCategory.GAMES;
 		this.module = CmdModule.GAMES;
@@ -72,6 +75,15 @@ public class GameStrikeCmd extends CommandBase {
 			}
 		}
 
+		// Get proof
+		final CaseProofUtil.ProofData proofData;
+		try {
+			proofData = CaseProofUtil.getData(event);
+		} catch (AttachmentParseException e) {
+			editError(event, e.getPath(), e.getMessage());
+			return;
+		}
+
 		String reason = event.optString("reason");
 		// Add to DB
 		long guildId = event.getGuild().getIdLong();
@@ -88,7 +100,7 @@ public class GameStrikeCmd extends CommandBase {
 		// Log
 		final int strikeCount = bot.getDBUtil().games.countStrikes(channelId, tm.getIdLong());
 		final int maxStrikes = bot.getDBUtil().games.getMaxStrikes(channelId);
-		bot.getLogger().mod.onNewCase(event.getGuild(), tm.getUser(), strikeData, strikeCount+"/"+maxStrikes);
+		bot.getLogger().mod.onNewCase(event.getGuild(), tm.getUser(), strikeData, proofData, strikeCount+"/"+maxStrikes);
 		// Reply
 		createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, path+".done").formatted(tm.getAsMention(), channel.getAsMention()))

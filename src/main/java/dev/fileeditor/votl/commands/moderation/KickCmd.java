@@ -17,8 +17,10 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
+import dev.fileeditor.votl.utils.exception.AttachmentParseException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -44,6 +46,7 @@ public class KickCmd extends CommandBase {
 		this.options = List.of(
 			new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
 			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")).setMaxLength(400),
+			new OptionData(OptionType.ATTACHMENT, "proof", lu.getText(path+".proof.help")),
 			new OptionData(OptionType.BOOLEAN, "dm", lu.getText(path+".dm.help"))
 		);
 		this.botPermissions = new Permission[]{Permission.KICK_MEMBERS};
@@ -84,6 +87,15 @@ public class KickCmd extends CommandBase {
 			return;
 		}
 
+		// Get proof
+		final CaseProofUtil.ProofData proofData;
+		try {
+			proofData = CaseProofUtil.getData(event);
+		} catch (AttachmentParseException e) {
+			editError(event, e.getPath(), e.getMessage());
+			return;
+		}
+
 		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
 		if (event.optBoolean("dm", true)) {
 			tm.getUser().openPrivateChannel().queue(pm -> {
@@ -99,7 +111,7 @@ public class KickCmd extends CommandBase {
 				guild.getIdLong(), reason, Instant.now(), null);
 			CaseData kickData = bot.getDBUtil().cases.getMemberLast(tm.getIdLong(), guild.getIdLong());
 			// log ban
-			bot.getLogger().mod.onNewCase(guild, tm.getUser(), kickData);
+			bot.getLogger().mod.onNewCase(guild, tm.getUser(), kickData, proofData);
 
 			// reply and ask for kick sync
 			event.getHook().editOriginalEmbeds(

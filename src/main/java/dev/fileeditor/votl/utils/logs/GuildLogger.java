@@ -2,6 +2,7 @@ package dev.fileeditor.votl.utils.logs;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -16,6 +17,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
+import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
@@ -28,6 +30,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.utils.AttachmentProxy;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.internal.requests.IncomingWebhookClientImpl;
 
@@ -76,50 +79,59 @@ public class GuildLogger {
 		webhookClient.sendMessageEmbeds(embed).queue();
 	}
 
+	private void sendLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed, CaseProofUtil.ProofData proofData) {
+		System.out.println(proofData.proxyUrl);
+		try (final InputStream is = new AttachmentProxy(proofData.proxyUrl).download().join()) {
+			webhookClient.sendMessageEmbeds(embed).addFiles(FileUpload.fromData(is.readAllBytes(), proofData.fileName)).queue();
+		} catch (IOException e) {
+			LOG.error(e.getMessage());
+			webhookClient.sendMessageEmbeds(embed).queue();
+		}
+	}
+
 	// Moderation actions
 	public class ModerationLogs {
 		private final LogType type = LogType.MODERATION;
 
 		public void onNewCase(Guild guild, User target, CaseData caseData) {
-			onNewCase(guild, target, caseData, null);
+			onNewCase(guild, target, caseData, null, null);
+		}
+
+		public void onNewCase(Guild guild, User target, CaseData caseData, String optionalData) {
+			onNewCase(guild, target, caseData, null, optionalData);
+		}
+
+		public void onNewCase(Guild guild, User target, CaseData caseData, CaseProofUtil.ProofData proofData) {
+			onNewCase(guild, target, caseData, proofData, null);
 		}
 		
-		public void onNewCase(Guild guild, User target, @NotNull CaseData caseData, String optionalData) {
+		public void onNewCase(Guild guild, User target, @NotNull CaseData caseData, @Nullable CaseProofUtil.ProofData proofData, String optionalData) {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 
-			MessageEmbed embed = null;
-			switch (caseData.getType()) {
-				case BAN:
-					embed = logUtil.banEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
-					break;
-				case UNBAN:
-					embed = logUtil.unbanEmbed(guild.getLocale(), caseData, optionalData);
-					break;
-				case MUTE:
-					embed = logUtil.muteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
-					break;
-				case UNMUTE:
-					embed = logUtil.unmuteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
-					break;
-				case KICK:
-					embed = logUtil.kickEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
-					break;
-				case STRIKE_1:
-				case STRIKE_2:
-				case STRIKE_3:
-					embed = logUtil.strikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
-					break;
-				case BLACKLIST:
-					embed = null;
-					break;
-				case GAME_STRIKE:
-					embed = logUtil.gameStrikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
-					break;
-				default:
-					break;
+			String proofFileName = proofData==null ? null : proofData.setFileName(caseData.getCaseId());
+			MessageEmbed embed = switch (caseData.getType()) {
+				case BAN ->
+					logUtil.banEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName);
+				case UNBAN ->
+					logUtil.unbanEmbed(guild.getLocale(), caseData, optionalData);
+				case MUTE ->
+					logUtil.muteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName);
+				case UNMUTE ->
+					logUtil.unmuteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
+				case KICK ->
+					logUtil.kickEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName);
+				case STRIKE_1, STRIKE_2, STRIKE_3 ->
+					logUtil.strikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName);
+				case BLACKLIST ->
+					null;
+				case GAME_STRIKE ->
+					logUtil.gameStrikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName, optionalData);
+			};
+			if (embed!=null) {
+				if (proofData==null) sendLog(client, embed);
+				else sendLog(client, embed, proofData);
 			}
-			if (embed!=null) sendLog(client, embed);
 		}
 
 		public void onStrikesCleared(Guild guild, User target, User mod) {
@@ -599,7 +611,6 @@ public class GuildLogger {
 			if (client == null) return;
 
 			MessageEmbed embed = logUtil.messageUpdate(guild.getLocale(), author, channel.getIdLong(), messageId, oldData, newData);
-			if (embed == null) return;
 			FileUpload fileUpload = uploadContentUpdate(oldData, newData, messageId);
 			if (fileUpload != null) {
 				client.sendMessageEmbeds(embed)

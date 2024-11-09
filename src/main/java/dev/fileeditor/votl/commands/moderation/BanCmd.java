@@ -15,7 +15,9 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
+import dev.fileeditor.votl.utils.exception.AttachmentParseException;
 import dev.fileeditor.votl.utils.exception.FormatterException;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 
@@ -40,6 +42,7 @@ public class BanCmd extends CommandBase {
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
 			new OptionData(OptionType.STRING, "time", lu.getText(path+".time.help")),
 			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")).setMaxLength(400),
+			new OptionData(OptionType.ATTACHMENT, "proof", lu.getText(path+".proof.help")),
 			new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".delete.help")),
 			new OptionData(OptionType.BOOLEAN, "can_appeal", lu.getText(path+".can_appeal.help"))
 		);
@@ -56,6 +59,7 @@ public class BanCmd extends CommandBase {
 		event.deferReply().queue();
 		Guild guild = Objects.requireNonNull(event.getGuild());
 
+		// Resolve user and check permission
 		User tu = event.optUser("user");
 		if (tu == null) {
 			editError(event, path+".not_found");
@@ -66,11 +70,21 @@ public class BanCmd extends CommandBase {
 			return;
 		}
 
+		// Ban duration
 		final Duration duration;
 		try {
 			duration = TimeUtil.stringToDuration(event.optString("time"), false);
 		} catch (FormatterException ex) {
 			editError(event, ex.getPath());
+			return;
+		}
+
+		// Get proof
+		final CaseProofUtil.ProofData proofData;
+		try {
+			proofData = CaseProofUtil.getData(event);
+		} catch (AttachmentParseException e) {
+			editError(event, e.getPath(), e.getMessage());
 			return;
 		}
 
@@ -88,7 +102,7 @@ public class BanCmd extends CommandBase {
 						guild.getIdLong(), reason, Instant.now(), duration);
 					CaseData newBanData = bot.getDBUtil().cases.getMemberLast(tu.getIdLong(), guild.getIdLong());
 					// log ban
-					bot.getLogger().mod.onNewCase(guild, tu, newBanData);
+					bot.getLogger().mod.onNewCase(guild, tu, newBanData, proofData);
 
 					// reply and add blacklist button
 					event.getHook().editOriginalEmbeds(
@@ -114,7 +128,7 @@ public class BanCmd extends CommandBase {
 					guild.getIdLong(), reason, Instant.now(), Duration.ZERO);
 				CaseData newBanData = bot.getDBUtil().cases.getMemberLast(tu.getIdLong(), guild.getIdLong());
 				// log
-				bot.getLogger().mod.onNewCase(guild, tu, newBanData);
+				bot.getLogger().mod.onNewCase(guild, tu, newBanData, proofData);
 				// create embed
 				MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
 					.setDescription(lu.getText(event, path+".already_banned"))
@@ -176,7 +190,7 @@ public class BanCmd extends CommandBase {
 				MessageEmbed embed = bot.getModerationUtil().actionEmbed(guild.getLocale(), newBanData.getCaseId(),
 					path+".success", tu, mod.getUser(), reason, duration);
 				// log ban
-				bot.getLogger().mod.onNewCase(guild, tu, newBanData);
+				bot.getLogger().mod.onNewCase(guild, tu, newBanData, proofData);
 
 				// if permanent - add button to blacklist target
 				if (duration.isZero())

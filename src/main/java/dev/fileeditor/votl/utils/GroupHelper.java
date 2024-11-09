@@ -43,7 +43,7 @@ public class GroupHelper {
 		for (long guildId : guildIds) {
 			Guild guild = JDA.getGuildById(guildId);
 			if (guild == null) continue;
-			// fail-safe check if has expirable ban (to prevent auto unban)
+			// fail-safe check if the user has temporal ban (to prevent auto unban)
 			db.cases.setInactiveByType(user.getIdLong(), guildId, CaseType.BAN);
 
 			completableFutures.add(guild.ban(user, 0, TimeUnit.SECONDS).reason(newReason).submit());
@@ -76,7 +76,7 @@ public class GroupHelper {
 		for (long guildId : guildIds) {
 			Guild guild = JDA.getGuildById(guildId);
 			if (guild == null) continue;
-			// Remove expirable ban case
+			// Remove temporal ban case
 			db.cases.setInactiveByType(user.getIdLong(), guildId, CaseType.BAN);
 
 			completableFutures.add(guild.unban(user).reason(newReason).submit());
