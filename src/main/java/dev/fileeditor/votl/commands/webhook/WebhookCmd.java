@@ -267,7 +267,7 @@ public class WebhookCmd extends CommandBase {
 									.build()
 								);
 							},
-							failure -> editError(event, "errors.error", failure.getMessage())
+							failure -> editErrorOther(event, failure.getMessage())
 						);
 					} else {
 						editError(event, path+".error_not_registered");
@@ -313,7 +313,7 @@ public class WebhookCmd extends CommandBase {
 									.build()
 								);
 							},
-							failure -> editError(event, "errors.error", failure.getMessage())
+							failure -> editErrorOther(event, failure.getMessage())
 						);
 					} else {
 						editError(event, path+".error_not_registered");

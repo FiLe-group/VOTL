@@ -83,11 +83,14 @@ public class TicketPanelCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().ticketPanels.createPanel(event.getGuild().getIdLong(), title, description, image, footer);
-			int panelId = bot.getDBUtil().ticketPanels.getIncrement();
+			int panelId = bot.getDBUtil().ticketPanels.createPanel(event.getGuild().getIdLong(), title, description, image, footer);
+			if (panelId == 0) {
+				editErrorOther(event, "Panel creation failed.");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{title}", title).replace("{id}", Integer.toString(panelId)))
+				.setDescription(lu.getText(event, path+".done").formatted(title, panelId))
 				.build()
 			);
 		}
@@ -137,12 +140,12 @@ public class TicketPanelCmd extends CommandBase {
 			
 			if (builder.getFields().isEmpty()) {
 				editError(event, path+".no_options");
-			} else {
-				bot.getDBUtil().ticketPanels.updatePanel(panelId, title, description, image, footer);
-				editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS)
-					.setTitle(lu.getText(event, path+".done"))
-					.build());
+				return;
 			}
+			bot.getDBUtil().ticketPanels.updatePanel(panelId, title, description, image, footer);
+			editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS)
+				.setTitle(lu.getText(event, path+".done"))
+				.build());
 		}
 	}
 
@@ -321,11 +324,14 @@ public class TicketPanelCmd extends CommandBase {
 				supportRoleIds = supportRoles.stream().map(Role::getId).collect(Collectors.joining(";"));
 			}
 
-			bot.getDBUtil().ticketTags.createTag(guildId, panelId, type, buttonName, emoji, categoryId, message, supportRoleIds, ticketName, buttonStyle.getKey());
-			int tagId = bot.getDBUtil().ticketTags.getIncrement();
+			int tagId = bot.getDBUtil().ticketTags.createTag(guildId, panelId, type, buttonName, emoji, categoryId, message, supportRoleIds, ticketName, buttonStyle.getKey());
+			if (tagId == 0) {
+				editErrorOther(event, "Tag creation failed.");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{tag}", Integer.toString(tagId)).replace("{panel}", panelId.toString()))
+				.setDescription(lu.getText(event, path+".done").formatted(tagId, panelId))
 				.build()
 			);
 		}

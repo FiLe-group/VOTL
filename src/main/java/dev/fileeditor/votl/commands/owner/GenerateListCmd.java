@@ -82,7 +82,9 @@ public class GenerateListCmd extends CommandBase {
 			writer.write(commandArray.toString());
 			writer.flush();
 			writer.close();
-			event.getHook().editOriginalAttachments(FileUpload.fromData(file, "commands.json")).queue(hook -> file.delete());
+			event.getHook().editOriginalAttachments(FileUpload.fromData(file, "commands.json")).queue(hook -> {
+				boolean ignored2 = file.delete();
+			});
 		} catch (IOException | UncheckedIOException ex) {
 			editError(event, path+".error", ex.getMessage());
 		}

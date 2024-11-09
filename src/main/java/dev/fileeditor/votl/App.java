@@ -177,7 +177,7 @@ public class App {
 				new TempRoleCmd(),
 				// strike
 				new ClearStrikesCmd(),
-				new DeleteStikeCmd(WAITER),
+				new DeleteStrikeCmd(WAITER),
 				new StrikeCmd(),
 				new StrikesCmd(),
 				// ticketing

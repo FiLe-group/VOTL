@@ -119,7 +119,7 @@ public class KickCmd extends CommandBase {
 					path+".success", tm.getUser(), mod.getUser(), reason)
 			).queue(msg -> buttonSync(event, msg, tm.getUser(), reason));
 		},
-		failure -> editError(event, "errors.error", failure.getMessage()));
+		failure -> editErrorOther(event, failure.getMessage()));
 	}
 
 	private void buttonSync(SlashCommandEvent event, final Message message, User tu, String reason) {

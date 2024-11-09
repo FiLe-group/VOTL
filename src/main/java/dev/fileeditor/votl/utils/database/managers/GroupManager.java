@@ -15,12 +15,9 @@ public class GroupManager extends LiteBase {
 	}
 
 	// groups table
-	public void create(long guildId, String name, long appealGuildId) {
-		execute("INSERT INTO %s(ownerId, name, appealGuildId) VALUES (%d, %s, %d)".formatted(groups, guildId, quote(name), appealGuildId));
-	}
-
-	public int getIncrement() {
-		return getIncrement(groups);
+	public int create(long guildId, String name, long appealGuildId) {
+		return executeWithRow("INSERT INTO %s(ownerId, name, appealGuildId) VALUES (%d, %s, %d)"
+			.formatted(groups, guildId, quote(name), appealGuildId));
 	}
 
 	public void deleteGroup(int groupId) {

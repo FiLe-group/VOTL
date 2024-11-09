@@ -29,7 +29,7 @@ public class TicketTagManager extends LiteBase {
 		super(cu, "ticketTag");
 	}
 
-	public void createTag(long guildId, int panelId, int tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, int buttonStyle) {
+	public int createTag(long guildId, int panelId, int tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, int buttonStyle) {
 		List<String> keys = new ArrayList<>(10);
 		List<String> values = new ArrayList<>(10);
 		keys.addAll(List.of("guildId", "panelId", "tagType", "buttonText", "ticketName", "buttonStyle"));
@@ -50,11 +50,7 @@ public class TicketTagManager extends LiteBase {
 			keys.add("supportRoles");
 			values.add(quote(supportRoleIds));
 		}
-		execute("INSERT INTO %s(%s) VALUES (%s)".formatted(table, String.join(", ", keys), String.join(", ", values)));
-	}
-
-	public int getIncrement() {
-		return getIncrement(table);
+		return executeWithRow("INSERT INTO %s(%s) VALUES (%s)".formatted(table, String.join(", ", keys), String.join(", ", values)));
 	}
 
 	public void deleteTag(int tagId) {

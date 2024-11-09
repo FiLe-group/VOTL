@@ -29,10 +29,21 @@ public class LiteBase {
 	protected void execute(final String sql) {
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
 			util.logger.warn("DB SQLite: Error at statement execution\nRequest: {}", sql, ex);
+		}
+	}
+
+	protected int executeWithRow(final String sql) {
+		util.logger.debug(sql);
+		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
+			 PreparedStatement st = conn.prepareStatement(sql)) {
+			return st.executeUpdate();
+		} catch (SQLException ex) {
+			util.logger.warn("DB SQLite: Error at statement execution\nRequest: {}", sql, ex);
+			return 0;
 		}
 	}
 
@@ -42,7 +53,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			try {
@@ -61,7 +72,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			while (rs.next()) {
@@ -83,7 +94,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			if (rs.next())
@@ -101,7 +112,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			while (rs.next()) {
@@ -122,7 +133,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			try {
@@ -150,7 +161,7 @@ public class LiteBase {
 		String str = String.valueOf(value);
 		if (str.equals("NULL")) return str;
 
-		return "'" + String.valueOf(value).replaceAll("'", "''") + "'"; // smt's -> 'smt''s'
+		return String.format("'%s'", String.valueOf(value).replaceAll("'", "''"));
 	}
 
 	protected <T, V> T applyNonNull(V obj, @NotNull Function<V, T> function) {

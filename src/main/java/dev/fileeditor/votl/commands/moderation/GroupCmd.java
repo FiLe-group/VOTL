@@ -75,17 +75,20 @@ public class GroupCmd extends CommandBase {
 				try {
 					appealGuildId = Long.parseLong(event.optString("appeal_server"));
 				} catch (NumberFormatException ex) {
-					editError(event, "errors.error", ex.getMessage());
+					editErrorOther(event, ex.getMessage());
 					return;
 				}
 				if (appealGuildId != 0L && event.getJDA().getGuildById(appealGuildId) == null) {
-					editError(event, "errors.error", "Unknown appeal server ID.\nReceived: "+appealGuildId);
+					editErrorOther(event, "Unknown appeal server ID.\nReceived: "+appealGuildId);
 					return;
 				}
 			}
-			
-			bot.getDBUtil().group.create(guildId, groupName, appealGuildId);
-			Integer groupId = bot.getDBUtil().group.getIncrement();
+
+			int groupId = bot.getDBUtil().group.create(guildId, groupName, appealGuildId);
+			if (groupId == 0) {
+				editErrorOther(event, "Group creation failed.");
+				return;
+			}
 			bot.getLogger().group.onCreation(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -291,11 +294,11 @@ public class GroupCmd extends CommandBase {
 				try {
 					appealGuildId = Long.parseLong(event.optString("appeal_server"));
 				} catch (NumberFormatException ex) {
-					editError(event, "errors.error", ex.getMessage());
+					editErrorOther(event, ex.getMessage());
 					return;
 				}
 				if (appealGuildId != 0L && event.getJDA().getGuildById(appealGuildId) == null) {
-					editError(event, "errors.error", "Unknown appeal server ID.\nReceived: "+appealGuildId);
+					editErrorOther(event, "Unknown appeal server ID.\nReceived: "+appealGuildId);
 					return;
 				}
 
@@ -400,10 +403,14 @@ public class GroupCmd extends CommandBase {
 					long targetId = Long.parseLong(actionMenu.getSelectedOptions().get(0).getValue());
 					Guild targetGuild = event.getJDA().getGuildById(targetId);
 
+					StringBuilder builder = new StringBuilder(lu.getText(event, path+".done")
+						.formatted(targetGuild.getName(), groupName));
+
 					bot.getDBUtil().group.setManage(groupId, targetId, canManage);
+					builder.append(lu.getText(event, path+".manage_change").formatted(canManage ? Constants.SUCCESS : Constants.FAILURE));
 
 					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done").formatted(canManage ? Constants.SUCCESS : Constants.FAILURE, targetGuild.getName(), groupName))
+						.setDescription(builder.toString())
 						.build()
 					).setComponents().queue();
 				},
