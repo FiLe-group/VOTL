@@ -114,7 +114,7 @@ public class StrikeCmd extends CommandBase {
 			guild.getIdLong(), reason, Instant.now(), null);
 		CaseData caseData = bot.getDBUtil().cases.getMemberLast(tm.getIdLong(), guild.getIdLong());
 		// add strikes
-		Field action = executeStrike(event.getUserLocale(), guild, tm, strikeAmount, caseData.getCaseId());
+		Field action = executeStrike(guild.getLocale(), guild, tm, strikeAmount, caseData.getCaseId());
 		// log
 		bot.getLogger().mod.onNewCase(guild, tm.getUser(), caseData, proofData);
 		// send reply

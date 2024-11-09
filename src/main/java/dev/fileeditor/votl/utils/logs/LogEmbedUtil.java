@@ -1,9 +1,11 @@
 package dev.fileeditor.votl.utils.logs;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
+import static dev.fileeditor.votl.utils.message.TimeUtil.formatTime;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -346,6 +348,28 @@ public class LogEmbedUtil {
 			.build();
 	}
 
+	@NotNull
+	public MessageEmbed userTimeoutUpdateEmbed(DiscordLocale locale, User target, String reason, long modId, OffsetDateTime until) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeaderIcon(LogEvent.TIMEOUT, target.getEffectiveAvatarUrl(), target.getName())
+			.setUser(target.getIdLong())
+			.setReason(reason)
+			.setMod(modId)
+			.addField("duration", lu.getLocalized(locale, "misc.temporary").formatted(formatTime(until, false)))
+			.setId(target.getId())
+			.build();
+	}
+	@NotNull
+	public MessageEmbed userTimeoutRemoveEmbed(DiscordLocale locale, User target, String reason, long modId) {
+		return new LogEmbedBuilder(locale, AMBER_DARK)
+			.setHeaderIcon(LogEvent.REMOVE_TIMEOUT, target.getEffectiveAvatarUrl(), target.getName())
+			.setUser(target.getIdLong())
+			.setReason(reason)
+			.setMod(modId)
+			.setId(target.getId())
+			.build();
+	}
+
 	//  Strike
 	public MessageEmbed strikeEmbed(DiscordLocale locale, CaseData caseData, String userIcon, String proofFileName) {
 		return moderationEmbedBuilder(locale, caseData, userIcon)
@@ -538,7 +562,7 @@ public class LogEmbedUtil {
 			.setHeaderIcon("roles.temp_updated", user.getEffectiveAvatarUrl())
 			.setUser(user.getIdLong())
 			.addField("roles.role", role.getAsMention())
-			.addField("duration", TimeUtil.formatTime(until, false))
+			.addField("duration", formatTime(until, false))
 			.setMod(mod.getIdLong())
 			.setId(user.getIdLong())
 			.build();
@@ -711,7 +735,7 @@ public class LogEmbedUtil {
 			.setDescription(localized(locale, "tickets.closed_pm")
 				.replace("{guild}", channel.getGuild().getName())
 				.replace("{closed}", Optional.ofNullable(userClosed).map(User::getAsMention).orElse(localized(locale, "tickets.autoclosed")))
-				.replace("{time}", TimeUtil.formatTime(timeClosed, false))
+				.replace("{time}", formatTime(timeClosed, false))
 				.replace("{reason}", reasonClosed)
 			)
 			.setFooter(channel.getName())
@@ -986,7 +1010,7 @@ public class LogEmbedUtil {
 			builder.addField("members.roles", text);
 		}
 		if (cachedMember != null) {
-			builder.addField("members.joined_at", TimeUtil.formatTime(cachedMember.getTimeJoined(), false));
+			builder.addField("members.joined_at", formatTime(cachedMember.getTimeJoined(), false));
 		}
 		return builder.build();
 	}
@@ -1140,7 +1164,7 @@ public class LogEmbedUtil {
 				case "owner_id" -> "<@"+value+">";
 				case "icon_hash" -> guildIconLink.formatted(value);
 				case "splash_hash" -> guildSplashLink.formatted(value);
-				case "communication_disabled_until" -> TimeUtil.formatTime(Instant.parse(value), false);
+				case "communication_disabled_until" -> formatTime(Instant.parse(value), false);
 				default -> "`"+MessageUtil.limitString(value, 1024)+"`";
 			};
 		} else if (object instanceof Integer value) {
