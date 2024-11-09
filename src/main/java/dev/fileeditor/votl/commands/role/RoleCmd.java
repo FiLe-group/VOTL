@@ -58,6 +58,7 @@ public class RoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 
 			// Get roles
@@ -81,14 +82,14 @@ public class RoleCmd extends CommandBase {
 			for (Role r : roles) {
 				if (r.equals(publicRole) || r.isManaged() || !event.getMember().canInteract(r)
 					|| !guild.getSelfMember().canInteract(r) || r.hasPermission(Permission.ADMINISTRATOR)) {
-					createError(event, path+".incorrect_role", "Role: "+r.getAsMention());
+					editError(event, path+".incorrect_role", "Role: "+r.getAsMention());
 					return;
 				}
 			}
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				createError(event, path+".no_member");
+				editError(event, path+".no_member");
 				return;
 			}
 			List<Role> finalRoles = new ArrayList<>(member.getRoles());
@@ -99,11 +100,11 @@ public class RoleCmd extends CommandBase {
 				// Log
 				bot.getLogger().role.onRolesAdded(guild, event.getUser(), member.getUser(), rolesString);
 				// Send reply
-				createReplyEmbed(event, false, bot.getEmbedUtil().getEmbed()
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setColor(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").replace("{roles}", rolesString).replace("{user}", member.getAsMention()))
 					.build());
-			}, failure -> createError(event, path+".failed", failure.getMessage()));
+			}, failure -> editError(event, path+".failed", failure.getMessage()));
 		}
 	}
 
@@ -121,6 +122,7 @@ public class RoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 
 			// Get roles
@@ -144,14 +146,14 @@ public class RoleCmd extends CommandBase {
 			for (Role r : roles) {
 				if (r.equals(publicRole) || r.isManaged() || !event.getMember().canInteract(r)
 					|| !guild.getSelfMember().canInteract(r) || r.hasPermission(Permission.ADMINISTRATOR)) {
-					createError(event, path+".incorrect_role", "Role: "+r.getAsMention());
+					editError(event, path+".incorrect_role", "Role: "+r.getAsMention());
 					return;
 				}
 			}
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				createError(event, path+".no_member");
+				editError(event, path+".no_member");
 				return;
 			}
 
@@ -163,10 +165,10 @@ public class RoleCmd extends CommandBase {
 				// Log
 				bot.getLogger().role.onRolesRemoved(guild, event.getUser(), member.getUser(), rolesString);
 				// Send reply
-				createReplyEmbed(event, false, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").replace("{roles}", rolesString).replace("{user}", member.getAsMention()))
 					.build());
-			}, failure -> createError(event, path+".failed", failure.getMessage()));
+			}, failure -> editError(event, path+".failed", failure.getMessage()));
 		}
 	}
 
@@ -184,20 +186,21 @@ public class RoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
-				createError(event, path+".no_role");
+				editError(event, path+".no_role");
 				return;
 			}
 			if (role.isPublicRole() || role.isManaged() || !guild.getSelfMember().canInteract(role) || role.hasPermission(Permission.ADMINISTRATOR)) {
-				createError(event, path+".incorrect_role");
+				editError(event, path+".incorrect_role");
 				return;
 			}
 
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".started"));
-			event.replyEmbeds(builder.build()).queue();
+			editEmbed(event, builder.build());
 
 			event.getGuild().findMembersWithRoles(role).setTimeout(4, TimeUnit.SECONDS).onSuccess(members -> {
 				int maxSize = members.size();
@@ -209,7 +212,7 @@ public class RoleCmd extends CommandBase {
 					editError(event, "errors.error", "Amount of members to be processed reached maximum limit of **400**! Manually clear the selected role.");
 					return;
 				}
-				editHookEmbed(event, builder.appendDescription(lu.getText(event, path+".estimate").formatted(maxSize)).build());
+				editEmbed(event, builder.appendDescription(lu.getText(event, path+".estimate").formatted(maxSize)).build());
 
 				String reason = "by "+event.getMember().getEffectiveName();
 				List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
@@ -229,7 +232,7 @@ public class RoleCmd extends CommandBase {
 							// Log
 							bot.getLogger().role.onRoleRemovedAll(guild, event.getUser(), role);
 							// Send reply
-							editHookEmbed(event, builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
+							editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
 								.replace("{role}", role.getName()).replace("{count}", Integer.toString(removed)).replace("{max}", Integer.toString(maxSize))
 							).build());
 						}

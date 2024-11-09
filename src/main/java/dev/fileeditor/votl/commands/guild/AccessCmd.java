@@ -57,7 +57,7 @@ public class AccessCmd extends CommandBase {
 				.setTitle(lu.getText(event, "bot.guild.access.view.embed.title"));
 
 			if (exceptIds.isEmpty() && helperIds.isEmpty() && modIds.isEmpty() && operatorIds.isEmpty()) {
-				editHookEmbed(event, 
+				editEmbed(event,
 					embedBuilder.setDescription(
 						lu.getText(event, "bot.guild.access.view.embed.none_found")
 					).build()
@@ -108,7 +108,7 @@ public class AccessCmd extends CommandBase {
 			}
 
 			embedBuilder.setDescription(sb);
-			editHookEmbed(event, embedBuilder.build());
+			editEmbed(event, embedBuilder.build());
 		}
 
 	}
@@ -156,7 +156,7 @@ public class AccessCmd extends CommandBase {
 			// Log
 			bot.getLogger().server.onAccessAdded(guild, event.getUser(), null, role, level);
 			// Send reply
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, "bot.guild.access.add.role.done")
 					.replace("{role}", role.getAsMention())
 					.replace("{level}", level.getName())
@@ -200,7 +200,7 @@ public class AccessCmd extends CommandBase {
 			// Log
 			bot.getLogger().server.onAccessRemoved(event.getGuild(), event.getUser(), null, role, level);
 			// Send reply
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, "bot.guild.access.remove.role.done")
 					.replace("{role}", role.getAsMention())
 					.replace("{level}", level.getName())
@@ -249,7 +249,7 @@ public class AccessCmd extends CommandBase {
 			// Log
 			bot.getLogger().server.onAccessAdded(event.getGuild(), event.getUser(), member.getUser(), null, CmdAccessLevel.OPERATOR);
 			// Send reply
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, "bot.guild.access.add.operator.done").replace("{user}", member.getAsMention()))
 				.build()
 			);
@@ -291,7 +291,7 @@ public class AccessCmd extends CommandBase {
 			// Log
 			bot.getLogger().server.onAccessRemoved(event.getGuild(), event.getUser(), user, null, CmdAccessLevel.OPERATOR);
 			// Send reply
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, "bot.guild.access.remove.operator.done").replace("{user}", user.getAsMention()))
 				.build()
 			);

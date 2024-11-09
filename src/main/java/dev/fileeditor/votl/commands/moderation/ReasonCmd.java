@@ -47,7 +47,7 @@ public class ReasonCmd extends CommandBase {
 		String newReason = event.optString("reason");
 		bot.getDBUtil().cases.updateReason(caseId, newReason);
 
-		editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, path+".done").replace("{id}", caseId.toString()).replace("{reason}", newReason))
 			.build()
 		);

@@ -77,7 +77,7 @@ public class VerifyPanelCmd extends CommandBase {
 				.build()
 			).addActionRow(next).queue();
 
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention()))
 				.build()
 			);
@@ -135,14 +135,15 @@ public class VerifyPanelCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			String imageUrl = event.optString("image_url");
 
 			if (!imageUrl.equals("NULL") && !URL_PATTERN.matcher(imageUrl).matches()) {
-				createError(event, path+".unknown_url", "URL: "+imageUrl);
+				editError(event, path+".unknown_url", "URL: "+imageUrl);
 				return;
 			}
 			bot.getDBUtil().verifySettings.setPanelImage(event.getGuild().getIdLong(), imageUrl);
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(imageUrl))
 				.build()
 			);

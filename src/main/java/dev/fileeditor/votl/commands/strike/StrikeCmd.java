@@ -80,7 +80,7 @@ public class StrikeCmd extends CommandBase {
 			Instant lastAddition = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), tm.getIdLong());
 			if (lastAddition != null && lastAddition.isAfter(Instant.now().minus(strikeCooldown, ChronoUnit.MINUTES))) {
 				// Cooldown active
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
 					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.format(lastAddition.plus(strikeCooldown, ChronoUnit.MINUTES))))
 					.build()
 				);
@@ -126,7 +126,7 @@ public class StrikeCmd extends CommandBase {
 			.addField(lu.getGuildText(event, "logger.moderation.mod"), "%s (%s)".formatted(mod.getUser().getName(), mod.getAsMention()), false);
 		if (action != null) builder.addField(action);
 
-		editHookEmbed(event, builder.build());
+		editEmbed(event, builder.build());
 	}
 
 	private Field executeStrike(DiscordLocale locale, Guild guild, Member target, Integer addAmount, Integer caseId) {

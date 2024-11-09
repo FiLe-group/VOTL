@@ -88,7 +88,7 @@ public class GroupCmd extends CommandBase {
 			Integer groupId = bot.getDBUtil().group.getIncrement();
 			bot.getLogger().group.onCreation(event, groupId, groupName);
 
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(groupName, groupId))
 				.build()
 			);
@@ -125,7 +125,7 @@ public class GroupCmd extends CommandBase {
 			bot.getDBUtil().group.deleteGroup(groupId);
 			bot.getLogger().group.onDeletion(event, groupId, groupName);
 
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(groupName, groupId))
 				.build()
 			);
@@ -234,14 +234,15 @@ public class GroupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 			if (ownerId == null) {
-				createError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
+				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
 			if (event.getGuild().getIdLong() != ownerId) {
-				createError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
 
@@ -250,7 +251,7 @@ public class GroupCmd extends CommandBase {
 			bot.getDBUtil().group.setInvite(groupId, newInvite);
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(groupName, newInvite))
 				.build()
 			);
@@ -317,7 +318,7 @@ public class GroupCmd extends CommandBase {
 				return;
 			}
 			String groupName = bot.getDBUtil().group.getName(groupId);
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setTitle(lu.getText(path+".embed_title").formatted(groupName))
 				.setDescription(builder.toString())
 				.build()
@@ -453,7 +454,7 @@ public class GroupCmd extends CommandBase {
 			bot.getDBUtil().group.add(groupId, event.getGuild().getIdLong(), false);
 			bot.getLogger().group.onGuildJoined(event, groupId, groupName);
 
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(groupName))
 				.build()
 			);
@@ -471,11 +472,11 @@ public class GroupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
+			event.deferReply().queue();
 			Integer groupId = event.optInteger("group_joined");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 			if (ownerId == null || !bot.getDBUtil().group.isMember(groupId, event.getGuild().getIdLong())) {
-				createError(event, path+".no_group", "Group ID: `%s`".formatted(groupId));
+				editError(event, path+".no_group", "Group ID: `%s`".formatted(groupId));
 				return;
 			}
 
@@ -484,7 +485,7 @@ public class GroupCmd extends CommandBase {
 			bot.getDBUtil().group.remove(groupId, event.getGuild().getIdLong());
 			bot.getLogger().group.onGuildLeft(event, groupId, groupName);
 
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(groupName))
 				.build()
 			);
@@ -503,17 +504,18 @@ public class GroupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			long guildId = event.getGuild().getIdLong();
 			if (event.hasOption("group_owned")) {
 				// View owned Group information - name, every guild info (name, ID, member count)
 				Integer groupId = event.optInteger("group_owned");
 				Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 				if (ownerId == null) {
-					createError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
+					editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
 					return;
 				}
 				if (event.getGuild().getIdLong() != ownerId) {
-					createError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+					editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
 					return;
 				}
 
@@ -552,13 +554,13 @@ public class GroupCmd extends CommandBase {
 					}
 					builder.addField(fieldLabel, stringBuilder.toString(), false);
 				}
-				createReplyEmbed(event, builder.build());
+				editEmbed(event, builder.build());
 			} else if (event.hasOption("group_joined")) {
 				// View joined Group information - name, master name/ID, guild count
 				Integer groupId = event.optInteger("group_joined");
 				Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 				if (ownerId == null || !bot.getDBUtil().group.isMember(groupId, guildId)) {
-					createError(event, path+".no_group", "Group ID: `%s`".formatted(groupId));
+					editError(event, path+".no_group", "Group ID: `%s`".formatted(groupId));
 					return;
 				}
 				
@@ -571,7 +573,7 @@ public class GroupCmd extends CommandBase {
 					.setDescription(lu.getText(event, path+".embed_short").formatted(
 						masterName, ownerId, groupSize
 					));
-				createReplyEmbed(event, builder.build());
+				editEmbed(event, builder.build());
 			} else {
 				// No options provided - reply with all groups that this guild is connected
 				List<Integer> ownedGroups = bot.getDBUtil().group.getOwnedGroups(guildId);
@@ -602,7 +604,7 @@ public class GroupCmd extends CommandBase {
 					builder.addField(fieldLabel, stringBuilder.toString(), false);
 				}
 
-				createReplyEmbed(event, builder.build());
+				editEmbed(event, builder.build());
 			}
 		}
 

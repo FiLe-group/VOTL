@@ -97,7 +97,7 @@ public class ModStatsCmd extends CommandBase {
 			buildLine(lu.getText(event, path + ".roles"), countRoles) +
 			"```";
 
-		editHookEmbed(event, embedBuilder.setDescription(builder).build());
+		editEmbed(event, embedBuilder.setDescription(builder).build());
 	}
 
 	private void returnFullStats(SlashCommandEvent event) {
@@ -143,7 +143,7 @@ public class ModStatsCmd extends CommandBase {
 			.append(buildLine(lu.getText(event, path+".roles"), roles7, roles30, rolesTotal, length7, length30))
 			.append("```");
 
-		editHookEmbed(event, embedBuilder.setDescription(builder.toString()).build());
+		editEmbed(event, embedBuilder.setDescription(builder.toString()).build());
 	}
 
 	private String buildLine(String text, int count7, int count30, int countTotal, int length7, int length30) {

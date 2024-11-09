@@ -88,7 +88,7 @@ public class MuteCmd extends CommandBase {
 
 		if (tm.isTimedOut() && caseData != null) {
 			// Case already exists, change duration
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
 				.setDescription(lu.getText(event, path+".already_muted").formatted(caseData.getCaseId()))
 				.addField(lu.getText(event, "logger.moderation.mute.short_title"), lu.getText(event, "logger.moderation.mute.short_info")
 					.replace("{username}", tm.getAsMention())
@@ -130,7 +130,7 @@ public class MuteCmd extends CommandBase {
 				bot.getLogger().mod.onNewCase(guild, tm.getUser(), muteDate, proofData);
 				
 				// send embed
-				editHookEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), muteDate.getCaseId(),
+				editEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), muteDate.getCaseId(),
 					path+".success", tm.getUser(), mod.getUser(), reason, duration)
 				);
 			},

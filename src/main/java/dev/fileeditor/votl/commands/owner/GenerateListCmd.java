@@ -36,13 +36,12 @@ public class GenerateListCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply(true).queue();
 		List<SlashCommand> commands = event.getClient().getSlashCommands();
 		if (commands.isEmpty()) {
-			createReply(event, "Commands not found");
+			editError(event, "Commands not found");
 			return;
 		}
-
-		event.deferReply(true).queue();
 
 		JSONArray commandArray = new JSONArray();
 		for (SlashCommand cmd : commands) {
@@ -78,7 +77,7 @@ public class GenerateListCmd extends CommandBase {
 
 		File file = new File(Constants.DATA_PATH + "commands.json");
 		try {
-			file.createNewFile();
+			boolean ignored = file.createNewFile();
 			FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8);
 			writer.write(commandArray.toString());
 			writer.flush();

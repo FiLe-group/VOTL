@@ -62,7 +62,7 @@ public class UnmuteCmd extends CommandBase {
 				// log unban
 				bot.getLogger().mod.onNewCase(guild, tm.getUser(), unmuteData, muteData != null ? muteData.getReason() : null);
 				// reply
-				editHookEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), unmuteData.getCaseId(),
+				editEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), unmuteData.getCaseId(),
 					path+".success", tm.getUser(), mod.getUser(), reason)
 				);
 			},

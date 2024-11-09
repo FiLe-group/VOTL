@@ -133,7 +133,7 @@ public class RolesManageCmd extends CommandBase {
 		}
 
 		private void sendSuccess(SlashCommandEvent event, String type, Role role) {
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()).replace("{type}", type))
 				.build());
 		}
@@ -218,7 +218,7 @@ public class RolesManageCmd extends CommandBase {
 				editError(event, path+".no_options");
 				return;
 			}
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".embed_title").replace("{role}", role.getAsMention()))
 				.appendDescription(response.toString())
 				.build());
@@ -259,7 +259,7 @@ public class RolesManageCmd extends CommandBase {
 				return;
 			}
 			bot.getDBUtil().roles.remove(roleIdLong);
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{id}", roleId))
 				.build());
 		}

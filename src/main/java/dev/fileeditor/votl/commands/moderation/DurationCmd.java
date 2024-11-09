@@ -78,7 +78,7 @@ public class DurationCmd extends CommandBase {
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, path+".done").replace("{id}", caseId.toString()).replace("{duration}", newTime))
 			.build();
-		editHookEmbed(event, embed);
+		editEmbed(event, embed);
 
 		bot.getLogger().mod.onChangeDuration(event.getGuild(), caseData, event.getMember(), newTime);
 	}
