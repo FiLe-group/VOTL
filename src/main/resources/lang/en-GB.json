@@ -1471,13 +1471,13 @@
 				},
 				"start_date": {
 					"name": "start_date",
-					"help": "Enter start date (year-month-day)"
+					"help": "Enter start date (day/month/year)"
 				},
 				"end_date": {
 					"name": "end_date",
-					"help": "Enter end date (year-month-day)"
+					"help": "Enter end date (day/month/year)"
 				},
-				"failed_parse": "Failed to parse input date! Use format `year-month-day`.",
+				"failed_parse": "Failed to parse input date! Use format `day/month/year`.",
 				"wrong_date": "Wrong dates provided (before and after inputs).",
 				"empty": "No statistics for this user.",
 				"title": "Moderation statistics",
@@ -1799,13 +1799,13 @@
 				},
 				"start_date": {
 					"name": "start_date",
-					"help": "Enter start date (year-month-day)"
+					"help": "Enter start date (day/month/year)"
 				},
 				"end_date": {
 					"name": "end_date",
-					"help": "Enter end date (year-month-day)"
+					"help": "Enter end date (day/month/year)"
 				},
-				"failed_parse": "Failed to parse input date! Use format `year-month-day`.",
+				"failed_parse": "Failed to parse input date! Use format `day/month/year`.",
 				"wrong_date": "Wrong dates provided (before and after inputs).",
 				"done": "Moderator: {user} ({id})\nAccepted role tickets: `{roles}`\nClaimed tickets: `{other}`"
 			},

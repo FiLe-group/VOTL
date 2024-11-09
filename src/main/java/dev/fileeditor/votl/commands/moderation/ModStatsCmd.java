@@ -58,7 +58,7 @@ public class ModStatsCmd extends CommandBase {
 		Instant afterTime;
 		Instant beforeTime;
 
-		DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 		try {
 			beforeTime = beforeDate!=null
 				? LocalDate.parse(beforeDate, inputFormatter).atStartOfDay(ZoneId.systemDefault()).toInstant()
@@ -78,7 +78,7 @@ public class ModStatsCmd extends CommandBase {
 		int countRoles = bot.getDBUtil().tickets.countTicketsByMod(event.getGuild().getIdLong(), mod.getIdLong(), afterTime, beforeTime, true);
 		Map<Integer, Integer> countCases = bot.getDBUtil().cases.countCasesByMod(guildId, mod.getIdLong(), afterTime, beforeTime);
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.systemDefault());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault());
 		String intervalText = "%s\n`%s` - `%s`".formatted(lu.getText(event, path+".title"), formatter.format(afterTime), formatter.format(beforeTime));
 		EmbedBuilder embedBuilder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 			.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())

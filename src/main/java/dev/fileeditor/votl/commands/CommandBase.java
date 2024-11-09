@@ -13,8 +13,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public abstract class CommandBase extends SlashCommand {
-	
-	public CommandBase() {}
 
 	// Edit Message(String or MED) and Embed
 	public final void editMsg(SlashCommandEvent event, @NotNull String msg) {
