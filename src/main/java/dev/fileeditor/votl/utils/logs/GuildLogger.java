@@ -81,7 +81,6 @@ public class GuildLogger {
 	}
 
 	private void sendLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed, CaseProofUtil.ProofData proofData) {
-		System.out.println(proofData.proxyUrl);
 		try (final InputStream is = new AttachmentProxy(proofData.proxyUrl).download().join()) {
 			webhookClient.sendMessageEmbeds(embed).addFiles(FileUpload.fromData(is.readAllBytes(), proofData.fileName)).queue();
 		} catch (IOException e) {

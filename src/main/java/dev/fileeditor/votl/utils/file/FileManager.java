@@ -38,8 +38,14 @@ public class FileManager {
 	public FileManager() {}
 
 	public FileManager addFile(String name, String internal, String external) {
-		createUpdateLoad(name, internal, external);
+		createUpdateLoad(name, internal, external, false);
 		
+		return this;
+	}
+
+	public FileManager addFileUpdate(String name, String internal, String external) {
+		createUpdateLoad(name, internal, external, true);
+
 		return this;
 	}
 	
@@ -51,7 +57,11 @@ public class FileManager {
 		}
 		locales.add(locale);
 
-		return addFile(localeTag, "/lang/" + localeTag + ".json", Constants.DATA_PATH + "lang" + Constants.SEPAR + localeTag + ".json");
+		return addFileUpdate(
+			localeTag,
+			"/lang/" + localeTag + ".json",
+			Constants.DATA_PATH + "lang" + Constants.SEPAR + localeTag + ".json"
+		);
 	}
 	
 	public Map<String, File> getFiles() {
@@ -76,7 +86,7 @@ public class FileManager {
 		return file;
 	}
 	
-	public void createUpdateLoad(String name, String internal, String external) {
+	public void createUpdateLoad(String name, String internal, String external, boolean forceUpdate) {
 		File file = new File(external);
 		
 		String[] split = external.contains("/") ? external.split(Constants.SEPAR) : external.split(Pattern.quote(Constants.SEPAR));
@@ -100,8 +110,8 @@ public class FileManager {
 				}
 				return;
 			}
-			if (external.contains("lang")) {
-				File tempFile = File.createTempFile("locale-", ".json");
+			if (forceUpdate) {
+				File tempFile = File.createTempFile("update-", ".tmp");
 				if (!export(App.class.getResourceAsStream(internal), tempFile.toPath())) {
 					LOG.error("Failed to write temp file {}!", tempFile.getName());
 				} else {
