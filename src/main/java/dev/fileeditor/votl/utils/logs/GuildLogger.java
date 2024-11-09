@@ -14,8 +14,6 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.database.DBUtil;
@@ -33,6 +31,8 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.internal.requests.IncomingWebhookClientImpl;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -42,10 +42,10 @@ public class GuildLogger {
 	private final Logger LOG = (Logger) LoggerFactory.getLogger(GuildLogger.class);
 	
 	//private final App bot;
-	private final @Nonnull JDA JDA;
-	private final @Nonnull DBUtil db;
-	private final @Nonnull LogEmbedUtil logUtil;
-	private final @Nonnull WebhookLogUtil webhookUtil;
+	private final @NotNull JDA JDA;
+	private final @NotNull DBUtil db;
+	private final @NotNull LogEmbedUtil logUtil;
+	private final @NotNull WebhookLogUtil webhookUtil;
 
 	public final ModerationLogs mod =	new ModerationLogs();
 	public final RoleLogs role =		new RoleLogs();
@@ -72,7 +72,7 @@ public class GuildLogger {
 		webhookUtil.sendMessageEmbed(guild, type, embedSupplier);
 	}
 
-	private void sendLog(@Nonnull IncomingWebhookClientImpl webhookClient, MessageEmbed embed) {
+	private void sendLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed) {
 		webhookClient.sendMessageEmbeds(embed).queue();
 	}
 
@@ -84,14 +84,9 @@ public class GuildLogger {
 			onNewCase(guild, target, caseData, null);
 		}
 		
-		public void onNewCase(Guild guild, User target, @Nonnull CaseData caseData, String optionalData) {
+		public void onNewCase(Guild guild, User target, @NotNull CaseData caseData, String optionalData) {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
-
-			if (caseData == null) {
-				LOG.warn("Unknown case provided with interaction");
-				return;
-			}
 
 			MessageEmbed embed = null;
 			switch (caseData.getType()) {

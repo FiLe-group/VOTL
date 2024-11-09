@@ -1,5 +1,8 @@
 package dev.fileeditor.votl.utils.database;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -11,9 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 
 public class LiteBase {
 
@@ -153,7 +153,7 @@ public class LiteBase {
 		return "'" + String.valueOf(value).replaceAll("'", "''") + "'"; // smt's -> 'smt''s'
 	}
 
-	protected <T, V> T applyNonNull(V obj, @Nonnull Function<V, T> function) {
+	protected <T, V> T applyNonNull(V obj, @NotNull Function<V, T> function) {
 		return (obj != null) ? function.apply(obj) : null;
 	}
 

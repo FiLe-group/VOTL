@@ -12,7 +12,6 @@ import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emote;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -22,6 +21,7 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import org.jetbrains.annotations.NotNull;
 
 public class ModuleCmd extends CommandBase {
 	
@@ -64,7 +64,7 @@ public class ModuleCmd extends CommandBase {
 				.build());
 		}
 
-		@Nonnull
+		@NotNull
 		private String format(String sModule, boolean check) {
 			return (check ? Emote.CROSS_C : Emote.CHECK_C).getEmote() + " | " + sModule;
 		}

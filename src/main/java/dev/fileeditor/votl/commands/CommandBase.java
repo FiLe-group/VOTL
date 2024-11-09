@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
@@ -17,46 +17,46 @@ public abstract class CommandBase extends SlashCommand {
 	public CommandBase() {}
 
 	// reply to event
-	public final void createReply(SlashCommandEvent event, @Nonnull String msg) {
+	public final void createReply(SlashCommandEvent event, @NotNull String msg) {
 		event.reply(msg).setEphemeral(true).queue();
 	}
 
-	public final void createReply(SlashCommandEvent event, @Nonnull MessageCreateData data) {
+	public final void createReply(SlashCommandEvent event, @NotNull MessageCreateData data) {
 		event.reply(data).setEphemeral(true).queue();
 	}
 
-	public final void createReply(SlashCommandEvent event, boolean ephemeral, @Nonnull String msg) {
+	public final void createReply(SlashCommandEvent event, boolean ephemeral, @NotNull String msg) {
 		event.reply(msg).setEphemeral(ephemeral).queue();
 	}
 
-	public final void createReply(SlashCommandEvent event, boolean ephemeral, @Nonnull MessageCreateData data) {
+	public final void createReply(SlashCommandEvent event, boolean ephemeral, @NotNull MessageCreateData data) {
 		event.reply(data).setEphemeral(ephemeral).queue();
 	}
 
-	public final void createReplyEmbed(SlashCommandEvent event, @Nonnull MessageEmbed... embeds) {
+	public final void createReplyEmbed(SlashCommandEvent event, @NotNull MessageEmbed... embeds) {
 		event.deferReply(true).addEmbeds(embeds).queue();
 	}
 
-	public final void createReplyEmbed(SlashCommandEvent event, boolean ephemeral, @Nonnull MessageEmbed... embeds) {
+	public final void createReplyEmbed(SlashCommandEvent event, boolean ephemeral, @NotNull MessageEmbed... embeds) {
 		event.deferReply(ephemeral).addEmbeds(embeds).queue();
 	}
 
-	public final void editErrorDeletable(SlashCommandEvent event, @Nonnull String path) {
+	public final void editErrorDeletable(SlashCommandEvent event, @NotNull String path) {
 		editErrorDeletable(event, path, null);
 	}
 
-	public final void editErrorDeletable(SlashCommandEvent event, @Nonnull String path, String reason) {
+	public final void editErrorDeletable(SlashCommandEvent event, @NotNull String path, String reason) {
 		event.getHook().editOriginal(lu.getText(event, "misc.temp_msg"))
 			.setEmbeds(bot.getEmbedUtil().getError(event, path, reason))
 			.queue(msg -> msg.delete().queueAfter(10, TimeUnit.SECONDS));
 	}
 
 	// Error
-	public final void createError(SlashCommandEvent event, @Nonnull String path) {
+	public final void createError(SlashCommandEvent event, @NotNull String path) {
 		createReplyEmbed(event, bot.getEmbedUtil().getError(event, path));
 	}
 
-	public final void createError(SlashCommandEvent event, @Nonnull String path, String reason) {
+	public final void createError(SlashCommandEvent event, @NotNull String path, String reason) {
 		createReplyEmbed(event, bot.getEmbedUtil().getError(event, path, reason));
 	}
 
@@ -71,24 +71,24 @@ public abstract class CommandBase extends SlashCommand {
 	
 
 	// editOriginal with InteractionHook
-	public final void editHook(SlashCommandEvent event, @Nonnull String msg) {
+	public final void editHook(SlashCommandEvent event, @NotNull String msg) {
 		event.getHook().editOriginal(msg).queue();
 	}
 
-	public final void editHook(SlashCommandEvent event, @Nonnull MessageEditData data) {
+	public final void editHook(SlashCommandEvent event, @NotNull MessageEditData data) {
 		event.getHook().editOriginal(data).queue();
 	}
 
-	public final void editHookEmbed(SlashCommandEvent event, @Nonnull MessageEmbed... embeds) {
+	public final void editHookEmbed(SlashCommandEvent event, @NotNull MessageEmbed... embeds) {
 		event.getHook().editOriginalEmbeds(embeds).queue();
 	}
 
 	// Error
-	public final void editError(SlashCommandEvent event, @Nonnull String path) {
+	public final void editError(SlashCommandEvent event, @NotNull String path) {
 		editHookEmbed(event, bot.getEmbedUtil().getError(event, path));
 	}
 
-	public final void editError(SlashCommandEvent event, @Nonnull String path, String reason) {
+	public final void editError(SlashCommandEvent event, @NotNull String path, String reason) {
 		editHookEmbed(event, bot.getEmbedUtil().getError(event, path, reason));
 	}
 

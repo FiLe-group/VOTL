@@ -15,7 +15,7 @@
  */
 package dev.fileeditor.votl.base.command;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A series of {@link Enum}s used for defining the scope size for a
@@ -161,7 +161,7 @@ public enum CooldownScope
 	private final String format;
 	private final String errorPath;
 
-	CooldownScope(String format, @Nonnull String errorPath) {
+	CooldownScope(String format, @NotNull String errorPath) {
 		this.format = format;
 		this.errorPath = errorPath;
 	}

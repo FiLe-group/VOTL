@@ -20,9 +20,9 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class VoiceListener extends ListenerAdapter {
 	
@@ -35,7 +35,7 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildVoiceGuildMute(@Nonnull GuildVoiceGuildMuteEvent event) {
+	public void onGuildVoiceGuildMute(@NotNull GuildVoiceGuildMuteEvent event) {
 		if (!db.getLogSettings(event.getGuild()).enabled(LogType.VOICE)) return;
 
 		event.getGuild().retrieveAuditLogs()
@@ -54,7 +54,7 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	@Override
-    public void onGuildVoiceGuildDeafen(@Nonnull GuildVoiceGuildDeafenEvent event) {
+    public void onGuildVoiceGuildDeafen(@NotNull GuildVoiceGuildDeafenEvent event) {
 		if (!db.getLogSettings(event.getGuild()).enabled(LogType.VOICE)) return;
 
 		event.getGuild().retrieveAuditLogs()
@@ -73,7 +73,7 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
+	public void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
 		// TODO log join/leave/switch
 		Long masterVoiceId = db.guildVoice.getChannelId(event.getGuild().getIdLong());
 		AudioChannelUnion channelJoined = event.getChannelJoined();

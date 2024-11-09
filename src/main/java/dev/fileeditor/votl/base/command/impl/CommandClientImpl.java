@@ -34,7 +34,6 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
 import dev.fileeditor.votl.base.utils.SafeIdUtil;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -51,6 +50,7 @@ import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.internal.utils.Checks;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -289,7 +289,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public void onEvent(@Nonnull GenericEvent event) {
+	public void onEvent(@NotNull GenericEvent event) {
 		if (event instanceof SlashCommandInteractionEvent)
 			onSlashCommand((SlashCommandInteractionEvent)event);
 

@@ -2,11 +2,11 @@ package dev.fileeditor.votl.utils.file.lang;
 
 import java.util.List;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.utils.file.FileManager;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
 public final class LangUtil {
@@ -17,7 +17,7 @@ public final class LangUtil {
 		this.fileManager = fileManager;
 	}
 	
-	@dev.fileeditor.votl.objects.annotation.Nonnull
+	@NotNull
 	public String getString(DiscordLocale locale, String path) {
 		return switch (locale) {
 			case RUSSIAN -> fileManager.getString(locale.getLocale(), path);
@@ -33,7 +33,7 @@ public final class LangUtil {
 		};
 	}
 
-	@Nonnull
+	@NotNull
 	public List<String> getStringList(DiscordLocale locale, String path) {
 		return switch (locale) {
 			case RUSSIAN -> fileManager.getStringList(locale.getLocale(), path);

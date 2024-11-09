@@ -16,12 +16,12 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import com.jayway.jsonpath.Configuration;
@@ -55,7 +55,7 @@ public class FileManager {
 	}
 	
 	// Add new language by locale
-	public FileManager addLang(@Nonnull String localeTag) {
+	public FileManager addLang(@NotNull String localeTag) {
 		DiscordLocale locale = DiscordLocale.from(localeTag);
 		if (locale.equals(DiscordLocale.UNKNOWN)) {
 			throw new IllegalArgumentException("Unknown locale tag was provided: "+localeTag);
@@ -126,7 +126,7 @@ public class FileManager {
 	 * @param path - string's json path
 	 * @return Returns not-null string. If search returns null string, returns provided path. 
 	 */
-	@Nonnull
+	@NotNull
 	public String getString(String name, String path) {
 		String result = getNullableString(name, path);
 		if (result == null) {
@@ -184,7 +184,7 @@ public class FileManager {
 		return null;
 	}
 
-	@Nonnull
+	@NotNull
 	public List<String> getStringList(String name, String path){
 		File file = files.get(name);
 		
@@ -211,7 +211,7 @@ public class FileManager {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nonnull
+	@NotNull
 	public Map<String, String> getMap(String name, String path){
 		File file = files.get(name);
 		if(file == null) {

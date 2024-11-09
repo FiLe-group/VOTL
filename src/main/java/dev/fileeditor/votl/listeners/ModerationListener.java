@@ -2,7 +2,6 @@ package dev.fileeditor.votl.listeners;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CaseType;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
@@ -15,6 +14,7 @@ import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateTimeOutEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 
 public class ModerationListener extends ListenerAdapter {
 
@@ -27,7 +27,7 @@ public class ModerationListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildBan(@Nonnull GuildBanEvent event) {
+	public void onGuildBan(@NotNull GuildBanEvent event) {
 		// Log
 		if (!db.getLogSettings(event.getGuild()).enabled(LogType.MODERATION)) return;
 		event.getGuild().retrieveAuditLogs()
@@ -42,7 +42,7 @@ public class ModerationListener extends ListenerAdapter {
 	}
 
 	@Override
-    public void onGuildUnban(@Nonnull GuildUnbanEvent event) {
+    public void onGuildUnban(@NotNull GuildUnbanEvent event) {
 		CaseData banData = db.cases.getMemberActive(event.getUser().getIdLong(), event.getGuild().getIdLong(), CaseType.BAN);
 		if (banData != null) {
 			db.cases.setInactive(banData.getCaseId());
@@ -61,7 +61,7 @@ public class ModerationListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildMemberUpdateTimeOut(@Nonnull GuildMemberUpdateTimeOutEvent event) {
+	public void onGuildMemberUpdateTimeOut(@NotNull GuildMemberUpdateTimeOutEvent event) {
 		if (event.getNewTimeOutEnd() == null) {
 			// timeout removed by moderator
 			CaseData timeoutData = db.cases.getMemberActive(event.getUser().getIdLong(), event.getGuild().getIdLong(), CaseType.MUTE);

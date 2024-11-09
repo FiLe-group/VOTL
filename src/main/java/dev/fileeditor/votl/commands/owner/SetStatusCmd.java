@@ -8,9 +8,9 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 

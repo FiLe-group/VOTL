@@ -6,8 +6,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.transcripts.DiscordHtmlTranscripts;
@@ -23,6 +21,8 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TicketUtil {
 	private final App bot;
@@ -33,7 +33,7 @@ public class TicketUtil {
 		this.db = bot.getDBUtil();
 	}
 
-	public void closeTicket(long channelId, @Nullable User userClosed, @Nullable String reasonClosed, @Nonnull Consumer<? super Throwable> closeHandle) {
+	public void closeTicket(long channelId, @Nullable User userClosed, @Nullable String reasonClosed, @NotNull Consumer<? super Throwable> closeHandle) {
 		GuildMessageChannel channel = bot.JDA.getChannelById(GuildMessageChannel.class, channelId);
 		if (channel == null) return;
 

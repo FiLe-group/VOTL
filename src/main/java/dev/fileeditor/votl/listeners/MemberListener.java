@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
 
@@ -15,6 +14,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 
 public class MemberListener extends ListenerAdapter {
 
@@ -27,7 +27,7 @@ public class MemberListener extends ListenerAdapter {
 	}
 	
 	@Override
-	public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
+	public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
 		// Log
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
 			bot.getLogger().member.onJoined(event.getMember());
@@ -35,7 +35,7 @@ public class MemberListener extends ListenerAdapter {
 	}
 	
 	@Override
-	public void onGuildMemberRemove(@Nonnull GuildMemberRemoveEvent event) {
+	public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
 		// Log
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
 			event.getGuild().retrieveAuditLogs()
@@ -75,7 +75,7 @@ public class MemberListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildMemberUpdateNickname(@Nonnull GuildMemberUpdateNicknameEvent event) {
+	public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
 			bot.getLogger().member.onNickChange(event.getMember(), event.getOldValue(), event.getNewValue());
 		}

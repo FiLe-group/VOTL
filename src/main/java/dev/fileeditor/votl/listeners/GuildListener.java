@@ -5,8 +5,8 @@ import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class GuildListener extends ListenerAdapter {
 
@@ -19,13 +19,13 @@ public class GuildListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildJoin(@Nonnull GuildJoinEvent event) {
+	public void onGuildJoin(@NotNull GuildJoinEvent event) {
 		String guildId = event.getGuild().getId();
 		bot.getAppLogger().info("Joined guild '{}'({})", event.getGuild().getName(), guildId);
 	}
 
 	@Override
-	public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
+	public void onGuildLeave(@NotNull GuildLeaveEvent event) {
 		long guildId = event.getGuild().getIdLong();
 		bot.getAppLogger().info("Left guild '%s'(%s)".formatted(event.getGuild().getName(), guildId));
 

@@ -18,10 +18,10 @@ package dev.fileeditor.votl.base.command;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
 import net.dv8tion.jda.api.Permission;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A class that represents an interaction with a user.
@@ -47,14 +47,14 @@ public abstract class Interaction
 	 * Otherwise, commands will automatically be hidden unless a user has these perms.
 	 * However, permissions are always checked, just in case. A user must have these permissions regardless.
 	 */
-	@Nonnull
+	@NotNull
 	protected Permission[] userPermissions = new Permission[0];
 
 	/**
 	 * Any {@link Permission Permissions} the bot must have to use a command.
 	 * <br>These are only checked in a {@link net.dv8tion.jda.api.entities.Guild server} environment.
 	 */
-	@Nonnull
+	@NotNull
 	protected Permission[] botPermissions = new Permission[0];
 
 	/**
@@ -103,7 +103,7 @@ public abstract class Interaction
 	 *
 	 * @return The userPermissions for the Interaction
 	 */
-	@Nonnull
+	@NotNull
 	public Permission[] getUserPermissions()
 	{
 		return userPermissions;
@@ -114,7 +114,7 @@ public abstract class Interaction
 	 *
 	 * @return The botPermissions for the Interaction
 	 */
-	@Nonnull
+	@NotNull
 	public Permission[] getBotPermissions()
 	{
 		return botPermissions;
@@ -135,7 +135,7 @@ public abstract class Interaction
 	 *
 	 * @return The path for command's help string in locale file.
 	 */
-	@Nonnull
+	@NotNull
 	public String getHelpPath()
 	{
 		return path+".help";
@@ -146,16 +146,16 @@ public abstract class Interaction
 	 *
 	 * @return The path for command's usage description string in locale file.
 	 */
-	@Nonnull
+	@NotNull
 	public String getUsagePath()
 	{
 		return path+".usage";
 	}
 
 	/**
-	 * Path to the command strings. Must by set, otherwise will display Unknown text.
+	 * Path to the command strings. Must be set, otherwise will display Unknown text.
 	 */
-	@Nonnull
+	@NotNull
 	protected String path = "misc.command";
 	
 	/**
@@ -163,7 +163,7 @@ public abstract class Interaction
 	 *
 	 * @return The path for command's string in locale file.
 	 */
-	@Nonnull
+	@NotNull
 	public String getPath()
 	{
 		return path;

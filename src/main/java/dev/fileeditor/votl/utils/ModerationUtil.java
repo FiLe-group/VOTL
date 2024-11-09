@@ -4,8 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 
 import dev.fileeditor.votl.objects.CaseType;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
@@ -17,6 +15,8 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ModerationUtil {
 
@@ -89,7 +89,7 @@ public class ModerationUtil {
 				.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed getReasonUpdateEmbed(DiscordLocale locale, Guild guild, Instant timestamp, CaseType caseType, String oldReason, String newReason) {
 		if (oldReason == null) oldReason = "-";
 		if (caseType.equals(CaseType.MUTE)) {
@@ -99,7 +99,7 @@ public class ModerationUtil {
 				.appendDescription("\n\n**Old**: ||`"+oldReason+"`||\n**New**: `"+newReason+"`")
 				.build();
 		} else {
-			// else is strike
+			// else is a strike
 			return new EmbedBuilder().setColor(Constants.COLOR_WARNING)
 				.setDescription(lu.getLocalized(locale, "logger_embed.pm.reason_strike").formatted(guild.getName(), TimeUtil.formatTime(timestamp, false)))
 				.appendDescription("\n\n**Old**: ||`"+oldReason+"`||\n**New**: `"+newReason+"`")

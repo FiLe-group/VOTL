@@ -11,6 +11,7 @@ import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.NotNull;
 
 public class AccessManager extends LiteBase {
 
@@ -63,6 +64,7 @@ public class AccessManager extends LiteBase {
 		return CmdAccessLevel.byLevel(data);
 	}
 
+	@NotNull
 	public Map<Long, CmdAccessLevel> getAllRoles(long guildId) {
 		if (roleCache.contains(guildId))
 			return roleCache.get(guildId);

@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.NotNull;
 
 public class GuildLogsManager extends LiteBase {
 
@@ -116,7 +116,7 @@ public class GuildLogsManager extends LiteBase {
 			this.token = token;
 		}
 
-		public WebhookData(@Nonnull String data) {
+		public WebhookData(@NotNull String data) {
 			String[] array = data.split(":");
 			this.channelId = Long.parseLong(array[0]);
 			this.webhookId = Long.parseLong(array[1]);

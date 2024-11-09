@@ -22,8 +22,6 @@ import dev.fileeditor.votl.base.waiter.EventWaiter;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.Emote;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
@@ -71,6 +69,8 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class InteractionListener extends ListenerAdapter {
 	
@@ -109,7 +109,7 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	// Check for cooldown parameters, if exists - check if cooldown active, else apply it
-	private void runButtonInteraction(ButtonInteractionEvent event, @Nullable Cooldown cooldown, @Nonnull Runnable function) {
+	private void runButtonInteraction(ButtonInteractionEvent event, @Nullable Cooldown cooldown, @NotNull Runnable function) {
 		if (cooldown != null) {
 			String key = getCooldownKey(cooldown, event);
 			int remaining = bot.getClient().getRemainingCooldown(key);
@@ -130,7 +130,7 @@ public class InteractionListener extends ListenerAdapter {
 	);
 
 	@Override
-	public void onButtonInteraction(@Nonnull ButtonInteractionEvent event) {
+	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
 		String[] actions = event.getComponentId().split(":");
 		if (!acceptableButtons.contains(actions[0])) return;
 
@@ -528,7 +528,7 @@ public class InteractionListener extends ListenerAdapter {
 			.build();
 		event.getHook().editOriginalEmbeds(embed).setComponents().queue();
 	}
-	
+
 	// Ticket management
 	private void buttonTicketClaim(ButtonInteractionEvent event) {
 		if (!bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.HELPER)) {
@@ -610,7 +610,7 @@ public class InteractionListener extends ListenerAdapter {
 		String message = Optional.ofNullable(tag.getMessage())
 			.map(text -> text.replace("{username}", user.getName()).replace("{tag_username}", user.getAsMention()))
 			.orElse("Ticket's controls");
-		
+
 		int ticketId = 1 + db.tickets.lastIdByTag(guildId, tagId);
 		String ticketName = (tag.getTicketName()+ticketId).replace("{username}", user.getName());
 		if (tag.getTagType() == 1) {
@@ -618,7 +618,7 @@ public class InteractionListener extends ListenerAdapter {
 			event.getChannel().asTextChannel().createThreadChannel(ticketName, true).setInvitable(false).queue(channel -> {
 				int time = bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply();
 				db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time);
-				
+
 				bot.getTicketUtil().createTicket(event, channel, mentions.toString(), message);
 			},
 			failure -> sendTicketError(event, "Unable to create new thread in this channel"));
@@ -639,7 +639,7 @@ public class InteractionListener extends ListenerAdapter {
 					db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time);
 
 					bot.getTicketUtil().createTicket(event, channel, mentions.toString(), message);
-			}, 
+			},
 			failure -> sendTicketError(event, "Unable to create new channel in target category, with ID: "+tag.getLocation()));
 		}
 	}
@@ -654,7 +654,7 @@ public class InteractionListener extends ListenerAdapter {
 
 		String channelId = event.getComponentId().split(":")[1];
 		String messageId = event.getComponentId().split(":")[2];
-		
+
 		TextChannel channel = event.getGuild().getTextChannelById(channelId);
 		if (channel == null) {
 			event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getError(event, "misc.unknown", "Unknown channel")).queue();
@@ -765,13 +765,13 @@ public class InteractionListener extends ListenerAdapter {
 		EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
 			.setTitle(lu.getText(event, "bot.voice.listener.panel.perms.title").replace("{channel}", vc.getName()))
 			.setDescription(lu.getText(event, "bot.voice.listener.panel.perms.field")+"\n\n");
-		
+
 		//@Everyone
 		PermissionOverride publicOverride = vc.getPermissionOverride(guild.getPublicRole());
 
 		String view = contains(publicOverride, Permission.VIEW_CHANNEL);
 		String join = contains(publicOverride, Permission.VOICE_CONNECT);
-		
+
 		embedBuilder = embedBuilder.appendDescription("> %s | %s | `%s`\n\n%s\n".formatted(view, join, lu.getText(event, "bot.voice.listener.panel.perms.everyone"),
 			lu.getText(event, "bot.voice.listener.panel.perms.roles")));
 
@@ -783,7 +783,7 @@ public class InteractionListener extends ListenerAdapter {
 		} catch (NullPointerException ex) {
 			bot.getAppLogger().warn("PermsCmd null pointer at role override remove");
 		}
-		
+
 		if (overrides.isEmpty()) {
 			embedBuilder.appendDescription(lu.getText(event, "bot.voice.listener.panel.perms.none") + "\n");
 		} else {
@@ -1114,7 +1114,7 @@ public class InteractionListener extends ListenerAdapter {
 				.build()).queue();
 			return;
 		}
-		
+
 		Instant time = Instant.ofEpochSecond(strikeData.getRight());
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed()
 			.setDescription(lu.getText(event, "bot.moderation.strikes_embed").formatted(strikeData.getLeft(), TimeFormat.RELATIVE.atInstant(time)))
@@ -1184,7 +1184,7 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onModalInteraction(@Nonnull ModalInteractionEvent event) {
+	public void onModalInteraction(@NotNull ModalInteractionEvent event) {
 		event.deferReply(true).queue();
 		String modalId = event.getModalId();
 
@@ -1205,7 +1205,7 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onStringSelectInteraction(@Nonnull StringSelectInteractionEvent event) {
+	public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {
 		String menuId = event.getComponentId();
 
 		if (menuId.startsWith("menu:role_row")) {
@@ -1278,7 +1278,7 @@ public class InteractionListener extends ListenerAdapter {
 	private final List<Permission> AdminPerms = List.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
 
 	@Override
-	public void onEntitySelectInteraction(@Nonnull EntitySelectInteractionEvent event) {
+	public void onEntitySelectInteraction(@NotNull EntitySelectInteractionEvent event) {
 		String menuId = event.getComponentId();
 		if (menuId.startsWith("voice")) {
 			event.deferEdit().queue();
@@ -1299,7 +1299,7 @@ public class InteractionListener extends ListenerAdapter {
 			String action = menuId.split(":")[1];
 			if (action.equals("permit") || action.equals("reject")) {
 				Mentions mentions = event.getMentions();
-				
+
 				List<Member> members = mentions.getMembers();
 				List<Role> roles = mentions.getRoles();
 				if (members.isEmpty() && roles.isEmpty()) {
@@ -1315,20 +1315,20 @@ public class InteractionListener extends ListenerAdapter {
 				String text;
 
 				VoiceChannelManager manager = vc.getManager();
-				
+
 				if (action.equals("permit")) {
 					for (Member member : members) {
 						manager = manager.putPermissionOverride(member, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null);
 						mentionStrings.add(member.getEffectiveName());
 					}
-		
+
 					for (Role role : roles) {
 						if (!role.hasPermission(AdminPerms)) {
 							manager = manager.putPermissionOverride(role, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null);
 							mentionStrings.add(role.getName());
 						}
 					}
-	
+
 					text = lu.getUserText(event, "bot.voice.listener.panel.permit_done", mentionStrings);
 				} else {
 					for (Member member : members) {
@@ -1338,7 +1338,7 @@ public class InteractionListener extends ListenerAdapter {
 						}
 						mentionStrings.add(member.getEffectiveName());
 					}
-		
+
 					for (Role role : roles) {
 						if (!role.hasPermission(AdminPerms)) {
 							manager = manager.putPermissionOverride(role, null, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL));
@@ -1406,7 +1406,7 @@ public class InteractionListener extends ListenerAdapter {
 		private final int time;
 		private final CooldownScope scope;
 
-		Cooldown(@Nonnull int time, @Nonnull CooldownScope scope) {
+		Cooldown(@NotNull int time, @NotNull CooldownScope scope) {
 			this.time = time;
 			this.scope = scope;
 		}
@@ -1443,7 +1443,7 @@ public class InteractionListener extends ListenerAdapter {
 	private MessageCreateData getCooldownErrorString(Cooldown cooldown, GenericInteractionCreateEvent event, int remaining) {
 		if (remaining <= 0)
 			return null;
-		
+
 		StringBuilder front = new StringBuilder(lu.getLocalized(event.getUserLocale(), "errors.cooldown.cooldown_button")
 			.replace("{time}", Integer.toString(remaining))
 		);

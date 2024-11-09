@@ -10,13 +10,13 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import org.jetbrains.annotations.Nullable;
 
 public class GuildSettingsManager extends LiteBase {
 

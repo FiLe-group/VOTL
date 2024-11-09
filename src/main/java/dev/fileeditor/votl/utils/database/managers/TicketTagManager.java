@@ -171,7 +171,7 @@ public class TicketTagManager extends LiteBase {
 		}
 
 		public Button previewButton() {
-			return new ButtonImpl("tag_preview", buttonText, buttonStyle, null, true, emoji);
+			return new ButtonImpl("tag_preview", buttonText, buttonStyle, true, emoji);
 		}
 
 		public static Button createButton(Map<String, Object> map) {
@@ -179,7 +179,7 @@ public class TicketTagManager extends LiteBase {
 			String buttonText = requireNonNull(map.get("buttonText"));
 			ButtonStyle style = ButtonStyle.fromKey(requireNonNull(map.get("buttonStyle")));
 			Emoji emoji = Optional.ofNullable((String) map.get("emoji")).map(Emoji::fromFormatted).orElse(null);
-			return new ButtonImpl("tag:"+tagId, buttonText, style, null, false, emoji);
+			return new ButtonImpl("tag:"+tagId, buttonText, style, false, emoji);
 		}
 
 		public String getTicketName() {

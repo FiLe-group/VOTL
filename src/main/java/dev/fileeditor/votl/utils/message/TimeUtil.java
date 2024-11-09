@@ -10,12 +10,12 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.utils.exception.FormatterException;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.utils.TimeFormat;
+import org.jetbrains.annotations.Nullable;
 
 public class TimeUtil {
 

@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.Nullable;
 
 public class BlacklistManager extends LiteBase {
 	

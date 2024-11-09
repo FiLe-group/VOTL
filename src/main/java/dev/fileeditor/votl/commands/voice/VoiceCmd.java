@@ -10,7 +10,6 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emote;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -27,6 +26,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.api.managers.channel.concrete.VoiceChannelManager;
+import org.jetbrains.annotations.NotNull;
 
 public class VoiceCmd extends CommandBase {
 	
@@ -616,7 +616,7 @@ public class VoiceCmd extends CommandBase {
 			return Emote.NONE.getEmote();
 		}
 
-		@Nonnull
+		@NotNull
 		private String formatHolder(String holder, String view, String join) {
 			return "> " + view + " | " + join + " | `" + holder + "`";
 		}
