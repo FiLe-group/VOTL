@@ -419,7 +419,9 @@ public class InteractionListener extends ListenerAdapter {
 				db.tickets.addRoleTicket(ticketId, event.getMember().getIdLong(), guildId, channel.getIdLong(), String.join(";", roleIds), time);
 				
 				StringBuffer mentions = new StringBuffer(event.getMember().getAsMention());
-				db.access.getRoles(guildId, CmdAccessLevel.MOD).forEach(roleId -> mentions.append(" <@&").append(roleId).append(">"));
+				db.ticketSettings.getSettings(guild.getIdLong())
+					.getRoleSupportIds()
+					.forEach(roleId -> mentions.append(" <@&").append(roleId).append(">"));
 				channel.sendMessage(mentions.toString()).queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL)));
 				
 				String rolesString = String.join(" ", add.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), (otherRole ? lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.other") : ""));

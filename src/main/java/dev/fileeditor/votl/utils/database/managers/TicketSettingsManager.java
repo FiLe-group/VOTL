@@ -1,11 +1,14 @@
 package dev.fileeditor.votl.utils.database.managers;
 
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
+import static dev.fileeditor.votl.utils.CastUtil.resolveOrDefault;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.FixedCache;
@@ -16,7 +19,8 @@ public class TicketSettingsManager extends LiteBase {
 	
 	private final Set<String> columns = Set.of(
 		"autocloseTime", "autocloseLeft", "timeToReply",
-		"rowName1", "rowName2", "rowName3", "otherRole"
+		"rowName1", "rowName2", "rowName3",
+		"otherRole", "roleSupport"
 	);
 
 	// Cache
@@ -73,6 +77,13 @@ public class TicketSettingsManager extends LiteBase {
 		return execute("INSERT INTO %s(guildId, otherRole) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET otherRole=%<d".formatted(table, guildId, otherRole ? 1 : 0));
 	}
 
+	public boolean setSupportRoles(long guildId, List<Long> roleIds) {
+		invalidateCache(guildId);
+		final String text = roleIds.stream().map(String::valueOf).collect(Collectors.joining(";"));
+		return execute("INSERT INTO %s(guildId, roleSupport) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET roleSupport=%<s".formatted(table, guildId, quote(text)));
+	}
+
+
 	private void invalidateCache(long guildId) {
 		cache.pull(guildId);
 	}
@@ -81,6 +92,7 @@ public class TicketSettingsManager extends LiteBase {
 		private final int autocloseTime, timeToReply;
 		private final boolean autocloseLeft, otherRole;
 		private final List<String> rowText;
+		private final List<Long> roleSupportIds;
 
 		public TicketSettings() {
 			this.autocloseTime = 0;
@@ -88,6 +100,7 @@ public class TicketSettingsManager extends LiteBase {
 			this.timeToReply = 0;
 			this.otherRole = true;
 			this.rowText = Collections.nCopies(3, "Select roles");
+			this.roleSupportIds = List.of();
 		}
 
 		public TicketSettings(Map<String, Object> data) {
@@ -100,6 +113,13 @@ public class TicketSettingsManager extends LiteBase {
 				getOrDefault(data.get("rowName2"), "Select roles"),
 				getOrDefault(data.get("rowName3"), "Select roles")
 			);
+			this.roleSupportIds = resolveOrDefault(data.get("roleSupport"), d -> {
+				String value = String.valueOf(d);
+				if (value.isEmpty()) return List.of();
+				return Stream.of(value.split(";"))
+					.map(Long::parseLong)
+					.toList();
+			}, List.of());
 		}
 
 		public int getAutocloseTime() {
@@ -122,6 +142,10 @@ public class TicketSettingsManager extends LiteBase {
 			if (n < 1 || n > 3)
 				throw new IndexOutOfBoundsException(n);
 			return rowText.get(n-1);
+		}
+
+		public List<Long> getRoleSupportIds() {
+			return roleSupportIds;
 		}
 	}
 
