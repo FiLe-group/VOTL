@@ -49,4 +49,5 @@ public class LogExceptionsManager extends LiteBase {
 	private void invalidateCache(long guildId) {
 		cache.pull(guildId);
 	}
+
 }

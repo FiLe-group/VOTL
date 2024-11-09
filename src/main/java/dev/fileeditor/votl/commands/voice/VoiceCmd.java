@@ -235,11 +235,9 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			String name = Optional.ofNullable(
-				bot.getDBUtil().guildVoice.getName(event.getGuild().getIdLong())	
-			).orElse(
-				lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name")
-			);
+			String name = Optional
+				.ofNullable(bot.getDBUtil().getVoiceSettings(event.getGuild()).getDefaultName())
+				.orElse(lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name"));
 			sendNameReply(event, name);
 		}
 	}
@@ -295,7 +293,9 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Integer limit = Optional.ofNullable(bot.getDBUtil().guildVoice.getLimit(event.getGuild().getIdLong())).orElse(0);
+			Integer limit = Optional
+				.ofNullable(bot.getDBUtil().getVoiceSettings(event.getGuild()).getDefaultLimit())
+				.orElse(0);
 			sendLimitReply(event, limit);			
 		}
 	}
@@ -363,7 +363,7 @@ public class VoiceCmd extends CommandBase {
 						editPermError(event, ex.getPermission(), true);
 						return;
 					}
-					bot.getDBUtil().voice.setUser(vc.getIdLong(), author.getIdLong());
+					bot.getDBUtil().voice.setUser(author.getIdLong(), vc.getIdLong());
 					
 					editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getText(event, path+".done").replace("{channel}", vc.getAsMention()))

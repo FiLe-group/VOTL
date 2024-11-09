@@ -46,7 +46,7 @@ public class GuildLogsManager extends LiteBase {
 			return cache.get(guildId).getWebhookData(type);
 		LogSettings settings = applyNonNull(getData(guildId), LogSettings::new);
 		if (settings == null)
-			return null;
+			settings = blankSettings;
 		cache.put(guildId, settings);
 		return settings.getWebhookData(type);
 	}
@@ -56,7 +56,7 @@ public class GuildLogsManager extends LiteBase {
 			return cache.get(guildId);
 		LogSettings settings = applyNonNull(getData(guildId), LogSettings::new);
 		if (settings == null)
-			return blankSettings;
+			settings = blankSettings;
 		cache.put(guildId, settings);
 		return settings;
 	}

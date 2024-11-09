@@ -1188,7 +1188,7 @@ public class LogEmbedUtil {
 					.collect(Collectors.joining(", "));
 			}
 		} else {
-			return "`"+object.toString()+"`";
+			return String.format("`%s`", object);
 		}
 	}
 

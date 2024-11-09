@@ -11,7 +11,6 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager.ModerationInformLevel;
@@ -258,7 +257,7 @@ public class SetupCmd extends CommandBase {
 			ActionRow row4 = ActionRow.of(permit, reject, perms);
 			ActionRow row5 = ActionRow.of(delete);
 
-			Long channelId = bot.getDBUtil().guildVoice.getChannelId(event.getGuild().getIdLong());
+			Long channelId = bot.getDBUtil().getVoiceSettings(event.getGuild()).getChannelId();
 			channel.sendMessageEmbeds(new EmbedBuilder()
 				.setColor(Constants.COLOR_DEFAULT)
 				.setTitle(lu.getLocalized(event.getGuildLocale(), path+".embed_title"))

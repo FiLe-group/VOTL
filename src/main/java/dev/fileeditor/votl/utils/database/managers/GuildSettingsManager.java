@@ -39,7 +39,7 @@ public class GuildSettingsManager extends LiteBase {
 			return cache.get(guildId);
 		GuildSettings settings = applyNonNull(getData(guildId), GuildSettings::new);
 		if (settings == null)
-			return blankSettings;
+			settings = blankSettings;
 		cache.put(guildId, settings);
 		return settings;
 	}

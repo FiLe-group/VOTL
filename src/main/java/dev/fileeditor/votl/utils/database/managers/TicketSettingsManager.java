@@ -32,7 +32,7 @@ public class TicketSettingsManager extends LiteBase {
 			return cache.get(guildId);
 		TicketSettings settings = applyNonNull(getData(guildId), TicketSettings::new);
 		if (settings == null)
-			return defaultSettings;
+			settings = defaultSettings;
 		cache.put(guildId, settings);
 		return settings;
 	}
@@ -124,4 +124,5 @@ public class TicketSettingsManager extends LiteBase {
 			return rowText.get(n-1);
 		}
 	}
+
 }
