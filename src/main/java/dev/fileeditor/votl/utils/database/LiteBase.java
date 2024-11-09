@@ -152,9 +152,8 @@ public class LiteBase {
 	// UTILS
 	protected String quote(Object value) {
 		// Convert to string and replace '(single quote) with ''(2 single quotes) for sql
-		if (value == null) return "NULL";
-		String str = String.valueOf(value);
-		if (str.equals("NULL")) return str;
+		if (value == null || String.valueOf(value).equalsIgnoreCase("NULL"))
+			return "NULL";
 
 		return String.format("'%s'", String.valueOf(value).replaceAll("'", "''"));
 	}
