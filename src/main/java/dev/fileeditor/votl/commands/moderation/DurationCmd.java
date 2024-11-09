@@ -71,7 +71,10 @@ public class DurationCmd extends CommandBase {
 				}
 			});
 		}
-		bot.getDBUtil().cases.updateDuration(caseData.getRowId(), newDuration);
+		if (bot.getDBUtil().cases.updateDuration(caseData.getRowId(), newDuration)) {
+			editErrorDatabase(event, "update duration");
+			return;
+		}
 		
 		String newTime = TimeUtil.formatDuration(lu, event.getUserLocale(), caseData.getTimeStart(), newDuration);
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)

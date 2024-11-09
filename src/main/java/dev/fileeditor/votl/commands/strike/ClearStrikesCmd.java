@@ -52,7 +52,10 @@ public class ClearStrikesCmd extends CommandBase {
 		}
 		int activeCount = strikeData.getLeft();
 		// Clear strike DB
-		bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong());
+		if (bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong())) {
+			editErrorDatabase(event, "clear user strikes");
+			return;
+		}
 		// Set all strikes cases inactive
 		bot.getDBUtil().cases.setInactiveStrikeCases(guildId, tu.getIdLong());
 		// Log

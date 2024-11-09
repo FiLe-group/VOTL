@@ -47,16 +47,28 @@ public class ForceAccessCmd extends CommandBase {
 		if (event.optInteger("type") == 1) {
 			// Target is role
 			if (level.equals(CmdAccessLevel.ALL))
-				bot.getDBUtil().access.removeRole(guild.getIdLong(), targetId);
+				if (bot.getDBUtil().access.removeRole(guild.getIdLong(), targetId)) {
+					editErrorDatabase(event, "remove role");
+					return;
+				}
 			else
-				bot.getDBUtil().access.addRole(guild.getIdLong(), targetId, level);
+				if (bot.getDBUtil().access.addRole(guild.getIdLong(), targetId, level)) {
+					editErrorDatabase(event, "add role");
+					return;
+				}
 			editMsg(event, lu.getText(event, path+".done").replace("{level}", level.getName()).replace("{target}", "Role `"+targetId+"`"));
 		} else {
 			// Target is user
 			if (level.equals(CmdAccessLevel.ALL))
-				bot.getDBUtil().access.removeUser(guild.getIdLong(), targetId);
+				if (bot.getDBUtil().access.removeUser(guild.getIdLong(), targetId)) {
+					editErrorDatabase(event, "remove user");
+					return;
+				}
 			else
-				bot.getDBUtil().access.addOperator(guild.getIdLong(), targetId);
+				if (bot.getDBUtil().access.addOperator(guild.getIdLong(), targetId)) {
+					editErrorDatabase(event, "add operator");
+					return;
+				}
 			editMsg(event, lu.getText(event, path+".done").replace("{level}", level.getName()).replace("{target}", "User `"+targetId+"`"));
 		}
 	}

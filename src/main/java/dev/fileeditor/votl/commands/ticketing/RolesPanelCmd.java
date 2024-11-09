@@ -191,7 +191,10 @@ public class RolesPanelCmd extends CommandBase {
 			Integer row = event.optInteger("row");
 			String text = event.optString("text");
 
-			bot.getDBUtil().ticketSettings.setRowText(event.getGuild().getIdLong(), row, text);
+			if (bot.getDBUtil().ticketSettings.setRowText(event.getGuild().getIdLong(), row, text)) {
+				editErrorDatabase(event, "set ticket row text");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{row}", row.toString()).replace("{text}", text))
@@ -215,7 +218,10 @@ public class RolesPanelCmd extends CommandBase {
 			event.deferReply().queue();
 			boolean enabled = event.optBoolean("enabled");
 
-			bot.getDBUtil().ticketSettings.setOtherRole(event.getGuild().getIdLong(), enabled);
+			if (bot.getDBUtil().ticketSettings.setOtherRole(event.getGuild().getIdLong(), enabled)) {
+				editErrorDatabase(event, "set ticket other");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(String.valueOf(enabled)))

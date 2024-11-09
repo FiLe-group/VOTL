@@ -38,13 +38,13 @@ public class CaseManager extends LiteBase {
 	}
 
 	// update case reason
-	public void updateReason(int rowId, String reason) {
-		execute("UPDATE %s SET reason=%s WHERE (rowId=%d)".formatted(table, quote(reason), rowId));
+	public boolean updateReason(int rowId, String reason) {
+		return execute("UPDATE %s SET reason=%s WHERE (rowId=%d)".formatted(table, quote(reason), rowId));
 	}
 
 	// update case duration
-	public void updateDuration(int rowId, Duration duration) {
-		execute("UPDATE %s SET duration=%d WHERE (rowId=%d)".formatted(table, duration.getSeconds(), rowId));
+	public boolean updateDuration(int rowId, Duration duration) {
+		return execute("UPDATE %s SET duration=%d WHERE (rowId=%d)".formatted(table, duration.getSeconds(), rowId));
 	}
 
 	// set case inactive

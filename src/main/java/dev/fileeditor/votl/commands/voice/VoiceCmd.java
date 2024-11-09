@@ -252,7 +252,10 @@ public class VoiceCmd extends CommandBase {
 		name = name.replace("{user}", event.getMember().getEffectiveName());
 		event.getGuild().getVoiceChannelById(channelId).getManager().setName(name.substring(0, Math.min(100, name.length()))).queue();
 
-		bot.getDBUtil().user.setName(userId, name);
+		if (bot.getDBUtil().user.setName(userId, name)) {
+			editErrorDatabase(event, "set voice name");
+			return;
+		}
 
 		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, "bot.voice.voice.name.done").replace("{value}", name))
@@ -307,7 +310,10 @@ public class VoiceCmd extends CommandBase {
 
 		event.getGuild().getVoiceChannelById(channelId).getManager().setUserLimit(limit).queue();
 
-		bot.getDBUtil().user.setLimit(userId, limit);
+		if (bot.getDBUtil().user.setLimit(userId, limit)) {
+			editErrorDatabase(event, "set voice limit");
+			return;
+		}
 
 		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, "bot.voice.voice.limit.done").replace("{value}", limit.toString()))

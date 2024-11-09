@@ -25,15 +25,21 @@ public class LiteBase {
 		this.table = table;
 	}
 
+	/**
+	 * @param sql SQL statement to execute
+	 * @return true if exception
+	 */
 	// Execute statement
-	protected void execute(final String sql) {
+	protected boolean execute(final String sql) {
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
 			util.logger.warn("DB SQLite: Error at statement execution\nRequest: {}", sql, ex);
+			return true;
 		}
+		return false;
 	}
 
 	protected int executeWithRow(final String sql) {

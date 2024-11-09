@@ -72,7 +72,10 @@ public class AccessCmd extends CommandBase {
 			else for (Long roleId : exceptIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
-					bot.getDBUtil().access.removeRole(guildId, roleId);
+					if (bot.getDBUtil().access.removeRole(guildId, roleId)) {
+						editErrorDatabase(event, "remove role");
+						return;
+					}
 					continue;
 				}
 				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
@@ -83,7 +86,10 @@ public class AccessCmd extends CommandBase {
 			else for (Long roleId : helperIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
-					bot.getDBUtil().access.removeRole(guildId, roleId);
+					if (bot.getDBUtil().access.removeRole(guildId, roleId)) {
+						editErrorDatabase(event, "remove role");
+						return;
+					}
 					continue;
 				}
 				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
@@ -94,7 +100,10 @@ public class AccessCmd extends CommandBase {
 			else for (Long roleId : modIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
-					bot.getDBUtil().access.removeRole(guildId, roleId);
+					if (bot.getDBUtil().access.removeRole(guildId, roleId)) {
+						editErrorDatabase(event, "remove role");
+						return;
+					}
 					continue;
 				}
 				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
@@ -114,7 +123,6 @@ public class AccessCmd extends CommandBase {
 	}
 
 	private class AddRole extends SlashCommand {
-
 		public AddRole() {
 			this.name = "role";
 			this.path = "bot.guild.access.add.role";
@@ -151,7 +159,10 @@ public class AccessCmd extends CommandBase {
 			}
 
 			CmdAccessLevel level = CmdAccessLevel.byLevel(event.optInteger("access_level"));
-			bot.getDBUtil().access.addRole(guild.getIdLong(), roleId, level);
+			if (bot.getDBUtil().access.addRole(guild.getIdLong(), roleId, level)) {
+				editErrorDatabase(event, "add role");
+				return;
+			}
 
 			// Log
 			bot.getLogger().server.onAccessAdded(guild, event.getUser(), null, role, level);
@@ -164,7 +175,6 @@ public class AccessCmd extends CommandBase {
 				.build()
 			);
 		}
-
 	}
 
 	private class RemoveRole extends SlashCommand {
@@ -195,7 +205,10 @@ public class AccessCmd extends CommandBase {
 				editError(event, "bot.guild.access.remove.role.no_access");
 			}
 
-			bot.getDBUtil().access.removeRole(event.getGuild().getIdLong(), roleId);
+			if (bot.getDBUtil().access.removeRole(event.getGuild().getIdLong(), roleId)) {
+				editErrorDatabase(event, "remove role");
+				return;
+			}
 
 			// Log
 			bot.getLogger().server.onAccessRemoved(event.getGuild(), event.getUser(), null, role, level);
@@ -244,7 +257,10 @@ public class AccessCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().access.addOperator(guildId, userId);
+			if (bot.getDBUtil().access.addOperator(guildId, userId)) {
+				editErrorDatabase(event, "add operator");
+				return;
+			}
 			
 			// Log
 			bot.getLogger().server.onAccessAdded(event.getGuild(), event.getUser(), member.getUser(), null, CmdAccessLevel.OPERATOR);
@@ -286,7 +302,10 @@ public class AccessCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().access.removeUser(guildId, userId);
+			if (bot.getDBUtil().access.removeUser(guildId, userId)) {
+				editErrorDatabase(event, "remove user");
+				return;
+			}
 
 			// Log
 			bot.getLogger().server.onAccessRemoved(event.getGuild(), event.getUser(), user, null, CmdAccessLevel.OPERATOR);

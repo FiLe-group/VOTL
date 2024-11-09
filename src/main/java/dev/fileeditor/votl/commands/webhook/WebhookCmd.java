@@ -131,7 +131,10 @@ public class WebhookCmd extends CommandBase {
 				// DYK, guildChannel doesn't have WebhookContainer! no shit
 				event.getGuild().getTextChannelById(channel.getId()).createWebhook(setName).reason("By "+event.getUser().getName()).queue(
 					webhook -> {
-						bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken());
+						if (bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken())) {
+							editErrorDatabase(event, "add created webhook");
+							return;
+						}
 						editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 							.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
 							.build()
@@ -166,7 +169,10 @@ public class WebhookCmd extends CommandBase {
 						if (bot.getDBUtil().webhook.exists(webhookId)) {
 							editError(event, path+".error_registered");
 						} else {
-							bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken());
+							if (bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken())) {
+								editErrorDatabase(event, "add selected webhook");
+								return;
+							}
 							editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 								.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
 								.build()
@@ -206,7 +212,10 @@ public class WebhookCmd extends CommandBase {
 								if (delete) {
 									webhook.delete(webhook.getToken()).reason("By "+event.getUser().getName()).queue();
 								}
-								bot.getDBUtil().webhook.remove(webhookId);
+								if (bot.getDBUtil().webhook.remove(webhookId)) {
+									editErrorDatabase(event, "delete webhook");
+									return;
+								}
 								editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 									.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
 									.build()
@@ -256,7 +265,10 @@ public class WebhookCmd extends CommandBase {
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
 					if (bot.getDBUtil().webhook.exists(webhookId)) {
-						bot.getDBUtil().guildSettings.setLastWebhookId(guild.getIdLong(), webhookId);
+						if (bot.getDBUtil().guildSettings.setLastWebhookId(guild.getIdLong(), webhookId)) {
+							editErrorDatabase(event, "set last webhook");
+							return;
+						}
 						webhook.getManager().setChannel(textChannel).reason("By "+event.getUser().getName()).queue(
 							wm -> {
 								editEmbed(event,bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)

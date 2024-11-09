@@ -14,13 +14,13 @@ public class TempRoleManager extends LiteBase {
 		super(cu, "tempRoles");
 	}
 
-	public void add(long guildId, long roleId, long userId, boolean deleteAfter, Instant expiresAt) {
-		execute("INSERT INTO %s(guildId, roleId, userId, deleteAfter, expiresAt) VALUES (%s, %s, %s, %d, %d)"
+	public boolean add(long guildId, long roleId, long userId, boolean deleteAfter, Instant expiresAt) {
+		return execute("INSERT INTO %s(guildId, roleId, userId, deleteAfter, expiresAt) VALUES (%s, %s, %s, %d, %d)"
 			.formatted(table, guildId, roleId, userId, (deleteAfter ? 1 : 0), expiresAt.getEpochSecond()));
 	}
 
-	public void remove(long roleId, long userId) {
-		execute("DELETE FROM %s WHERE (roleId=%s AND userId=%s)".formatted(table, roleId, userId));
+	public boolean remove(long roleId, long userId) {
+		return execute("DELETE FROM %s WHERE (roleId=%s AND userId=%s)".formatted(table, roleId, userId));
 	}
 
 	public void removeRole(long roleId) {
@@ -31,8 +31,8 @@ public class TempRoleManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 
-	public void updateTime(long roleId, long userId, Instant expiresAt) {
-		execute("UPDATE %s SET expiresAt=%s WHERE (roleId=%s AND userId=%s)".formatted(table, expiresAt.getEpochSecond(), roleId, userId));
+	public boolean updateTime(long roleId, long userId, Instant expiresAt) {
+		return execute("UPDATE %s SET expiresAt=%s WHERE (roleId=%s AND userId=%s)".formatted(table, expiresAt.getEpochSecond(), roleId, userId));
 	}
 
 	public Instant expireAt(long roleId, long userId) {

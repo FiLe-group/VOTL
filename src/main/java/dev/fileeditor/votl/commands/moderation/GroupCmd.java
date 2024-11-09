@@ -86,7 +86,7 @@ public class GroupCmd extends CommandBase {
 
 			int groupId = bot.getDBUtil().group.create(guildId, groupName, appealGuildId);
 			if (groupId == 0) {
-				editErrorOther(event, "Group creation failed.");
+				editErrorDatabase(event, "group creation");
 				return;
 			}
 			bot.getLogger().group.onCreation(event, groupId, groupName);
@@ -125,7 +125,10 @@ public class GroupCmd extends CommandBase {
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 
-			bot.getDBUtil().group.deleteGroup(groupId);
+			if (bot.getDBUtil().group.deleteGroup(groupId)) {
+				editErrorDatabase(event, "delete group");
+				return;
+			}
 			bot.getLogger().group.onDeletion(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -206,7 +209,10 @@ public class GroupCmd extends CommandBase {
 					long targetId = Long.parseLong(actionMenu.getSelectedOptions().get(0).getValue());
 					Guild targetGuild = event.getJDA().getGuildById(targetId);
 
-					bot.getDBUtil().group.remove(groupId, targetId);
+					if (bot.getDBUtil().group.remove(groupId, targetId)) {
+						editErrorDatabase(event, "remove group member");
+						return;
+					}
 					if (targetGuild != null)
 						bot.getLogger().group.onGuildRemoved(event, targetGuild, groupId, groupName);
 
@@ -251,7 +257,10 @@ public class GroupCmd extends CommandBase {
 
 			int newInvite = ThreadLocalRandom.current().nextInt(100_000, 1_000_000); // 100000 - 999999
 
-			bot.getDBUtil().group.setInvite(groupId, newInvite);
+			if (bot.getDBUtil().group.setInvite(groupId, newInvite)) {
+				editErrorDatabase(event, "set group invite");
+				return;
+			}
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -302,7 +311,10 @@ public class GroupCmd extends CommandBase {
 					return;
 				}
 
-				bot.getDBUtil().group.setAppealGuildId(groupId, appealGuildId);
+				if (bot.getDBUtil().group.setAppealGuildId(groupId, appealGuildId)) {
+					editErrorDatabase(event, "set appeal guild id");
+					return;
+				}
 
 				builder.append(lu.getText(event, path+".changed_appeal").formatted(appealGuildId));
 			}
@@ -310,7 +322,10 @@ public class GroupCmd extends CommandBase {
 				String oldName = bot.getDBUtil().group.getName(groupId);
 				String newName = event.optString("name");
 
-				bot.getDBUtil().group.rename(groupId, newName);
+				if (bot.getDBUtil().group.rename(groupId, newName)) {
+					editErrorDatabase(event, "rename group");
+					return;
+				}
 				bot.getLogger().group.onRenamed(event, oldName, groupId, newName);
 
 				builder.append(lu.getText(event, path+".changed_name").formatted(oldName, newName));
@@ -406,7 +421,10 @@ public class GroupCmd extends CommandBase {
 					StringBuilder builder = new StringBuilder(lu.getText(event, path+".done")
 						.formatted(targetGuild.getName(), groupName));
 
-					bot.getDBUtil().group.setManage(groupId, targetId, canManage);
+					if (bot.getDBUtil().group.setManage(groupId, targetId, canManage)) {
+						editErrorDatabase(event, "set group manager");
+						return;
+					}
 					builder.append(lu.getText(event, path+".manage_change").formatted(canManage ? Constants.SUCCESS : Constants.FAILURE));
 
 					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -458,7 +476,10 @@ public class GroupCmd extends CommandBase {
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 
-			bot.getDBUtil().group.add(groupId, event.getGuild().getIdLong(), false);
+			if (bot.getDBUtil().group.add(groupId, event.getGuild().getIdLong(), false)) {
+				editErrorDatabase(event, "add group member");
+				return;
+			}
 			bot.getLogger().group.onGuildJoined(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -489,7 +510,10 @@ public class GroupCmd extends CommandBase {
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 
-			bot.getDBUtil().group.remove(groupId, event.getGuild().getIdLong());
+			if (bot.getDBUtil().group.remove(groupId, event.getGuild().getIdLong())) {
+				editErrorDatabase(event, "remove group member");
+				return;
+			}
 			bot.getLogger().group.onGuildLeft(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)

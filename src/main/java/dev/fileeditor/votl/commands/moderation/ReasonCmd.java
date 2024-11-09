@@ -44,7 +44,10 @@ public class ReasonCmd extends CommandBase {
 		}
 
 		String newReason = event.optString("reason");
-		bot.getDBUtil().cases.updateReason(caseData.getRowId(), newReason);
+		if (bot.getDBUtil().cases.updateReason(caseData.getRowId(), newReason)) {
+			editErrorDatabase(event, "update reason");
+			return;
+		}
 
 		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, path+".done").formatted(caseData.getLocalId(), newReason))

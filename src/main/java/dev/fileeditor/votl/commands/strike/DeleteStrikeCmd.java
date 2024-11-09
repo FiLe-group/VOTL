@@ -130,12 +130,18 @@ public class DeleteStrikeCmd extends CommandBase {
 
 			bot.getDBUtil().cases.setInactive(caseRowId);
 			if (strikesInfo.isEmpty())
-				bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong());
+				if (bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong())) {
+					editErrorDatabase(event, "delete user strikes");
+					return;
+				}
 			else
-				bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
+				if (bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
 					Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
 					1, String.join(";", strikesInfo)
-				);
+				)) {
+					editErrorDatabase(event, "delete user strikes");
+					return;
+				}
 			
 			msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done_one").formatted(caseData.getReason(), tu.getName()))
@@ -196,19 +202,28 @@ public class DeleteStrikeCmd extends CommandBase {
 			cases.remove(event.getComponentId());
 			bot.getDBUtil().cases.setInactive(caseRowId);
 			if (cases.isEmpty())
-				bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong());
+				if (bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong())) {
+					editErrorDatabase(event, "delete user strikes");
+					return;
+				}
 			else
-				bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
+				if (bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
 					Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
 					removeAmount, String.join(";", cases)
-				);
+				)) {
+					editErrorDatabase(event, "delete user strikes");
+					return;
+				}
 		} else {
 			// Delete selected amount of strikes (not all)
 			Collections.replaceAll(cases, caseRowId+"-"+activeAmount, caseRowId+"-"+(activeAmount-removeAmount));
-			bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
+			if (bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
 				Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
 				removeAmount, String.join(";", cases)
-			);
+			)) {
+				editErrorDatabase(event, "delete user strikes");
+				return;
+			}
 		}
 		// Send dm
 		tu.openPrivateChannel().queue(pm -> {

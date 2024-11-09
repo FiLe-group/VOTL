@@ -84,14 +84,14 @@ public class EmbedUtil {
 	}
 
 	@NotNull
-	public MessageEmbed getError(IReplyCallback replyCallback, @NotNull String path, String reason) {
+	public MessageEmbed getError(IReplyCallback replyCallback, @NotNull String path, String details) {
 		EmbedBuilder embedBuilder = getErrorEmbed(replyCallback)
 			.setDescription(lu.getText(replyCallback, path));
 
-		if (reason != null)
+		if (details != null)
 			embedBuilder.addField(
 				lu.getText(replyCallback, "errors.additional"),
-				MessageUtil.limitString(reason, 1024),
+				MessageUtil.limitString(details, 1024),
 				false
 			);
 

@@ -142,7 +142,10 @@ public class VerifyPanelCmd extends CommandBase {
 				editError(event, path+".unknown_url", "URL: "+imageUrl);
 				return;
 			}
-			bot.getDBUtil().verifySettings.setPanelImage(event.getGuild().getIdLong(), imageUrl);
+			if (bot.getDBUtil().verifySettings.setPanelImage(event.getGuild().getIdLong(), imageUrl)) {
+				editErrorDatabase(event, "set verify image");
+				return;
+			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(imageUrl))
 				.build()

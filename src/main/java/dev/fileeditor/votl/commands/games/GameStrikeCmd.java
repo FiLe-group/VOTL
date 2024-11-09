@@ -93,7 +93,10 @@ public class GameStrikeCmd extends CommandBase {
 			event.getUser().getIdLong(), event.getUser().getName(),
 			guildId, reason, Instant.now(), null
 		);
-		bot.getDBUtil().games.addStrike(guildId, channelId, tm.getIdLong());
+		if (bot.getDBUtil().games.addStrike(guildId, channelId, tm.getIdLong())) {
+			editErrorDatabase(event, "add strike");
+			return;
+		}
 		// Inform user
 		tm.getUser().openPrivateChannel().queue(pm -> {
 			MessageEmbed embed = bot.getModerationUtil().getGameStrikeEmbed(channel, event.getUser(), reason);

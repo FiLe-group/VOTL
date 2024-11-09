@@ -308,8 +308,11 @@ public class RoleCmd extends CommandBase {
 			}
 			actionRows.add(ActionRow.of(Button.primary("role:manage-confirm:"+target.getId(), lu.getText(event, path+".button"))));
 
-			bot.getDBUtil().modifyRole.create(event.getGuild().getIdLong(), member.getIdLong(),
-				target.getIdLong(), Instant.now().plus(2, ChronoUnit.MINUTES));
+			if (bot.getDBUtil().modifyRole.create(event.getGuild().getIdLong(), member.getIdLong(),
+				target.getIdLong(), Instant.now().plus(2, ChronoUnit.MINUTES))) {
+				editErrorDatabase(event, "start modify role");
+				return;
+			}
 
 			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 				.setDescription(lu.getText(event, path+".title").formatted(target.getAsMention()))

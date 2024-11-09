@@ -37,7 +37,10 @@ public class VerifyRoleCmd extends CommandBase {
 			return;
 		}
 
-		bot.getDBUtil().verifySettings.setVerifyRole(guild.getIdLong(), role.getIdLong());
+		if (bot.getDBUtil().verifySettings.setVerifyRole(guild.getIdLong(), role.getIdLong())) {
+			editErrorDatabase(event, "set verify role");
+			return;
+		}
 
 		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()))

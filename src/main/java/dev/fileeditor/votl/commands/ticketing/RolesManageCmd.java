@@ -109,7 +109,10 @@ public class RolesManageCmd extends CommandBase {
 					}
 				}
 				boolean timed = event.optBoolean("timed", false);
-				bot.getDBUtil().roles.add(guildId, roleId, event.optString("description", "NULL"), row, RoleType.ASSIGN, timed);
+				if (bot.getDBUtil().roles.add(guildId, roleId, event.optString("description", "NULL"), row, RoleType.ASSIGN, timed)) {
+					editErrorDatabase(event, "add managed role");
+					return;
+				}
 				sendSuccess(event, type, role);
 
 			} else if (type.equals(RoleType.TOGGLE.toString())) {
@@ -118,14 +121,20 @@ public class RolesManageCmd extends CommandBase {
 					return;
 				}
 				String description = event.optString("description", role.getName());
-				bot.getDBUtil().roles.add(guildId, roleId, description, null, RoleType.TOGGLE, false);
+				if (bot.getDBUtil().roles.add(guildId, roleId, description, null, RoleType.TOGGLE, false)) {
+					editErrorDatabase(event, "add managed role");
+					return;
+				}
 				sendSuccess(event, type, role);
 			} else if (type.equals(RoleType.CUSTOM.toString())) {
 				if (bot.getDBUtil().roles.getCustom(guildId).size() >= 25) {
 					editError(event, path+".custom_max");
 					return;
 				}
-				bot.getDBUtil().roles.add(guildId, roleId, event.optString("description", "NULL"), null, RoleType.CUSTOM, false);
+				if (bot.getDBUtil().roles.add(guildId, roleId, event.optString("description", "NULL"), null, RoleType.CUSTOM, false)) {
+					editErrorDatabase(event, "add managed role");
+					return;
+				}
 				sendSuccess(event, type, role);
 			} else {
 				editError(event, path+".no_type");
@@ -195,18 +204,27 @@ public class RolesManageCmd extends CommandBase {
 						response.append(lu.getText(event, path+".changed_description").replace("{text}", description));
 					}
 				}
-				bot.getDBUtil().roles.setDescription(roleId, description);
+				if (bot.getDBUtil().roles.setDescription(roleId, description)) {
+					editErrorDatabase(event, "update role description");
+					return;
+				}
 			}
 
 			if (event.hasOption("row")) {
 				Integer row = event.optInteger("row");
-				bot.getDBUtil().roles.setRow(roleId, row);
+				if (bot.getDBUtil().roles.setRow(roleId, row)) {
+					editErrorDatabase(event, "update role row");
+					return;
+				}
 				response.append(lu.getText(event, path+".changed_row").replace("{row}", row.toString()));
 			}
 
 			if (event.hasOption("timed")) {
 				boolean timed = event.optBoolean("timed", false);
-				bot.getDBUtil().roles.setTimed(roleId, timed);
+				if (bot.getDBUtil().roles.setTimed(roleId, timed)) {
+					editErrorDatabase(event, "update role timed");
+					return;
+				}
 				response.append(lu.getText(event, path+".changed_timed").replace("{is}", timed ? Constants.SUCCESS : Constants.FAILURE));
 			}
 
@@ -258,7 +276,10 @@ public class RolesManageCmd extends CommandBase {
 				editError(event, path+".no_role");
 				return;
 			}
-			bot.getDBUtil().roles.remove(roleIdLong);
+			if (bot.getDBUtil().roles.remove(roleIdLong)) {
+				editErrorDatabase(event, "remove managed role");
+				return;
+			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{id}", roleId))
 				.build());

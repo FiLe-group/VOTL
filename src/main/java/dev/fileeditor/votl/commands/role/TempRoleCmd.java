@@ -109,7 +109,10 @@ public class TempRoleCmd extends CommandBase {
 			Instant until = Instant.now().plus(duration);
 
 			guild.addRoleToMember(member, role).reason("Assigned temporary role | by %s".formatted(event.getMember().getEffectiveName())).queue(done -> {
-				bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, userId, delete, until);
+				if (bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, userId, delete, until)) {
+					editErrorDatabase(event, "assign temp role");
+					return;
+				}
 				// Log
 				bot.getLogger().role.onTempRoleAdded(guild, event.getUser(), member.getUser(), role, duration);
 				// Send reply
@@ -156,7 +159,10 @@ public class TempRoleCmd extends CommandBase {
 
 			event.getGuild().removeRoleFromMember(member, role).reason("Canceled temporary role | by "+event.getMember().getEffectiveName()).queue();
 
-			bot.getDBUtil().tempRoles.remove(role.getIdLong(), member.getIdLong());
+			if (bot.getDBUtil().tempRoles.remove(role.getIdLong(), member.getIdLong())) {
+				editErrorDatabase(event, "remove temp role");
+				return;
+			}
 			// Log
 			bot.getLogger().role.onTempRoleRemoved(event.getGuild(), event.getUser(), member.getUser(), role);
 			// Send reply
@@ -214,7 +220,10 @@ public class TempRoleCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), member.getIdLong(), until);
+			if (bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), member.getIdLong(), until)) {
+				editErrorDatabase(event, "update temp role duration");
+				return;
+			}
 			// Log
 			bot.getLogger().role.onTempRoleUpdated(event.getGuild(), event.getUser(), member.getUser(), role, until);
 			// Send reply

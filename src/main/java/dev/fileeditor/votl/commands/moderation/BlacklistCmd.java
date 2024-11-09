@@ -103,7 +103,10 @@ public class BlacklistCmd extends CommandBase {
 
 			User user = event.optUser("user");
 			if (bot.getDBUtil().blacklist.inGroupUser(groupId, user.getIdLong())) {
-				bot.getDBUtil().blacklist.removeUser(groupId, user.getIdLong());
+				if (bot.getDBUtil().blacklist.removeUser(groupId, user.getIdLong())) {
+					editErrorDatabase(event, "remove user");
+					return;
+				}
 				// Log into master
 				bot.getLogger().mod.onBlacklistRemoved(event.getUser(), user, groupId);
 				// Reply

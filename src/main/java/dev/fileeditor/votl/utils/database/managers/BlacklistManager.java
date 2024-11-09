@@ -23,8 +23,8 @@ public class BlacklistManager extends LiteBase {
 		return selectOne("SELECT userId FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId), "userId", Long.class) != null;
 	}
 
-	public void removeUser(int groupId, long userId) {
-		execute("DELETE FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId));
+	public boolean removeUser(int groupId, long userId) {
+		return execute("DELETE FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId));
 	}
 
 	public Map<String, Object> getInfo(int groupId, long userId) {

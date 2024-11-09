@@ -91,7 +91,10 @@ public class LogsCmd extends CommandBase {
 				channel.createWebhook(lu.getText(type.getNamePath())).setAvatar(icon).reason("By "+event.getUser().getName()).queue(webhook -> {
 					// Add to DB
 					WebhookData data = new WebhookData(channel.getIdLong(), webhook.getIdLong(), webhook.getToken());
-					bot.getDBUtil().logs.setLogWebhook(type, event.getGuild().getIdLong(), data);
+					if (bot.getDBUtil().logs.setLogWebhook(type, event.getGuild().getIdLong(), data)) {
+						editErrorDatabase(event, "set logs");
+						return;
+					}
 					// Reply
 					webhook.sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
 						.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log").formatted(text))
@@ -136,7 +139,10 @@ public class LogsCmd extends CommandBase {
 					}
 				}
 				// Remove guild from db
-				bot.getDBUtil().logs.removeGuild(guildId);
+				if (bot.getDBUtil().logs.removeGuild(guildId)) {
+					editErrorDatabase(event, "clear logs");
+					return;
+				}
 				// Reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done_all"))
@@ -149,7 +155,10 @@ public class LogsCmd extends CommandBase {
 					event.getJDA().retrieveWebhookById(data.getWebhookId())
 						.queue(webhook -> webhook.delete(data.getToken()).reason("Log disabled").queue());
 				}
-				bot.getDBUtil().logs.removeLogWebhook(type, guildId);
+				if (bot.getDBUtil().logs.removeLogWebhook(type, guildId)) {
+					editErrorDatabase(event, "remove logs");
+					return;
+				}
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").formatted(lu.getText(event, type.getNamePath())))
 					.build()
@@ -225,15 +234,14 @@ public class LogsCmd extends CommandBase {
 					return;
 				}
 			}
-			bot.getDBUtil().logExceptions.addException(guildId, channelUnion.getIdLong());
+			if (bot.getDBUtil().logExceptions.addException(guildId, channelUnion.getIdLong())) {
+				editErrorDatabase(event, "add log exception");
+				return;
+			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(channelUnion.getName()))
 				.build()
 			);
-
-			
-			
-			
 		}
 	}
 
@@ -263,7 +271,10 @@ public class LogsCmd extends CommandBase {
 				editError(event, path+".not_found", "Provided ID: "+targetId);
 				return;
 			}
-			bot.getDBUtil().logExceptions.removeException(guildId, targetId);
+			if (bot.getDBUtil().logExceptions.removeException(guildId, targetId)) {
+				editErrorDatabase(event, "remove log exception");
+				return;
+			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted("'"+targetId+"'"))
 				.build()

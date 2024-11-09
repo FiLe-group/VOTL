@@ -51,7 +51,10 @@ public class GameCmd extends CommandBase {
 			}
 			int maxStrikes = event.optInteger("max_strikes", 3);
 
-			bot.getDBUtil().games.addChannel(event.getGuild().getIdLong(), channel.getIdLong(), maxStrikes);
+			if (bot.getDBUtil().games.addChannel(event.getGuild().getIdLong(), channel.getIdLong(), maxStrikes)) {
+				editErrorDatabase(event, "add channel");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention(), maxStrikes))
@@ -78,7 +81,10 @@ public class GameCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().games.removeChannel(channel.getIdLong());
+			if (bot.getDBUtil().games.removeChannel(channel.getIdLong())) {
+				editErrorDatabase(event, "remove channel");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
@@ -142,7 +148,10 @@ public class GameCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().games.clearStrikes(channel.getIdLong(), user.getIdLong());
+			if (bot.getDBUtil().games.clearStrikes(channel.getIdLong(), user.getIdLong())) {
+				editErrorDatabase(event, "clear strikes");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(user.getAsMention(), channel.getAsMention()))

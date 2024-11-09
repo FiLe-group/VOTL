@@ -41,9 +41,9 @@ public class VerifySettingsManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 
-	public void setVerifyRole(long guildId, long roleId) {
+	public boolean setVerifyRole(long guildId, long roleId) {
 		invalidateCache(guildId);
-		execute("INSERT INTO %s(guildId, roleId) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET roleId=%<d".formatted(table, guildId, roleId));
+		return execute("INSERT INTO %s(guildId, roleId) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET roleId=%<d".formatted(table, guildId, roleId));
 	}
 
 	public void setPanelText(long guildId, String text) {
@@ -52,9 +52,9 @@ public class VerifySettingsManager extends LiteBase {
 		execute("INSERT INTO %s(guildId, panelText) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelText=%<s".formatted(table, guildId, textParsed));
 	}
 
-	public void setPanelImage(long guildId, String imageUrl) {
+	public boolean setPanelImage(long guildId, String imageUrl) {
 		invalidateCache(guildId);
-		execute("INSERT INTO %s(guildId, panelImage) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelImage=%<s".formatted(table, guildId, quote(imageUrl)));
+		return execute("INSERT INTO %s(guildId, panelImage) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelImage=%<s".formatted(table, guildId, quote(imageUrl)));
 	}
 
 	private void invalidateCache(long guildId) {

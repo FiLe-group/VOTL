@@ -136,7 +136,10 @@ public class AutopunishCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().autopunish.addAction(event.getGuild().getIdLong(), strikeCount, actions, String.join(";", data));
+			if (bot.getDBUtil().autopunish.addAction(event.getGuild().getIdLong(), strikeCount, actions, String.join(";", data))) {
+				editErrorDatabase(event, "add action");
+				return;
+			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_SUCCESS).setDescription(builder.toString()).build());
 		}
 
@@ -162,7 +165,10 @@ public class AutopunishCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().autopunish.removeAction(event.getGuild().getIdLong(), strikeCount);
+			if (bot.getDBUtil().autopunish.removeAction(event.getGuild().getIdLong(), strikeCount)) {
+				editErrorDatabase(event, "remove action");
+				return;
+			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed()
 				.setColor(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(strikeCount))

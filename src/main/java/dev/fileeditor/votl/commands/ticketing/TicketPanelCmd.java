@@ -142,7 +142,10 @@ public class TicketPanelCmd extends CommandBase {
 				editError(event, path+".no_options");
 				return;
 			}
-			bot.getDBUtil().ticketPanels.updatePanel(panelId, title, description, image, footer);
+			if (bot.getDBUtil().ticketPanels.updatePanel(panelId, title, description, image, footer)) {
+				editErrorDatabase(event, "update panel");
+				return;
+			}
 			editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS)
 				.setTitle(lu.getText(event, path+".done"))
 				.build());
@@ -250,7 +253,10 @@ public class TicketPanelCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().ticketPanels.delete(panelId);
+			if (bot.getDBUtil().ticketPanels.delete(panelId)) {
+				editErrorDatabase(event, "delete ticket panel");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(panelId))
@@ -409,7 +415,14 @@ public class TicketPanelCmd extends CommandBase {
 			if (builder.getFields().isEmpty()) {
 				editError(event, path+".no_options");
 			} else {
-				bot.getDBUtil().ticketTags.updateTag(tagId, type, buttonText, emoji, Optional.ofNullable(category).map(Category::getIdLong).orElse(null), message, supportRoleIds, ticketName, buttonStyle.getKey());
+				if (bot.getDBUtil().ticketTags.updateTag(
+					tagId, type, buttonText, emoji,
+					Optional.ofNullable(category).map(Category::getIdLong).orElse(null),
+					message, supportRoleIds, ticketName, buttonStyle.getKey())
+				) {
+					editErrorDatabase(event, "update ticket tag");
+					return;
+				}
 				editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS)
 					.setTitle(lu.getText(event, path+".done"))
 					.build()
@@ -486,7 +499,10 @@ public class TicketPanelCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().ticketTags.deleteTag(tagId);
+			if (bot.getDBUtil().ticketTags.deleteTag(tagId)) {
+				editErrorDatabase(event, "delete ticket tag");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(tagId))
@@ -519,17 +535,26 @@ public class TicketPanelCmd extends CommandBase {
 			StringBuilder response = new StringBuilder();
 			if (event.hasOption("autoclose")) {
 				int time = event.optInteger("autoclose");
-				bot.getDBUtil().ticketSettings.setAutocloseTime(guildId, time);
+				if (bot.getDBUtil().ticketSettings.setAutocloseTime(guildId, time)) {
+					editErrorDatabase(event, "set ticket autoclose time");
+					return;
+				}
 				response.append(lu.getText(event, path+".changed_autoclose").formatted(time));
 			}
 			if (event.hasOption("author_left")) {
 				boolean left = event.optBoolean("author_left");
-				bot.getDBUtil().ticketSettings.setAutocloseLeft(guildId, left);
+				if (bot.getDBUtil().ticketSettings.setAutocloseLeft(guildId, left)) {
+					editErrorDatabase(event, "set ticket autoclose left");
+					return;
+				}
 				response.append(lu.getText(event, path+".changed_left").formatted(left ? Constants.SUCCESS : Constants.FAILURE));
 			}
 			if (event.hasOption("reply_time")) {
 				int time = event.optInteger("reply_time");
-				bot.getDBUtil().ticketSettings.setTimeToReply(guildId, time);
+				if (bot.getDBUtil().ticketSettings.setTimeToReply(guildId, time)) {
+					editErrorDatabase(event, "set ticket time reply");
+					return;
+				}
 				response.append(lu.getText(event, path+".changed_reply").formatted(time));
 			}
 			

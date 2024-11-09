@@ -120,7 +120,13 @@ public class StrikeCmd extends CommandBase {
 			return;
 		}
 		// add strikes
-		Field action = executeStrike(guild.getLocale(), guild, tm, strikeAmount, caseData.getRowId());
+		final Field action;
+		try {
+			action = executeStrike(guild.getLocale(), guild, tm, strikeAmount, caseData.getRowId());
+		} catch (Exception e) {
+			editErrorOther(event, e.getMessage());
+			return;
+		}
 		// log strike
 		bot.getLogger().mod.onNewCase(guild, tm.getUser(), caseData, proofData).thenAccept(logUrl -> {
 			// Add log url to db
@@ -134,11 +140,13 @@ public class StrikeCmd extends CommandBase {
 		});
 	}
 
-	private Field executeStrike(DiscordLocale locale, Guild guild, Member target, int addAmount, int caseRowId) {
+	private Field executeStrike(DiscordLocale locale, Guild guild, Member target, int addAmount, int caseRowId) throws Exception {
 		// Add strike(-s) to DB
-		bot.getDBUtil().strikes.addStrikes(guild.getIdLong(), target.getIdLong(),
+		if (bot.getDBUtil().strikes.addStrikes(guild.getIdLong(), target.getIdLong(),
 			Instant.now().plus(bot.getDBUtil().getGuildSettings(guild).getStrikeExpires(), ChronoUnit.DAYS),
-			addAmount, caseRowId+"-"+addAmount);
+			addAmount, caseRowId+"-"+addAmount)) {
+			throw new Exception("Case was created, but strike information was not added to the database (internal error)!");
+		}
 		// Get strike new strike amount
 		Integer strikes = bot.getDBUtil().strikes.getStrikeCount(guild.getIdLong(), target.getIdLong());
 		// Check if strikes is null (how?)
