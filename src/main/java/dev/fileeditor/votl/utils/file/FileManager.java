@@ -8,11 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import dev.fileeditor.votl.App;
@@ -25,23 +21,16 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 
 import ch.qos.logback.classic.Logger;
 
-class KeyIsNull extends Exception {
-	public KeyIsNull(String str) {
-		super(str);
-	}
-}
-
 public class FileManager {
 
-	private final Logger logger = (Logger) LoggerFactory.getLogger(FileManager.class);
+	private final Logger LOG = (Logger) LoggerFactory.getLogger(FileManager.class);
 
-	private final Configuration CONF = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS);
+	public static final Configuration CONF = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS);
 	
 	private final Map<String, File> files = new HashMap<>();
 	private final List<DiscordLocale> locales = new ArrayList<>();
@@ -72,6 +61,20 @@ public class FileManager {
 	public List<DiscordLocale> getLanguages() {
 		return locales;
 	}
+
+	/**
+	 * @param name - json file to be searched
+	 * @return Returns nullable File.
+	 */
+	@Nullable
+	public File getFile(String name) {
+		File file = files.get(name);
+
+		if (file == null)
+			LOG.error("Couldn't find file {}.json", name);
+
+		return file;
+	}
 	
 	public void createUpdateLoad(String name, String internal, String external) {
 		File file = new File(external);
@@ -84,14 +87,14 @@ public class FileManager {
 					throw new FileNotFoundException("Resource file '"+internal+"' not found.");
 				if ((split.length == 2 && !split[0].equals(".")) || (split.length >= 3 && split[0].equals("."))) {
 					if (!file.getParentFile().mkdirs() && !file.getParentFile().exists()) {
-						logger.error("Failed to create directory {}", split[1]);
+						LOG.error("Failed to create directory {}", split[1]);
 					}
 				}
 				if (file.createNewFile()) {
 					if (!export(App.class.getResourceAsStream(internal), Paths.get(external))) {
-						logger.error("Failed to write {}!", name);
+						LOG.error("Failed to write {}!", name);
 					} else {
-						logger.info("Successfully created {}!", name);
+						LOG.info("Successfully created {}!", name);
 						files.put(name, file);
 					}
 				}
@@ -100,24 +103,24 @@ public class FileManager {
 			if (external.contains("lang")) {
 				File tempFile = File.createTempFile("locale-", ".json");
 				if (!export(App.class.getResourceAsStream(internal), tempFile.toPath())) {
-					logger.error("Failed to write temp file {}!", tempFile.getName());
+					LOG.error("Failed to write temp file {}!", tempFile.getName());
 				} else {
 					if (Files.mismatch(file.toPath(), tempFile.toPath()) != -1) {
 						if (export(App.class.getResourceAsStream(internal), Paths.get(external))) {
-							logger.info("Successfully updated {}!", name);
+							LOG.info("Successfully updated {}!", name);
 							files.put(name, file);
 							return;
 						} else {
-							logger.error("Failed to overwrite {}!", name);
+							LOG.error("Failed to overwrite {}!", name);
 						}
 					}
 				}
-				tempFile.delete();
+				boolean ignored = tempFile.delete();
 			}
 			files.put(name, file);
-			logger.info("Successfully loaded {}!", name);
+			LOG.info("Successfully loaded {}!", name);
 		} catch (IOException ex) {
-			logger.error("Couldn't locate nor create {}", file.getAbsolutePath(), ex);
+			LOG.error("Couldn't locate nor create {}", file.getAbsolutePath(), ex);
 		}
 	}
 
@@ -130,8 +133,8 @@ public class FileManager {
 	public String getString(String name, String path) {
 		String result = getNullableString(name, path);
 		if (result == null) {
-			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
-			return path;
+			LOG.warn("Couldn't find \"{}\" in file {}.json", path, name);
+			return "invalid_" + UUID.randomUUID().timestamp();
 		}
 		return result;
 	}
@@ -155,33 +158,14 @@ public class FileManager {
 			if (text != null && text.isBlank()) text = null;
 		
 		} catch (FileNotFoundException ex) {
-			logger.error("Couldn't find file {}.json", name);
-			text = "FILE ERROR: file not found";
-		} catch (InvalidPathException ex) {
-			logger.error("Invalid path '{}'\n{}", path, ex.getMessage());
-			text = "PATH ERROR: invalid";
+			LOG.error("Couldn't find file {}.json", name);
+			text = "bad_file_" + UUID.randomUUID().timestamp();
 		} catch (IOException ex) {
-			logger.error("Couldn't process file {}.json\n{}", name, ex.getMessage());
-			text = "FILE ERROR: IO exception";
+			LOG.error("Couldn't process file {}.json\n{}", name, ex.getMessage());
+			text = "error_file_" + UUID.randomUUID().timestamp();
 		}
 
 		return text;
-	}
-	
-	@Nullable
-	public Boolean getBoolean(String name, String path){
-		File file = files.get(name);
-		
-		if (file == null) return null;
-		
-		try {
-			return JsonPath.using(CONF).parse(file).read("$." + path);
-		} catch (FileNotFoundException ex) {
-			logger.error("Couldn't find file {}.json", name);
-		} catch (IOException ex) {
-			logger.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
-		}
-		return null;
 	}
 
 	@NotNull
@@ -189,7 +173,7 @@ public class FileManager {
 		File file = files.get(name);
 		
 		if (file == null) {
-			logger.error("Couldn't find file {}.json", name);
+			LOG.error("Couldn't find file {}.json", name);
 			return Collections.emptyList();
 		}
 
@@ -201,39 +185,13 @@ public class FileManager {
 				
 			return array;
 		} catch (FileNotFoundException ex) {
-			logger.error("Couldn't find file {}.json", name);
+			LOG.error("Couldn't find file {}.json", name);
 		} catch (KeyIsNull ex) {
-			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
+			LOG.warn("Couldn't find \"{}\" in file {}.json", path, name);
 		} catch (IOException ex) {
-			logger.warn("Couldn't process file {}.json", name, ex);
+			LOG.warn("Couldn't process file {}.json", name, ex);
 		}
 		return Collections.emptyList();
-	}
-
-	@SuppressWarnings("unchecked")
-	@NotNull
-	public Map<String, String> getMap(String name, String path){
-		File file = files.get(name);
-		if(file == null) {
-			logger.error("Couldn't find file {}.json", name);
-			return Collections.emptyMap();
-		}
-
-		try {
-			Map<String, String> map = JsonPath.using(CONF).parse(file).read("$." + path, Map.class);	
-			
-			if (map == null || map.isEmpty())
-				throw new KeyIsNull(path);
-				
-			return map;
-		} catch (FileNotFoundException ex) {
-			logger.error("Couldn't find file {}.json", name);
-		} catch (KeyIsNull ex) {
-			logger.warn("Couldn't find \"{}\" in file {}.json", path, name);
-		} catch (IOException ex) {
-			logger.warn("Couldn't process file {}.json", name, ex);
-		}
-		return Collections.emptyMap();
 	}
 
 	public boolean export(InputStream inputStream, Path destination){
@@ -241,10 +199,16 @@ public class FileManager {
 		try {
 			Files.copy(inputStream, destination, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException | NullPointerException ex){
-			logger.info("Exception at copying", ex);
+			LOG.info("Exception at copying", ex);
 			success = false;
 		}
 
 		return success;
+	}
+
+	private static class KeyIsNull extends Exception {
+		public KeyIsNull(String str) {
+			super(str);
+		}
 	}
 }
