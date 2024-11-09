@@ -144,7 +144,7 @@ public class FileManager {
 		String result = getNullableString(name, path);
 		if (result == null) {
 			LOG.warn("Couldn't find \"{}\" in file {}.json", path, name);
-			return "invalid_" + UUID.randomUUID().timestamp();
+			return "path_error_invalid";
 		}
 		return result;
 	}
@@ -169,10 +169,10 @@ public class FileManager {
 		
 		} catch (FileNotFoundException ex) {
 			LOG.error("Couldn't find file {}.json", name);
-			text = "bad_file_" + UUID.randomUUID().timestamp();
+			text = "bad_file";
 		} catch (IOException ex) {
 			LOG.error("Couldn't process file {}.json\n{}", name, ex.getMessage());
-			text = "error_file_" + UUID.randomUUID().timestamp();
+			text = "error_file";
 		}
 
 		return text;

@@ -40,7 +40,8 @@ public class LiteBase {
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
-			return st.executeUpdate();
+			st.executeUpdate();
+			return st.getGeneratedKeys().getInt(1);
 		} catch (SQLException ex) {
 			util.logger.warn("DB SQLite: Error at statement execution\nRequest: {}", sql, ex);
 			return 0;
@@ -145,12 +146,6 @@ public class LiteBase {
 			util.logger.warn("DB SQLite: Error at SELECT\nRequest: {}", sql, ex);
 		}
 		return result;
-	}
-
-	protected int getIncrement(final String table) {
-		Integer data = selectOne("SELECT seq FROM sqlite_sequence WHERE (name=%s)".formatted(quote(table)), "seq", Integer.class);
-		if (data == null) return 0;
-		return data;
 	}
 
 

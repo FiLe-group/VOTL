@@ -28,7 +28,7 @@ public class GroupHelper {
 	}
 
 	private void banUser(int groupId, Guild executedGuild, User user, String reason) {
-		List<Long> guildIds = new ArrayList<Long>();
+		final List<Long> guildIds = new ArrayList<>();
 		for (long guildId : db.group.getGroupManagers(groupId)) {
 			for (int subGroupId : db.group.getOwnedGroups(guildId)) {
 				guildIds.addAll(db.group.getGroupMembers(subGroupId));
@@ -38,10 +38,10 @@ public class GroupHelper {
 		if (guildIds.isEmpty()) return;
 
 		final int maxCount = guildIds.size();
-		List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+		final List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 		final String newReason = "Sync #"+groupId+": "+reason;
 		for (long guildId : guildIds) {
-			Guild guild = JDA.getGuildById(guildId);
+			final Guild guild = JDA.getGuildById(guildId);
 			if (guild == null) continue;
 			// fail-safe check if the user has temporal ban (to prevent auto unban)
 			db.cases.setInactiveByType(user.getIdLong(), guildId, CaseType.BAN);
@@ -61,7 +61,7 @@ public class GroupHelper {
 	}
 
 	private void unbanUser(int groupId, Guild master, User user, String reason) {
-		List<Long> guildIds = new ArrayList<Long>();
+		final List<Long> guildIds = new ArrayList<>();
 		for (long guildId : db.group.getGroupManagers(groupId)) {
 			for (int subGroupId : db.group.getOwnedGroups(guildId)) {
 				guildIds.addAll(db.group.getGroupMembers(subGroupId));
@@ -71,10 +71,10 @@ public class GroupHelper {
 		if (guildIds.isEmpty()) return;
 
 		final int maxCount = guildIds.size();
-		List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+		final List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 		final String newReason = "Sync #"+groupId+": "+reason;
 		for (long guildId : guildIds) {
-			Guild guild = JDA.getGuildById(guildId);
+			final Guild guild = JDA.getGuildById(guildId);
 			if (guild == null) continue;
 			// Remove temporal ban case
 			db.cases.setInactiveByType(user.getIdLong(), guildId, CaseType.BAN);
@@ -93,7 +93,7 @@ public class GroupHelper {
 	}
 
 	private void kickUser(int groupId, Guild master, User user, String reason) {
-		List<Long> guildIds = new ArrayList<Long>();
+		final List<Long> guildIds = new ArrayList<>();
 		for (long guildId : db.group.getGroupManagers(groupId)) {
 			for (int subGroupId : db.group.getOwnedGroups(guildId)) {
 				guildIds.addAll(db.group.getGroupMembers(subGroupId));
@@ -103,10 +103,10 @@ public class GroupHelper {
 		if (guildIds.isEmpty()) return;
 
 		final int maxCount = guildIds.size();
-		List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+		final List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 		final String newReason = "Sync #"+groupId+": "+reason;
 		for (long guildId : guildIds) {
-			Guild guild = JDA.getGuildById(guildId);
+			final Guild guild = JDA.getGuildById(guildId);
 			if (guild == null) continue;
 
 			completableFutures.add(guild.kick(user).reason(newReason).submit());
