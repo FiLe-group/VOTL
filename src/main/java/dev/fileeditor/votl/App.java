@@ -213,7 +213,7 @@ public class App {
 		AutoCompleteListener acListener = new AutoCompleteListener(commandClient, dbUtil);
 
 		final Set<GatewayIntent> intents = Set.of(
-			GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
+			GatewayIntent.GUILD_EXPRESSIONS,
 			GatewayIntent.GUILD_INVITES,
 			GatewayIntent.GUILD_MEMBERS,
 			GatewayIntent.GUILD_MESSAGES,
