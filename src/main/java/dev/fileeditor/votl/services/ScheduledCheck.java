@@ -54,7 +54,8 @@ public class ScheduledCheck {
 	public void irregularChecks() {
 		CompletableFuture.runAsync(this::checkTicketStatus)
 			.thenRunAsync(this::checkExpiredTempRoles)
-			.thenRunAsync(this::checkExpiredStrikes);
+			.thenRunAsync(this::checkExpiredStrikes)
+			.thenRunAsync(this::checkExpiredPersistentRoles);
 	}
 
 	private void checkTicketStatus() {
@@ -217,6 +218,14 @@ public class ScheduledCheck {
 			}
 		} catch (Throwable t) {
 			logger.error("Exception caught during expired warns check.", t);
+		}
+	}
+
+	private void checkExpiredPersistentRoles() {
+		try {
+			db.persistent.removeExpired();
+		} catch (Throwable t) {
+			logger.error("Exception caught during expired persistent roles check.", t);
 		}
 	}
 

@@ -56,6 +56,7 @@ public class DBUtil {
 	public final BlacklistManager blacklist;
 	public final ModifyRoleManager modifyRole;
 	public final GameStrikeManager games;
+	public final PersistentManager persistent;
 
 	public DBUtil(FileManager fileManager) {
 		this.fileManager = fileManager;
@@ -83,6 +84,7 @@ public class DBUtil {
 		blacklist = new BlacklistManager(connectionUtil);
 		modifyRole = new ModifyRoleManager(connectionUtil);
 		games = new GameStrikeManager(connectionUtil);
+		persistent = new PersistentManager(connectionUtil);
 
 		updateDB();
 

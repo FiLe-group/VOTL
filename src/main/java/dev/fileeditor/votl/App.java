@@ -145,6 +145,7 @@ public class App {
 				new LogsCmd(),
 				new ModuleCmd(WAITER),
 				new SetupCmd(),
+				new PersistentRoleCmd(),
 				// moderation
 				new BanCmd(),
 				new BlacklistCmd(),

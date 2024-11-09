@@ -61,6 +61,7 @@ public class GuildListener extends ListenerAdapter {
 		db.logExceptions.removeGuild(guildId);
 		db.modifyRole.removeAll(guildId);
 		db.games.removeGuild(guildId);
+		db.persistent.removeGuild(guildId);
 		
 		db.guildSettings.remove(guildId);
 
