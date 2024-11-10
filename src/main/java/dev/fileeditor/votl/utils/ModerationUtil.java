@@ -4,8 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 
 import dev.fileeditor.votl.objects.CaseType;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
@@ -17,6 +15,8 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ModerationUtil {
 
@@ -89,7 +89,7 @@ public class ModerationUtil {
 				.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed getReasonUpdateEmbed(DiscordLocale locale, Guild guild, Instant timestamp, CaseType caseType, String oldReason, String newReason) {
 		if (oldReason == null) oldReason = "-";
 		if (caseType.equals(CaseType.MUTE)) {
@@ -99,7 +99,7 @@ public class ModerationUtil {
 				.appendDescription("\n\n**Old**: ||`"+oldReason+"`||\n**New**: `"+newReason+"`")
 				.build();
 		} else {
-			// else is strike
+			// else is a strike
 			return new EmbedBuilder().setColor(Constants.COLOR_WARNING)
 				.setDescription(lu.getLocalized(locale, "logger_embed.pm.reason_strike").formatted(guild.getName(), TimeUtil.formatTime(timestamp, false)))
 				.appendDescription("\n\n**Old**: ||`"+oldReason+"`||\n**New**: `"+newReason+"`")
@@ -115,37 +115,27 @@ public class ModerationUtil {
 		return builder.toString();
 	}
 
-	public MessageEmbed actionEmbed(DiscordLocale locale, int caseId, String actionPath, User target, User mod, String reason, Duration duration) {
-		return new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
+	public MessageEmbed actionEmbed(DiscordLocale locale, int localCaseId, String actionPath, User target, User mod, String reason, String logUrl) {
+		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
+			.setDescription(lu.getLocalized(locale, actionPath))
+			.setLink(logUrl)
+			.build();
+	}
+
+	public MessageEmbed actionEmbed(DiscordLocale locale, int localCaseId, String actionPath, User target, User mod, String reason, Duration duration, String logUrl) {
+		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
 			.setDescription(lu.getLocalized(locale, actionPath)
 				.formatted(TimeUtil.formatDuration(lu, locale, Instant.now(), duration)))
-			.addField(lu.getLocalized(locale, "logger.user"), "%s (%s)".formatted(target.getName(), target.getAsMention()), true)
-			.addField(lu.getLocalized(locale, "logger.reason"), reason, true)
-			.addField(lu.getLocalized(locale, "logger.moderation.mod"), "%s (%s)".formatted(mod.getName(), mod.getAsMention()), false)
-			.setTimestamp(Instant.now())
-			.setFooter("#"+caseId)
+			.setLink(logUrl)
 			.build();
 	}
 
-	public MessageEmbed actionEmbed(DiscordLocale locale, int caseId, String actionPath, User target, User mod, String reason) {
-		return new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getLocalized(locale, actionPath))
-			.addField(lu.getLocalized(locale, "logger.user"), "%s (%s)".formatted(target.getName(), target.getAsMention()), true)
-			.addField(lu.getLocalized(locale, "logger.reason"), reason, true)
-			.addField(lu.getLocalized(locale, "logger.moderation.mod"), "%s (%s)".formatted(mod.getName(), mod.getAsMention()), false)
-			.setTimestamp(Instant.now())
-			.setFooter("#"+caseId)
-			.build();
-	}
-
-	public EmbedBuilder actionEmbed(DiscordLocale locale, int caseId, String actionPath, String typePath, User target, User mod, String reason) {
-		return new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getLocalized(locale, actionPath).formatted(lu.getLocalized(locale, typePath)))
-			.addField(lu.getLocalized(locale, "logger.user"), "%s (%s)".formatted(target.getName(), target.getAsMention()), true)
-			.addField(lu.getLocalized(locale, "logger.reason"), reason, true)
-			.addField(lu.getLocalized(locale, "logger.moderation.mod"), "%s (%s)".formatted(mod.getName(), mod.getAsMention()), false)
-			.setTimestamp(Instant.now())
-			.setFooter("#"+caseId);
+	public EmbedBuilder actionEmbed(DiscordLocale locale, int localCaseId, String actionPath, String typePath, User target, User mod, String reason, String logUrl) {
+		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
+			.setDescription(lu.getLocalized(locale, actionPath)
+				.formatted(lu.getLocalized(locale, typePath)))
+			.setLink(logUrl)
+			.getBuilder();
 	}
 
 	@Nullable
@@ -156,5 +146,39 @@ public class ModerationUtil {
 		return new EmbedBuilder().setColor(Constants.COLOR_WARNING)
 			.setDescription(formatText(text, channel.getGuild(), reason, null, level >= 3 ? mod : null))
 			.build();
+	}
+
+	public class ActionEmbedBuilder {
+		private final DiscordLocale locale;
+		private final EmbedBuilder embedBuilder = new EmbedBuilder();
+
+		public ActionEmbedBuilder(DiscordLocale locale, int caseLocalId, User target, User mod, String reason) {
+			embedBuilder.setColor(Constants.COLOR_SUCCESS)
+				.addField(lu.getLocalized(locale, "logger.user"), "%s (%s)".formatted(target.getName(), target.getAsMention()), true)
+				.addField(lu.getLocalized(locale, "logger.reason"), reason, true)
+				.addField(lu.getLocalized(locale, "logger.moderation.mod"), "%s (%s)".formatted(mod.getName(), mod.getAsMention()), false)
+				.setTimestamp(Instant.now())
+				.setFooter("#"+caseLocalId);
+			this.locale = locale;
+		}
+
+		public ActionEmbedBuilder setDescription(String text) {
+			embedBuilder.setDescription(text);
+			return this;
+		}
+
+		public ActionEmbedBuilder setLink(String logUrl) {
+			if (logUrl != null)
+				embedBuilder.addField("", lu.getLocalized(locale, "logger.moderation.log_url").formatted(logUrl), false);
+			return this;
+		}
+
+		public EmbedBuilder getBuilder() {
+			return embedBuilder;
+		}
+
+		public MessageEmbed build() {
+			return embedBuilder.build();
+		}
 	}
 }

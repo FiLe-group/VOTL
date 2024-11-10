@@ -29,14 +29,14 @@ public class CaseCmd extends CommandBase {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		event.deferReply(true).queue();
-		CaseData caseData = bot.getDBUtil().cases.getInfo(event.optInteger("id"));
-		if (caseData == null || event.getGuild().getIdLong() != caseData.getGuildId()) {
+		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
+		if (caseData == null) {
 			editError(event, path+".not_found");
 			return;
 		}
 		MessageEmbed embed = bot.getLogEmbedUtil().getCaseEmbed(event.getUserLocale(), caseData);
 
-		editHookEmbed(event, embed);
+		editEmbed(event, embed);
 	}
 
 }

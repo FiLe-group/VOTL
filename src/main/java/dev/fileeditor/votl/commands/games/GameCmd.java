@@ -43,16 +43,20 @@ public class GameCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) != null) {
-				createError(event, path+".already", "Channel: %s".formatted(channel.getAsMention()));
+				editError(event, path+".already", "Channel: %s".formatted(channel.getAsMention()));
 				return;
 			}
 			int maxStrikes = event.optInteger("max_strikes", 3);
 
-			bot.getDBUtil().games.addChannel(event.getGuild().getIdLong(), channel.getIdLong(), maxStrikes);
+			if (bot.getDBUtil().games.addChannel(event.getGuild().getIdLong(), channel.getIdLong(), maxStrikes)) {
+				editErrorDatabase(event, "add channel");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention(), maxStrikes))
 				.build());
 		}
@@ -70,15 +74,19 @@ public class GameCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
-				createError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
+				editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
 				return;
 			}
 
-			bot.getDBUtil().games.removeChannel(channel.getIdLong());
+			if (bot.getDBUtil().games.removeChannel(channel.getIdLong())) {
+				editErrorDatabase(event, "remove channel");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
 				.build());
 		}
@@ -92,9 +100,10 @@ public class GameCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			List<Long> channels = bot.getDBUtil().games.getChannels(event.getGuild().getIdLong());
 			if (channels.isEmpty()) {
-				createReplyEmbed(event, bot.getEmbedUtil().getEmbed()
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setDescription(lu.getText(event, path+".none"))
 					.build()
 				);
@@ -106,7 +115,7 @@ public class GameCmd extends CommandBase {
 				builder.append("<#").append(channelId).append(">\n");
 			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setTitle(lu.getText(event, path+".embed_title"))
 				.setDescription(builder.toString())
 				.build()
@@ -127,20 +136,24 @@ public class GameCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
-				createError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
+				editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
 				return;
 			}
 			User user = event.optUser("user");
 			if (user == null) {
-				createError(event, path+".no_user");
+				editError(event, path+".no_user");
 				return;
 			}
 
-			bot.getDBUtil().games.clearStrikes(channel.getIdLong(), user.getIdLong());
+			if (bot.getDBUtil().games.clearStrikes(channel.getIdLong(), user.getIdLong())) {
+				editErrorDatabase(event, "clear strikes");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(user.getAsMention(), channel.getAsMention()))
 				.build());
 		}

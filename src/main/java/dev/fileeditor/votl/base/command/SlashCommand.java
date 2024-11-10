@@ -23,7 +23,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
 import net.dv8tion.jda.api.entities.Guild;
@@ -39,6 +38,7 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <h2><b>Slash Commands In JDA-Chewtils</b></h2>
@@ -81,14 +81,14 @@ public abstract class SlashCommand extends Interaction
 	 * The name of the command, allows the command to be called the formats: <br>
 	 * Slash Command: {@code /<command name>}
 	 */
-	@Nonnull
+	@NotNull
 	protected String name = "null";
 
 	/**
 	 * A small help String that summarizes the function of the command, used in the default help builder,
 	 * and shown in the client for Slash Commands.
 	 */
-	@Nonnull
+	@NotNull
 	protected String help = "no help available";
 
 	/**
@@ -115,7 +115,7 @@ public abstract class SlashCommand extends Interaction
 	 *     }
 	 *</code></pre>
 	 */
-	@Nonnull
+	@NotNull
 	protected Map<DiscordLocale, String> nameLocalization = new HashMap<>();
 
 	/**
@@ -128,7 +128,7 @@ public abstract class SlashCommand extends Interaction
 	 *     }
 	 *</code></pre>
 	 */
-	@Nonnull
+	@NotNull
 	protected Map<DiscordLocale, String> descriptionLocalization = new HashMap<>();
 
 	/**
@@ -289,7 +289,7 @@ public abstract class SlashCommand extends Interaction
 	 *
 	 * @return The name for the Command
 	 */
-	@Nonnull
+	@NotNull
 	public String getName()
 	{
 		return name;
@@ -300,7 +300,7 @@ public abstract class SlashCommand extends Interaction
 	 *
 	 * @return The help for the Command
 	 */
-	@Nonnull
+	@NotNull
 	public String getHelp()
 	{
 		return help;
@@ -460,7 +460,7 @@ public abstract class SlashCommand extends Interaction
 		return children;
 	}
 
-	private void terminate(SlashCommandEvent event, @Nonnull MessageEmbed embed, CommandClient client) {
+	private void terminate(SlashCommandEvent event, @NotNull MessageEmbed embed, CommandClient client) {
 		terminate(event, MessageCreateData.fromEmbeds(embed), client);
 	}
 
@@ -536,7 +536,7 @@ public abstract class SlashCommand extends Interaction
 	 * Gets the specified localizations of slash command names.
 	 * @return Slash command name localizations.
 	 */
-	@Nonnull
+	@NotNull
 	public Map<DiscordLocale, String> getNameLocalization() {
 		return nameLocalization;
 	}
@@ -545,7 +545,7 @@ public abstract class SlashCommand extends Interaction
 	 * Gets the specified localizations of slash command descriptions.
 	 * @return Slash command description localizations.
 	 */
-	@Nonnull
+	@NotNull
 	public Map<DiscordLocale, String> getDescriptionLocalization() {
 		return descriptionLocalization;
 	}

@@ -1,9 +1,11 @@
 package dev.fileeditor.votl.utils.logs;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
+import static dev.fileeditor.votl.utils.message.TimeUtil.formatTime;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -13,8 +15,6 @@ import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogEvent;
 import dev.fileeditor.votl.objects.logs.MessageData;
@@ -42,10 +42,12 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 import com.jayway.jsonpath.JsonPath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LogEmbedUtil {
 
-	private final @Nonnull LocaleUtil lu;
+	private final @NotNull LocaleUtil lu;
 
 	private final int GREEN_DARK = 0x277236;
 	private final int GREEN_LIGHT = 0x67CB7B;
@@ -128,6 +130,11 @@ public class LogEmbedUtil {
 			return this;
 		}
 
+		public LogEmbedBuilder addEmptyField(String value) {
+			builder.addField("", value, false);
+			return this;
+		}
+
 		public LogEmbedBuilder addField(String path, String value) {
 			return addField(path, value, true);
 		}
@@ -192,21 +199,26 @@ public class LogEmbedUtil {
 			return this;
 		}
 
+		public LogEmbedBuilder addProof(String fileName) {
+			if (fileName!=null) builder.setImage("attachment://"+fileName);
+			return this;
+		}
+
 		public MessageEmbed build() {
 			return builder.build();
 		}
 	}
 
 	// Moderation
-	@Nonnull
+	@NotNull
 	private LogEmbedBuilder moderationEmbedBuilder(DiscordLocale locale, CaseData caseData) {
 		return moderationEmbedBuilder(locale, caseData, null);
 	}
 
-	@Nonnull
+	@NotNull
 	private LogEmbedBuilder moderationEmbedBuilder(DiscordLocale locale, CaseData caseData, String userIcon) {
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, caseData.getTimeStart())
-			.setHeaderIcon("moderation.case", userIcon, caseData.getCaseId(), lu.getLocalized(locale, caseData.getType().getPath()), caseData.getTargetTag())
+			.setHeaderIcon("moderation.case", userIcon, caseData.getLocalId(), lu.getLocalized(locale, caseData.getType().getPath()), caseData.getTargetTag())
 			.setUser(caseData.getTargetId())
 			.setMod(caseData.getModId()>0 ? caseData.getModId() : null)
 			.setReason(caseData.getReason())
@@ -217,18 +229,22 @@ public class LogEmbedUtil {
 	}
 
 	public MessageEmbed getCaseEmbed(DiscordLocale locale, CaseData caseData) {
-		return moderationEmbedBuilder(locale, caseData).build();
+		LogEmbedBuilder embedBuilder = moderationEmbedBuilder(locale, caseData);
+		if (caseData.getLogUrl() != null)
+			embedBuilder.addEmptyField(lu.getLocalized(locale, "logger.moderation.log_url").formatted(caseData.getLogUrl()));
+		return embedBuilder.build();
 	}
 
 	//  Ban
-	@Nonnull
-	public MessageEmbed banEmbed(DiscordLocale locale, CaseData caseData, String userIcon) {
+	@NotNull
+	public MessageEmbed banEmbed(DiscordLocale locale, CaseData caseData, String userIcon, String proofFileName) {
 		return moderationEmbedBuilder(locale, caseData, userIcon)
 			.setColor(RED_DARK)
+			.addProof(proofFileName)
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed helperBanEmbed(DiscordLocale locale, int groupId, User target, String reason, int success, int max) {
 		return new LogEmbedBuilder(locale, RED_DARK)
 			.setHeaderIcon("moderation.ban.sync", target.getEffectiveAvatarUrl(), target.getName())
@@ -239,7 +255,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed userBanEmbed(DiscordLocale locale, User target, String reason, long modId) {
 		return new LogEmbedBuilder(locale, RED_DARK)
 			.setHeaderIcon(LogEvent.BAN, target.getEffectiveAvatarUrl(), target.getName())
@@ -251,7 +267,7 @@ public class LogEmbedUtil {
 	} 
 
 	//  Unban
-	@Nonnull
+	@NotNull
 	public MessageEmbed unbanEmbed(DiscordLocale locale, CaseData caseData, String banReason) {
 		return moderationEmbedBuilder(locale, caseData)
 			.setColor(AMBER_DARK)
@@ -259,7 +275,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed helperUnbanEmbed(DiscordLocale locale, int groupId, User target, String reason, int success, int max) {
 		return new LogEmbedBuilder(locale, AMBER_DARK)
 			.setHeaderIcon("moderation.unban.sync", target.getEffectiveAvatarUrl(), target.getName())
@@ -270,7 +286,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed autoUnbanEmbed(DiscordLocale locale, CaseData caseData) {
 		return new LogEmbedBuilder(locale, AMBER_DARK)
 			.setHeader("moderation.unban.title_expired", caseData.getTargetTag())
@@ -281,7 +297,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed userUnbanEmbed(DiscordLocale locale, User target, String reason, long modId) {
 		return new LogEmbedBuilder(locale, AMBER_DARK)
 			.setHeaderIcon(LogEvent.UNBAN, target.getEffectiveAvatarUrl(), target.getName())
@@ -293,14 +309,15 @@ public class LogEmbedUtil {
 	} 
 
 	//  Kick
-	@Nonnull
-	public MessageEmbed kickEmbed(DiscordLocale locale, CaseData caseData, String userIcon) {
+	@NotNull
+	public MessageEmbed kickEmbed(DiscordLocale locale, CaseData caseData, String userIcon, String proofFileName) {
 		return moderationEmbedBuilder(locale, caseData, userIcon)
 			.setColor(RED_DARK)
+			.addProof(proofFileName)
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed helperKickEmbed(DiscordLocale locale, Integer groupId, User target, String reason, int success, int max) {
 		return new LogEmbedBuilder(locale, RED_DARK)
 			.setHeaderIcon("moderation.kick.sync", target.getEffectiveAvatarUrl(), target.getName())
@@ -311,7 +328,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed userKickEmbed(DiscordLocale locale, User target, String reason, long modId) {
 		return new LogEmbedBuilder(locale, RED_DARK)
 			.setHeaderIcon(LogEvent.KICK, target.getEffectiveAvatarUrl(), target.getName())
@@ -323,14 +340,15 @@ public class LogEmbedUtil {
 	}
 
 	//  Mute
-	@Nonnull
-	public MessageEmbed muteEmbed(DiscordLocale locale, CaseData caseData, String userIcon) {
+	@NotNull
+	public MessageEmbed muteEmbed(DiscordLocale locale, CaseData caseData, String userIcon, String proofFileName) {
 		return moderationEmbedBuilder(locale, caseData, userIcon)
 			.setColor(RED_DARK)
+			.addProof(proofFileName)
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed unmuteEmbed(DiscordLocale locale, CaseData caseData, String userIcon, String muteReason) {
 		return moderationEmbedBuilder(locale, caseData, userIcon)
 			.setColor(AMBER_DARK)
@@ -338,10 +356,33 @@ public class LogEmbedUtil {
 			.build();
 	}
 
+	@NotNull
+	public MessageEmbed userTimeoutUpdateEmbed(DiscordLocale locale, User target, String reason, long modId, OffsetDateTime until) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeaderIcon(LogEvent.TIMEOUT, target.getEffectiveAvatarUrl(), target.getName())
+			.setUser(target.getIdLong())
+			.setReason(reason)
+			.setMod(modId)
+			.addField("duration", lu.getLocalized(locale, "misc.temporary").formatted(formatTime(until, false)))
+			.setId(target.getId())
+			.build();
+	}
+	@NotNull
+	public MessageEmbed userTimeoutRemoveEmbed(DiscordLocale locale, User target, String reason, long modId) {
+		return new LogEmbedBuilder(locale, AMBER_DARK)
+			.setHeaderIcon(LogEvent.REMOVE_TIMEOUT, target.getEffectiveAvatarUrl(), target.getName())
+			.setUser(target.getIdLong())
+			.setReason(reason)
+			.setMod(modId)
+			.setId(target.getId())
+			.build();
+	}
+
 	//  Strike
-	public MessageEmbed strikeEmbed(DiscordLocale locale, CaseData caseData, String userIcon) {
+	public MessageEmbed strikeEmbed(DiscordLocale locale, CaseData caseData, String userIcon, String proofFileName) {
 		return moderationEmbedBuilder(locale, caseData, userIcon)
 			.setColor(AMBER_LIGHT)
+			.addProof(proofFileName)
 			.build();
 	}
 
@@ -354,10 +395,10 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	public MessageEmbed strikeDeletedEmbed(DiscordLocale locale, String userTag, long userId, long modId, int caseId, int deletedAmount, int maxAmount) {
+	public MessageEmbed strikeDeletedEmbed(DiscordLocale locale, String userTag, long userId, long modId, int caseLocalId, int deletedAmount, int maxAmount) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader("moderation.strike.deleted", userTag)
-			.addField("moderation.strike.case", String.valueOf(caseId))
+			.addField("moderation.strike.case", String.valueOf(caseLocalId))
 			.addField("moderation.strike.amount", deletedAmount+"/"+maxAmount)
 			.setUser(userId)
 			.setMod(modId)
@@ -366,10 +407,10 @@ public class LogEmbedUtil {
 	}
 
 	//  Reason
-	@Nonnull
+	@NotNull
 	public MessageEmbed reasonChangedEmbed(DiscordLocale locale, CaseData caseData, long modId, String newReason) {
 		return new LogEmbedBuilder(locale)
-			.setHeader("moderation.change.reason", caseData.getCaseId(), caseData.getTargetTag())
+			.setHeader("moderation.change.reason", caseData.getLocalId(), caseData.getTargetTag())
 			.setDescription("> %s\n\n🔴 ~~%s~~\n🟢 %s".formatted(lu.getLocalized(locale, caseData.getType().getPath()), Optional.ofNullable(caseData.getReason()).orElse("None"), newReason))
 			.setUser(caseData.getTargetId())
 			.setMod(modId)
@@ -378,11 +419,11 @@ public class LogEmbedUtil {
 	}
 
 	//  Duration
-	@Nonnull
+	@NotNull
 	public MessageEmbed durationChangedEmbed(DiscordLocale locale, CaseData caseData, long modId, String newTime) {
 		String oldTime = TimeUtil.formatDuration(lu, locale, caseData.getTimeStart(), caseData.getDuration());
 		return new LogEmbedBuilder(locale)
-			.setHeader("moderation.change.duration", caseData.getCaseId(), caseData.getTargetTag())
+			.setHeader("moderation.change.duration", caseData.getLocalId(), caseData.getTargetTag())
 			.setDescription("> %s\n\n🔴 ~~%s~~\n🟢 %s".formatted(lu.getLocalized(locale, caseData.getType().getPath()), oldTime, newTime))
 			.setUser(caseData.getTargetId())
 			.setMod(modId)
@@ -391,10 +432,10 @@ public class LogEmbedUtil {
 	}
 
 	//  Blacklist
-	@Nonnull
+	@NotNull
 	public MessageEmbed blacklistAddedEmbed(DiscordLocale locale, User enforcer, User target, String groupInfo) {
 		return new LogEmbedBuilder(locale, RED_DARK)
-			.setHeaderIcon( "moderation.blacklist.added", target.getEffectiveAvatarUrl(), target.getName())
+			.setHeaderIcon("moderation.blacklist.added", target.getEffectiveAvatarUrl(), target.getName())
 			.setUser(target.getIdLong())
 			.addField("moderation.blacklist.group", groupInfo)
 			.setEnforcer(enforcer.getIdLong())
@@ -402,10 +443,10 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed blacklistRemovedEmbed(DiscordLocale locale, User enforcer, User target, String groupInfo) {
 		return new LogEmbedBuilder(locale, GREEN_DARK)
-			.setHeaderIcon( "moderation.blacklist.removed", target.getEffectiveAvatarUrl(), target.getName())
+			.setHeaderIcon("moderation.blacklist.removed", target.getEffectiveAvatarUrl(), target.getName())
 			.setUser(target.getIdLong())
 			.addField("moderation.blacklist.group", groupInfo)
 			.setEnforcer(enforcer.getIdLong())
@@ -414,17 +455,30 @@ public class LogEmbedUtil {
 	}
 
 	//  Game
-	@Nonnull
-	public MessageEmbed gameStrikeEmbed(DiscordLocale locale, CaseData caseData, String userIcon, String text) {
+	@NotNull
+	public MessageEmbed gameStrikeEmbed(DiscordLocale locale, CaseData caseData, String userIcon, String proofFileName, String text) {
 		return moderationEmbedBuilder(locale, caseData, userIcon)
 			.setColor(RED_LIGHT)
+			.addProof(proofFileName)
 			.addField("moderation.game.strikes", text)
+			.build();
+	}
+
+	//  Purge
+	@NotNull
+	public MessageEmbed messagePurge(DiscordLocale locale, User enforcer, User target, int messageCount, GuildChannel channel) {
+		return new LogEmbedBuilder(locale, RED_LIGHT)
+			.setHeader("moderation.purge")
+			.setUser(target==null?null:target.getIdLong())
+			.addField("messages.count", String.valueOf(messageCount))
+			.addField("messages.channel", channel.getAsMention())
+			.setEnforcer(enforcer.getIdLong())
 			.build();
 	}
 
 
 	// Roles
-	@Nonnull
+	@NotNull
 	public MessageEmbed rolesApprovedEmbed(DiscordLocale locale, int ticketId, long memberId, String mentions, long modId) {
 		return new LogEmbedBuilder(locale, GREEN_DARK)
 			.setHeader("tickets.roles_title", "role-"+ticketId)
@@ -435,7 +489,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed roleAddedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String roleMention) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeaderIcon("roles.added", userUrl)
@@ -446,7 +500,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed rolesAddedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String rolesAdded) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeaderIcon("roles.added_m", userUrl)
@@ -457,7 +511,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed roleRemovedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String roleMention) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeaderIcon("roles.removed", userUrl)
@@ -468,7 +522,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed rolesRemovedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String rolesRemoved) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeaderIcon("roles.removed_m", userUrl)
@@ -479,7 +533,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed roleRemovedAllEmbed(DiscordLocale locale, long modId, long roleId) {
 		return new LogEmbedBuilder(locale, RED_DARK)
 			.setHeader("roles.removed_all")
@@ -488,7 +542,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed rolesModifiedEmbed(DiscordLocale locale, long modId, long userId, String userUrl, String rolesModified) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeaderIcon("roles.modified", userUrl)
@@ -499,7 +553,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed tempRoleAddedEmbed(DiscordLocale locale, User mod, User user, Role role, Duration duration) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeaderIcon("roles.temp_added", user.getEffectiveAvatarUrl())
@@ -511,7 +565,20 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
+	public MessageEmbed tempRoleAddedEmbed(DiscordLocale locale, User mod, User user, long roleId, Duration duration, boolean deleteAfter) {
+		return new LogEmbedBuilder(locale, GREEN_LIGHT)
+			.setHeaderIcon("roles.temp_added", user.getEffectiveAvatarUrl())
+			.setUser(user.getIdLong())
+			.addField("roles.role", "<@&"+roleId+">")
+			.addField("duration", TimeUtil.durationToLocalizedString(lu, locale, duration))
+			.addField("roles.temp_delete", deleteAfter?Constants.SUCCESS:Constants.FAILURE)
+			.setMod(mod.getIdLong())
+			.setId(user.getIdLong())
+			.build();
+	}
+
+	@NotNull
 	public MessageEmbed tempRoleRemovedEmbed(DiscordLocale locale, User mod, User user, Role role) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeaderIcon("roles.temp_removed", user.getEffectiveAvatarUrl())
@@ -522,19 +589,19 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed tempRoleUpdatedEmbed(DiscordLocale locale, User mod, User user, Role role, Instant until) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeaderIcon("roles.temp_updated", user.getEffectiveAvatarUrl())
 			.setUser(user.getIdLong())
 			.addField("roles.role", role.getAsMention())
-			.addField("duration", TimeUtil.formatTime(until, false))
+			.addField("duration", formatTime(until, false))
 			.setMod(mod.getIdLong())
 			.setId(user.getIdLong())
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed tempRoleAutoRemovedEmbed(DiscordLocale locale, long targetId, Role role) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader("roles.temp_removed")
@@ -546,14 +613,14 @@ public class LogEmbedUtil {
 
 
 	// Groups
-	@Nonnull
+	@NotNull
 	private LogEmbedBuilder groupLogBuilder(DiscordLocale locale, long ownerId, String ownerIcon, int groupId, String name) {
 		return new LogEmbedBuilder(locale)
 			.setHeaderIcon("groups.title", ownerIcon, name, groupId)
 			.setFooter(localized(locale, "groups.master")+ownerId);
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupCreatedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(GREEN_DARK)
@@ -562,7 +629,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupMemberDeletedEmbed(DiscordLocale locale, long ownerId, String ownerIcon, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(RED_DARK)
@@ -570,7 +637,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupOwnerDeletedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(RED_DARK)
@@ -579,7 +646,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupMemberJoinedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(GREEN_DARK)
@@ -588,7 +655,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupOwnerJoinedEmbed(DiscordLocale locale, long ownerId, String ownerIcon, String targetName, long targetId, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(GREEN_DARK)
@@ -597,7 +664,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupMemberLeftEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(RED_DARK)
@@ -606,7 +673,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupOwnerLeftEmbed(DiscordLocale locale, long ownerId, String ownerIcon, String targetName, long targetId, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(RED_DARK)
@@ -615,7 +682,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupOwnerRemovedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, String targetName, long targetId, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(RED_DARK)
@@ -625,7 +692,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupMemberRenamedEmbed(DiscordLocale locale, long ownerId, String ownerIcon, int groupId, String oldName, String newName) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, newName)
 			.setTitle("groups.renamed")
@@ -633,7 +700,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed groupOwnerRenamedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, int groupId, String oldName, String newName) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, newName)
 			.setTitle("groups.renamed")
@@ -644,7 +711,7 @@ public class LogEmbedUtil {
 
 
 	// Child guild embeds
-	@Nonnull
+	@NotNull
 	public MessageEmbed auditLogEmbed(DiscordLocale locale, int groupId, Guild target, AuditLogEntry auditLogEntry) {
 		String titlePath = switch (auditLogEntry.getType()) {
 			case BAN -> "helper.banned";
@@ -660,7 +727,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed botLeftEmbed(DiscordLocale locale, int groupId, @Nullable Guild guild, String guildId) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader("helper.leave_guild", Optional.ofNullable(guild).map(Guild::getName).orElse("unknown"))
@@ -671,7 +738,7 @@ public class LogEmbedUtil {
 
 
 	// Tickets
-	@Nonnull
+	@NotNull
 	public MessageEmbed ticketCreatedEmbed(DiscordLocale locale, GuildChannel channel, User author) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeader("tickets.created")
@@ -681,13 +748,13 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed ticketClosedEmbed(DiscordLocale locale, GuildChannel channel, User userClosed, Long authorId, Long claimerId) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader("tickets.closed_title")
 			.setDescription(localized(locale, "tickets.closed_value")
 				.replace("{name}", channel.getName())
-				.replace("{closed}", Optional.ofNullable(userClosed).map(User::getAsMention).orElse(localized(locale, "tickets.autoclosed")))
+				.replace("{closed}", Optional.ofNullable(userClosed).map(User::getAsMention).orElse("Auto"))
 				.replace("{created}", User.fromId(authorId).getAsMention())
 				.replace("{claimed}", Optional.ofNullable(claimerId).map("<@%s>"::formatted).orElse(localized(locale, "tickets.unclaimed")))
 			)
@@ -695,13 +762,13 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed ticketClosedPmEmbed(DiscordLocale locale, GuildChannel channel, Instant timeClosed, User userClosed, String reasonClosed) {
 		return new LogEmbedBuilder(locale, WHITE)
 			.setDescription(localized(locale, "tickets.closed_pm")
 				.replace("{guild}", channel.getGuild().getName())
-				.replace("{closed}", Optional.ofNullable(userClosed).map(User::getAsMention).orElse(localized(locale, "tickets.autoclosed")))
-				.replace("{time}", TimeUtil.formatTime(timeClosed, false))
+				.replace("{closed}", Optional.ofNullable(userClosed).map(User::getEffectiveName).orElse("Auto"))
+				.replace("{time}", formatTime(timeClosed, false))
 				.replace("{reason}", reasonClosed)
 			)
 			.setFooter(channel.getName())
@@ -710,7 +777,7 @@ public class LogEmbedUtil {
 
 
 	// Bot settings
-	@Nonnull
+	@NotNull
 	public MessageEmbed accessAdded(DiscordLocale locale, User mod, User userTarget, Role roleTarget, String levelName) {
 		String targetMention = userTarget!=null ? userTarget.getAsMention() : roleTarget.getAsMention();
 		String targetId = userTarget!=null ? userTarget.getId() : roleTarget.getId();
@@ -723,7 +790,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed accessRemoved(DiscordLocale locale, User mod, User userTarget, Role roleTarget, String levelName) {
 		String targetMention = userTarget!=null ? userTarget.getAsMention() : roleTarget.getAsMention();
 		String targetId = userTarget!=null ? userTarget.getId() : roleTarget.getId();
@@ -736,7 +803,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed moduleEnabled(DiscordLocale locale, User mod, CmdModule module) {
 		return new LogEmbedBuilder(locale, GREEN_DARK)
 			.setHeader("server.module_enabled")
@@ -745,7 +812,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed moduleDisabled(DiscordLocale locale, User mod, CmdModule module) {
 		return new LogEmbedBuilder(locale, RED_DARK)
 			.setHeader("server.module_disabled")
@@ -756,7 +823,7 @@ public class LogEmbedUtil {
 
 
 	//  Channels
-	@Nonnull
+	@NotNull
 	public MessageEmbed channelCreated(DiscordLocale locale, long channelId, String channelName, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeader(LogEvent.CHANNEL_CREATE, channelName)
@@ -767,7 +834,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed channelUpdate(DiscordLocale locale, long channelId, String channelName, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader(LogEvent.CHANNEL_UPDATE, channelName)
@@ -778,7 +845,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed channelDeleted(DiscordLocale locale, long channelId, String channelName, Collection<AuditLogChange> changes, long userId, String reason) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader(LogEvent.CHANNEL_DELETE, channelName)
@@ -789,7 +856,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed overrideCreate(DiscordLocale locale, long channelId, AuditLogEntry entry, long userId) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeader(LogEvent.CHANNEL_OVERRIDE_CREATE)
@@ -800,7 +867,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed overrideUpdate(DiscordLocale locale, long channelId, AuditLogEntry entry, long userId, String guildId) {
 		String id = entry.getOption(AuditLogOption.ID).toString();
 		String text;
@@ -818,7 +885,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed overrideDelete(DiscordLocale locale, long channelId, AuditLogEntry entry, long userId) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader(LogEvent.CHANNEL_OVERRIDE_DELETE)
@@ -830,7 +897,7 @@ public class LogEmbedUtil {
 	}
 
 	//  Roles
-	@Nonnull
+	@NotNull
 	public MessageEmbed roleCreated(DiscordLocale locale, long roleId, String roleName, Collection<AuditLogChange> changes, long userId, String reason) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeader(LogEvent.ROLE_CREATE, roleName)
@@ -842,7 +909,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed roleDeleted(DiscordLocale locale, long roleId, String roleName, Collection<AuditLogChange> changes, long userId, String reason) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader(LogEvent.ROLE_DELETE, roleName)
@@ -853,7 +920,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed roleUpdate(DiscordLocale locale, long roleId, String roleName, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader(LogEvent.ROLE_UPDATE, roleName)
@@ -865,7 +932,7 @@ public class LogEmbedUtil {
 	}
 
 	//  Server
-	@Nonnull
+	@NotNull
 	public MessageEmbed guildUpdate(DiscordLocale locale, long guildId, String guildName, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader(LogEvent.GUILD_UPDATE, guildName)
@@ -875,7 +942,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed emojiCreate(DiscordLocale locale, long emojiId, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeader(LogEvent.EMOJI_CREATE)
@@ -885,7 +952,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed emojiUpdate(DiscordLocale locale, long emojiId, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader(LogEvent.EMOJI_UPDATE)
@@ -895,7 +962,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed emojiDelete(DiscordLocale locale, long emojiId, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader(LogEvent.EMOJI_DELETE)
@@ -905,7 +972,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed stickerCreate(DiscordLocale locale, long stickerId, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeader(LogEvent.STICKER_CREATE)
@@ -915,7 +982,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed stickerUpdate(DiscordLocale locale, long stickerId, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader(LogEvent.STICKER_UPDATE)
@@ -925,7 +992,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed stickerDelete(DiscordLocale locale, long stickerId, Collection<AuditLogChange> changes, long userId) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader(LogEvent.STICKER_DELETE)
@@ -936,7 +1003,7 @@ public class LogEmbedUtil {
 	}
 
 	//  Member
-	@Nonnull
+	@NotNull
 	public MessageEmbed memberNickUpdate(DiscordLocale locale, User user, String oldNick, String newNick) {
 		return new LogEmbedBuilder(locale, DEFAULT)
 			.setHeaderIcon(LogEvent.MEMBER_NICK_CHANGE, user.getEffectiveAvatarUrl(), user.getName())
@@ -945,7 +1012,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed rolesChange(DiscordLocale locale, long userId, Collection<AuditLogChange> changes, long modId) {
 		return new LogEmbedBuilder(locale, DEFAULT)
 			.setHeader(LogEvent.MEMBER_ROLE_CHANGE)
@@ -956,7 +1023,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed memberJoin(DiscordLocale locale, Member member) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeaderIcon(LogEvent.MEMBER_JOIN, member.getEffectiveAvatarUrl(), member.getUser().getName())
@@ -965,7 +1032,7 @@ public class LogEmbedUtil {
 			.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed memberLeave(DiscordLocale locale, Member cachedMember, User user, List<Role> roles) {
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeaderIcon(LogEvent.MEMBER_LEAVE, user.getEffectiveAvatarUrl(), user.getName())
@@ -976,14 +1043,14 @@ public class LogEmbedUtil {
 			builder.addField("members.roles", text);
 		}
 		if (cachedMember != null) {
-			builder.addField("members.joined_at", TimeUtil.formatTime(cachedMember.getTimeJoined(), false));
+			builder.addField("members.joined_at", formatTime(cachedMember.getTimeJoined(), false));
 		}
 		return builder.build();
 	}
 
 	//  Message
-	@Nonnull
-	public MessageEmbed messageUpdate(DiscordLocale locale, Member member, long channelId, long messageId, @Nonnull MessageData oldData, @Nonnull MessageData newData) {
+	@NotNull
+	public MessageEmbed messageUpdate(DiscordLocale locale, Member member, long channelId, long messageId, @NotNull MessageData oldData, @NotNull MessageData newData) {
 		String diff = MessageData.getDiffContent(oldData.getContentStripped(), newData.getContentStripped());
 		// If there is no change to report - return null
 		if ((oldData.getAttachment() == null || newData.getAttachment() != null) && diff == null) return null;
@@ -1007,7 +1074,7 @@ public class LogEmbedUtil {
 		return builder.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed messageDelete(DiscordLocale locale, long channelId, long messageId, MessageData data, Long modId) {
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader(LogEvent.MESSAGE_DELETE);
@@ -1032,7 +1099,7 @@ public class LogEmbedUtil {
 		return builder.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed messageBulkDelete(DiscordLocale locale, long channelId, String count, Long modId) {
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, RED_DARK)
 			.setHeader(LogEvent.MESSAGE_BULK_DELETE)
@@ -1046,7 +1113,7 @@ public class LogEmbedUtil {
 	}
 
 	//  Voice
-	@Nonnull
+	@NotNull
 	public MessageEmbed voiceMute(DiscordLocale locale, long userId, String userName, String userIcon, boolean isMuted, Long modId) {
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeaderIcon(LogEvent.VC_CHANGE, userIcon, userName)
@@ -1058,7 +1125,7 @@ public class LogEmbedUtil {
 		return builder.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageEmbed voiceDeafen(DiscordLocale locale, long userId, String userName, String userIcon, boolean isDeafen, Long modId) {
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeaderIcon(LogEvent.VC_CHANGE, userIcon, userName)
@@ -1120,7 +1187,7 @@ public class LogEmbedUtil {
 	private final String guildIconLink = "[Image](https://cdn.discordapp.com/icons/{guild}/%s.png)";
 	private final String guildSplashLink = "[Image](https://cdn.discordapp.com/splashes/{guild}/%s.png)";
 
-	private String formatValue(String key, @Nonnull Object object) {
+	private String formatValue(String key, @NotNull Object object) {
 		if (object instanceof Boolean value) {
 			return value ? Constants.SUCCESS : Constants.FAILURE;
 		} else if (object instanceof String value) {
@@ -1130,7 +1197,7 @@ public class LogEmbedUtil {
 				case "owner_id" -> "<@"+value+">";
 				case "icon_hash" -> guildIconLink.formatted(value);
 				case "splash_hash" -> guildSplashLink.formatted(value);
-				case "communication_disabled_until" -> TimeUtil.formatTime(Instant.parse(value), false);
+				case "communication_disabled_until" -> formatTime(Instant.parse(value), false);
 				default -> "`"+MessageUtil.limitString(value, 1024)+"`";
 			};
 		} else if (object instanceof Integer value) {
@@ -1154,7 +1221,7 @@ public class LogEmbedUtil {
 					.collect(Collectors.joining(", "));
 			}
 		} else {
-			return "`"+object.toString()+"`";
+			return String.format("`%s`", object);
 		}
 	}
 
@@ -1203,7 +1270,7 @@ public class LogEmbedUtil {
 
 	private String permissionOverrides(DiscordLocale locale, AuditLogEntry entry) {
 		switch (entry.getType()) {
-			case CHANNEL_OVERRIDE_CREATE: {
+			case CHANNEL_OVERRIDE_CREATE -> {
 				StringBuilder builder = new StringBuilder();
 				String id = entry.getChangeByKey("id").getNewValue();
 				int type = entry.getChangeByKey("type").getNewValue();
@@ -1226,7 +1293,7 @@ public class LogEmbedUtil {
 
 				return builder.toString();
 			}
-			case CHANNEL_OVERRIDE_DELETE: {
+			case CHANNEL_OVERRIDE_DELETE -> {
 				StringBuilder builder = new StringBuilder();
 				String id = entry.getChangeByKey("id").getOldValue();
 				int type = entry.getChangeByKey("type").getOldValue();
@@ -1249,7 +1316,7 @@ public class LogEmbedUtil {
 
 				return builder.toString();
 			}
-			case CHANNEL_OVERRIDE_UPDATE: {
+			case CHANNEL_OVERRIDE_UPDATE -> {
 				StringBuffer buffer = new StringBuffer();
 				Pair<EnumSet<Permission>, EnumSet<Permission>> changes = getChangedPerms(entry.getChangeByKey("allow"));
 				if (changes != null) {
@@ -1269,8 +1336,9 @@ public class LogEmbedUtil {
 
 				return buffer.toString();
 			}
-			default:
+			default -> {
 				return "";
+			}
 		}
 	}
 

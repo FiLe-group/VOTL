@@ -15,9 +15,6 @@
  */
 package dev.fileeditor.votl.base.command;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
-
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Mentions;
@@ -33,6 +30,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A wrapper class for a {@link SlashCommandInteractionEvent} and {@link CommandClient}.
@@ -68,7 +67,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided option, or null if the option is not present
 	 */
 	@Nullable
-	public String optString(@Nonnull String key) {
+	public String optString(@NotNull String key) {
 		return optString(key, null);
 	}
 
@@ -81,7 +80,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	@Nullable
 	@Contract("_, !null -> !null")
-	public String optString(@Nonnull String key, @Nullable String defaultValue) {
+	public String optString(@NotNull String key, @Nullable String defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsString);
 	}
 
@@ -91,7 +90,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @param key   The option we want
 	 * @return The provided option, or false if the option is not present
 	 */
-	public boolean optBoolean(@Nonnull String key) {
+	public boolean optBoolean(@NotNull String key) {
 		return optBoolean(key, false);
 	}
 
@@ -102,7 +101,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @param defaultValue The fallback option in case of the absence of the option value
 	 * @return The provided option, or the default value if the option is not present
 	 */
-	public boolean optBoolean(@Nonnull String key, boolean defaultValue) {
+	public boolean optBoolean(@NotNull String key, boolean defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsBoolean);
 	}
 
@@ -112,7 +111,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @param key   The option we want
 	 * @return The provided option, or null if the option is not present
 	 */
-	public Integer optInteger(@Nonnull String key) {
+	public Integer optInteger(@NotNull String key) {
 		return optInteger(key, null);
 	}
 
@@ -123,7 +122,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @param defaultValue The fallback option in case of the absence of the option value
 	 * @return The provided option, or the default value if the option is not present
 	 */
-	public Integer optInteger(@Nonnull String key, Integer defaultValue) {
+	public Integer optInteger(@NotNull String key, Integer defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsInt);
 	}
 
@@ -133,7 +132,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @param key   The option we want
 	 * @return The provided option, or 0 if the option is not present
 	 */
-	public long optLong(@Nonnull String key) {
+	public long optLong(@NotNull String key) {
 		return optLong(key, 0);
 	}
 
@@ -144,7 +143,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @param defaultValue The fallback option in case of the absence of the option value
 	 * @return The provided option, or the default value if the option is not present
 	 */
-	public long optLong(@Nonnull String key, long defaultValue) {
+	public long optLong(@NotNull String key, long defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsLong);
 	}
 
@@ -154,7 +153,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @param key   The option we want
 	 * @return The provided option, or 0.0 if the option is not present
 	 */
-	public double optDouble(@Nonnull String key) {
+	public double optDouble(@NotNull String key) {
 		return optDouble(key, 0.0);
 	}
 
@@ -165,7 +164,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @param defaultValue The fallback option in case of the absence of the option value
 	 * @return The provided option, or the default value if the option is not present
 	 */
-	public double optDouble(@Nonnull String key, double defaultValue) {
+	public double optDouble(@NotNull String key, double defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsDouble);
 	}
 
@@ -177,7 +176,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided option, or null if the option is not present
 	 */
 	@Nullable
-	public GuildChannel optGuildChannel(@Nonnull String key) {
+	public GuildChannel optGuildChannel(@NotNull String key) {
 		return optGuildChannel(key, null);
 	}
 
@@ -191,7 +190,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	@Nullable
 	@Contract("_, !null -> !null")
-	public GuildChannel optGuildChannel(@Nonnull String key, @Nullable GuildChannel defaultValue) {
+	public GuildChannel optGuildChannel(@NotNull String key, @Nullable GuildChannel defaultValue) {
 		if (!isFromGuild())
 			return defaultValue;
 
@@ -206,7 +205,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided option, or null if the option is not present
 	 */
 	@Nullable
-	public GuildChannelUnion optChannel(@Nonnull String key) {
+	public GuildChannelUnion optChannel(@NotNull String key) {
 		return optChannel(key, null);
 	}
 
@@ -220,7 +219,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	@Nullable
 	@Contract("_, !null -> !null")
-	public GuildChannelUnion optChannel(@Nonnull String key, @Nullable GuildChannelUnion defaultValue) {
+	public GuildChannelUnion optChannel(@NotNull String key, @Nullable GuildChannelUnion defaultValue) {
 		if (!isFromGuild())
 			return defaultValue;
 
@@ -235,7 +234,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided option, or null if the option is not present
 	 */
 	@Nullable
-	public Member optMember(@Nonnull String key) {
+	public Member optMember(@NotNull String key) {
 		return optMember(key, null);
 	}
 
@@ -249,7 +248,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	@Nullable
 	@Contract("_, !null -> !null")
-	public Member optMember(@Nonnull String key, @Nullable Member defaultValue) {
+	public Member optMember(@NotNull String key, @Nullable Member defaultValue) {
 		if (!isFromGuild())
 			return defaultValue; // Non-guild commands do not have a member.
 
@@ -263,7 +262,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided option, or null if the option is not present
 	 */
 	@Nullable
-	public IMentionable optMentionable(@Nonnull String key) {
+	public IMentionable optMentionable(@NotNull String key) {
 		return optMentionable(key, null);
 	}
 
@@ -276,7 +275,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	@Nullable
 	@Contract("_, !null -> !null")
-	public IMentionable optMentionable(@Nonnull String key, @Nullable IMentionable defaultValue) {
+	public IMentionable optMentionable(@NotNull String key, @Nullable IMentionable defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsMentionable);
 	}
 
@@ -287,7 +286,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided options, or null if they are no mentions or option is not present
 	 */
 	@Nullable
-	public Mentions optMentions(@Nonnull String key) {
+	public Mentions optMentions(@NotNull String key) {
 		return getOption(key, null, OptionMapping::getMentions);
 	}
 
@@ -299,7 +298,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided option, or null if the option is not present
 	 */
 	@Nullable
-	public Role optRole(@Nonnull String key) {
+	public Role optRole(@NotNull String key) {
 		return optRole(key, null);
 	}
 
@@ -313,7 +312,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	@Nullable
 	@Contract("_, !null -> !null")
-	public Role optRole(@Nonnull String key, @Nullable Role defaultValue) {
+	public Role optRole(@NotNull String key, @Nullable Role defaultValue) {
 		if (!isFromGuild())
 			return defaultValue;
 
@@ -327,7 +326,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided option, or null if the option is not present
 	 */
 	@Nullable
-	public User optUser(@Nonnull String key) {
+	public User optUser(@NotNull String key) {
 		return optUser(key, null);
 	}
 
@@ -340,7 +339,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	@Nullable
 	@Contract("_, !null -> !null")
-	public User optUser(@Nonnull String key, @Nullable User defaultValue) {
+	public User optUser(@NotNull String key, @Nullable User defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsUser);
 	}
 
@@ -351,7 +350,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided option, or null if the option is not present
 	 */
 	@Nullable
-	public MessageChannel optMessageChannel(@Nonnull String key) {
+	public MessageChannel optMessageChannel(@NotNull String key) {
 		return optMessageChannel(key, null);
 	}
 
@@ -364,7 +363,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	@Nullable
 	@Contract("_, !null -> !null")
-	public MessageChannel optMessageChannel(@Nonnull String key, @Nullable MessageChannel defaultValue) {
+	public MessageChannel optMessageChannel(@NotNull String key, @Nullable MessageChannel defaultValue) {
 		return getOption(key, defaultValue, optionMapping -> optionMapping.getAsChannel().asGuildMessageChannel());
 	}
 
@@ -375,7 +374,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @return The provided option, or the default value if the option is not present
 	 */
 	@Nullable
-	public Message.Attachment optAttachment(@Nonnull String key) {
+	public Message.Attachment optAttachment(@NotNull String key) {
 		return optAttachment(key, null);
 	}
 
@@ -388,7 +387,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 */
 	@Nullable
 	@Contract("_, !null -> !null")
-	public Message.Attachment optAttachment(@Nonnull String key, @Nullable Message.Attachment defaultValue) {
+	public Message.Attachment optAttachment(@NotNull String key, @Nullable Message.Attachment defaultValue) {
 		return getOption(key, defaultValue, OptionMapping::getAsAttachment);
 	}
 
@@ -398,7 +397,7 @@ public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	 * @param key   the option we want
 	 * @return true if the option exists, false otherwise
 	 */
-	public boolean hasOption(@Nonnull String key) {
+	public boolean hasOption(@NotNull String key) {
 		return getOption(key) != null;
 	}
 

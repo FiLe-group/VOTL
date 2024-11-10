@@ -96,7 +96,7 @@ public class WebhookCmd extends CommandBase {
 					embedBuilder.addField(title, text.toString(), false);
 				}
 
-				editHookEmbed(event, embedBuilder.build());
+				editEmbed(event, embedBuilder.build());
 			});
 		}
 
@@ -131,8 +131,11 @@ public class WebhookCmd extends CommandBase {
 				// DYK, guildChannel doesn't have WebhookContainer! no shit
 				event.getGuild().getTextChannelById(channel.getId()).createWebhook(setName).reason("By "+event.getUser().getName()).queue(
 					webhook -> {
-						bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken());
-						editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+						if (bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken())) {
+							editErrorDatabase(event, "add created webhook");
+							return;
+						}
+						editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 							.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
 							.build()
 						);
@@ -146,7 +149,6 @@ public class WebhookCmd extends CommandBase {
 	}
 
 	private class Select extends SlashCommand {
-
 		public Select() {
 			this.name = "select";
 			this.path = "bot.webhook.add.select";
@@ -167,8 +169,11 @@ public class WebhookCmd extends CommandBase {
 						if (bot.getDBUtil().webhook.exists(webhookId)) {
 							editError(event, path+".error_registered");
 						} else {
-							bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken());
-							editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+							if (bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken())) {
+								editErrorDatabase(event, "add selected webhook");
+								return;
+							}
+							editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 								.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
 								.build()
 							);
@@ -179,11 +184,9 @@ public class WebhookCmd extends CommandBase {
 				editError(event, path+".error_not_found", ex.getMessage());
 			}
 		}
-
 	}
 
 	private class Remove extends SlashCommand {
-
 		public Remove() {
 			this.name = "remove";
 			this.path = "bot.webhook.remove";
@@ -203,34 +206,35 @@ public class WebhookCmd extends CommandBase {
 				event.getJDA().retrieveWebhookById(webhookId).queue(
 					webhook -> {
 						if (!bot.getDBUtil().webhook.exists(webhookId)) {
-							createError(event, path+".error_not_registered");
+							editError(event, path+".error_not_registered");
 						} else {
 							if (webhook.getGuild().equals(event.getGuild())) {
 								if (delete) {
 									webhook.delete(webhook.getToken()).reason("By "+event.getUser().getName()).queue();
 								}
-								bot.getDBUtil().webhook.remove(webhookId);
-								createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+								if (bot.getDBUtil().webhook.remove(webhookId)) {
+									editErrorDatabase(event, "delete webhook");
+									return;
+								}
+								editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 									.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
 									.build()
 								);
 							} else {
-								createError(event, path+".error_not_guild", 
+								editError(event, path+".error_not_guild",
 									String.format("Selected webhook guild: %s", webhook.getGuild().getName()));
 							}
 						}
 					},
-					failure -> createError(event, path+".error_not_found", failure.getMessage())
+					failure -> editError(event, path+".error_not_found", failure.getMessage())
 				);
 			} catch (IllegalArgumentException ex) {
-				createError(event, path+".error_not_found", ex.getMessage());
+				editError(event, path+".error_not_found", ex.getMessage());
 			}
 		}
-
 	}
 
 	private class Move extends SlashCommand {
-
 		public Move() {
 			this.name = "move";
 			this.path = "bot.webhook.move";
@@ -261,10 +265,13 @@ public class WebhookCmd extends CommandBase {
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
 					if (bot.getDBUtil().webhook.exists(webhookId)) {
-						bot.getDBUtil().guildSettings.setLastWebhookId(guild.getIdLong(), webhookId);
+						if (bot.getDBUtil().guildSettings.setLastWebhookId(guild.getIdLong(), webhookId)) {
+							editErrorDatabase(event, "set last webhook");
+							return;
+						}
 						webhook.getManager().setChannel(textChannel).reason("By "+event.getUser().getName()).queue(
 							wm -> {
-								editHookEmbed(event,bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+								editEmbed(event,bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 									.setDescription(lu.getText(event, path+".done")
 										.replace("{webhook_name}", webhook.getName())
 										.replace("{channel}", channel.getName())
@@ -272,7 +279,7 @@ public class WebhookCmd extends CommandBase {
 									.build()
 								);
 							},
-							failure -> editError(event, "errors.error", failure.getMessage())
+							failure -> editErrorOther(event, failure.getMessage())
 						);
 					} else {
 						editError(event, path+".error_not_registered");
@@ -280,11 +287,9 @@ public class WebhookCmd extends CommandBase {
 				}, failure -> editError(event, path+".error_not_found", failure.getMessage())
 			);
 		}
-
 	}
 
 	private class Here extends SlashCommand {
-
 		public Here() {
 			this.name = "here";
 			this.path = "bot.webhook.here";
@@ -312,7 +317,7 @@ public class WebhookCmd extends CommandBase {
 					if (bot.getDBUtil().webhook.exists(webhookId)) {
 						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).reason("By "+event.getUser().getName()).queue(
 							wm -> {
-								editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+								editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 									.setDescription(lu.getText(event, path+".done")
 										.replace("{webhook_name}", webhook.getName())
 										.replace("{channel}", channel.getName())
@@ -320,7 +325,7 @@ public class WebhookCmd extends CommandBase {
 									.build()
 								);
 							},
-							failure -> editError(event, "errors.error", failure.getMessage())
+							failure -> editErrorOther(event, failure.getMessage())
 						);
 					} else {
 						editError(event, path+".error_not_registered");
@@ -328,7 +333,6 @@ public class WebhookCmd extends CommandBase {
 				}, failure -> editError(event, path+".error_not_found", failure.getMessage())
 			);
 		}
-
 	}
 
 }

@@ -31,11 +31,12 @@ public class RemoveUserCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply().queue();
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 		if (authorId == null) {
 			// If this channel is not a ticket
-			createError(event, path+".not_ticket");
+			editError(event, path+".not_ticket");
 			return;
 		}
 		if (bot.getDBUtil().tickets.isClosed(channelId)) {
@@ -45,10 +46,9 @@ public class RemoveUserCmd extends CommandBase {
 		}
 		User user = event.optUser("user");
 		if (user.equals(event.getUser()) || user.equals(bot.JDA.getSelfUser()) || authorId.equals(user.getIdLong())) {
-			createError(event, path+".not_self");
+			editError(event, path+".not_self");
 			return;
 		}
-		event.deferReply().queue();
 
 		if (event.getChannelType().equals(ChannelType.GUILD_PRIVATE_THREAD)) {
 			// Thread

@@ -29,16 +29,20 @@ public class VerifyRoleCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply().queue();
 		Guild guild = event.getGuild();
 		Role role = event.optRole("role");
 		if (role == null || role.isPublicRole() || role.isManaged() || !guild.getSelfMember().canInteract(role)) {
-			createError(event, path+".no_role");
+			editError(event, path+".no_role");
 			return;
 		}
 
-		bot.getDBUtil().verifySettings.setVerifyRole(guild.getIdLong(), role.getIdLong());
+		if (bot.getDBUtil().verifySettings.setVerifyRole(guild.getIdLong(), role.getIdLong())) {
+			editErrorDatabase(event, "set verify role");
+			return;
+		}
 
-		createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()))
 			.build());
 	}

@@ -11,6 +11,7 @@ import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.NotNull;
 
 public class AccessManager extends LiteBase {
 
@@ -25,24 +26,24 @@ public class AccessManager extends LiteBase {
 		super(cu, null);
 	}
 
-	public void addRole(long guildId, long roleId, CmdAccessLevel level) {
+	public boolean addRole(long guildId, long roleId, CmdAccessLevel level) {
 		invalidateRoleCache(guildId);
-		execute("INSERT INTO %s(guildId, roleId, level) VALUES (%s, %s, %d)".formatted(table_role, guildId, roleId, level.getLevel()));
+		return execute("INSERT INTO %s(guildId, roleId, level) VALUES (%s, %s, %d)".formatted(table_role, guildId, roleId, level.getLevel()));
 	}
 
-	public void addOperator(long guildId, long userId) {
+	public boolean addOperator(long guildId, long userId) {
 		invalidateOperatorCache(guildId);
-		execute("INSERT INTO %s(guildId, userId, level) VALUES (%s, %s, %d)".formatted(table_user, guildId, userId, CmdAccessLevel.OPERATOR.getLevel()));
+		return execute("INSERT INTO %s(guildId, userId, level) VALUES (%s, %s, %d)".formatted(table_user, guildId, userId, CmdAccessLevel.OPERATOR.getLevel()));
 	}
 
-	public void removeRole(long guildId, long roleId) {
+	public boolean removeRole(long guildId, long roleId) {
 		invalidateRoleCache(guildId);
-		execute("DELETE FROM %s WHERE (roleId=%s)".formatted(table_role, roleId));
+		return execute("DELETE FROM %s WHERE (roleId=%s)".formatted(table_role, roleId));
 	}
 	
-	public void removeUser(long guildId, long userId) {
+	public boolean removeUser(long guildId, long userId) {
 		invalidateOperatorCache(guildId);
-		execute("DELETE FROM %s WHERE (guildId=%s AND userId=%s)".formatted(table_user, guildId, userId));
+		return execute("DELETE FROM %s WHERE (guildId=%s AND userId=%s)".formatted(table_user, guildId, userId));
 	}
 
 	public void removeAll(long guildId) {
@@ -63,12 +64,13 @@ public class AccessManager extends LiteBase {
 		return CmdAccessLevel.byLevel(data);
 	}
 
+	@NotNull
 	public Map<Long, CmdAccessLevel> getAllRoles(long guildId) {
 		if (roleCache.contains(guildId))
 			return roleCache.get(guildId);
 		Map<Long, CmdAccessLevel> data = applyNonNull(getRoleData(guildId), this::parseRoleData);
 		if (data.isEmpty())
-			return Map.of();
+			data = Map.of();
 		roleCache.put(guildId, data);
 		return data;
 	}
@@ -82,7 +84,7 @@ public class AccessManager extends LiteBase {
 			return operatorCache.get(guildId);
 		List<Long> data = getOperatorsData(guildId);
 		if (data.isEmpty())
-			return List.of();
+			data = List.of();
 		operatorCache.put(guildId, data);
 		return data;
 	}

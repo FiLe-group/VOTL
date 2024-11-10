@@ -13,12 +13,12 @@ public class UserSettingsManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (userId=%s)".formatted(table, userId));
 	}
 
-	public void setName(long userId, String channelName) {
-		execute("INSERT INTO %s(userId, voiceName) VALUES (%d, %s) ON CONFLICT(userId) DO UPDATE SET voiceName=%<s".formatted(table, userId, quote(channelName)));
+	public boolean setName(long userId, String channelName) {
+		return execute("INSERT INTO %s(userId, voiceName) VALUES (%d, %s) ON CONFLICT(userId) DO UPDATE SET voiceName=%<s".formatted(table, userId, quote(channelName)));
 	}
 
-	public void setLimit(long userId, int channelLimit) {
-		execute("INSERT INTO %s(userId, voiceLimit) VALUES (%d, %d) ON CONFLICT(userId) DO UPDATE SET voiceLimit=%<d".formatted(table, userId, channelLimit));
+	public boolean setLimit(long userId, int channelLimit) {
+		return execute("INSERT INTO %s(userId, voiceLimit) VALUES (%d, %d) ON CONFLICT(userId) DO UPDATE SET voiceLimit=%<d".formatted(table, userId, channelLimit));
 	}
 
 	public String getName(long userId) {

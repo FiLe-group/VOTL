@@ -2,11 +2,14 @@ package dev.fileeditor.votl.utils.logs;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -14,10 +17,9 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
+import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
@@ -30,9 +32,12 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.utils.AttachmentProxy;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.internal.requests.IncomingWebhookClientImpl;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -40,12 +45,11 @@ import ch.qos.logback.classic.Logger;
 public class GuildLogger {
 
 	private final Logger LOG = (Logger) LoggerFactory.getLogger(GuildLogger.class);
-	
-	//private final App bot;
-	private final @Nonnull JDA JDA;
-	private final @Nonnull DBUtil db;
-	private final @Nonnull LogEmbedUtil logUtil;
-	private final @Nonnull WebhookLogUtil webhookUtil;
+
+	private final @NotNull JDA JDA;
+	private final @NotNull DBUtil db;
+	private final @NotNull LogEmbedUtil logUtil;
+	private final @NotNull WebhookLogUtil webhookUtil;
 
 	public final ModerationLogs mod =	new ModerationLogs();
 	public final RoleLogs role =		new RoleLogs();
@@ -72,67 +76,72 @@ public class GuildLogger {
 		webhookUtil.sendMessageEmbed(guild, type, embedSupplier);
 	}
 
-	private void sendLog(@Nonnull IncomingWebhookClientImpl webhookClient, MessageEmbed embed) {
-		webhookClient.sendMessageEmbeds(embed).queue();
+	private CompletableFuture<String> submitLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed) {
+		return webhookClient.sendMessageEmbeds(embed).submit()
+			.exceptionally(ex -> null)
+			.thenApply(msg -> msg==null ? null : msg.getJumpUrl());
+	}
+
+	private CompletableFuture<String> submitLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed, CaseProofUtil.ProofData proofData) {
+		try (final InputStream is = new AttachmentProxy(proofData.proxyUrl).download().join()) {
+			return webhookClient.sendMessageEmbeds(embed).addFiles(FileUpload.fromData(is.readAllBytes(), proofData.fileName)).submit()
+				.exceptionally(ex -> null)
+				.thenApply(msg -> msg==null ? null : msg.getJumpUrl());
+		} catch (IOException e) {
+			LOG.error("Exception at log submission.", e);
+			return submitLog(webhookClient, embed);
+		}
 	}
 
 	// Moderation actions
 	public class ModerationLogs {
 		private final LogType type = LogType.MODERATION;
 
-		public void onNewCase(Guild guild, User target, CaseData caseData) {
-			onNewCase(guild, target, caseData, null);
+		public CompletableFuture<String> onNewCase(Guild guild, User target, CaseData caseData) {
+			return onNewCase(guild, target, caseData, null, null);
+		}
+
+		public CompletableFuture<String> onNewCase(Guild guild, User target, CaseData caseData, String optionalData) {
+			return onNewCase(guild, target, caseData, null, optionalData);
+		}
+
+		public CompletableFuture<String> onNewCase(Guild guild, User target, CaseData caseData, CaseProofUtil.ProofData proofData) {
+			return onNewCase(guild, target, caseData, proofData, null);
 		}
 		
-		public void onNewCase(Guild guild, User target, @Nonnull CaseData caseData, String optionalData) {
+		public CompletableFuture<String> onNewCase(Guild guild, User target, @NotNull CaseData caseData, @Nullable CaseProofUtil.ProofData proofData, String optionalData) {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
-			if (client == null) return;
+			if (client == null) return CompletableFuture.completedFuture(null);
 
-			if (caseData == null) {
-				LOG.warn("Unknown case provided with interaction");
-				return;
-			}
-
-			MessageEmbed embed = null;
-			switch (caseData.getType()) {
-				case BAN:
-					embed = logUtil.banEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
-					break;
-				case UNBAN:
-					embed = logUtil.unbanEmbed(guild.getLocale(), caseData, optionalData);
-					break;
-				case MUTE:
-					embed = logUtil.muteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
-					break;
-				case UNMUTE:
-					embed = logUtil.unmuteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
-					break;
-				case KICK:
-					embed = logUtil.kickEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
-					break;
-				case STRIKE_1:
-				case STRIKE_2:
-				case STRIKE_3:
-					embed = logUtil.strikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl());
-					break;
-				case BLACKLIST:
-					embed = null;
-					break;
-				case GAME_STRIKE:
-					embed = logUtil.gameStrikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
-					break;
-				default:
-					break;
-			}
-			if (embed!=null) sendLog(client, embed);
+			String proofFileName = proofData==null ? null : proofData.setFileName(caseData.getRowId());
+			MessageEmbed embed = switch (caseData.getType()) {
+				case BAN ->
+					logUtil.banEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName);
+				case UNBAN ->
+					logUtil.unbanEmbed(guild.getLocale(), caseData, optionalData);
+				case MUTE ->
+					logUtil.muteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName);
+				case UNMUTE ->
+					logUtil.unmuteEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), optionalData);
+				case KICK ->
+					logUtil.kickEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName);
+				case STRIKE_1, STRIKE_2, STRIKE_3 ->
+					logUtil.strikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName);
+				case BLACKLIST ->
+					null; // TODO
+				case GAME_STRIKE ->
+					logUtil.gameStrikeEmbed(guild.getLocale(), caseData, target.getEffectiveAvatarUrl(), proofFileName, optionalData);
+			};
+			if (embed == null) return CompletableFuture.completedFuture(null);
+			return proofData==null ? submitLog(client, embed) : submitLog(client, embed, proofData);
 		}
 
 		public void onStrikesCleared(Guild guild, User target, User mod) {
 			sendLog(guild, type, () -> logUtil.strikesClearedEmbed(guild.getLocale(), target.getName(), target.getIdLong(), mod.getIdLong()));
 		}
 
-		public void onStrikeDeleted(Guild guild, User target, User mod, int caseId, int deletedAmount, int maxAmount) {
-			sendLog(guild, type, () -> logUtil.strikeDeletedEmbed(guild.getLocale(), target.getName(), target.getIdLong(), mod.getIdLong(), caseId, deletedAmount, maxAmount));
+		public void onStrikeDeleted(Guild guild, User target, User mod, int caseLocalId, int deletedAmount, int maxAmount) {
+			sendLog(guild, type, () -> logUtil.strikeDeletedEmbed(guild.getLocale(), target.getName(), target.getIdLong(), mod.getIdLong(), caseLocalId, deletedAmount, maxAmount));
 		}
 
 		public void onAutoUnban(CaseData caseData, Guild guild) {
@@ -203,6 +212,23 @@ public class GuildLogger {
 
 			sendLog(guild, type, () -> logUtil.userKickEmbed(guild.getLocale(), target, entry.getReason(), modId));
 		}
+
+		public void onUserTimeoutUpdated(AuditLogEntry entry, User target, OffsetDateTime until) {
+			final Guild guild = entry.getGuild();
+			final long modId = entry.getUserIdLong();
+			sendLog(guild, type, () -> logUtil.userTimeoutUpdateEmbed(guild.getLocale(), target, entry.getReason(), modId, until));
+		}
+
+		public void onUserTimeoutRemoved(AuditLogEntry entry, User target) {
+			final Guild guild = entry.getGuild();
+			final long modId = entry.getUserIdLong();
+			sendLog(guild, type, () -> logUtil.userTimeoutRemoveEmbed(guild.getLocale(), target, entry.getReason(), modId));
+		}
+
+		public void onMessagePurge(User mod, User target, int msgCount, GuildChannel channel) {
+			final Guild guild = channel.getGuild();
+			sendLog(guild, type, () -> logUtil.messagePurge(guild.getLocale(), mod, target, msgCount, channel));
+		}
 	}
 
 	// Roles actions
@@ -240,6 +266,10 @@ public class GuildLogger {
 
 		public void onTempRoleAdded(Guild guild, User mod, User target, Role role, Duration duration) {
 			sendLog(guild, type, () -> logUtil.tempRoleAddedEmbed(guild.getLocale(), mod, target, role, duration));
+		}
+
+		public void onTempRoleAdded(Guild guild, User mod, User target, long roleId, Duration duration, boolean deleteAfter) {
+			sendLog(guild, type, () -> logUtil.tempRoleAddedEmbed(guild.getLocale(), mod, target, roleId, duration, deleteAfter));
 		}
 
 		public void onTempRoleRemoved(Guild guild, User mod, User target, Role role) {
@@ -604,7 +634,6 @@ public class GuildLogger {
 			if (client == null) return;
 
 			MessageEmbed embed = logUtil.messageUpdate(guild.getLocale(), author, channel.getIdLong(), messageId, oldData, newData);
-			if (embed == null) return;
 			FileUpload fileUpload = uploadContentUpdate(oldData, newData, messageId);
 			if (fileUpload != null) {
 				client.sendMessageEmbeds(embed)

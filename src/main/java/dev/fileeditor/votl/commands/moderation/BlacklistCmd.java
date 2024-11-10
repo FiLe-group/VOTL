@@ -60,7 +60,7 @@ public class BlacklistCmd extends CommandBase {
 			Integer page = event.optInteger("page", 1);
 			List<Map<String, Object>> list = bot.getDBUtil().blacklist.getByPage(groupId, page);
 			if (list.isEmpty()) {
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty").formatted(page)).build());
+				editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty").formatted(page)).build());
 				return;
 			}
 			int pages = (int) Math.ceil(bot.getDBUtil().blacklist.countEntries(groupId) / 20.0);
@@ -75,7 +75,7 @@ public class BlacklistCmd extends CommandBase {
 				), true)
 			);
 
-			editHookEmbed(event, builder.build());
+			editEmbed(event, builder.build());
 		}
 	}
 
@@ -103,11 +103,14 @@ public class BlacklistCmd extends CommandBase {
 
 			User user = event.optUser("user");
 			if (bot.getDBUtil().blacklist.inGroupUser(groupId, user.getIdLong())) {
-				bot.getDBUtil().blacklist.removeUser(groupId, user.getIdLong());
+				if (bot.getDBUtil().blacklist.removeUser(groupId, user.getIdLong())) {
+					editErrorDatabase(event, "remove user");
+					return;
+				}
 				// Log into master
 				bot.getLogger().mod.onBlacklistRemoved(event.getUser(), user, groupId);
 				// Reply
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done_user").formatted(user.getAsMention(), user.getId(), groupId))
 					.build()
 				);

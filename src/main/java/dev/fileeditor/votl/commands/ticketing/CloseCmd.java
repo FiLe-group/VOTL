@@ -24,11 +24,12 @@ public class CloseCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply().queue();
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 		if (authorId == null) {
 			// If this channel is not a ticket
-			createError(event, path+".not_ticket");
+			editError(event, path+".not_ticket");
 			return;
 		}
 		if (bot.getDBUtil().tickets.isClosed(channelId)) {
@@ -39,15 +40,17 @@ public class CloseCmd extends CommandBase {
 
 		String reason = event.optString(
 			"reason",
-			bot.getDBUtil().tickets.getUserId(channelId).equals(event.getUser().getIdLong()) ? "Closed by ticket's author" : "Closed by Support"
+			bot.getDBUtil().tickets.getUserId(channelId).equals(event.getUser().getIdLong())
+				? lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_author")
+				: lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support")
 		);
 
-		event.replyEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+		event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.delete_countdown"))
 			.build()
-		).queue(hook -> {
+		).queue(msg -> {
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
-				hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed")).queue();
+				msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed")).queue();
 				bot.getAppLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
 			});
 		});

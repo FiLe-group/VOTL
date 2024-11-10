@@ -16,7 +16,6 @@
 package dev.fileeditor.votl.base.command;
 
 import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
 import net.dv8tion.jda.api.entities.Guild;
@@ -26,6 +25,7 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <h2><b>User Context Menus In JDA-Chewtils</b></h2>
@@ -142,7 +142,7 @@ public abstract class UserContextMenu extends ContextMenu {
 	 */
 	protected abstract void execute(UserContextMenuEvent event);
 
-	private void terminate(UserContextMenuEvent event, @Nonnull MessageEmbed embed) {
+	private void terminate(UserContextMenuEvent event, @NotNull MessageEmbed embed) {
 		terminate(event, MessageCreateData.fromEmbeds(embed));
 	}
 

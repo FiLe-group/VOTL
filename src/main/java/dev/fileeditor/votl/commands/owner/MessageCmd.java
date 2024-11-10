@@ -29,11 +29,11 @@ public class MessageCmd extends CommandBase {
 		String channelId = event.optString("channel_id");
 		GuildMessageChannel channel = event.getJDA().getChannelById(GuildMessageChannel.class, channelId);
 		if (channel == null) {
-			createReply(event, Constants.FAILURE+" Channel not found.");
+			event.reply(Constants.FAILURE+" Channel not found.").queue();
 			return;
 		}
 
 		channel.sendMessage(event.optString("content")).queue();
-		createReply(event, Constants.SUCCESS);
+		event.reply(Constants.SUCCESS).queue();
 	}
 }

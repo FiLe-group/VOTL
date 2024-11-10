@@ -2,9 +2,6 @@ package dev.fileeditor.votl.objects.logs;
 
 import java.util.List;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
-
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.utils.MarkdownSanitizer;
@@ -12,6 +9,8 @@ import net.dv8tion.jda.api.utils.MarkdownSanitizer;
 import com.github.difflib.text.DiffRow;
 import com.github.difflib.text.DiffRowGenerator;
 import com.github.difflib.text.DiffRow.Tag;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MessageData {
 	private final String content, authorName;
@@ -57,7 +56,7 @@ public class MessageData {
 	}
 
 	@Nullable
-	public static String getDiffContent(@Nonnull String oldContent, @Nonnull String newContent) {
+	public static String getDiffContent(@NotNull String oldContent, @NotNull String newContent) {
 		if (oldContent.equals(newContent)) return null;
 		DiffRowGenerator generator = DiffRowGenerator.create()
 			.showInlineDiffs(true)

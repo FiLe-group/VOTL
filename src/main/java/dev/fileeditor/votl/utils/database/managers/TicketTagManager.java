@@ -29,7 +29,7 @@ public class TicketTagManager extends LiteBase {
 		super(cu, "ticketTag");
 	}
 
-	public void createTag(long guildId, int panelId, int tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, int buttonStyle) {
+	public int createTag(long guildId, int panelId, int tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, int buttonStyle) {
 		List<String> keys = new ArrayList<>(10);
 		List<String> values = new ArrayList<>(10);
 		keys.addAll(List.of("guildId", "panelId", "tagType", "buttonText", "ticketName", "buttonStyle"));
@@ -50,22 +50,18 @@ public class TicketTagManager extends LiteBase {
 			keys.add("supportRoles");
 			values.add(quote(supportRoleIds));
 		}
-		execute("INSERT INTO %s(%s) VALUES (%s)".formatted(table, String.join(", ", keys), String.join(", ", values)));
+		return executeWithRow("INSERT INTO %s(%s) VALUES (%s)".formatted(table, String.join(", ", keys), String.join(", ", values)));
 	}
 
-	public int getIncrement() {
-		return getIncrement(table);
-	}
-
-	public void deleteTag(int tagId) {
-		execute("DELETE FROM %s WHERE (tagId=%d)".formatted(table, tagId));
+	public boolean deleteTag(int tagId) {
+		return execute("DELETE FROM %s WHERE (tagId=%d)".formatted(table, tagId));
 	}
 
 	public void deleteAll(long guildId) {
 		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 
-	public void updateTag(int tagId, Integer tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, Integer buttonStyle) {
+	public boolean updateTag(int tagId, Integer tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, Integer buttonStyle) {
 		List<String> values = new ArrayList<>();
 		if (tagType != null) 
 			values.add("tagType="+tagType);
@@ -84,7 +80,9 @@ public class TicketTagManager extends LiteBase {
 		if (buttonStyle != -1) 
 			values.add("buttonStyle="+buttonStyle);
 		
-		if (!values.isEmpty()) execute("UPDATE %s SET %s WHERE (tagId=%d)".formatted(table, String.join(", ", values), tagId));
+		if (!values.isEmpty())
+			return execute("UPDATE %s SET %s WHERE (tagId=%d)".formatted(table, String.join(", ", values), tagId));
+		return false;
 	}
 
 	public Long getGuildId(int tagId) {
@@ -171,7 +169,7 @@ public class TicketTagManager extends LiteBase {
 		}
 
 		public Button previewButton() {
-			return new ButtonImpl("tag_preview", buttonText, buttonStyle, null, true, emoji);
+			return new ButtonImpl("tag_preview", buttonText, buttonStyle, true, emoji);
 		}
 
 		public static Button createButton(Map<String, Object> map) {
@@ -179,7 +177,7 @@ public class TicketTagManager extends LiteBase {
 			String buttonText = requireNonNull(map.get("buttonText"));
 			ButtonStyle style = ButtonStyle.fromKey(requireNonNull(map.get("buttonStyle")));
 			Emoji emoji = Optional.ofNullable((String) map.get("emoji")).map(Emoji::fromFormatted).orElse(null);
-			return new ButtonImpl("tag:"+tagId, buttonText, style, null, false, emoji);
+			return new ButtonImpl("tag:"+tagId, buttonText, style, false, emoji);
 		}
 
 		public String getTicketName() {

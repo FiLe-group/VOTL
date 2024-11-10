@@ -33,9 +33,8 @@ public class ReasonCmd extends CommandBase {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		event.deferReply().queue();
-		Integer caseId = event.optInteger("id");
-		CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
-		if (caseData == null || event.getGuild().getIdLong() != caseData.getGuildId()) {
+		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
+		if (caseData == null) {
 			editError(event, path+".not_found");
 			return;
 		}
@@ -45,10 +44,13 @@ public class ReasonCmd extends CommandBase {
 		}
 
 		String newReason = event.optString("reason");
-		bot.getDBUtil().cases.updateReason(caseId, newReason);
+		if (bot.getDBUtil().cases.updateReason(caseData.getRowId(), newReason)) {
+			editErrorDatabase(event, "update reason");
+			return;
+		}
 
-		editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, path+".done").replace("{id}", caseId.toString()).replace("{reason}", newReason))
+		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			.setDescription(lu.getText(event, path+".done").formatted(caseData.getLocalId(), newReason))
 			.build()
 		);
 

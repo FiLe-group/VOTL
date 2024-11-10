@@ -11,7 +11,6 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager.ModerationInformLevel;
@@ -59,17 +58,21 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 			String text = event.optString("color");
 
 			Color color = MessageUtil.getColor(text);
 			if (color == null) {
-				createError(event, path+".no_color");
+				editError(event, path+".no_color");
 				return;
 			}
-			bot.getDBUtil().guildSettings.setColor(guildId, color.getRGB() & 0xFFFFFF);
+			if (bot.getDBUtil().guildSettings.setColor(guildId, color.getRGB() & 0xFFFFFF)) {
+				editErrorDatabase(event, "set guild color");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(color.getRGB())
+			editEmbed(event, bot.getEmbedUtil().getEmbed(color.getRGB())
 				.setDescription(lu.getText(event, path+".done").replace("{color}", "#"+Integer.toHexString(color.getRGB() & 0xFFFFFF)))
 				.build());
 		}
@@ -86,17 +89,21 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 			String text = event.optString("link");
 
 			if (!isValidURL(text)) {
-				createError(event, path+".not_valid", "Received invalid URL: `%s`".formatted(text));
+				editError(event, path+".not_valid", "Received invalid URL: `%s`".formatted(text));
 				return;
 			}
 
-			bot.getDBUtil().guildSettings.setAppealLink(guildId, text);
+			if (bot.getDBUtil().guildSettings.setAppealLink(guildId, text)) {
+				editErrorDatabase(event, "set guild appeal link");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{link}", text))
 				.build());
 		}
@@ -124,16 +131,21 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 			MessageChannel channel = event.optMessageChannel("channel");
 
 			if (!channel.canTalk()) {
-				createError(event, path+".cant_send");
+				editError(event, path+".cant_send");
+				return;
 			}
 
-			bot.getDBUtil().guildSettings.setReportChannelId(guildId, channel.getIdLong());
+			if (bot.getDBUtil().guildSettings.setReportChannelId(guildId, channel.getIdLong())) {
+				editErrorDatabase(event, "set guild report channel");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
 				.build());
 		}
@@ -150,7 +162,7 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
+			event.deferReply().queue();
 
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
@@ -165,8 +177,11 @@ public class SetupCmd extends CommandBase {
 									.addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
 									.queue(
 										channel -> {
-											bot.getDBUtil().guildVoice.setup(guildId, category.getIdLong(), channel.getIdLong());
-											editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+											if (bot.getDBUtil().guildVoice.setup(guildId, category.getIdLong(), channel.getIdLong())) {
+												editErrorDatabase(event, "setup voice");
+												return;
+											}
+											editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 												.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
 												.build());
 										}
@@ -197,7 +212,7 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
+			event.deferReply().queue();
 
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
@@ -212,8 +227,11 @@ public class SetupCmd extends CommandBase {
 			try {
 				category.upsertPermissionOverride(guild.getBotRole()).setAllowed(getBotPermissions()).queue(doneCategory ->
 					channel.upsertPermissionOverride(guild.getPublicRole()).setDenied(Permission.VOICE_SPEAK).queue(doneChannel -> {
-						bot.getDBUtil().guildVoice.setup(guildId, category.getIdLong(), channel.getIdLong());
-						editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+						if (bot.getDBUtil().guildVoice.setup(guildId, category.getIdLong(), channel.getIdLong())) {
+							editErrorDatabase(event, "setup voice");
+							return;
+						}
+						editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 							.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
 							.build());
 					})
@@ -239,26 +257,28 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			MessageChannel channel = event.optMessageChannel("channel");
 			if (channel == null || !channel.canTalk()) {
-				createError(event, path+".no_channel", "Received: "+(channel == null ? "No channel" : channel.getAsMention()));
+				editError(event, path+".no_channel", "Received: "+(channel == null ? "No channel" : channel.getAsMention()));
+				return;
 			}
 
 			Button lock = Button.danger("voice:lock", lu.getLocalized(event.getGuildLocale(), path+".lock")).withEmoji(Emoji.fromUnicode("🔒"));
 			Button unlock = Button.success("voice:unlock", lu.getLocalized(event.getGuildLocale(), path+".unlock")).withEmoji(Emoji.fromUnicode("🔓"));
 			Button ghost = Button.danger("voice:ghost", lu.getLocalized(event.getGuildLocale(), path+".ghost")).withEmoji(Emoji.fromUnicode("👻"));
 			Button unghost = Button.success("voice:unghost", lu.getLocalized(event.getGuildLocale(), path+".unghost")).withEmoji(Emoji.fromUnicode("👁️"));
-			Button permit = Button.success("voice:permit", lu.getLocalized(event.getGuildLocale(), path+".permit")).withEmoji(Emote.ADDUSER.getEmoji());
-			Button reject = Button.danger("voice:reject", lu.getLocalized(event.getGuildLocale(), path+".reject")).withEmoji(Emote.REMOVEUSER.getEmoji());
-			Button perms = Button.secondary("voice:perms", lu.getLocalized(event.getGuildLocale(), path+".perms")).withEmoji(Emote.SETTINGS_2.getEmoji());
-			Button delete = Button.danger("voice:delete", lu.getLocalized(event.getGuildLocale(), path+".delete")).withEmoji(Emoji.fromUnicode("🔴"));
+			Button permit = Button.success("voice:permit", lu.getLocalized(event.getGuildLocale(), path+".permit")).withEmoji(Emoji.fromUnicode("➕"));
+			Button reject = Button.danger("voice:reject", lu.getLocalized(event.getGuildLocale(), path+".reject")).withEmoji(Emoji.fromUnicode("➖"));
+			Button perms = Button.secondary("voice:perms", lu.getLocalized(event.getGuildLocale(), path+".perms")).withEmoji(Emoji.fromUnicode("⚙️"));
+			Button delete = Button.danger("voice:delete", lu.getLocalized(event.getGuildLocale(), path+".delete")).withEmoji(Emoji.fromUnicode("🗑️"));
 
 			ActionRow row1 = ActionRow.of(unlock, lock);
 			ActionRow row2 = ActionRow.of(unghost, ghost);
 			ActionRow row4 = ActionRow.of(permit, reject, perms);
 			ActionRow row5 = ActionRow.of(delete);
 
-			Long channelId = bot.getDBUtil().guildVoice.getChannelId(event.getGuild().getIdLong());
+			Long channelId = bot.getDBUtil().getVoiceSettings(event.getGuild()).getChannelId();
 			channel.sendMessageEmbeds(new EmbedBuilder()
 				.setColor(Constants.COLOR_DEFAULT)
 				.setTitle(lu.getLocalized(event.getGuildLocale(), path+".embed_title"))
@@ -266,7 +286,7 @@ public class SetupCmd extends CommandBase {
 				.build()
 			).addComponents(row1, row2, row4, row5).queue();
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
 				.build());
 		}
@@ -286,16 +306,20 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			String filName = event.optString("name", lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name"));
 
 			if (filName.isBlank()) {
-				createError(event, path+".invalid_range");
+				editError(event, path+".invalid_range");
 				return;
 			}
 
-			bot.getDBUtil().guildVoice.setName(event.getGuild().getIdLong(), filName);
+			if (bot.getDBUtil().guildVoice.setName(event.getGuild().getIdLong(), filName)) {
+				editErrorDatabase(event, "set default voice name");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{value}", filName))
 				.build());
 		}
@@ -315,11 +339,15 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Integer filLimit = event.optInteger("limit");
 
-			bot.getDBUtil().guildVoice.setLimit(event.getGuild().getIdLong(), filLimit);
+			if (bot.getDBUtil().guildVoice.setLimit(event.getGuild().getIdLong(), filLimit)) {
+				editErrorDatabase(event, "set default voice limit");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{value}", filLimit.toString()))
 				.build());
 		}
@@ -340,24 +368,31 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			if (event.getOptions().size() < 2) {
-				createError(event, path+".no_options");
+				editError(event, path+".no_options");
 				return;
 			}
 
 			StringBuilder builder = new StringBuilder(lu.getText(event, path+".embed_title"));
 			Integer expiresAfter = event.optInteger("expires_after");
 			if (expiresAfter != null) {
-				bot.getDBUtil().guildSettings.setStrikeExpiresAfter(event.getGuild().getIdLong(), expiresAfter);
+				if (bot.getDBUtil().guildSettings.setStrikeExpiresAfter(event.getGuild().getIdLong(), expiresAfter)) {
+					editErrorDatabase(event, "set guild strike expires");
+					return;
+				}
 				builder.append(lu.getText(event, path+".expires_changed").formatted(expiresAfter));
 			}
 			Integer cooldown = event.optInteger("cooldown");
 			if (cooldown != null) {
-				bot.getDBUtil().guildSettings.setStrikeCooldown(event.getGuild().getIdLong(), cooldown);
+				if (bot.getDBUtil().guildSettings.setStrikeCooldown(event.getGuild().getIdLong(), cooldown)) {
+					editErrorDatabase(event, "set guild strike cooldown");
+					return;
+				}
 				builder.append(lu.getText(event, path+".cooldown_changed").formatted(cooldown));
 			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(builder.toString())
 				.build());
 		}
@@ -381,7 +416,7 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
+			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 
 			String action = event.optString("action");
@@ -398,7 +433,7 @@ public class SetupCmd extends CommandBase {
 				}
 			}
 
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").formatted(action, lu.getText(event, informLevel.getPath())))
 					.build());
 		}

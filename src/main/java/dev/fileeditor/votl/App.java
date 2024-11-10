@@ -145,6 +145,7 @@ public class App {
 				new LogsCmd(),
 				new ModuleCmd(WAITER),
 				new SetupCmd(),
+				new PersistentRoleCmd(),
 				// moderation
 				new BanCmd(),
 				new BlacklistCmd(),
@@ -159,6 +160,7 @@ public class App {
 				new SyncCmd(WAITER),
 				new UnbanCmd(),
 				new UnmuteCmd(),
+				new PurgeCmd(),
 				// other
 				new AboutCmd(),
 				new HelpCmd(),
@@ -177,7 +179,7 @@ public class App {
 				new TempRoleCmd(),
 				// strike
 				new ClearStrikesCmd(),
-				new DeleteStikeCmd(WAITER),
+				new DeleteStrikeCmd(WAITER),
 				new StrikeCmd(),
 				new StrikesCmd(),
 				// ticketing
@@ -213,7 +215,7 @@ public class App {
 		AutoCompleteListener acListener = new AutoCompleteListener(commandClient, dbUtil);
 
 		final Set<GatewayIntent> intents = Set.of(
-			GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
+			GatewayIntent.GUILD_EXPRESSIONS,
 			GatewayIntent.GUILD_INVITES,
 			GatewayIntent.GUILD_MEMBERS,
 			GatewayIntent.GUILD_MESSAGES,

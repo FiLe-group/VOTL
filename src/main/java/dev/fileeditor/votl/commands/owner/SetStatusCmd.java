@@ -8,9 +8,9 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class SetStatusCmd extends CommandBase {
 		ActivityType type = parseType(event.optString("type"));
 		if (type == null) {
 			event.getJDA().getPresence().setActivity(null);
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".clear"))
 				.build());
 			return;
@@ -55,7 +55,7 @@ public class SetStatusCmd extends CommandBase {
 		switch (type) {
 			case PLAYING, LISTENING, WATCHING, CUSTOM_STATUS -> {
 				event.getJDA().getPresence().setActivity(Activity.of(type, text));
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".set").formatted(activityString(type), text))
 					.build());
 			}
@@ -66,7 +66,7 @@ public class SetStatusCmd extends CommandBase {
 					return;
 				}
 				event.getJDA().getPresence().setActivity(Activity.of(type, text, url));
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".set").formatted(activityString(type), text+"\n> URL: "+url ))
 					.build());
 			}

@@ -2,7 +2,7 @@ package dev.fileeditor.votl.commands.ticketing;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -12,6 +12,7 @@ import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.database.managers.RoleManager;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -21,7 +22,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -30,9 +30,9 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 public class RolesPanelCmd extends CommandBase {
 	
 	public RolesPanelCmd() {
-		this.name = "rolepanel";
+		this.name = "rolespanel";
 		this.path = "bot.ticketing.rolespanel";
-		this.children = new SlashCommand[]{new Create(), new Update(), new RowText(), new OtherRole()};
+		this.children = new SlashCommand[]{new Create(), new Update(), new RowText(), new OtherRole(), new SupportRole()};
 		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
@@ -43,7 +43,6 @@ public class RolesPanelCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Create extends SlashCommand {
-
 		public Create() {
 			this.name = "create";
 			this.path = "bot.ticketing.rolespanel.create";
@@ -55,18 +54,20 @@ public class RolesPanelCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
-			TextChannel channel =  (TextChannel) event.optGuildChannel("channel");
+
+			TextChannel channel = (TextChannel) event.optGuildChannel("channel");
 			if (channel == null) {
-				createError(event, path+".no_channel", "Received: No channel");
+				editError(event, path+".no_channel", "Received: No channel");
 				return;
 			}
 
 			int assignRolesSize = bot.getDBUtil().roles.countRoles(guildId, RoleType.ASSIGN);
-			List<Map<String, Object>> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
+			List<RoleManager.RoleData> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
 			if (assignRolesSize == 0 && toggleRoles.isEmpty()) {
-				createError(event, path+".empty_roles");
+				editError(event, path+".empty_roles");
 				return;
 			}
 			List<ActionRow> actionRows = new ArrayList<>();
@@ -79,11 +80,9 @@ public class RolesPanelCmd extends CommandBase {
 				List<Button> buttons = new ArrayList<>();
 				toggleRoles.forEach(data -> {
 					if (buttons.size() >= 5) return;
-					String roleId = data.get("roleId").toString();
-					Role role = guild.getRoleById(roleId);
+					Role role = guild.getRoleById(data.getIdLong());
 					if (role == null) return;
-					String description = data.get("description").toString();
-					buttons.add(Button.primary("role:toggle:"+roleId, MessageUtil.limitString(description, 80)));
+					buttons.add(Button.primary("role:toggle:"+role.getId(), MessageUtil.limitString(data.getDescription("-"), 80)));
 				});
 				actionRows.add(ActionRow.of(buttons));
 			}
@@ -97,16 +96,14 @@ public class RolesPanelCmd extends CommandBase {
 
 			channel.sendMessageEmbeds(embed).addComponents(actionRows).queue();
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
 				.build()
 			);
 		}
-
 	}
 
 	private class Update extends SlashCommand {
-
 		public Update() {
 			this.name = "update";
 			this.path = "bot.ticketing.rolespanel.update";
@@ -118,26 +115,27 @@ public class RolesPanelCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
-			GuildChannel channel = event.optGuildChannel("channel");
+
+			TextChannel channel = (TextChannel) event.optGuildChannel("channel");
 			if (channel == null) {
-				createError(event, path+".no_channel", "Received: No channel");
+				editError(event, path+".no_channel", "Received: No channel");
 				return;
 			}
-			TextChannel tc = (TextChannel) channel;
 
-			String latestId = tc.getLatestMessageId();
-			tc.retrieveMessageById(latestId).queue(msg -> {
+			String latestId = channel.getLatestMessageId();
+			channel.retrieveMessageById(latestId).queue(msg -> {
 				if (!msg.getAuthor().equals(event.getJDA().getSelfUser())) {
-					createError(event, path+".not_found", "Not bot's message");
+					editError(event, path+".not_found", "Not bot's message");
 					return;
 				}
 
 				int assignRolesSize = bot.getDBUtil().roles.countRoles(guildId, RoleType.ASSIGN);
-				List<Map<String, Object>> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
+				List<RoleManager.RoleData> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
 				if (assignRolesSize == 0 && toggleRoles.isEmpty()) {
-					createError(event, path+".empty_roles");
+					editError(event, path+".empty_roles");
 					return;
 				}
 				List<ActionRow> actionRows = new ArrayList<>();
@@ -150,29 +148,24 @@ public class RolesPanelCmd extends CommandBase {
 					List<Button> buttons = new ArrayList<>();
 					toggleRoles.forEach(data -> {
 						if (buttons.size() >= 5) return;
-						String roleId = data.get("roleId").toString();
-						Role role = guild.getRoleById(roleId);
+						Role role = guild.getRoleById(data.getIdLong());
 						if (role == null) return;
-						String description = data.get("description").toString();
-						buttons.add(Button.primary("role:toggle:"+roleId, MessageUtil.limitString(description, 80)));
+						buttons.add(Button.primary("role:toggle:"+role.getId(), MessageUtil.limitString(data.getDescription("-"), 80)));
 					});
 					actionRows.add(ActionRow.of(buttons));
 				}
 				
 				msg.editMessageComponents(actionRows).queue();
 
-				createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention()))
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
 					.build()
 				);
-			},
-				failure -> createError(event, path+".not_found", failure.getMessage()));
+			}, failure -> editError(event, path+".not_found", failure.getMessage()));
 		}
-
 	}
 
 	private class RowText extends SlashCommand {
-
 		public RowText() {
 			this.name = "row";
 			this.path = "bot.ticketing.rolespanel.row";
@@ -186,20 +179,22 @@ public class RolesPanelCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Integer row = event.optInteger("row");
 			String text = event.optString("text");
 
-			bot.getDBUtil().ticketSettings.setRowText(event.getGuild().getIdLong(), row, text);
+			if (bot.getDBUtil().ticketSettings.setRowText(event.getGuild().getIdLong(), row, text)) {
+				editErrorDatabase(event, "set ticket row text");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{row}", row.toString()).replace("{text}", text))
 				.build());
 		}
-
 	}
 
 	private class OtherRole extends SlashCommand {
-
 		public OtherRole() {
 			this.name = "other";
 			this.path = "bot.ticketing.rolespanel.other";
@@ -210,15 +205,60 @@ public class RolesPanelCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			boolean enabled = event.optBoolean("enabled");
 
-			bot.getDBUtil().ticketSettings.setOtherRole(event.getGuild().getIdLong(), enabled);
+			if (bot.getDBUtil().ticketSettings.setOtherRole(event.getGuild().getIdLong(), enabled)) {
+				editErrorDatabase(event, "set ticket other");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(String.valueOf(enabled)))
 				.build());
 		}
+	}
 
+	private class SupportRole extends SlashCommand {
+		public SupportRole() {
+			this.name = "support";
+			this.path = "bot.ticketing.rolespanel.support";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "roles", lu.getText(path+".roles.help"), true)
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
+
+			if (event.optString("roles").equalsIgnoreCase("null")) {
+				// Clear roles
+				if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), null)) {
+					editErrorDatabase(event, "clear ticket support roles");
+					return;
+				}
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getText(event, path+".done_clear"))
+					.build());
+			} else {
+				// Set roles
+				List<Role> roles = event.optMentions("roles").getRoles();
+				if (roles.isEmpty() || roles.size()>3) {
+					editError(event, path+".bad_input");
+					return;
+				}
+				if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), roles.stream().map(Role::getIdLong).toList())) {
+					editErrorDatabase(event, "set ticket support roles");
+					return;
+				}
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getText(event, path+".done").formatted(roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "))))
+					.build());
+			}
+		}
 	}
 
 }

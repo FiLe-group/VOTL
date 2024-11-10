@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
@@ -91,10 +90,10 @@ public class TicketManager extends LiteBase {
 			"channelId", Long.class);
 	}
 
-	public List<Long> getRoleIds(long channelId) {
+	public List<String> getRoleIds(long channelId) {
 		String data = selectOne("SELECT roleIds FROM %s WHERE (channelId=%s)".formatted(table, channelId), "roleIds", String.class);
 		if (data == null) return Collections.emptyList();
-		return Stream.of(data.split(";")).map(CastUtil::castLong).toList();
+		return Stream.of(data.split(";")).toList();
 	}
 
 	public Long getUserId(long channelId) {

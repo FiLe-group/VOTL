@@ -2,7 +2,6 @@ package dev.fileeditor.votl.utils.message;
 
 import java.time.ZonedDateTime;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
@@ -18,6 +17,7 @@ import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import org.jetbrains.annotations.NotNull;
 
 public class EmbedUtil {
 
@@ -27,17 +27,17 @@ public class EmbedUtil {
 		this.lu = localeUtil;
 	}
 
-	@Nonnull
+	@NotNull
 	public EmbedBuilder getEmbed(int color) {
 		return new EmbedBuilder().setColor(color).setTimestamp(ZonedDateTime.now());
 	}
 
-	@Nonnull
+	@NotNull
 	public EmbedBuilder getEmbed() {
 		return getEmbed(Constants.COLOR_DEFAULT);
 	}
 
-	@Nonnull
+	@NotNull
 	public EmbedBuilder getEmbed(IReplyCallback replyCallback) {
 		return getEmbed().setFooter(
 			lu.getText(replyCallback, "embed.footer").formatted(replyCallback.getUser().getName()),
@@ -46,12 +46,12 @@ public class EmbedUtil {
 
 	}
 
-	@Nonnull
+	@NotNull
 	private EmbedBuilder getErrorEmbed(IReplyCallback replyCallback) {
 		return getEmbed().setColor(Constants.COLOR_FAILURE).setTitle(lu.getText(replyCallback, "errors.title"));
 	}
 
-	@Nonnull
+	@NotNull
 	private EmbedBuilder getPermErrorEmbed(IReplyCallback replyCallback, GuildChannel channel, Permission perm, boolean self) {
 		EmbedBuilder embed = getErrorEmbed(replyCallback);
 		String msg;
@@ -78,32 +78,32 @@ public class EmbedUtil {
 		return embed.setDescription(msg);
 	}
 
-	@Nonnull
-	public MessageEmbed getError(IReplyCallback replyCallback, @Nonnull String path) {
+	@NotNull
+	public MessageEmbed getError(IReplyCallback replyCallback, @NotNull String path) {
 		return getError(replyCallback, path, null);
 	}
 
-	@Nonnull
-	public MessageEmbed getError(IReplyCallback replyCallback, @Nonnull String path, String reason) {
+	@NotNull
+	public MessageEmbed getError(IReplyCallback replyCallback, @NotNull String path, String details) {
 		EmbedBuilder embedBuilder = getErrorEmbed(replyCallback)
 			.setDescription(lu.getText(replyCallback, path));
 
-		if (reason != null)
+		if (details != null)
 			embedBuilder.addField(
 				lu.getText(replyCallback, "errors.additional"),
-				MessageUtil.limitString(reason, 1024),
+				MessageUtil.limitString(details, 1024),
 				false
 			);
 
 		return embedBuilder.build();
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageCreateData createPermError(IReplyCallback replyCallback, Permission perm, boolean self) {
 		return createPermError(replyCallback, null, perm, self);
 	}
 
-	@Nonnull
+	@NotNull
 	public MessageCreateData createPermError(IReplyCallback replyCallback, GuildChannel channel, Permission perm, boolean self) {
 		User user = replyCallback.getUser();
 		if (perm.equals(Permission.MESSAGE_SEND)) {

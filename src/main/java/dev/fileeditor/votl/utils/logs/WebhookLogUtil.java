@@ -2,8 +2,6 @@ package dev.fileeditor.votl.utils.logs;
 
 import java.util.function.Supplier;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.GuildLogsManager.WebhookData;
@@ -12,6 +10,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.internal.requests.IncomingWebhookClientImpl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class WebhookLogUtil {
 
@@ -21,21 +21,21 @@ public class WebhookLogUtil {
 		this.db = dbUtil;
 	}
 
-	public void sendMessageEmbed(JDA client, long guildId, LogType type, @Nonnull MessageEmbed embed) {
+	public void sendMessageEmbed(JDA client, long guildId, LogType type, @NotNull MessageEmbed embed) {
 		WebhookData data = db.logs.getLogWebhook(type, guildId);
 		if (data != null)
 			new IncomingWebhookClientImpl(data.getWebhookId(), data.getToken(), client)
 				.sendMessageEmbeds(embed).queue();
 	}
 
-	public void sendMessageEmbed(JDA client, long guildId, LogType type, @Nonnull Supplier<MessageEmbed> embedSupplier) {
+	public void sendMessageEmbed(JDA client, long guildId, LogType type, @NotNull Supplier<MessageEmbed> embedSupplier) {
 		WebhookData data = db.logs.getLogWebhook(type, guildId);
 		if (data != null)
 			new IncomingWebhookClientImpl(data.getWebhookId(), data.getToken(), client)
 				.sendMessageEmbeds(embedSupplier.get()).queue();
 	}
 
-	public void sendMessageEmbed(@Nullable Guild guild, LogType type, @Nonnull Supplier<MessageEmbed> embedSupplier) {
+	public void sendMessageEmbed(@Nullable Guild guild, LogType type, @NotNull Supplier<MessageEmbed> embedSupplier) {
 		if (guild == null) return;
 		sendMessageEmbed(guild.getJDA(), guild.getIdLong(), type, embedSupplier);
 	}

@@ -11,8 +11,8 @@ public class ModifyRoleManager extends LiteBase {
 		super(cu, "menuSelectRoles");
 	}
 
-	public void create(long guildId, long userId, long targetId, Instant expiresAfter) {
-		execute("INSERT INTO %s(guildId, userId, targetId, expiresAfter, roles) VALUES (%s, %s, %s, %s, \":::\") ON CONFLICT(guildId, userId, targetId) DO UPDATE SET expiresAfter = %<s, roles = \":::\""
+	public boolean create(long guildId, long userId, long targetId, Instant expiresAfter) {
+		return execute("INSERT INTO %s(guildId, userId, targetId, expiresAfter, roles) VALUES (%s, %s, %s, %s, \":::\") ON CONFLICT(guildId, userId, targetId) DO UPDATE SET expiresAfter = %<s, roles = \":::\""
 			.formatted(table, guildId, userId, targetId, expiresAfter.getEpochSecond()));
 	}
 

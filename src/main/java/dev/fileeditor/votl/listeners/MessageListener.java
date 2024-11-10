@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
@@ -23,6 +22,7 @@ import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 
 public class MessageListener extends ListenerAdapter {
 
@@ -36,7 +36,7 @@ public class MessageListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+	public void onMessageReceived(@NotNull MessageReceivedEvent event) {
 		if (event.getAuthor().isBot() || !event.isFromGuild()) return; //ignore bots and Private messages
 		
 		// cache message if not exception channel
@@ -50,7 +50,7 @@ public class MessageListener extends ListenerAdapter {
 
 	
 	@Override
-	public void onMessageUpdate(@Nonnull MessageUpdateEvent event) {
+	public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
 		if (event.getAuthor().isBot() || !event.isFromGuild()) return;
 		if (!bot.getDBUtil().getLogSettings(event.getGuild()).enabled(LogType.MESSAGE)) return;
 
@@ -72,7 +72,7 @@ public class MessageListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onMessageDelete(@Nonnull MessageDeleteEvent event) {
+	public void onMessageDelete(@NotNull MessageDeleteEvent event) {
 		if (!event.isFromGuild()) return;
 		if (!bot.getDBUtil().getLogSettings(event.getGuild()).enabled(LogType.MESSAGE)) return;
 
@@ -110,7 +110,7 @@ public class MessageListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onMessageBulkDelete(@Nonnull MessageBulkDeleteEvent event) {
+	public void onMessageBulkDelete(@NotNull MessageBulkDeleteEvent event) {
 		if (!bot.getDBUtil().getLogSettings(event.getGuild()).enabled(LogType.MESSAGE)) return;
 
 		final List<Long> messageIds = event.getMessageIds().stream().map(CastUtil::castLong).toList();

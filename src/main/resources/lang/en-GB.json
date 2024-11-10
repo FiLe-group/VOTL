@@ -7,6 +7,7 @@
 		"additional": "Additional info:",
 		"unknown": "{EMOTE_WARNING_C} Something went wrong!\nReport this error to bot's Owner/Developer in support server!",
 		"error": "{EMOTE_WARNING_C} Something went wrong!",
+		"database": "{EMOTE_WARNING_C} Database error, changes were not recorded or only partially.",
 		"missing_perms": {
 			"self": "I lack the permission `{permission}` for this.",
 			"self_channel": "I lack the permission `{permission}` in the channel {channel} to do this.",
@@ -39,7 +40,9 @@
 			"no_values": "None of the values has been selected.",
 			"no_access": "You cannot perform this action because you do not have the required access."
 		},
-		"timed_out": "Timed out"
+		"timed_out": "Timed out",
+		"proof_type": "Incorrect proof file type provided. Only .png and .jpg/.jpeg are accepted.",
+		"proof_size": "The size of the proof file cannot be larger than 4 MB."
 	},
 	"misc": {
 		"and": "and",
@@ -58,7 +61,8 @@
 		},
 		"permanently": "permanently",
 		"temporary": "until %s",
-		"ban_expired": "Temporary ban expired"
+		"ban_expired": "Temporary ban expired",
+		"temp_msg": "\n-# This message will be deleted in 20 seconds."
 	},
 	"modules": {
 		"webhook": "Webhook commands",
@@ -150,6 +154,7 @@
 			"success": "Success rate",
 			"timeout": "Member timed out | %s",
 			"remove_timeout": "Timeout removed | %s",
+			"log_url": "\n[*View log (press)*](%s)",
 			"ban": {
 				"title": "Member banned | %s",
 				"short_title": "Ban info",
@@ -191,7 +196,8 @@
 			"game": {
 				"strike": "Game strike | %s",
 				"strikes": "Strike count"
-			}
+			},
+			"purge": "Messages purged"
 		},
 		"group": {
 			"name": "Group logs",
@@ -791,6 +797,36 @@
 					"usage": "view",
 					"empty": "There are no actions."
 				}
+			},
+			"persistent": {
+				"help": "Setup persistent roles",
+				"usage": "persistent",
+				"add": {
+					"help": "Add persistent role",
+					"usage": "add <@Role>",
+					"role": {
+						"name": "role",
+						"help": "Select role"
+					},
+					"incorrect_role": "Incorrect role provided.",
+					"limit": "Reached limit amount of persistent roles.",
+					"done": "Role %s set as persistent role.\nIf a user with this role leaves the server and enters back, he will automatically be assigned this role."
+				},
+				"remove": {
+					"help": "Remove persistent role",
+					"usage": "remove <@Role>",
+					"role": {
+						"name": "role",
+						"help": "Select role"
+					},
+					"done": "Role %s removed as persistent role."
+				},
+				"view": {
+					"help": "View persistent roles",
+					"usage": "view",
+					"empty": "No roles.",
+					"title": "Persistent roles"
+				}
 			}
 		},
 		"voice": {
@@ -1022,7 +1058,7 @@
 			"strikes_embed": "### Active strikes: %d\nNext strike removed in %s",
 			"ban": {
 				"help": "Ban member of this server",
-				"usage": "ban <@User | Tag | ID> [duration] [reason] [purge messages?] [dm user?]",
+				"usage": "ban <@User | Tag | ID> [duration] [reason] [proof] [purge messages?] [dm user?]",
 				"user": {
 					"name": "user",
 					"help": "Mention user to be banned from this server"
@@ -1034,6 +1070,10 @@
 				"reason": {
 					"name": "reason",
 					"help": "Ban reason (*none*)"
+				},
+				"proof": {
+					"name": "proof",
+					"help": "Select/Paste image with proofs. Only .png and .jpg/.jpeg are accepted."
 				},
 				"delete": {
 					"name": "delete",
@@ -1071,7 +1111,7 @@
 			},
 			"kick": {
 				"help": "Kick user from this server",
-				"usage": "kick <@User | Tag | ID> [reason] [dm user?]",
+				"usage": "kick <@User | Tag | ID> [reason] [proof] [dm user?]",
 				"member": {
 					"name": "member",
 					"help": "Mention member to be kicked from this server"
@@ -1079,6 +1119,10 @@
 				"reason": {
 					"name": "reason",
 					"help": "Kick reason (*none*)"
+				},
+				"proof": {
+					"name": "proof",
+					"help": "Select/Paste image with proofs. Only .png and .jpg/.jpeg are accepted."
 				},
 				"dm": {
 					"name": "dm",
@@ -1098,7 +1142,7 @@
 			},
 			"mute": {
 				"help": "Time out member",
-				"usage": "mute <@User | Tag | ID> <duration> [reason]",
+				"usage": "mute <@User | Tag | ID> <duration> [reason] [proof]",
 				"user": {
 					"name": "user",
 					"help": "Mention user to be timed out"
@@ -1110,6 +1154,10 @@
 				"reason": {
 					"name": "reason",
 					"help": "Mute reason (*none*)"
+				},
+				"proof": {
+					"name": "proof",
+					"help": "Select/Paste image with proofs. Only .png and .jpg/.jpeg are accepted."
 				},
 				"no_reason": "*Not provided*",
 				"not_found": "Member not found or input error",
@@ -1138,7 +1186,7 @@
 			},
 			"strike": {
 				"help": "Strike a member",
-				"usage": "strike <@User> <severity> <reason>",
+				"usage": "strike <@User> <severity> <reason> [proof]",
 				"user": {
 					"name": "user",
 					"help": "Mention user which to strike"
@@ -1153,6 +1201,10 @@
 				"reason": {
 					"name": "reason",
 					"help": "Strike reason"
+				},
+				"proof": {
+					"name": "proof",
+					"help": "Select/Paste image with proofs. Only .png and .jpg/.jpeg are accepted."
 				},
 				"not_found": "Member not found or input error",
 				"not_self": "You can't select yourself or the bot.",
@@ -1262,7 +1314,7 @@
 				},
 				"not_found": "Could not find case by specified ID",
 				"not_active": "Specified case is not active and can't be edited.",
-				"done": "Successfully changed Case `{id}` reason to:\n`{reason}`"
+				"done": "Successfully changed case `#%s` reason to:\n> `%s`"
 			},
 			"duration": {
 				"help": "Change ban/mute duration",
@@ -1277,7 +1329,7 @@
 				},
 				"not_found": "Could not find case by specified ID",
 				"is_expired": "Specified case has expired or can't be edited.",
-				"done": "Successfully changed cases Case `{id}` duration to: {duration}"
+				"done": "Successfully changed case `#%s` duration to:\n> %s"
 			},
 			"group": {
 				"help": "Server Groups management",
@@ -1451,13 +1503,13 @@
 				},
 				"start_date": {
 					"name": "start_date",
-					"help": "Enter start date (year-month-day)"
+					"help": "Enter start date (day/month/year)"
 				},
 				"end_date": {
 					"name": "end_date",
-					"help": "Enter end date (year-month-day)"
+					"help": "Enter end date (day/month/year)"
 				},
-				"failed_parse": "Failed to parse input date! Use format `year-month-day`.",
+				"failed_parse": "Failed to parse input date! Use format `day/month/year`.",
 				"wrong_date": "Wrong dates provided (before and after inputs).",
 				"empty": "No statistics for this user.",
 				"title": "Moderation statistics",
@@ -1468,7 +1520,7 @@
 				"kicks": "Kick",
 				"bans": "Ban",
 				"strikes": "Strike",
-				"game-strikes": "Gm strikes",
+				"game_strikes": "Gm strikes",
 				"roles": "Roles",
 				"total": "Total"
 			},
@@ -1512,6 +1564,22 @@
 				"value": "Select group/-s",
 				"no_user": "Unknown user.",
 				"done": "User blacklisted and banned in group's servers. Results will be posted in logs channel."
+			},
+			"purge": {
+				"help": "Deletes up to 60 chat messages in any channel",
+				"usage": "purge [@User] [count]",
+				"user": {
+					"name": "user",
+					"help": "Select user"
+				},
+				"count": {
+					"name": "count",
+					"help": "Enter message count to be deleted (1-60)"
+				},
+				"empty": "Unable to delete any message.",
+				"empty_user": "Unable to delete any message by `%s`.",
+				"done": "Purged %s messages!",
+				"done_user": "Purged %s messages by `%s`!"
 			}
 		},
 		"other": {
@@ -1704,6 +1772,9 @@
 				"cant_create": "Failed to crate new ticket. Contact the server Administration.",
 				"created": "Ticket created {channel}.",
 				"close_failed": "Couldn't close this ticket. Report this to bot developer.",
+				"temp_continue": "**%s** requested role/-s require duration to be set. Continue?",
+				"temp_time": "Enter duration for temporal roles",
+				"time_limit": "Provided duration must be between 10m <-> 150d or 0 for infinitely.",
 				"no_member": "User that is requesting roles not found. Maybe, they left this server.",
 				"role_failed": "I was unable to assign roles to the user.",
 				"role_added": "Request approved, roles assigned to user.",
@@ -1716,6 +1787,8 @@
 				"claimed": "The ticket has been successfully claimed by {user}.",
 				"unclaimed": "The ticket has been successfully un-claimed.",
 				"delete_countdown": "This ticket will be closed in 5 seconds.",
+				"closed_author": "Closed by ticket's author",
+				"closed_support": "Closed by Support",
 				"timed": {
 					"title": "Enter temporal roles duration",
 					"placeholder": "(0 - forever, Xw - X weeks, Xd - X days, ...)"
@@ -1723,7 +1796,7 @@
 			},
 			"rolespanel": {
 				"help": "Manage the roles request panel",
-				"usage": "rolepanel",
+				"usage": "rolespanel",
 				"create": {
 					"help": "Create role requests panel in selected channel",
 					"usage": "create <#Channel>",
@@ -1768,6 +1841,17 @@
 						"help": "Enable other roles request?"
 					},
 					"done": "Other roles request enabled - `%s`."
+				},
+				"support": {
+					"help": "Set support roles for role requests",
+					"usage": "support <@Roles>",
+					"roles": {
+						"name": "roles",
+						"help": "Mention role/-s to set or enter 'null' to clear"
+					},
+					"bad_input": "Incorrect role mentions provided.",
+					"done_clear": "Support roles cleared.",
+					"done": "Roles %s will be pinged in role requests."
 				}
 			},
 			"tcount": {
@@ -1779,13 +1863,13 @@
 				},
 				"start_date": {
 					"name": "start_date",
-					"help": "Enter start date (year-month-day)"
+					"help": "Enter start date (day/month/year)"
 				},
 				"end_date": {
 					"name": "end_date",
-					"help": "Enter end date (year-month-day)"
+					"help": "Enter end date (day/month/year)"
 				},
-				"failed_parse": "Failed to parse input date! Use format `year-month-day`.",
+				"failed_parse": "Failed to parse input date! Use format `day/month/year`.",
 				"wrong_date": "Wrong dates provided (before and after inputs).",
 				"done": "Moderator: {user} ({id})\nAccepted role tickets: `{roles}`\nClaimed tickets: `{other}`"
 			},
@@ -1817,17 +1901,17 @@
 					},
 					"no_role": "Role not found or is incorrect.",
 					"cant_interact": "I can't interact with selected role.",
-					"exists": "Role is already managed. Check `/rolesetup view`",
+					"exists": "Role is already managed. Check `/rolesmanage view`",
 					"no_type": "Role type not found.",
 					"rows_max": "All assignable roles rows are full (3x25). Clear any row, to add new roles.",
 					"row_max": "Row is full (25 roles). Clear this row, to add new roles.",
 					"toggle_max": "Maximum toggleable roles managed (5). Clear the list, to add new roles.",
 					"custom_max": "Maximum custom roles managed (25). Clear the list, to add new roles.",
-					"done": "Role {role} added to the list as `{type}` type role!"
+					"done": "Role %s added to the list as `%s` type role!"
 				},
 				"update": {
 					"help": "Update assignable role data",
-					"usage": "update <@Role> [description] [row] [timed]",
+					"usage": "update <@Role> [description] [row] [timed?]",
 					"role": {
 						"name": "role",
 						"help": "Select role which to update"
@@ -1847,11 +1931,11 @@
 					"no_role": "Role not found or is incorrect.",
 					"not_exists": "Role is not set as assignable role, use `/roles add` to add it.",
 					"no_options": "No data to be updated for role.",
-					"embed_title": "Updated role's {role} data.",
+					"embed_title": "Updated role's %s data.",
 					"default_description": "\n> Role description cleared to default.",
-					"changed_description": "\n> Role description set to `{text}`.",
-					"changed_row": "\n> Changed assignable role's row to `{row}`.",
-					"changed_timed": "\n> Role is timed - {is}."
+					"changed_description": "\n> Role description set to `%s`.",
+					"changed_row": "\n> Changed assignable role's row to `%s`.",
+					"changed_timed": "\n> Role is timed - %s."
 				},
 				"remove": {
 					"help": "Remove role from managed roles list",
@@ -1895,7 +1979,7 @@
 						},
 						"max_panels": "This server has maximum panels created. Delete unused or modify existing.",
 						"image_not_valid": "Provided image URL link is not valid.",
-						"done": "Successfully created new panel!\nTitle: `{title}`\nPanel's ID: `{id}`"
+						"done": "Successfully created new panel!\nTitle: `%s`\nPanel's ID: `%s`"
 					},
 					"modify": {
 						"help": "Modify existing embed panel",
@@ -2008,7 +2092,7 @@
 						"not_found": "Panel by the provided ID not found.",
 						"max_tags": "Used panel has maximum tags attached. Delete unused or modify existing.",
 						"too_many_roles": "Too many support roles provided, maximum is 6.",
-						"done": "Successfully attached new tag to panel with ID `{panel}`!\nTag's ID: `{tag}`"
+						"done": "Successfully attached new tag to panel with ID `%s`!\nTag's ID: `%s`"
 					},
 					"modify": {
 						"help": "Create new ticket tag",
@@ -2365,7 +2449,7 @@
 			},
 			"gamestrike": {
 				"help": "Give a user game strike",
-				"usage": "gamestrike <#Channel> <@User> <reason>",
+				"usage": "gamestrike <#Channel> <@User> <reason> [proof]",
 				"channel": {
 					"name": "channel",
 					"help": "Select channel"
@@ -2377,6 +2461,10 @@
 				"reason": {
 					"name": "reason",
 					"help": "Enter strike reason"
+				},
+				"proof": {
+					"name": "proof",
+					"help": "Select/Paste image with proofs. Only .png and .jpg/.jpeg are accepted."
 				},
 				"not_found": "This channel is not registered.",
 				"not_member": "Selected user is not a member of this server or can't be selected.",

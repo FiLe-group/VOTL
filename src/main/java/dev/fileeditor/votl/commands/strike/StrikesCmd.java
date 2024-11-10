@@ -49,23 +49,23 @@ public class StrikesCmd extends CommandBase {
 
 		Pair<Integer, String> strikeData = bot.getDBUtil().strikes.getData(event.getGuild().getIdLong(), tu.getIdLong());
 		if (strikeData == null) {
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".no_active")).build());
+			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".no_active")).build());
 			return;
 		}
 		String[] strikesInfoArray = strikeData.getRight().split(";");
 		if (strikesInfoArray[0].isEmpty()) {
-			editError(event, "errors.error", "Strikes data is empty.");
+			editErrorOther(event, "Strikes data is empty.");
 			return;
 		}
 
 		StringBuilder builder = new StringBuilder();
 		for (String c : strikesInfoArray) {
 			String[] args = c.split("-");
-			int caseId = Integer.parseInt(args[0]);
+			final int caseRowId = Integer.parseInt(args[0]);
 			int strikeAmount = Integer.parseInt(args[1]);
-			CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
+			CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
 			builder.append("`%4d` %s | %s - %s\nBy: %s\n".formatted(
-				caseId,
+				caseData.getLocalIdInt(),
 				getSquares(strikeAmount, caseData.getType().getValue()-20),
 				MessageUtil.limitString(caseData.getReason(), 50),
 				TimeFormat.DATE_SHORT.format(caseData.getTimeStart()),
@@ -73,7 +73,7 @@ public class StrikesCmd extends CommandBase {
 			));
 		}
 
-		editHookEmbed(event, bot.getEmbedUtil().getEmbed()
+		editEmbed(event, bot.getEmbedUtil().getEmbed()
 			.setTitle(lu.getText(event, path+".title").formatted(strikeData.getLeft(), tu.getName(), tu.getId()))
 			.setDescription(builder.toString())
 			.build()

@@ -1,16 +1,16 @@
 package dev.fileeditor.votl.utils.exception;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FormatterException extends Exception {
 	private final String path;
 	
-	public FormatterException(@Nonnull String path) {
+	public FormatterException(@NotNull String path) {
 		super();
 		this.path = path;
 	}
 
-	@Nonnull
+	@NotNull
 	public String getPath() {
 		return path;
 	}
