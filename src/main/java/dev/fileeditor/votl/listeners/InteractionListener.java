@@ -125,7 +125,7 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private final Set<String> acceptableButtons = Set.of(
-		"verify", "role", "ticket", "tag", "invites",
+		"verify", "role", "ticket", "tag",
 		"delete", "voice", "blacklist", "strikes", "sync_unban",
 		"sync_ban", "sync_kick", "thread"
 	);
@@ -499,7 +499,7 @@ public class InteractionListener extends ListenerAdapter {
 				for (Role role : tempRoles) {
 					if (rows.size() >= 5) continue;
 					TextInput input = TextInput.create(role.getId(), role.getName(), TextInputStyle.SHORT)
-						.setPlaceholder("1w - 1 Week, 30d - 30 Days")
+						.setPlaceholder("1w - 1 Week, 30d - 30 Days, 0 - permanently")
 						.setRequired(true)
 						.setMaxLength(10)
 						.build();
@@ -550,13 +550,12 @@ public class InteractionListener extends ListenerAdapter {
 						.build()
 					).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_WEBHOOK));
 					member.getUser().openPrivateChannel().queue(dm -> {
-						Button showInvites = Button.secondary("invites:"+guild.getId(), lu.getLocalized(guild.getLocale(), "bot.ticketing.listener.invites.button"));
 						dm.sendMessage(lu.getLocalized(guild.getLocale(), "bot.ticketing.listener.role_dm")
 							.replace("{roles}", roles.stream().map(Role::getName).collect(Collectors.joining(" | ")))
 							.replace("{server}", guild.getName())
 							.replace("{id}", String.valueOf(ticketId))
 							.replace("{mod}", event.getMember().getEffectiveName())
-						).addActionRow(showInvites).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+						).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 					});
 				}, failure -> {
 					sendError(event, "bot.ticketing.listener.role_failed", failure.getMessage());
@@ -1343,13 +1342,12 @@ public class InteractionListener extends ListenerAdapter {
 							.build()
 						).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_WEBHOOK));
 						member.getUser().openPrivateChannel().queue(dm -> {
-							Button showInvites = Button.secondary("invites:" + guild.getId(), lu.getLocalized(guild.getLocale(), "bot.ticketing.listener.invites.button"));
 							dm.sendMessage(lu.getLocalized(guild.getLocale(), "bot.ticketing.listener.role_dm")
 								.replace("{roles}", roles.stream().map(Role::getName).collect(Collectors.joining(" | ")))
 								.replace("{server}", guild.getName())
 								.replace("{id}", String.valueOf(ticketId))
 								.replace("{mod}", event.getMember().getEffectiveName())
-							).addActionRow(showInvites).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+							).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 						});
 					}, failure -> {
 						sendError(event, "bot.ticketing.listener.role_failed", failure.getMessage());
@@ -1553,7 +1551,6 @@ public class InteractionListener extends ListenerAdapter {
 		BUTTON_TICKET_CLAIM(20, CooldownScope.USER_CHANNEL),
 		BUTTON_TICKET_UNCLAIM(20, CooldownScope.USER_CHANNEL),
 		BUTTON_TICKET_CREATE(30, CooldownScope.USER),
-		BUTTON_INVITES(10, CooldownScope.USER),
 		BUTTON_REPORT_DELETE(3, CooldownScope.GUILD),
 		BUTTON_SHOW_STRIKES(30, CooldownScope.USER),
 		BUTTON_SYNC_ACTION(10, CooldownScope.CHANNEL),

@@ -15,7 +15,7 @@ public class TempRoleManager extends LiteBase {
 	}
 
 	public boolean add(long guildId, long roleId, long userId, boolean deleteAfter, Instant expiresAt) {
-		return execute("INSERT INTO %s(guildId, roleId, userId, deleteAfter, expiresAt) VALUES (%s, %s, %s, %d, %d)"
+		return execute("INSERT INTO %s(guildId, roleId, userId, deleteAfter, expiresAt) VALUES (%s, %s, %s, %d, %d) ON CONFLICT(roleId, userId) DO UPDATE SET expiresAt=%<d;"
 			.formatted(table, guildId, roleId, userId, (deleteAfter ? 1 : 0), expiresAt.getEpochSecond()));
 	}
 

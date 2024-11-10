@@ -36,7 +36,7 @@ public class RoleManager extends LiteBase {
 	}
 
 	public List<RoleData> getAssignable(long guildId) {
-		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (guildId=%s AND type>%d)"
+		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (guildId=%s AND type=%d)"
 			.formatted(table, guildId, RoleType.ASSIGN.getType()), Set.of("roleId", "description", "row", "timed"));
 		return data.stream().map(map -> new RoleData(map, RoleType.ASSIGN)).toList();
 	}
