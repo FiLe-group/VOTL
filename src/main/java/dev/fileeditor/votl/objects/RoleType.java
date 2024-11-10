@@ -8,7 +8,7 @@ public enum RoleType {
 	TOGGLE(1, "role_type.toggle"),
 	ASSIGN(2, "role_type.assign");
 
-	private final Integer type;
+	private final int type;
 	private final String path;
 	
 	private static final Map<Integer, RoleType> BY_TYPE;
@@ -20,12 +20,12 @@ public enum RoleType {
 		}
 	}
 
-	RoleType(Integer type, String path) {
+	RoleType(int type, String path) {
 		this.type = type;
 		this.path = path;
 	}
 
-	public Integer getType() {
+	public int getType() {
 		return type;
 	}
 

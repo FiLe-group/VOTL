@@ -1772,6 +1772,9 @@
 				"cant_create": "Failed to crate new ticket. Contact the server Administration.",
 				"created": "Ticket created {channel}.",
 				"close_failed": "Couldn't close this ticket. Report this to bot developer.",
+				"temp_continue": "**%s** requested role/-s require duration to be set. Continue?",
+				"temp_time": "Enter duration for temporal roles.",
+				"time_limit": "Provided duration must be between 10m <-> 150d or 0 for infinitely.",
 				"no_member": "User that is requesting roles not found. Maybe, they left this server.",
 				"role_failed": "I was unable to assign roles to the user.",
 				"role_added": "Request approved, roles assigned to user.",
@@ -1898,17 +1901,17 @@
 					},
 					"no_role": "Role not found or is incorrect.",
 					"cant_interact": "I can't interact with selected role.",
-					"exists": "Role is already managed. Check `/rolesetup view`",
+					"exists": "Role is already managed. Check `/rolesmanage view`",
 					"no_type": "Role type not found.",
 					"rows_max": "All assignable roles rows are full (3x25). Clear any row, to add new roles.",
 					"row_max": "Row is full (25 roles). Clear this row, to add new roles.",
 					"toggle_max": "Maximum toggleable roles managed (5). Clear the list, to add new roles.",
 					"custom_max": "Maximum custom roles managed (25). Clear the list, to add new roles.",
-					"done": "Role {role} added to the list as `{type}` type role!"
+					"done": "Role %s added to the list as `%s` type role!"
 				},
 				"update": {
 					"help": "Update assignable role data",
-					"usage": "update <@Role> [description] [row] [timed]",
+					"usage": "update <@Role> [description] [row] [timed?]",
 					"role": {
 						"name": "role",
 						"help": "Select role which to update"
@@ -1928,11 +1931,11 @@
 					"no_role": "Role not found or is incorrect.",
 					"not_exists": "Role is not set as assignable role, use `/roles add` to add it.",
 					"no_options": "No data to be updated for role.",
-					"embed_title": "Updated role's {role} data.",
+					"embed_title": "Updated role's %s data.",
 					"default_description": "\n> Role description cleared to default.",
-					"changed_description": "\n> Role description set to `{text}`.",
-					"changed_row": "\n> Changed assignable role's row to `{row}`.",
-					"changed_timed": "\n> Role is timed - {is}."
+					"changed_description": "\n> Role description set to `%s`.",
+					"changed_row": "\n> Changed assignable role's row to `%s`.",
+					"changed_timed": "\n> Role is timed - %s."
 				},
 				"remove": {
 					"help": "Remove role from managed roles list",

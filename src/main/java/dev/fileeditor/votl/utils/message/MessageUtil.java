@@ -9,6 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
 public class MessageUtil {
@@ -31,13 +32,13 @@ public class MessageUtil {
 		return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
 	}
 
-	public static List<String> getRoleIdsFromString(String text) {
-		List<String> ids = new ArrayList<>();
-		if (text.contains("+")) ids.add("0");
+	public static List<Long> getRoleIdsFromString(String text) {
+		final List<Long> ids = new ArrayList<>();
+		if (text.contains("+")) ids.add(0L);
 
 		Matcher roleMatcher = rolePattern.matcher(text);
 		while (roleMatcher.find()) {
-			ids.add(roleMatcher.group(1));
+			ids.add(CastUtil.castLong(roleMatcher.group(1)));
 		}
 		
 		return ids;

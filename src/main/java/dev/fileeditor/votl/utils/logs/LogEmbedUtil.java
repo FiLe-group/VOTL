@@ -566,6 +566,19 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
+	public MessageEmbed tempRoleAddedEmbed(DiscordLocale locale, User mod, User user, long roleId, Duration duration, boolean deleteAfter) {
+		return new LogEmbedBuilder(locale, GREEN_LIGHT)
+			.setHeaderIcon("roles.temp_added", user.getEffectiveAvatarUrl())
+			.setUser(user.getIdLong())
+			.addField("roles.role", "<@&"+roleId+">")
+			.addField("duration", TimeUtil.durationToLocalizedString(lu, locale, duration))
+			.addField("roles.temp_delete", deleteAfter?Constants.SUCCESS:Constants.FAILURE)
+			.setMod(mod.getIdLong())
+			.setId(user.getIdLong())
+			.build();
+	}
+
+	@NotNull
 	public MessageEmbed tempRoleRemovedEmbed(DiscordLocale locale, User mod, User user, Role role) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeaderIcon("roles.temp_removed", user.getEffectiveAvatarUrl())
@@ -1257,7 +1270,7 @@ public class LogEmbedUtil {
 
 	private String permissionOverrides(DiscordLocale locale, AuditLogEntry entry) {
 		switch (entry.getType()) {
-			case CHANNEL_OVERRIDE_CREATE: {
+			case CHANNEL_OVERRIDE_CREATE -> {
 				StringBuilder builder = new StringBuilder();
 				String id = entry.getChangeByKey("id").getNewValue();
 				int type = entry.getChangeByKey("type").getNewValue();
@@ -1280,7 +1293,7 @@ public class LogEmbedUtil {
 
 				return builder.toString();
 			}
-			case CHANNEL_OVERRIDE_DELETE: {
+			case CHANNEL_OVERRIDE_DELETE -> {
 				StringBuilder builder = new StringBuilder();
 				String id = entry.getChangeByKey("id").getOldValue();
 				int type = entry.getChangeByKey("type").getOldValue();
@@ -1303,7 +1316,7 @@ public class LogEmbedUtil {
 
 				return builder.toString();
 			}
-			case CHANNEL_OVERRIDE_UPDATE: {
+			case CHANNEL_OVERRIDE_UPDATE -> {
 				StringBuffer buffer = new StringBuffer();
 				Pair<EnumSet<Permission>, EnumSet<Permission>> changes = getChangedPerms(entry.getChangeByKey("allow"));
 				if (changes != null) {
@@ -1323,8 +1336,9 @@ public class LogEmbedUtil {
 
 				return buffer.toString();
 			}
-			default:
+			default -> {
 				return "";
+			}
 		}
 	}
 

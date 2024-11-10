@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.ticketing;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -13,6 +12,7 @@ import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.database.managers.RoleManager;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -65,7 +65,7 @@ public class RolesPanelCmd extends CommandBase {
 			}
 
 			int assignRolesSize = bot.getDBUtil().roles.countRoles(guildId, RoleType.ASSIGN);
-			List<Map<String, Object>> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
+			List<RoleManager.RoleData> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
 			if (assignRolesSize == 0 && toggleRoles.isEmpty()) {
 				editError(event, path+".empty_roles");
 				return;
@@ -80,11 +80,9 @@ public class RolesPanelCmd extends CommandBase {
 				List<Button> buttons = new ArrayList<>();
 				toggleRoles.forEach(data -> {
 					if (buttons.size() >= 5) return;
-					String roleId = data.get("roleId").toString();
-					Role role = guild.getRoleById(roleId);
+					Role role = guild.getRoleById(data.getIdLong());
 					if (role == null) return;
-					String description = data.get("description").toString();
-					buttons.add(Button.primary("role:toggle:"+roleId, MessageUtil.limitString(description, 80)));
+					buttons.add(Button.primary("role:toggle:"+role.getId(), MessageUtil.limitString(data.getDescription("-"), 80)));
 				});
 				actionRows.add(ActionRow.of(buttons));
 			}
@@ -135,7 +133,7 @@ public class RolesPanelCmd extends CommandBase {
 				}
 
 				int assignRolesSize = bot.getDBUtil().roles.countRoles(guildId, RoleType.ASSIGN);
-				List<Map<String, Object>> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
+				List<RoleManager.RoleData> toggleRoles = bot.getDBUtil().roles.getToggleable(guildId);
 				if (assignRolesSize == 0 && toggleRoles.isEmpty()) {
 					editError(event, path+".empty_roles");
 					return;
@@ -150,11 +148,9 @@ public class RolesPanelCmd extends CommandBase {
 					List<Button> buttons = new ArrayList<>();
 					toggleRoles.forEach(data -> {
 						if (buttons.size() >= 5) return;
-						String roleId = data.get("roleId").toString();
-						Role role = guild.getRoleById(roleId);
+						Role role = guild.getRoleById(data.getIdLong());
 						if (role == null) return;
-						String description = data.get("description").toString();
-						buttons.add(Button.primary("role:toggle:"+roleId, MessageUtil.limitString(description, 80)));
+						buttons.add(Button.primary("role:toggle:"+role.getId(), MessageUtil.limitString(data.getDescription("-"), 80)));
 					});
 					actionRows.add(ActionRow.of(buttons));
 				}
