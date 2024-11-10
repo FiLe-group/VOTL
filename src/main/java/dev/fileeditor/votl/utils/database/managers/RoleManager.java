@@ -110,14 +110,6 @@ public class RoleManager extends LiteBase {
 		private final String description;
 		private final boolean isTimed;
 
-		public RoleData(Map<String, Object> map) {
-			this.roleId = CastUtil.castLong(map.get("roleId"));
-			this.type = RoleType.byType(CastUtil.requireNonNull(map.get("type")));
-			this.row = CastUtil.getOrDefault(map.get("row"), 0);
-			this.description = CastUtil.getOrDefault(map.get("description"), null);
-			this.isTimed = CastUtil.getOrDefault(map.get("timed"), 0) == 1;
-		}
-
 		public RoleData(Map<String, Object> map, RoleType type) {
 			this.roleId = CastUtil.castLong(map.get("roleId"));
 			this.type = type;

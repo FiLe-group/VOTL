@@ -37,6 +37,9 @@ public class FileManager {
 
 	public FileManager() {}
 
+	// name - with what name associate this file
+	// internal - path to file inside jar file (/filename)
+	// external - path where to store this file
 	public FileManager addFile(String name, String internal, String external) {
 		createUpdateLoad(name, internal, external, false);
 		
