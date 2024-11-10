@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -22,8 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class UnmuteCmd extends CommandBase {
 	
-	public UnmuteCmd(App bot) {
-		super(bot);
+	public UnmuteCmd() {
 		this.name = "unmute";
 		this.path = "bot.moderation.unmute";
 		this.options = List.of(
@@ -52,21 +50,28 @@ public class UnmuteCmd extends CommandBase {
 		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
 		
 		CaseData muteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
-		if (muteData != null) bot.getDBUtil().cases.setInactive(muteData.getCaseId());
+		if (muteData != null) bot.getDBUtil().cases.setInactive(muteData.getRowId());
 
 		if (tm.isTimedOut()) {
 			tm.removeTimeout().reason(reason).queue(done -> {
 				Member mod = event.getMember();
 				// add info to db
-				bot.getDBUtil().cases.add(CaseType.UNMUTE, tm.getIdLong(), tm.getUser().getName(), mod.getIdLong(), mod.getUser().getName(),
-					guild.getIdLong(), reason, Instant.now(), null);
-				CaseData unmuteData = bot.getDBUtil().cases.getMemberLast(tm.getIdLong(), guild.getIdLong());
-				// log unban
-				bot.getLogger().mod.onNewCase(guild, tm.getUser(), unmuteData, muteData != null ? muteData.getReason() : null);
-				// reply
-				editHookEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), unmuteData.getCaseId(),
-					path+".success", tm.getUser(), mod.getUser(), reason)
+				CaseData unmuteData = bot.getDBUtil().cases.add(
+					CaseType.UNMUTE, tm.getIdLong(), tm.getUser().getName(),
+					mod.getIdLong(), mod.getUser().getName(),
+					guild.getIdLong(), reason, Instant.now(), null
 				);
+				if (unmuteData == null) {
+					editErrorOther(event, "Failed to create action data.");
+					return;
+				}
+				// log unmute
+				bot.getLogger().mod.onNewCase(guild, tm.getUser(), unmuteData, muteData != null ? muteData.getReason() : null).thenAccept(logUrl -> {
+					// reply
+					editEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), unmuteData.getLocalIdInt(),
+						path+".success", tm.getUser(), mod.getUser(), reason, logUrl)
+					);
+				});
 			},
 			failed -> editError(event, path+".abort", failed.getMessage()));
 		} else {

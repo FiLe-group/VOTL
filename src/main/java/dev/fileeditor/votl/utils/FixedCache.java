@@ -24,6 +24,11 @@ public class FixedCache<K, V>
 		this.keys = (K[]) new Object[size];
 	}
 
+	/**
+	 * @param key key
+	 * @param value value
+	 * @return previously associated value with the key (or null if didn't exist).
+	 */
 	public V put(K key, V value)
 	{
 		if(map.containsKey(key))

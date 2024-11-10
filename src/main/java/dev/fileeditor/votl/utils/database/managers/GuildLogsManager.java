@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.NotNull;
 
 public class GuildLogsManager extends LiteBase {
 
@@ -25,20 +25,20 @@ public class GuildLogsManager extends LiteBase {
 		super(cu, "logWebhooks");
 	}
 
-	public void setLogWebhook(LogType type, long guildId, WebhookData webhookData) {
+	public boolean setLogWebhook(LogType type, long guildId, WebhookData webhookData) {
 		invalidateCache(guildId);
 		String data = webhookData==null ? "NULL" : webhookData.encodeData();
-		execute("INSERT INTO %s(guildId, %s) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET %2$s=%4$s".formatted(table, type.getName(), guildId, quote(data)));
+		return execute("INSERT INTO %s(guildId, %s) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET %2$s=%4$s".formatted(table, type.getName(), guildId, quote(data)));
 	}
 
-	public void removeLogWebhook(LogType type, long guildId) {
+	public boolean removeLogWebhook(LogType type, long guildId) {
 		invalidateCache(guildId);
-		execute("UPDATE %s SET %s=NULL WHERE (guildId=%d)".formatted(table, type.getName(), guildId));
+		return execute("UPDATE %s SET %s=NULL WHERE (guildId=%d)".formatted(table, type.getName(), guildId));
 	}
 
-	public void removeGuild(long guildId) {
+	public boolean removeGuild(long guildId) {
 		invalidateCache(guildId);
-		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
+		return execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 
 	public WebhookData getLogWebhook(LogType type, long guildId) {
@@ -46,7 +46,7 @@ public class GuildLogsManager extends LiteBase {
 			return cache.get(guildId).getWebhookData(type);
 		LogSettings settings = applyNonNull(getData(guildId), LogSettings::new);
 		if (settings == null)
-			return null;
+			settings = blankSettings;
 		cache.put(guildId, settings);
 		return settings.getWebhookData(type);
 	}
@@ -56,7 +56,7 @@ public class GuildLogsManager extends LiteBase {
 			return cache.get(guildId);
 		LogSettings settings = applyNonNull(getData(guildId), LogSettings::new);
 		if (settings == null)
-			return blankSettings;
+			settings = blankSettings;
 		cache.put(guildId, settings);
 		return settings;
 	}
@@ -116,7 +116,7 @@ public class GuildLogsManager extends LiteBase {
 			this.token = token;
 		}
 
-		public WebhookData(@Nonnull String data) {
+		public WebhookData(@NotNull String data) {
 			String[] array = data.split(":");
 			this.channelId = Long.parseLong(array[0]);
 			this.webhookId = Long.parseLong(array[1]);

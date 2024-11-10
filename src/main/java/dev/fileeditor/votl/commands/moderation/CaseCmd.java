@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -16,8 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class CaseCmd extends CommandBase {
 
-	public CaseCmd(App bot) {
-		super(bot);
+	public CaseCmd() {
 		this.name = "case";
 		this.path = "bot.moderation.case";
 		this.options = List.of(
@@ -31,14 +29,14 @@ public class CaseCmd extends CommandBase {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		event.deferReply(true).queue();
-		CaseData caseData = bot.getDBUtil().cases.getInfo(event.optInteger("id"));
-		if (caseData == null || event.getGuild().getIdLong() != caseData.getGuildId()) {
+		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
+		if (caseData == null) {
 			editError(event, path+".not_found");
 			return;
 		}
 		MessageEmbed embed = bot.getLogEmbedUtil().getCaseEmbed(event.getUserLocale(), caseData);
 
-		editHookEmbed(event, embed);
+		editEmbed(event, embed);
 	}
 
 }

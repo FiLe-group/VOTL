@@ -8,7 +8,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -25,8 +24,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class ModStatsCmd extends CommandBase {
 	
-	public ModStatsCmd(App bot) {
-		super(bot);
+	public ModStatsCmd() {
 		this.name = "modstats";
 		this.path = "bot.moderation.modstats";
 		this.options = List.of(
@@ -60,7 +58,7 @@ public class ModStatsCmd extends CommandBase {
 		Instant afterTime;
 		Instant beforeTime;
 
-		DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 		try {
 			beforeTime = beforeDate!=null
 				? LocalDate.parse(beforeDate, inputFormatter).atStartOfDay(ZoneId.systemDefault()).toInstant()
@@ -80,7 +78,7 @@ public class ModStatsCmd extends CommandBase {
 		int countRoles = bot.getDBUtil().tickets.countTicketsByMod(event.getGuild().getIdLong(), mod.getIdLong(), afterTime, beforeTime, true);
 		Map<Integer, Integer> countCases = bot.getDBUtil().cases.countCasesByMod(guildId, mod.getIdLong(), afterTime, beforeTime);
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.systemDefault());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault());
 		String intervalText = "%s\n`%s` - `%s`".formatted(lu.getText(event, path+".title"), formatter.format(afterTime), formatter.format(beforeTime));
 		EmbedBuilder embedBuilder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 			.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())
@@ -99,7 +97,7 @@ public class ModStatsCmd extends CommandBase {
 			buildLine(lu.getText(event, path + ".roles"), countRoles) +
 			"```";
 
-		editHookEmbed(event, embedBuilder.setDescription(builder).build());
+		editEmbed(event, embedBuilder.setDescription(builder).build());
 	}
 
 	private void returnFullStats(SlashCommandEvent event) {
@@ -132,8 +130,8 @@ public class ModStatsCmd extends CommandBase {
 			.append(sevenText).append(" | ")
 			.append(thirtyText).append(" | ")
 			.append(lu.getText(event, path+".all")).append("\n");
-		final int length7 = sevenText.length();
-		final int length30 = thirtyText.length();
+		final int length7 = sevenText.length()-1;
+		final int length30 = thirtyText.length()-1;
 
 		builder.append(buildLine(lu.getText(event, path+".strikes"), countStrikes(count7), countStrikes(count30), countStrikes(countTotal), length7, length30))
 			.append(buildLine(lu.getText(event, path+".game_strikes"), getCount(count7, CaseType.GAME_STRIKE), getCount(count30, CaseType.GAME_STRIKE), getCount(countTotal, CaseType.GAME_STRIKE), length7, length30))
@@ -145,11 +143,11 @@ public class ModStatsCmd extends CommandBase {
 			.append(buildLine(lu.getText(event, path+".roles"), roles7, roles30, rolesTotal, length7, length30))
 			.append("```");
 
-		editHookEmbed(event, embedBuilder.setDescription(builder.toString()).build());
+		editEmbed(event, embedBuilder.setDescription(builder.toString()).build());
 	}
 
 	private String buildLine(String text, int count7, int count30, int countTotal, int length7, int length30) {
-		return String.format("%-10s %-"+length7+"s | %-"+length30+"s | %s\n", text, count7, count30, countTotal);
+		return String.format("%-10s %-"+length7+"s |  %-"+length30+"s |  %s\n", text, count7, count30, countTotal);
 	}
 
 	private String buildLine(String text, int count) {
@@ -157,7 +155,7 @@ public class ModStatsCmd extends CommandBase {
 	}
 
 	private String buildTotal(String text, int count7, int count30, int countTotal, int length7, int length30) {
-		return String.format("%-10s %-"+length7+"s | %-"+length30+"s | %s\n", "-"+text+"-", count7, count30, countTotal);
+		return String.format("%-10s %-"+length7+"s |  %-"+length30+"s |  %s\n", "-"+text+"-", count7, count30, countTotal);
 	}
 
 	private String buildTotal(String text, int count) {

@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import dev.fileeditor.votl.objects.annotation.Nullable;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.Nullable;
 
 public class BlacklistManager extends LiteBase {
 	
@@ -23,8 +23,8 @@ public class BlacklistManager extends LiteBase {
 		return selectOne("SELECT userId FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId), "userId", Long.class) != null;
 	}
 
-	public void removeUser(int groupId, long userId) {
-		execute("DELETE FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId));
+	public boolean removeUser(int groupId, long userId) {
+		return execute("DELETE FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId));
 	}
 
 	public Map<String, Object> getInfo(int groupId, long userId) {

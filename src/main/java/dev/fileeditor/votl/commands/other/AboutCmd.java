@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.other;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -17,8 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class AboutCmd extends CommandBase {
 
-	public AboutCmd(App bot) {
-		super(bot);
+	public AboutCmd() {
 		this.name = "about";
 		this.path = "bot.other.about";
 		this.options = List.of(
@@ -30,6 +28,8 @@ public class AboutCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply(event.isFromGuild() && !event.optBoolean("show", false)).queue();
+
 		DiscordLocale userLocale = event.getUserLocale();
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 			.setAuthor(event.getJDA().getSelfUser().getName(), event.getJDA().getSelfUser().getEffectiveAvatarUrl())
@@ -77,7 +77,7 @@ public class AboutCmd extends CommandBase {
 			)
 			.build();
 		
-		createReplyEmbed(event, event.isFromGuild() && !event.optBoolean("show", false), embed);
+		editEmbed(event, embed);
 	}
 
 }

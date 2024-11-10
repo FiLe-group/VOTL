@@ -54,7 +54,8 @@ public class ScheduledCheck {
 	public void irregularChecks() {
 		CompletableFuture.runAsync(this::checkTicketStatus)
 			.thenRunAsync(this::checkExpiredTempRoles)
-			.thenRunAsync(this::checkExpiredStrikes);
+			.thenRunAsync(this::checkExpiredStrikes)
+			.thenRunAsync(this::checkExpiredPersistentRoles);
 	}
 
 	private void checkTicketStatus() {
@@ -96,7 +97,7 @@ public class ScheduledCheck {
 					bot.getDBUtil().tickets.forceCloseTicket(channelId);
 					return;
 				}
-				bot.getTicketUtil().closeTicket(channelId, null, "Auto closure", failure -> {
+				bot.getTicketUtil().closeTicket(channelId, null, "time", failure -> {
 					logger.error("Failed to delete ticket channel, either already deleted or unknown error", failure);
 					db.tickets.setRequestStatus(channelId, -1L);
 				});
@@ -114,7 +115,7 @@ public class ScheduledCheck {
 						Message msg = list.get(0);
 						if (msg.getAuthor().isBot()) {
 							// Last message is bot - close ticket
-							bot.getTicketUtil().closeTicket(channelId, null, "No activity", failure -> {
+							bot.getTicketUtil().closeTicket(channelId, null, "activity", failure -> {
 								logger.error("Failed to delete ticket channel, either already deleted or unknown error", failure);
 								db.tickets.setWaitTime(channelId, -1L);
 							});
@@ -187,17 +188,17 @@ public class ScheduledCheck {
 					// Update data
 					if (!cases[0].isEmpty()) {
 						String[] caseInfo = cases[0].split("-");
-						String caseId = caseInfo[0];
+						String caseRowId = caseInfo[0];
 						int newCount = Integer.parseInt(caseInfo[1]) - 1;
 
 						StringBuilder newData = new StringBuilder();
 						if (newCount > 0) {
-							newData.append(caseId).append("-").append(newCount);
+							newData.append(caseRowId).append("-").append(newCount);
 							if (cases.length > 1)
 								newData.append(";");
 						} else {
 							// Set case inactive
-							db.cases.setInactive(Integer.parseInt(caseId));
+							db.cases.setInactive(Integer.parseInt(caseRowId));
 						}
 						if (cases.length > 1) {
 							List<String> list = new ArrayList<>(List.of(cases));
@@ -220,6 +221,14 @@ public class ScheduledCheck {
 		}
 	}
 
+	private void checkExpiredPersistentRoles() {
+		try {
+			db.persistent.removeExpired();
+		} catch (Throwable t) {
+			logger.error("Exception caught during expired persistent roles check.", t);
+		}
+	}
+
 	// Each 2-5 minutes
 	public void regularChecks() {
 		CompletableFuture.runAsync(this::checkUnbans);
@@ -231,7 +240,7 @@ public class ScheduledCheck {
 		
 		expired.forEach(caseData -> {
 			if (caseData.getType().equals(CaseType.MUTE)) {
-				db.cases.setInactive(caseData.getCaseId());
+				db.cases.setInactive(caseData.getRowId());
 				return;
 			}
 			Guild guild = bot.JDA.getGuildById(caseData.getGuildId());
@@ -240,7 +249,7 @@ public class ScheduledCheck {
 				s -> bot.getLogger().mod.onAutoUnban(caseData, guild),
 				f -> logger.warn("Exception at unban attempt.", f)
 			);
-			db.cases.setInactive(caseData.getCaseId());
+			db.cases.setInactive(caseData.getRowId());
 		});
 	}
 	

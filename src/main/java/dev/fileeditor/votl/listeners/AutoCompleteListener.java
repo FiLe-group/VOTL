@@ -11,9 +11,9 @@ import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.SlashCommand;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.message.MessageUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class AutoCompleteListener extends ListenerAdapter {
 
@@ -27,7 +27,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 	}
 		
 	@Override
-	public void onCommandAutoCompleteInteraction(@Nonnull CommandAutoCompleteInteractionEvent event) {
+	public void onCommandAutoCompleteInteraction(@NotNull CommandAutoCompleteInteractionEvent event) {
 		String cmdName = event.getFullCommandName();
 		String focusedOption = event.getFocusedOption().getName();
 		if (cmdName.equals("help") && focusedOption.equals("command")) {

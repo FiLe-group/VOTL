@@ -11,8 +11,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -28,6 +26,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.utils.FileUpload;
 
+import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -53,9 +52,9 @@ public class DiscordHtmlTranscripts {
         return instance;
     }
 
-    public void queueCreateTranscript(GuildMessageChannel channel, @Nonnull Consumer<FileUpload> action, @Nonnull Consumer<? super Throwable> failure) {
+    public void queueCreateTranscript(GuildMessageChannel channel, @NotNull Consumer<FileUpload> action, @NotNull Consumer<? super Throwable> failure) {
         channel.getIterableHistory()
-            .deadline(System.currentTimeMillis() + 4000)
+            .deadline(System.currentTimeMillis() + 3000)
             .takeAsync(200)
             .thenAcceptAsync(list -> {
                 if (list.size() < 2) action.accept(null); // Probably one message is from bot and to be ignored.

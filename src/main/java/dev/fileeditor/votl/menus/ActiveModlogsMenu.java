@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.menus;
 
 import net.dv8tion.jda.api.entities.User;
-import dev.fileeditor.votl.App;
+
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
@@ -14,9 +14,7 @@ import java.util.List;
 
 public class ActiveModlogsMenu extends UserContextMenu {
 
-	public ActiveModlogsMenu(App bot) {
-		this.bot = bot;
-		this.lu = bot.getLocaleUtil();
+	public ActiveModlogsMenu() {
 		this.name = "activelogs";
 		this.path = "menus.activelogs";
 		this.module = CmdModule.MODERATION;
@@ -32,16 +30,17 @@ public class ActiveModlogsMenu extends UserContextMenu {
 
 		long guildId = event.getGuild().getIdLong();
 		long userId = user.getIdLong();
-		List<CaseManager.CaseData> cases = bot.getDBUtil().cases.getGuildUser(guildId, userId, 1, true);
+		final List<CaseManager.CaseData> cases = bot.getDBUtil().cases.getGuildUser(guildId, userId, 1, true);
 		if (cases.isEmpty()) {
 			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, "bot.moderation.modlogs.empty")).build()).queue();
 			return;
 		}
 		int pages = (int) Math.ceil(bot.getDBUtil().cases.countCases(guildId, userId)/10.0);
 
-		event.getHook().editOriginalEmbeds(ModLogsCmd.buildEmbed(lu, event.getUserLocale(), user, cases, 1, pages)
-			.setDescription(lu.getLocalized(event.getUserLocale(), path+".full"))
-			.build()
+		event.getHook().editOriginalEmbeds(
+			ModLogsCmd.buildEmbed(lu, event.getUserLocale(), user, cases, 1, pages)
+				.setDescription(lu.getLocalized(event.getUserLocale(), path+".full"))
+				.build()
 		).queue();
 	}
 

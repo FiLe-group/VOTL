@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.owner;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.FileUpload;
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -13,8 +12,7 @@ import java.util.List;
 
 public class DebugCmd extends CommandBase {
 
-	public DebugCmd(App bot) {
-		super(bot);
+	public DebugCmd() {
 		this.name = "debug";
 		this.path = "bot.owner.debug";
 		this.options = List.of(
@@ -23,7 +21,6 @@ public class DebugCmd extends CommandBase {
 		);
 		this.category = CmdCategory.OWNER;
 		this.ownerCommand = true;
-		this.guildOnly = false;
 	}
 
 	@Override

@@ -21,7 +21,7 @@ public class TicketPanelManager extends LiteBase {
 		super(cu, "ticketPanel");
 	}
 
-	public void createPanel(long guildId, String title, String description, String imageUrl, String footer) {
+	public int createPanel(long guildId, String title, String description, String imageUrl, String footer) {
 		List<String> keys = new ArrayList<>(5);
 		List<String> values = new ArrayList<>(5);
 		keys.add("guildId");
@@ -40,15 +40,11 @@ public class TicketPanelManager extends LiteBase {
 			keys.add("footer");
 			values.add(replaceNewline(footer));
 		}
-		execute("INSERT INTO %s(%s) VALUES (%s)".formatted(table, String.join(", ", keys), String.join(", ", values)));
+		return executeWithRow("INSERT INTO %s(%s) VALUES (%s)".formatted(table, String.join(", ", keys), String.join(", ", values)));
 	}
 
-	public int getIncrement() {
-		return getIncrement(table);
-	}
-
-	public void delete(int panelId) {
-		execute("DELETE FROM %s WHERE (panelId=%d)".formatted(table, panelId));
+	public boolean delete(int panelId) {
+		return execute("DELETE FROM %s WHERE (panelId=%d)".formatted(table, panelId));
 	}
 
 	public void deleteAll(long guildId) {
@@ -59,7 +55,7 @@ public class TicketPanelManager extends LiteBase {
 		return selectOne("SELECT guildId FROM %s WHERE (panelId=%d)".formatted(table, panelId), "guildId", Long.class);
 	}
 
-	public void updatePanel(int panelId, String title, String description, String imageUrl, String footer) {
+	public boolean updatePanel(int panelId, String title, String description, String imageUrl, String footer) {
 		List<String> values = new ArrayList<>();
 		if (title != null)
 			values.add("title="+quote(title));
@@ -70,7 +66,9 @@ public class TicketPanelManager extends LiteBase {
 		if (footer != null)
 			values.add("footer="+replaceNewline(footer));
 
-		if (!values.isEmpty()) execute("UPDATE %s SET %s WHERE (panelId=%d)".formatted(table, String.join(", ", values), panelId));
+		if (!values.isEmpty())
+			return execute("UPDATE %s SET %s WHERE (panelId=%d)".formatted(table, String.join(", ", values), panelId));
+		return false;
 	}
 
 	public Panel getPanel(int panelId) {
@@ -124,4 +122,5 @@ public class TicketPanelManager extends LiteBase {
 			return builder; 
 		}
 	}
+
 }

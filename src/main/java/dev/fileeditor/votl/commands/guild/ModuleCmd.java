@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
@@ -13,7 +12,6 @@ import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emote;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -23,16 +21,16 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import org.jetbrains.annotations.NotNull;
 
 public class ModuleCmd extends CommandBase {
 	
 	private static EventWaiter waiter;
 	
-	public ModuleCmd(App bot, EventWaiter waiter) {
-		super(bot);
+	public ModuleCmd(EventWaiter waiter) {
 		this.name = "module";
 		this.path = "bot.guild.module";
-		this.children = new SlashCommand[]{new Show(bot), new Disable(bot), new Enable(bot)};
+		this.children = new SlashCommand[]{new Show(), new Disable(), new Enable()};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.OWNER;
 		ModuleCmd.waiter = waiter;
@@ -42,16 +40,14 @@ public class ModuleCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Show extends SlashCommand {
-
-		public Show(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Show() {
 			this.name = "show";
 			this.path = "bot.guild.module.show";
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			long guildId = event.getGuild().getIdLong();
 
 			StringBuilder builder = new StringBuilder();
@@ -61,25 +57,21 @@ public class ModuleCmd extends CommandBase {
 					.append("\n");
 			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed()
+			editEmbed(event, bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(event, path+".embed.title"))
 				.setDescription(lu.getText(event, path+".embed.value"))
 				.addField(lu.getText(event, path+".embed.field"), builder.toString(), false)
 				.build());
 		}
 
-		@Nonnull
+		@NotNull
 		private String format(String sModule, boolean check) {
 			return (check ? Emote.CROSS_C : Emote.CHECK_C).getEmote() + " | " + sModule;
 		}
-
 	}
 
 	private class Disable extends SlashCommand {
-
-		public Disable(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Disable() {
 			this.name = "disable";
 			this.path = "bot.guild.module.disable";
 		}
@@ -98,7 +90,7 @@ public class ModuleCmd extends CommandBase {
 			if (enabled.isEmpty()) {
 				embed.setDescription(lu.getText(event, path+".none"))
 					.setColor(Constants.COLOR_FAILURE);
-				editHookEmbed(event, embed.build());
+				editEmbed(event, embed.build());
 				return;
 			}
 
@@ -124,7 +116,10 @@ public class ModuleCmd extends CommandBase {
 					}
 					// set new data
 					final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() + sModule.getValue();
-					bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
+					if (bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData)) {
+						editErrorDatabase(event, "set disabled modules");
+						return;
+					}
 					// Send reply
 					hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setTitle(lu.getText(event, path+".done").replace("{module}", lu.getText(event, sModule.getPath())))
@@ -140,14 +135,10 @@ public class ModuleCmd extends CommandBase {
 				).queue()
 			));
 		}
-
 	}
 
 	private class Enable extends SlashCommand {
-
-		public Enable(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Enable() {
 			this.name = "enable";
 			this.path = "bot.guild.module.enable";
 		}
@@ -166,7 +157,7 @@ public class ModuleCmd extends CommandBase {
 			if (disabled.isEmpty()) {
 				embed.setDescription(lu.getText(event, path+".none"))
 					.setColor(Constants.COLOR_FAILURE);
-				editHookEmbed(event, embed.build());
+				editEmbed(event, embed.build());
 				return;
 			}
 
@@ -208,7 +199,6 @@ public class ModuleCmd extends CommandBase {
 				).queue()
 			));
 		}
-
 	}
 
 	private Set<CmdModule> getModules(long guildId, boolean on) {

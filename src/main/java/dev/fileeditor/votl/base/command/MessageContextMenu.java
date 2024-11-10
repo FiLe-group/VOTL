@@ -16,7 +16,6 @@
 package dev.fileeditor.votl.base.command;
 
 import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
 import net.dv8tion.jda.api.entities.Guild;
@@ -26,6 +25,7 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class MessageContextMenu extends ContextMenu
 {
@@ -106,7 +106,7 @@ public abstract class MessageContextMenu extends ContextMenu
 	 */
 	protected abstract void execute(MessageContextMenuEvent event);
 
-	private void terminate(MessageContextMenuEvent event, @Nonnull MessageEmbed embed) {
+	private void terminate(MessageContextMenuEvent event, @NotNull MessageEmbed embed) {
 		terminate(event, MessageCreateData.fromEmbeds(embed));
 	}
 
@@ -120,7 +120,6 @@ public abstract class MessageContextMenu extends ContextMenu
 	@Override
 	public CommandData buildCommandData() {
 		// Set attributes
-		this.lu = bot.getLocaleUtil();
 		this.nameLocalization = lu.getFullLocaleMap(getPath()+".name", lu.getText(getPath()+".name"));
 
 		// Make the command data

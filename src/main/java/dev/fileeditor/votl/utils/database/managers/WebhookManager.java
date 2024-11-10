@@ -11,12 +11,13 @@ public class WebhookManager extends LiteBase {
 		super(cu, "webhooks");
 	}
 
-	public void add(long webhookId, long guildId, String token) {
-		execute("INSERT INTO %s(webhookId, guildId, token) VALUES (%s, %s, %s) ON CONFLICT(webhookId) DO NOTHING".formatted(table, webhookId, guildId, quote(token)));
+	public boolean add(long webhookId, long guildId, String token) {
+		return execute("INSERT INTO %s(webhookId, guildId, token) VALUES (%s, %s, %s) ON CONFLICT(webhookId) DO NOTHING"
+			.formatted(table, webhookId, guildId, quote(token)));
 	}
 
-	public void remove(long webhookId) {
-		execute("DELETE FROM %s WHERE (webhookId=%s)".formatted(table, webhookId));
+	public boolean remove(long webhookId) {
+		return execute("DELETE FROM %s WHERE (webhookId=%s)".formatted(table, webhookId));
 	}
 
 	public void removeAll(long guildId) {

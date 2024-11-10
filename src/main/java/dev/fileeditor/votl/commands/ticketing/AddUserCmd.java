@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -21,8 +20,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class AddUserCmd extends CommandBase {
 
-	public AddUserCmd(App bot) {
-		super(bot);
+	public AddUserCmd() {
 		this.name = "add";
 		this.path = "bot.ticketing.add";
 		this.options = List.of(
@@ -35,11 +33,12 @@ public class AddUserCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply().queue();
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 		if (authorId == null) {
 			// If this channel is not a ticket
-			createError(event, path+".not_ticket");
+			editError(event, path+".not_ticket");
 			return;
 		}
 		if (bot.getDBUtil().tickets.isClosed(channelId)) {
@@ -49,10 +48,9 @@ public class AddUserCmd extends CommandBase {
 		}
 		User user = event.optUser("user");
 		if (user.equals(event.getUser()) || user.equals(bot.JDA.getSelfUser()) || authorId.equals(user.getIdLong())) {
-			createError(event, path+".not_self");
+			editError(event, path+".not_self");
 			return;
 		}
-		event.deferReply().queue();
 
 		if (event.getChannelType().equals(ChannelType.GUILD_PRIVATE_THREAD)) {
 			// Thread

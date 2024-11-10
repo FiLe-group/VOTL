@@ -4,10 +4,9 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
-
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public enum Emote {
 	// Animated emotes
@@ -74,8 +73,8 @@ public enum Emote {
 		return this.id;
 	}
 
-	@Nonnull
-	public static String getWithEmotes(@Nonnull String input) {
+	@NotNull
+	public static String getWithEmotes(@NotNull String input) {
 		Matcher matcher = emote_pattern.matcher(input);
 		if (matcher.find()) {
 			StringBuilder builder = new StringBuilder();

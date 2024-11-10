@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 import dev.fileeditor.votl.servlet.oauth2.OkHttpResponseFuture;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,7 @@ public class OAuth2Requester {
 	<T> void submitAsync(OAuth2Action<T> request, Consumer<T> success, Consumer<Throwable> failure) {
 		httpClient.newCall(request.buildRequest()).enqueue(new Callback() {
 			@Override
-			public void onResponse(Call call, Response response) {
+			public void onResponse(@NotNull Call call, @NotNull Response response) {
 				try (response) {
 					T value = request.handle(response);
 					logSuccessfulRequest(request);
@@ -71,7 +72,7 @@ public class OAuth2Requester {
 			}
 
 			@Override
-			public void onFailure(Call call, IOException e) {
+			public void onFailure(@NotNull Call call, @NotNull IOException e) {
 				log.error("Requester encountered an error when submitting a request!", e);
 			}
 		});

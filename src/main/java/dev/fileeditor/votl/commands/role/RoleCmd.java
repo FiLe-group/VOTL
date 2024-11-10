@@ -9,7 +9,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -33,11 +32,10 @@ import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 public class RoleCmd extends CommandBase {
 	
-	public RoleCmd(App bot) {
-		super(bot);
+	public RoleCmd() {
 		this.name = "role";
 		this.path = "bot.roles.role";
-		this.children = new SlashCommand[]{new Add(bot), new Remove(bot), new RemoveAll(bot), new Modify(bot)};
+		this.children = new SlashCommand[]{new Add(), new Remove(), new RemoveAll(), new Modify()};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
 		this.accessLevel = CmdAccessLevel.HELPER;
@@ -47,9 +45,7 @@ public class RoleCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 	
 	private class Add extends SlashCommand {
-		public Add(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Add() {
 			this.name = "add";
 			this.path = "bot.roles.role.add";
 			this.options = List.of(
@@ -62,6 +58,7 @@ public class RoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 
 			// Get roles
@@ -85,14 +82,14 @@ public class RoleCmd extends CommandBase {
 			for (Role r : roles) {
 				if (r.equals(publicRole) || r.isManaged() || !event.getMember().canInteract(r)
 					|| !guild.getSelfMember().canInteract(r) || r.hasPermission(Permission.ADMINISTRATOR)) {
-					createError(event, path+".incorrect_role", "Role: "+r.getAsMention());
+					editError(event, path+".incorrect_role", "Role: "+r.getAsMention());
 					return;
 				}
 			}
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				createError(event, path+".no_member");
+				editError(event, path+".no_member");
 				return;
 			}
 			List<Role> finalRoles = new ArrayList<>(member.getRoles());
@@ -103,18 +100,16 @@ public class RoleCmd extends CommandBase {
 				// Log
 				bot.getLogger().role.onRolesAdded(guild, event.getUser(), member.getUser(), rolesString);
 				// Send reply
-				createReplyEmbed(event, false, bot.getEmbedUtil().getEmbed()
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setColor(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").replace("{roles}", rolesString).replace("{user}", member.getAsMention()))
 					.build());
-			}, failure -> createError(event, path+".failed", failure.getMessage()));
+			}, failure -> editError(event, path+".failed", failure.getMessage()));
 		}
 	}
 
 	private class Remove extends SlashCommand {
-		public Remove(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Remove() {
 			this.name = "remove";
 			this.path = "bot.roles.role.remove";
 			this.options = List.of(
@@ -127,6 +122,7 @@ public class RoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 
 			// Get roles
@@ -150,14 +146,14 @@ public class RoleCmd extends CommandBase {
 			for (Role r : roles) {
 				if (r.equals(publicRole) || r.isManaged() || !event.getMember().canInteract(r)
 					|| !guild.getSelfMember().canInteract(r) || r.hasPermission(Permission.ADMINISTRATOR)) {
-					createError(event, path+".incorrect_role", "Role: "+r.getAsMention());
+					editError(event, path+".incorrect_role", "Role: "+r.getAsMention());
 					return;
 				}
 			}
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				createError(event, path+".no_member");
+				editError(event, path+".no_member");
 				return;
 			}
 
@@ -169,17 +165,15 @@ public class RoleCmd extends CommandBase {
 				// Log
 				bot.getLogger().role.onRolesRemoved(guild, event.getUser(), member.getUser(), rolesString);
 				// Send reply
-				createReplyEmbed(event, false, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").replace("{roles}", rolesString).replace("{user}", member.getAsMention()))
 					.build());
-			}, failure -> createError(event, path+".failed", failure.getMessage()));
+			}, failure -> editError(event, path+".failed", failure.getMessage()));
 		}
 	}
 
 	private class RemoveAll extends SlashCommand {
-		public RemoveAll(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public RemoveAll() {
 			this.name = "removeall";
 			this.path = "bot.roles.role.removeall";
 			this.options = List.of(
@@ -192,20 +186,21 @@ public class RoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
-				createError(event, path+".no_role");
+				editError(event, path+".no_role");
 				return;
 			}
 			if (role.isPublicRole() || role.isManaged() || !guild.getSelfMember().canInteract(role) || role.hasPermission(Permission.ADMINISTRATOR)) {
-				createError(event, path+".incorrect_role");
+				editError(event, path+".incorrect_role");
 				return;
 			}
 
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".started"));
-			event.replyEmbeds(builder.build()).queue();
+			editEmbed(event, builder.build());
 
 			event.getGuild().findMembersWithRoles(role).setTimeout(4, TimeUnit.SECONDS).onSuccess(members -> {
 				int maxSize = members.size();
@@ -214,10 +209,10 @@ public class RoleCmd extends CommandBase {
 					return;
 				}
 				if (maxSize > 400) {
-					editError(event, "errors.error", "Amount of members to be processed reached maximum limit of **400**! Manually clear the selected role.");
+					editErrorOther(event, "Amount of members to be processed reached maximum limit of **400**! Manually clear the selected role.");
 					return;
 				}
-				editHookEmbed(event, builder.appendDescription(lu.getText(event, path+".estimate").formatted(maxSize)).build());
+				editEmbed(event, builder.appendDescription(lu.getText(event, path+".estimate").formatted(maxSize)).build());
 
 				String reason = "by "+event.getMember().getEffectiveName();
 				List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
@@ -228,7 +223,7 @@ public class RoleCmd extends CommandBase {
 				CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
 					.whenComplete((done, exception) -> {
 						if (exception != null) {
-							editError(event, "errors.unknown", exception.getMessage());
+							editErrorUnknown(event, exception.getMessage());
 						} else {
 							int removed = 0;
 							for (CompletableFuture<Void> future : completableFutures) {
@@ -237,19 +232,17 @@ public class RoleCmd extends CommandBase {
 							// Log
 							bot.getLogger().role.onRoleRemovedAll(guild, event.getUser(), role);
 							// Send reply
-							editHookEmbed(event, builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
+							editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
 								.replace("{role}", role.getName()).replace("{count}", Integer.toString(removed)).replace("{max}", Integer.toString(maxSize))
 							).build());
 						}
 					}).thenRun(guild::pruneMemberCache); // Prune member cache
-			}).onError(failure -> editError(event, "errors.error", failure.getMessage()));
+			}).onError(failure -> editErrorOther(event, failure.getMessage()));
 		}
 	}
 
 	private class Modify extends SlashCommand {
-		public Modify(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Modify() {
 			this.name = "modify";
 			this.path = "bot.roles.role.modify";
 			this.options = List.of(
@@ -315,8 +308,11 @@ public class RoleCmd extends CommandBase {
 			}
 			actionRows.add(ActionRow.of(Button.primary("role:manage-confirm:"+target.getId(), lu.getText(event, path+".button"))));
 
-			bot.getDBUtil().modifyRole.create(event.getGuild().getIdLong(), member.getIdLong(),
-				target.getIdLong(), Instant.now().plus(2, ChronoUnit.MINUTES));
+			if (bot.getDBUtil().modifyRole.create(event.getGuild().getIdLong(), member.getIdLong(),
+				target.getIdLong(), Instant.now().plus(2, ChronoUnit.MINUTES))) {
+				editErrorDatabase(event, "start modify role");
+				return;
+			}
 
 			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 				.setDescription(lu.getText(event, path+".title").formatted(target.getAsMention()))

@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.games;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -18,11 +17,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class GameCmd extends CommandBase {
 
-	public GameCmd(App bot) {
-		super(bot);
+	public GameCmd() {
 		this.name = "game";
 		this.path = "bot.games.game";
-		this.children = new SlashCommand[]{new Add(bot), new Remove(bot), new ViewChannels(bot), new Clear(bot)};
+		this.children = new SlashCommand[]{new Add(), new Remove(), new ViewChannels(), new Clear()};
 		this.category = CmdCategory.GAMES;
 		this.module = CmdModule.GAMES;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -32,9 +30,7 @@ public class GameCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Add extends SlashCommand {
-		public Add(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Add() {
 			this.name = "add";
 			this.path = "bot.games.game.add";
 			this.options = List.of(
@@ -47,25 +43,27 @@ public class GameCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) != null) {
-				createError(event, path+".already", "Channel: %s".formatted(channel.getAsMention()));
+				editError(event, path+".already", "Channel: %s".formatted(channel.getAsMention()));
 				return;
 			}
 			int maxStrikes = event.optInteger("max_strikes", 3);
 
-			bot.getDBUtil().games.addChannel(event.getGuild().getIdLong(), channel.getIdLong(), maxStrikes);
+			if (bot.getDBUtil().games.addChannel(event.getGuild().getIdLong(), channel.getIdLong(), maxStrikes)) {
+				editErrorDatabase(event, "add channel");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention(), maxStrikes))
 				.build());
 		}
 	}
 
 	private class Remove extends SlashCommand {
-		public Remove(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Remove() {
 			this.name = "remove";
 			this.path = "bot.games.game.remove";
 			this.options = List.of(
@@ -76,33 +74,36 @@ public class GameCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
-				createError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
+				editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
 				return;
 			}
 
-			bot.getDBUtil().games.removeChannel(channel.getIdLong());
+			if (bot.getDBUtil().games.removeChannel(channel.getIdLong())) {
+				editErrorDatabase(event, "remove channel");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
 				.build());
 		}
 	}
 
 	private class ViewChannels extends SlashCommand {
-		public ViewChannels(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public ViewChannels() {
 			this.name = "view-channels";
 			this.path = "bot.games.game.view-channels";
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			List<Long> channels = bot.getDBUtil().games.getChannels(event.getGuild().getIdLong());
 			if (channels.isEmpty()) {
-				createReplyEmbed(event, bot.getEmbedUtil().getEmbed()
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setDescription(lu.getText(event, path+".none"))
 					.build()
 				);
@@ -114,7 +115,7 @@ public class GameCmd extends CommandBase {
 				builder.append("<#").append(channelId).append(">\n");
 			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setTitle(lu.getText(event, path+".embed_title"))
 				.setDescription(builder.toString())
 				.build()
@@ -123,9 +124,7 @@ public class GameCmd extends CommandBase {
 	}
 
 	private class Clear extends SlashCommand {
-		public Clear(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Clear() {
 			this.name = "clear";
 			this.path = "bot.games.game.clear";
 			this.options = List.of(
@@ -137,20 +136,24 @@ public class GameCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
-				createError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
+				editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
 				return;
 			}
 			User user = event.optUser("user");
 			if (user == null) {
-				createError(event, path+".no_user");
+				editError(event, path+".no_user");
 				return;
 			}
 
-			bot.getDBUtil().games.clearStrikes(channel.getIdLong(), user.getIdLong());
+			if (bot.getDBUtil().games.clearStrikes(channel.getIdLong(), user.getIdLong())) {
+				editErrorDatabase(event, "clear strikes");
+				return;
+			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(user.getAsMention(), channel.getAsMention()))
 				.build());
 		}

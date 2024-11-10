@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CaseType;
@@ -22,8 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class DurationCmd extends CommandBase {
 	
-	public DurationCmd(App bot) {
-		super(bot);
+	public DurationCmd() {
 		this.name = "duration";
 		this.path = "bot.moderation.duration";
 		this.options = List.of(
@@ -38,8 +36,7 @@ public class DurationCmd extends CommandBase {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		event.deferReply().queue();
-		Integer caseId = event.optInteger("id");
-		CaseData caseData = bot.getDBUtil().cases.getInfo(caseId);
+		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
 		if (caseData == null || event.getGuild().getIdLong() != caseData.getGuildId()) {
 			editError(event, path+".not_found");
 			return;
@@ -60,7 +57,7 @@ public class DurationCmd extends CommandBase {
 
 		if (caseData.getType().equals(CaseType.MUTE)) {
 			if (newDuration.isZero()) {
-				editError(event, "errors.error", "Duration must be larger than 1 minute");
+				editErrorOther(event, "Duration must be larger than 1 minute.");
 				return;
 			}
 			event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(target -> {
@@ -70,17 +67,20 @@ public class DurationCmd extends CommandBase {
 				} else {
 					// time will be expired, remove time out
 					target.removeTimeout().reason("Expired").queue();
-					bot.getDBUtil().cases.setInactive(caseId);
+					bot.getDBUtil().cases.setInactive(caseData.getRowId());
 				}
 			});
 		}
-		bot.getDBUtil().cases.updateDuration(caseId, newDuration);
+		if (bot.getDBUtil().cases.updateDuration(caseData.getRowId(), newDuration)) {
+			editErrorDatabase(event, "update duration");
+			return;
+		}
 		
 		String newTime = TimeUtil.formatDuration(lu, event.getUserLocale(), caseData.getTimeStart(), newDuration);
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, path+".done").replace("{id}", caseId.toString()).replace("{duration}", newTime))
+			.setDescription(lu.getText(event, path+".done").formatted(caseData.getLocalId(), newTime))
 			.build();
-		editHookEmbed(event, embed);
+		editEmbed(event, embed);
 
 		bot.getLogger().mod.onChangeDuration(event.getGuild(), caseData, event.getMember(), newTime);
 	}

@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -27,24 +26,21 @@ import org.json.JSONObject;
 
 public class GenerateListCmd extends CommandBase {
 	
-	public GenerateListCmd(App bot) {
-		super(bot);
+	public GenerateListCmd() {
 		this.name = "generate";
 		this.path = "bot.owner.generate";
 		this.category = CmdCategory.OWNER;
 		this.ownerCommand = true;
-		this.guildOnly = false;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply(true).queue();
 		List<SlashCommand> commands = event.getClient().getSlashCommands();
 		if (commands.isEmpty()) {
-			createReply(event, "Commands not found");
+			editError(event, "Commands not found");
 			return;
 		}
-
-		event.deferReply(true).queue();
 
 		JSONArray commandArray = new JSONArray();
 		for (SlashCommand cmd : commands) {
@@ -80,12 +76,14 @@ public class GenerateListCmd extends CommandBase {
 
 		File file = new File(Constants.DATA_PATH + "commands.json");
 		try {
-			file.createNewFile();
+			boolean ignored = file.createNewFile();
 			FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8);
 			writer.write(commandArray.toString());
 			writer.flush();
 			writer.close();
-			event.getHook().editOriginalAttachments(FileUpload.fromData(file, "commands.json")).queue(hook -> file.delete());
+			event.getHook().editOriginalAttachments(FileUpload.fromData(file, "commands.json")).queue(hook -> {
+				boolean ignored2 = file.delete();
+			});
 		} catch (IOException | UncheckedIOException ex) {
 			editError(event, path+".error", ex.getMessage());
 		}

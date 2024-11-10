@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -31,11 +30,10 @@ public class TempRoleCmd extends CommandBase {
 
 	private final int MAX_DAYS = 150;
 	
-	public TempRoleCmd(App bot) {
-		super(bot);
+	public TempRoleCmd() {
 		this.name = "temprole";
 		this.path = "bot.roles.temprole";
-		this.children = new SlashCommand[]{new Assign(bot), new Cancel(bot), new Extend(bot), new View(bot)};
+		this.children = new SlashCommand[]{new Assign(), new Cancel(), new Extend(), new View()};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
 		this.accessLevel = CmdAccessLevel.MOD;
@@ -45,10 +43,7 @@ public class TempRoleCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Assign extends SlashCommand {
-
-		public Assign(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Assign() {
 			this.name = "assign";
 			this.path = "bot.roles.temprole.assign";
 			this.options = List.of(
@@ -114,25 +109,24 @@ public class TempRoleCmd extends CommandBase {
 			Instant until = Instant.now().plus(duration);
 
 			guild.addRoleToMember(member, role).reason("Assigned temporary role | by %s".formatted(event.getMember().getEffectiveName())).queue(done -> {
-				bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, userId, delete, until);
+				if (bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, userId, delete, until)) {
+					editErrorDatabase(event, "assign temp role");
+					return;
+				}
 				// Log
 				bot.getLogger().role.onTempRoleAdded(guild, event.getUser(), member.getUser(), role, duration);
 				// Send reply
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()).replace("{user}", member.getAsMention())
 						.replace("{until}", TimeUtil.formatTime(until, true)))
 					.build()
 				);
-			}, failure -> editError(event, "errors.error", failure.getMessage()));
+			}, failure -> editErrorOther(event, failure.getMessage()));
 		}
-
 	}
 
 	private class Cancel extends SlashCommand {
-
-		public Cancel(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Cancel() {
 			this.name = "cancel";
 			this.path = "bot.roles.temprole.cancel";
 			this.options = List.of(
@@ -165,23 +159,22 @@ public class TempRoleCmd extends CommandBase {
 
 			event.getGuild().removeRoleFromMember(member, role).reason("Canceled temporary role | by "+event.getMember().getEffectiveName()).queue();
 
-			bot.getDBUtil().tempRoles.remove(role.getIdLong(), member.getIdLong());
+			if (bot.getDBUtil().tempRoles.remove(role.getIdLong(), member.getIdLong())) {
+				editErrorDatabase(event, "remove temp role");
+				return;
+			}
 			// Log
 			bot.getLogger().role.onTempRoleRemoved(event.getGuild(), event.getUser(), member.getUser(), role);
 			// Send reply
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done"))
 				.build()
 			);
 		}
-
 	}
 
 	private class Extend extends SlashCommand {
-
-		public Extend(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Extend() {
 			this.name = "extend";
 			this.path = "bot.roles.temprole.extend";
 			this.options = List.of(
@@ -227,38 +220,37 @@ public class TempRoleCmd extends CommandBase {
 				return;
 			}
 
-			bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), member.getIdLong(), until);
+			if (bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), member.getIdLong(), until)) {
+				editErrorDatabase(event, "update temp role duration");
+				return;
+			}
 			// Log
 			bot.getLogger().role.onTempRoleUpdated(event.getGuild(), event.getUser(), member.getUser(), role, until);
 			// Send reply
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()).replace("{user}", member.getAsMention())
 					.replace("{until}", TimeUtil.formatTime(until, true)))
 				.build()
 			);
 		}
-
 	}
 
 	private class View extends SlashCommand {
-
-		public View(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public View() {
 			this.name = "view";
 			this.path = "bot.roles.temprole.view";
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			Guild guild = event.getGuild();
 			List<Map<String, Object>> list = bot.getDBUtil().tempRoles.getAll(guild.getIdLong());
 			if (list.isEmpty()) {
-				createReplyEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty")).build());
+				editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty")).build());
 				return;
 			}
 
-			event.deferReply(true).queue();
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed().setTitle(lu.getText(event, path+".title"));
 			StringBuffer buffer = new StringBuffer();
 
@@ -272,14 +264,13 @@ public class TempRoleCmd extends CommandBase {
 			});
 			builder.addField("", buffer.toString(), false);
 
-			editHookEmbed(event, builder.build());
+			editEmbed(event, builder.build());
 		}
 
 		private String getLine(Map<String, Object> map) {
 			Instant time = Instant.ofEpochSecond((Integer) map.get("expireAfter"));
 			return "<@&%s> | <@%s> | %s\n".formatted(map.get("roleId"), map.get("userId"), TimeFormat.DATE_TIME_SHORT.format(time));
 		}
-
 	}
 
 }

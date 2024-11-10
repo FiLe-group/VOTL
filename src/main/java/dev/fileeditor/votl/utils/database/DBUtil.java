@@ -18,6 +18,7 @@ import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager.GuildSet
 import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager.TicketSettings;
 import dev.fileeditor.votl.utils.database.managers.VerifySettingsManager.VerifySettings;
 import dev.fileeditor.votl.utils.database.managers.GuildLogsManager.LogSettings;
+import dev.fileeditor.votl.utils.database.managers.GuildVoiceManager.VoiceSettings;
 import dev.fileeditor.votl.utils.file.FileManager;
 
 import net.dv8tion.jda.api.entities.Guild;
@@ -55,6 +56,7 @@ public class DBUtil {
 	public final BlacklistManager blacklist;
 	public final ModifyRoleManager modifyRole;
 	public final GameStrikeManager games;
+	public final PersistentManager persistent;
 
 	public DBUtil(FileManager fileManager) {
 		this.fileManager = fileManager;
@@ -82,6 +84,7 @@ public class DBUtil {
 		blacklist = new BlacklistManager(connectionUtil);
 		modifyRole = new ModifyRoleManager(connectionUtil);
 		games = new GameStrikeManager(connectionUtil);
+		persistent = new PersistentManager(connectionUtil);
 
 		updateDB();
 
@@ -106,6 +109,10 @@ public class DBUtil {
 
 	public TicketSettings getTicketSettings(Guild guild) {
 		return ticketSettings.getSettings(guild.getIdLong());
+	}
+
+	public VoiceSettings getVoiceSettings(Guild guild) {
+		return guildVoice.getSettings(guild.getIdLong());
 	}
 
 	// 0 - no version or error
@@ -138,7 +145,7 @@ public class DBUtil {
 					logger.warn("Failed to get resources database version", ex);
 				}
 			}
-			tempFile.delete();
+			boolean ignored = tempFile.delete();
 		} catch (IOException ioException) {
 			logger.error("Exception at version check\n", ioException);
 		}

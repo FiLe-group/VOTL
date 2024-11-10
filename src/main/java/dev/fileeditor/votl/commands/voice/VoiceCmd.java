@@ -5,13 +5,11 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emote;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -28,16 +26,16 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.api.managers.channel.concrete.VoiceChannelManager;
+import org.jetbrains.annotations.NotNull;
 
 public class VoiceCmd extends CommandBase {
 	
-	public VoiceCmd(App bot) {
-		super(bot);
+	public VoiceCmd() {
 		this.name = "voice";
 		this.path = "bot.voice.voice";
-		this.children = new SlashCommand[]{new Lock(bot), new Unlock(bot), new Ghost(bot), new Unghost(bot),
-			new NameSet(bot), new NameReset(bot), new LimitSet(bot), new LimitReset(bot),
-			new Claim(bot), new Permit(bot), new Reject(bot), new PermsView(bot), new PermsReset(bot)
+		this.children = new SlashCommand[]{new Lock(), new Unlock(), new Ghost(), new Unghost(),
+			new NameSet(), new NameReset(), new LimitSet(), new LimitReset(),
+			new Claim(), new Permit(), new Reject(), new PermsView(), new PermsReset()
 		};
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
@@ -47,10 +45,7 @@ public class VoiceCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Lock extends SlashCommand {
-
-		public Lock(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Lock() {
 			this.name = "lock";
 			this.path = "bot.voice.voice.lock";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
@@ -58,9 +53,10 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
-				createError(event, "errors.no_channel");
+				editError(event, "errors.no_channel");
 				return;
 			}
 
@@ -77,11 +73,11 @@ public class VoiceCmd extends CommandBase {
 					}
 				}
 			} catch (InsufficientPermissionException ex) {
-				createPermError(event, ex.getPermission(), true);
+				editPermError(event, ex.getPermission(), true);
 				return;
 			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done"))
 				.build()
 			);
@@ -89,10 +85,7 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private class Unlock extends SlashCommand {
-
-		public Unlock(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Unlock() {
 			this.name = "unlock";
 			this.path = "bot.voice.voice.unlock";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VOICE_CONNECT};
@@ -100,9 +93,10 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
-				createError(event, "errors.no_channel");
+				editError(event, "errors.no_channel");
 				return;
 			}
 
@@ -119,11 +113,11 @@ public class VoiceCmd extends CommandBase {
 					}
 				}
 			} catch (InsufficientPermissionException ex) {
-				createPermError(event, ex.getPermission(), true);
+				editPermError(event, ex.getPermission(), true);
 				return;
 			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done"))
 				.build()
 			);
@@ -131,10 +125,7 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private class Ghost extends SlashCommand {
-
-		public Ghost(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Ghost() {
 			this.name = "ghost";
 			this.path = "bot.voice.voice.ghost";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL};
@@ -142,9 +133,10 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
-				createError(event, "errors.no_channel");
+				editError(event, "errors.no_channel");
 				return;
 			}
 
@@ -161,11 +153,11 @@ public class VoiceCmd extends CommandBase {
 					}
 				}
 			} catch (InsufficientPermissionException ex) {
-				createPermError(event, ex.getPermission(), true);
+				editPermError(event, ex.getPermission(), true);
 				return;
 			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done"))
 				.build()
 			);
@@ -173,10 +165,7 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private class Unghost extends SlashCommand {
-
-		public Unghost(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Unghost() {
 			this.name = "unghost";
 			this.path = "bot.voice.voice.unghost";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL};
@@ -184,9 +173,10 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
-				createError(event, "errors.no_channel");
+				editError(event, "errors.no_channel");
 				return;
 			}
 
@@ -203,11 +193,11 @@ public class VoiceCmd extends CommandBase {
 					}
 				}
 			} catch (InsufficientPermissionException ex) {
-				createPermError(event, ex.getPermission(), true);
+				editPermError(event, ex.getPermission(), true);
 				return;
 			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done"))
 				.build()
 			);
@@ -215,10 +205,7 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private class NameSet extends SlashCommand {
-
-		public NameSet(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public NameSet() {
 			this.name = "set";
 			this.path = "bot.voice.voice.name.set";
 			this.options = List.of(
@@ -237,10 +224,7 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private class NameReset extends SlashCommand {
-
-		public NameReset(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public NameReset() {
 			this.name = "reset";
 			this.path = "bot.voice.voice.name.reset";
 			this.subcommandGroup = new SubcommandGroupData("name", lu.getText("bot.voice.voice.name.help"));
@@ -249,40 +233,38 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			String name = Optional.ofNullable(
-				bot.getDBUtil().guildVoice.getName(event.getGuild().getIdLong())	
-			).orElse(
-				lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name")
-			);
+			String name = Optional
+				.ofNullable(bot.getDBUtil().getVoiceSettings(event.getGuild()).getDefaultName())
+				.orElse(lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name"));
 			sendNameReply(event, name);
 		}
 	}
 
 	private void sendNameReply(SlashCommandEvent event, String name) {
+		event.deferReply(true).queue();
 		long userId = event.getMember().getIdLong();
 		Long channelId = bot.getDBUtil().voice.getChannel(userId);
 		if (channelId == null) {
-			createError(event, "errors.no_channel");
+			editError(event, "errors.no_channel");
 			return;
 		}
 
 		name = name.replace("{user}", event.getMember().getEffectiveName());
 		event.getGuild().getVoiceChannelById(channelId).getManager().setName(name.substring(0, Math.min(100, name.length()))).queue();
 
-		bot.getDBUtil().user.setName(userId, name);
+		if (bot.getDBUtil().user.setName(userId, name)) {
+			editErrorDatabase(event, "set voice name");
+			return;
+		}
 
-		createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, "bot.voice.voice.name.done").replace("{value}", name))
 			.build()
 		);
-
 	}
 
 	private class LimitSet extends SlashCommand {
-
-		public LimitSet(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public LimitSet() {
 			this.name = "set";
 			this.path = "bot.voice.voice.limit.set";
 			this.options = List.of(
@@ -301,10 +283,7 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private class LimitReset extends SlashCommand {
-
-		public LimitReset(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public LimitReset() {
 			this.name = "reset";
 			this.path = "bot.voice.voice.limit.reset";
 			this.subcommandGroup = new SubcommandGroupData("limit", lu.getText("bot.voice.voice.limit.help"));
@@ -313,34 +292,37 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Integer limit = Optional.ofNullable(bot.getDBUtil().guildVoice.getLimit(event.getGuild().getIdLong())).orElse(0);
+			Integer limit = Optional
+				.ofNullable(bot.getDBUtil().getVoiceSettings(event.getGuild()).getDefaultLimit())
+				.orElse(0);
 			sendLimitReply(event, limit);			
 		}
 	}
 
 	private void sendLimitReply(SlashCommandEvent event, Integer limit) {
+		event.deferReply(true).queue();
 		long userId = event.getMember().getIdLong();
 		Long channelId = bot.getDBUtil().voice.getChannel(userId);
 		if (channelId == null) {
-			createError(event, "errors.no_channel");
+			editError(event, "errors.no_channel");
 			return;
 		}
 
 		event.getGuild().getVoiceChannelById(channelId).getManager().setUserLimit(limit).queue();
 
-		bot.getDBUtil().user.setLimit(userId, limit);
+		if (bot.getDBUtil().user.setLimit(userId, limit)) {
+			editErrorDatabase(event, "set voice limit");
+			return;
+		}
 
-		createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, "bot.voice.voice.limit.done").replace("{value}", limit.toString()))
 			.build()
 		);
 	}
 
 	private class Claim extends SlashCommand {
-
-		public Claim(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Claim() {
 			this.name = "claim";
 			this.path = "bot.voice.voice.claim";
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS};
@@ -371,7 +353,7 @@ public class VoiceCmd extends CommandBase {
 				owner -> {
 					for (Member vcMember : vc.getMembers()) {
 						if (vcMember == owner) {
-							editHook(event, lu.getText(event, path+".has_owner"));
+							editMsg(event, lu.getText(event, path+".has_owner"));
 							return;
 						}
 					}
@@ -383,24 +365,21 @@ public class VoiceCmd extends CommandBase {
 						editPermError(event, ex.getPermission(), true);
 						return;
 					}
-					bot.getDBUtil().voice.setUser(vc.getIdLong(), author.getIdLong());
+					bot.getDBUtil().voice.setUser(author.getIdLong(), vc.getIdLong());
 					
-					editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getText(event, path+".done").replace("{channel}", vc.getAsMention()))
 						.build()
 					);
-				}, failure -> editError(event, "errors.error", failure.getMessage())
+				}, failure -> editErrorOther(event, failure.getMessage())
 			);
 		}
 	}
 
 	private class Permit extends SlashCommand {
-
 		private final List<Permission> AdminPerms = List.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
 
-		public Permit(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Permit() {
 			this.name = "permit";
 			this.path = "bot.voice.voice.permit";
 			this.options = List.of(
@@ -455,7 +434,7 @@ public class VoiceCmd extends CommandBase {
 			}
 
 			vcManager.queue(done -> {
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getUserText(event, path+".done", mentionStrings))
 					.build()
 				);
@@ -465,12 +444,9 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private class Reject extends SlashCommand {
-
 		private final List<Permission> AdminPerms = List.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
 
-		public Reject(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Reject() {
 			this.name = "reject";
 			this.path = "bot.voice.voice.reject";
 			this.options = List.of(
@@ -528,20 +504,16 @@ public class VoiceCmd extends CommandBase {
 			}
 
 			vcManager.queue(done -> {
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getUserText(event, path+".done", mentionStrings))
 					.build()
 				);
 			}, failure -> editPermError(event, Permission.MANAGE_PERMISSIONS, true));
 		}
-		
 	}
 
 	private class PermsView extends SlashCommand {
-
-		public PermsView(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public PermsView() {
 			this.name = "view";
 			this.path = "bot.voice.voice.perms.view";
 			this.subcommandGroup = new SubcommandGroupData("perms", lu.getText("bot.voice.voice.perms.help"));
@@ -627,7 +599,7 @@ public class VoiceCmd extends CommandBase {
 						}
 					}
 
-					editHookEmbed(event, embedBuilder2.build());
+					editEmbed(event, embedBuilder2.build());
 				}
 			);
 		}
@@ -642,18 +614,14 @@ public class VoiceCmd extends CommandBase {
 			return Emote.NONE.getEmote();
 		}
 
-		@Nonnull
+		@NotNull
 		private String formatHolder(String holder, String view, String join) {
 			return "> " + view + " | " + join + " | `" + holder + "`";
 		}
-
 	}
 
 	private class PermsReset extends SlashCommand {
-
-		public PermsReset(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public PermsReset() {
 			this.name = "reset";
 			this.path = "bot.voice.voice.perms.reset";
 			this.subcommandGroup = new SubcommandGroupData("perms", lu.getText("bot.voice.voice.perms.help"));
@@ -662,11 +630,11 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
 			Member author = event.getMember();
-
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
 			if (channelId == null) {
-				createError(event, "errors.no_channel");
+				editError(event, "errors.no_channel");
 				return;
 			}
 
@@ -675,16 +643,15 @@ public class VoiceCmd extends CommandBase {
 				vc.getManager().sync().queue();
 				vc.upsertPermissionOverride(author).setAllowed(Permission.MANAGE_CHANNEL).queue();
 			} catch (InsufficientPermissionException ex) {
-				createPermError(event, ex.getPermission(), true);
+				editPermError(event, ex.getPermission(), true);
 				return;
 			}
 
-			createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done"))
 				.build()
 			);
 		}
-		
 	}
 
 }

@@ -17,10 +17,10 @@ package dev.fileeditor.votl.servlet.oauth2.entities;
 
 import java.util.EnumSet;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.servlet.oauth2.OAuth2Client;
 
 import net.dv8tion.jda.api.Permission;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * OAuth2 representation of a Discord Server/Guild.
@@ -52,7 +52,7 @@ public class OAuth2Guild {
 	 *
 	 * @return Never-null String containing the ID.
 	 */
-	@Nonnull
+	@NotNull
 	public String getId() {
 		return Long.toUnsignedString(getIdLong());
 	}

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -22,8 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class HelpCmd extends CommandBase {
 
-	public HelpCmd(App bot) {
-		super(bot);
+	public HelpCmd() {
 		this.name = "help";
 		this.path = "bot.help";
 		this.options = List.of(
@@ -86,7 +84,7 @@ public class HelpCmd extends CommandBase {
 				.setFooter(lu.getLocalized(userLocale, "bot.help.command_info.usage_subvalue"))
 				.build();
 			
-			editHookEmbed(event, embed);
+			editEmbed(event, embed);
 		}
 		
 	}
@@ -153,6 +151,6 @@ public class HelpCmd extends CommandBase {
 			builder.addField(fieldTitle, fieldValue.toString(), false);
 		}
 		
-		editHookEmbed(event, builder.build());
+		editEmbed(event, builder.build());
 	}
 }

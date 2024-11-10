@@ -2,19 +2,26 @@ package dev.fileeditor.votl.listeners;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
 
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.ErrorResponse;
+import org.jetbrains.annotations.NotNull;
 
 public class MemberListener extends ListenerAdapter {
 
@@ -27,15 +34,39 @@ public class MemberListener extends ListenerAdapter {
 	}
 	
 	@Override
-	public void onGuildMemberJoin(@Nonnull GuildMemberJoinEvent event) {
+	public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
 		// Log
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
 			bot.getLogger().member.onJoined(event.getMember());
 		}
+
+		long userId = event.getUser().getIdLong();
+		Guild guild = event.getGuild();
+		long guildId = guild.getIdLong();
+		// Check for persistent role
+		try {
+			List<Role> roles = new ArrayList<>();
+			for (Long roleId : db.persistent.getUserRoles(guildId, userId)) {
+				Role role = guild.getRoleById(roleId);
+				if (role == null) {
+					// Role is deleted
+					db.persistent.removeRole(guildId, roleId);
+					continue;
+				}
+				roles.add(role);
+			}
+			if (!roles.isEmpty()) {
+				List<Role> newRoles = new ArrayList<>(event.getMember().getRoles());
+				newRoles.addAll(roles);
+				guild.modifyMemberRoles(event.getMember(), newRoles).queueAfter(3, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER));
+			}
+		} catch (Exception e) {
+			bot.getAppLogger().warn("Failed to assign persistent roles for {} @ {}\n{}", userId, guildId, e.getMessage());
+		}
 	}
 	
 	@Override
-	public void onGuildMemberRemove(@Nonnull GuildMemberRemoveEvent event) {
+	public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
 		// Log
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
 			event.getGuild().retrieveAuditLogs()
@@ -56,11 +87,27 @@ public class MemberListener extends ListenerAdapter {
 					bot.getLogger().member.onLeft(event.getGuild(), event.getMember(), event.getUser());
 				});
 		}
-		// When user leaves guild, check if there are any records in DB that would be better to remove.
-		// This does not consider clearing User DB, when bot leaves guild.
+
 		long guildId = event.getGuild().getIdLong();
 		long userId = event.getUser().getIdLong();
-
+		// Add persistent roles
+		try {
+			List<Role> roles = event.getMember().getRoles();
+			if (!roles.isEmpty()) {
+				List<Long> persistentRoleIds = db.persistent.getRoles(guildId);
+				if (!persistentRoleIds.isEmpty()) {
+					List<Long> common = new ArrayList<>(roles.stream().map(Role::getIdLong).toList());
+					common.retainAll(persistentRoleIds);
+					if (!common.isEmpty()) {
+						db.persistent.addUser(guildId, userId, common);
+					}
+				}
+			}
+		} catch (Exception e) {
+			bot.getAppLogger().warn("Failed to save persistent roles for {} @ {}\n{}", userId, guildId, e.getMessage());
+		}
+		// When user leaves guild, check if there are any records in DB that would be better to remove.
+		// This does not consider clearing User DB, when bot leaves guild.
 		if (db.access.getUserLevel(guildId, userId) != null) {
 			db.access.removeUser(guildId, userId);
 		}
@@ -75,7 +122,7 @@ public class MemberListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildMemberUpdateNickname(@Nonnull GuildMemberUpdateNicknameEvent event) {
+	public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
 			bot.getLogger().member.onNickChange(event.getMember(), event.getOldValue(), event.getNewValue());
 		}

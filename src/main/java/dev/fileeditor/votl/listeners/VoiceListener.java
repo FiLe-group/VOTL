@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import dev.fileeditor.votl.utils.database.managers.GuildVoiceManager.VoiceSettings;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
@@ -20,9 +21,9 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.annotation.Nonnull;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class VoiceListener extends ListenerAdapter {
 	
@@ -35,7 +36,7 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildVoiceGuildMute(@Nonnull GuildVoiceGuildMuteEvent event) {
+	public void onGuildVoiceGuildMute(@NotNull GuildVoiceGuildMuteEvent event) {
 		if (!db.getLogSettings(event.getGuild()).enabled(LogType.VOICE)) return;
 
 		event.getGuild().retrieveAuditLogs()
@@ -54,7 +55,7 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	@Override
-    public void onGuildVoiceGuildDeafen(@Nonnull GuildVoiceGuildDeafenEvent event) {
+    public void onGuildVoiceGuildDeafen(@NotNull GuildVoiceGuildDeafenEvent event) {
 		if (!db.getLogSettings(event.getGuild()).enabled(LogType.VOICE)) return;
 
 		event.getGuild().retrieveAuditLogs()
@@ -73,9 +74,8 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	@Override
-	public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
-		// TODO log join/leave/switch
-		Long masterVoiceId = db.guildVoice.getChannelId(event.getGuild().getIdLong());
+	public void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
+		Long masterVoiceId = db.getVoiceSettings(event.getGuild()).getChannelId();
 		AudioChannelUnion channelJoined = event.getChannelJoined();
 		if (channelJoined != null && masterVoiceId != null && channelJoined.getIdLong() == masterVoiceId) {
 			handleVoiceCreate(event.getGuild(), event.getMember());
@@ -89,7 +89,6 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	private void handleVoiceCreate(Guild guild, Member member) {
-		long guildId = guild.getIdLong();
 		long userId = member.getIdLong();
 		DiscordLocale guildLocale = guild.getLocale();
 
@@ -98,17 +97,18 @@ public class VoiceListener extends ListenerAdapter {
 				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
 			return;
 		}
-		Long categoryId = db.guildVoice.getCategoryId(guildId);
+		VoiceSettings voiceSettings = db.getVoiceSettings(guild);
+		Long categoryId = voiceSettings.getCategoryId();
 		if (categoryId == null) return;
 
 		String channelName = Optional.ofNullable(db.user.getName(userId))
-			.or(() -> Optional.ofNullable(db.guildVoice.getName(guildId)))
+			.or(() -> Optional.ofNullable(voiceSettings.getDefaultName()))
 			.orElse(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.default_name"))
 			.replace("{user}", member.getEffectiveName());
 		channelName = channelName.substring(0, Math.min(100, channelName.length()));
 
 		Integer channelLimit = Optional.ofNullable(db.user.getLimit(userId))
-			.or(() -> Optional.ofNullable(db.guildVoice.getLimit(guildId)))
+			.or(() -> Optional.ofNullable(voiceSettings.getDefaultLimit()))
 			.orElse(0);
 		
 		guild.createVoiceChannel(channelName, guild.getCategoryById(categoryId))
@@ -119,7 +119,13 @@ public class VoiceListener extends ListenerAdapter {
 			.queue(
 				channel -> {
 					db.voice.add(userId, channel.getIdLong());
-					guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS, null, new ErrorHandler().ignore(IllegalStateException.class));
+					guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS, null, new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED));
+				},
+				failure -> {
+					member.getUser().openPrivateChannel()
+						.queue(channel ->
+							channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.failed").formatted(failure.getMessage()))
+								.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
 				}
 			);
 	}

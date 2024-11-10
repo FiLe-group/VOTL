@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.verification;
 
 import java.util.List;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -17,8 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class VerifyRoleCmd extends CommandBase {
 	
-	public VerifyRoleCmd(App bot) { 
-		super(bot);
+	public VerifyRoleCmd() {
 		this.name = "verifyrole";
 		this.path = "bot.verification.verifyrole";
 		this.options = List.of(
@@ -31,16 +29,20 @@ public class VerifyRoleCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		event.deferReply().queue();
 		Guild guild = event.getGuild();
 		Role role = event.optRole("role");
 		if (role == null || role.isPublicRole() || role.isManaged() || !guild.getSelfMember().canInteract(role)) {
-			createError(event, path+".no_role");
+			editError(event, path+".no_role");
 			return;
 		}
 
-		bot.getDBUtil().verifySettings.setVerifyRole(guild.getIdLong(), role.getIdLong());
+		if (bot.getDBUtil().verifySettings.setVerifyRole(guild.getIdLong(), role.getIdLong())) {
+			editErrorDatabase(event, "set verify role");
+			return;
+		}
 
-		createReplyEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()))
 			.build());
 	}

@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.owner;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -13,8 +12,7 @@ import java.util.List;
 
 public class MessageCmd extends CommandBase {
 
-	public MessageCmd(App bot) {
-		super(bot);
+	public MessageCmd() {
 		this.name = "message";
 		this.path = "bot.owner.message";
 		this.options = List.of(
@@ -31,11 +29,11 @@ public class MessageCmd extends CommandBase {
 		String channelId = event.optString("channel_id");
 		GuildMessageChannel channel = event.getJDA().getChannelById(GuildMessageChannel.class, channelId);
 		if (channel == null) {
-			createReply(event, Constants.FAILURE+" Channel not found.");
+			event.reply(Constants.FAILURE+" Channel not found.").queue();
 			return;
 		}
 
 		channel.sendMessage(event.optString("content")).queue();
-		createReply(event, Constants.SUCCESS);
+		event.reply(Constants.SUCCESS).queue();
 	}
 }

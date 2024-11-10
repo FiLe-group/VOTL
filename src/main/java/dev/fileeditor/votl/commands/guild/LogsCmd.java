@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -33,12 +32,11 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
 public class LogsCmd extends CommandBase {
 	
-	public LogsCmd(App bot) {
-		super(bot);
+	public LogsCmd() {
 		this.name = "logs";
 		this.path = "bot.guild.logs";
-		this.children = new SlashCommand[]{new Enable(bot), new Disable(bot), new View(bot),
-			new AddException(bot), new RemoveException(bot), new ViewException(bot)};
+		this.children = new SlashCommand[]{new Enable(), new Disable(), new View(),
+			new AddException(), new RemoveException(), new ViewException()};
 		this.accessLevel = CmdAccessLevel.ADMIN;
 		this.category = CmdCategory.GUILD;
 	}
@@ -47,9 +45,7 @@ public class LogsCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Enable extends SlashCommand {
-		public Enable(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Enable() {
 			this.name = "enable";
 			this.path = "bot.guild.logs.manage.enable";
 			this.options = List.of(
@@ -75,7 +71,7 @@ public class LogsCmd extends CommandBase {
 				bot.getCheckUtil().hasPermissions(event, event.getGuild(), event.getMember(), true, channel,
 					new Permission[]{Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS});
 			} catch (CheckException ex) {
-				editHook(event, ex.getEditData());
+				editMsg(event, ex.getEditData());
 				return;
 			}
 
@@ -88,31 +84,35 @@ public class LogsCmd extends CommandBase {
 					event.getJDA().retrieveWebhookById(oldData.getWebhookId())
 						.queue(webhook -> webhook.delete(oldData.getToken()).reason("Log disabled").queue());
 				}
-				Icon icon = Icon.from(new URL(Constants.LOGO_URL).openStream(), IconType.PNG);
+				Icon icon = null;
+				try {
+					icon = Icon.from(new URL(Constants.LOGO_URL).openStream(), IconType.PNG);
+				} catch (Exception ignored) {}
 				channel.createWebhook(lu.getText(type.getNamePath())).setAvatar(icon).reason("By "+event.getUser().getName()).queue(webhook -> {
 					// Add to DB
 					WebhookData data = new WebhookData(channel.getIdLong(), webhook.getIdLong(), webhook.getToken());
-					bot.getDBUtil().logs.setLogWebhook(type, event.getGuild().getIdLong(), data);
+					if (bot.getDBUtil().logs.setLogWebhook(type, event.getGuild().getIdLong(), data)) {
+						editErrorDatabase(event, "set logs");
+						return;
+					}
 					// Reply
 					webhook.sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
 						.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log").formatted(text))
 						.build()
 					).queue();
-					editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention(), text))
 						.build()
 					);
 				});
 			} catch (Exception ex) {
-				editError(event, "errors.error", ex.getMessage());
+				editErrorOther(event, ex.getMessage());
 			}	
 		}
 	}
 
 	private class Disable extends SlashCommand {
-		public Disable(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public Disable() {
 			this.name = "disable";
 			this.path = "bot.guild.logs.manage.disable";
 			this.options = List.of(
@@ -139,9 +139,12 @@ public class LogsCmd extends CommandBase {
 					}
 				}
 				// Remove guild from db
-				bot.getDBUtil().logs.removeGuild(guildId);
+				if (bot.getDBUtil().logs.removeGuild(guildId)) {
+					editErrorDatabase(event, "clear logs");
+					return;
+				}
 				// Reply
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done_all"))
 					.build()
 				);
@@ -152,8 +155,11 @@ public class LogsCmd extends CommandBase {
 					event.getJDA().retrieveWebhookById(data.getWebhookId())
 						.queue(webhook -> webhook.delete(data.getToken()).reason("Log disabled").queue());
 				}
-				bot.getDBUtil().logs.removeLogWebhook(type, guildId);
-				editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				if (bot.getDBUtil().logs.removeLogWebhook(type, guildId)) {
+					editErrorDatabase(event, "remove logs");
+					return;
+				}
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").formatted(lu.getText(event, type.getNamePath())))
 					.build()
 				);
@@ -162,9 +168,7 @@ public class LogsCmd extends CommandBase {
 	}
 
 	private class View extends SlashCommand {
-		public View(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public View() {
 			this.name = "view";
 			this.path = "bot.guild.logs.manage.view";
 			this.subcommandGroup = new SubcommandGroupData("manage", lu.getText("bot.guild.logs.manage.help"));
@@ -180,7 +184,7 @@ public class LogsCmd extends CommandBase {
 
 			LogSettings settings = bot.getDBUtil().getLogSettings(guild);
 			if (settings == null || settings.isEmpty()) {
-				editHookEmbed(event, builder
+				editEmbed(event, builder
 					.setDescription(lu.getText(event, path+".none"))
 					.build()
 				);
@@ -192,14 +196,12 @@ public class LogsCmd extends CommandBase {
 				builder.appendDescription("%s - %s\n".formatted(lu.getText(event, type.getNamePath()), text));
 			});
 
-			editHookEmbed(event, builder.build());
+			editEmbed(event, builder.build());
 		}
 	}
 
 	private class AddException extends SlashCommand {
-		public AddException(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public AddException() {
 			this.name = "add";
 			this.path = "bot.guild.logs.exceptions.add";
 			this.options = List.of(
@@ -232,22 +234,19 @@ public class LogsCmd extends CommandBase {
 					return;
 				}
 			}
-			bot.getDBUtil().logExceptions.addException(guildId, channelUnion.getIdLong());
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			if (bot.getDBUtil().logExceptions.addException(guildId, channelUnion.getIdLong())) {
+				editErrorDatabase(event, "add log exception");
+				return;
+			}
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(channelUnion.getName()))
 				.build()
 			);
-
-			
-			
-			
 		}
 	}
 
 	private class RemoveException extends SlashCommand {
-		public RemoveException(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public RemoveException() {
 			this.name = "remove";
 			this.path = "bot.guild.logs.exceptions.remove";
 			this.options = List.of(
@@ -272,8 +271,11 @@ public class LogsCmd extends CommandBase {
 				editError(event, path+".not_found", "Provided ID: "+targetId);
 				return;
 			}
-			bot.getDBUtil().logExceptions.removeException(guildId, targetId);
-			editHookEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			if (bot.getDBUtil().logExceptions.removeException(guildId, targetId)) {
+				editErrorDatabase(event, "remove log exception");
+				return;
+			}
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted("'"+targetId+"'"))
 				.build()
 			);
@@ -281,9 +283,7 @@ public class LogsCmd extends CommandBase {
 	}
 
 	private class ViewException extends SlashCommand {
-		public ViewException(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
+		public ViewException() {
 			this.name = "view";
 			this.path = "bot.guild.logs.exceptions.view";
 			this.subcommandGroup = new SubcommandGroupData("exceptions", lu.getText("bot.guild.logs.exceptions.help"));
@@ -300,7 +300,7 @@ public class LogsCmd extends CommandBase {
 			} else {
 				targets.forEach(id -> builder.appendDescription("<#%s> (%<s)\n".formatted(id)));
 			}
-			editHookEmbed(event, builder.build());
+			editEmbed(event, builder.build());
 		}
 	}
 }

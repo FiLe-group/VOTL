@@ -6,7 +6,6 @@ import dev.fileeditor.votl.App;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import dev.fileeditor.votl.objects.CmdModule;
 import io.javalin.http.InternalServerErrorResponse;
 import net.dv8tion.jda.api.entities.Guild;
 
@@ -15,7 +14,6 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.NotFoundResponse;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GetGuild implements Handler {

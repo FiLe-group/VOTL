@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.owner;
 import java.util.List;
 import java.util.Map;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -23,8 +22,7 @@ import groovy.lang.GroovyShell;
 
 public class EvalCmd extends CommandBase {
 	
-	public EvalCmd(App bot) {
-		super(bot);
+	public EvalCmd() {
 		this.name = "eval";
 		this.path = "bot.owner.eval";
 		this.options = List.of(
@@ -32,7 +30,6 @@ public class EvalCmd extends CommandBase {
 		);
 		this.category = CmdCategory.OWNER;
 		this.ownerCommand = true;
-		this.guildOnly = false;
 	}
 
 	@Override
@@ -69,12 +66,12 @@ public class EvalCmd extends CommandBase {
 		try {
 			String reply = String.valueOf(shell.evaluate(args));
 
-			editHookEmbed(event, formatEvalEmbed(userLocale, args, reply,
+			editEmbed(event, formatEvalEmbed(userLocale, args, reply,
 				lu.getLocalized(userLocale, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
 	 			, true));
 		} catch (PowerAssertionError | Exception ex) {
-			editHookEmbed(event, formatEvalEmbed(userLocale, args, ex.getMessage(),
+			editEmbed(event, formatEvalEmbed(userLocale, args, ex.getMessage(),
 				lu.getLocalized(userLocale, "bot.owner.eval.time")
 					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
 				, false));

@@ -1,5 +1,8 @@
 package dev.fileeditor.votl.utils.database;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -12,9 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import dev.fileeditor.votl.objects.annotation.Nonnull;
-import dev.fileeditor.votl.objects.annotation.Nullable;
-
 public class LiteBase {
 
 	private final ConnectionUtil util;
@@ -25,14 +25,32 @@ public class LiteBase {
 		this.table = table;
 	}
 
+	/**
+	 * @param sql SQL statement to execute
+	 * @return true if exception
+	 */
 	// Execute statement
-	protected void execute(final String sql) {
+	protected boolean execute(final String sql) {
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
 			util.logger.warn("DB SQLite: Error at statement execution\nRequest: {}", sql, ex);
+			return true;
+		}
+		return false;
+	}
+
+	protected int executeWithRow(final String sql) {
+		util.logger.debug(sql);
+		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
+			 PreparedStatement st = conn.prepareStatement(sql)) {
+			st.executeUpdate();
+			return st.getGeneratedKeys().getInt(1);
+		} catch (SQLException ex) {
+			util.logger.warn("DB SQLite: Error at statement execution\nRequest: {}", sql, ex);
+			return 0;
 		}
 	}
 
@@ -42,7 +60,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			try {
@@ -61,7 +79,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			while (rs.next()) {
@@ -83,7 +101,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			if (rs.next())
@@ -101,7 +119,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			while (rs.next()) {
@@ -122,7 +140,7 @@ public class LiteBase {
 
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
-			PreparedStatement st = conn.prepareStatement(sql)) {
+			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
 
 			try {
@@ -136,24 +154,18 @@ public class LiteBase {
 		return result;
 	}
 
-	protected int getIncrement(final String table) {
-		Integer data = selectOne("SELECT seq FROM sqlite_sequence WHERE (name=%s)".formatted(quote(table)), "seq", Integer.class);
-		if (data == null) return 0;
-		return data;
-	}
-
 
 	// UTILS
-	protected String quote(Object value) {
+	protected String quote(@Nullable final Object value) {
 		// Convert to string and replace '(single quote) with ''(2 single quotes) for sql
-		if (value == null) return "NULL";
-		String str = String.valueOf(value);
-		if (str.equals("NULL")) return str;
+		if (value == null ) return "NULL";
+		final String text = String.valueOf(value);
+		if (text.isBlank() || text.equalsIgnoreCase("NULL")) return "NULL";
 
-		return "'" + String.valueOf(value).replaceAll("'", "''") + "'"; // smt's -> 'smt''s'
+		return String.format("'%s'", String.valueOf(value).replaceAll("'", "''"));
 	}
 
-	protected <T, V> T applyNonNull(V obj, @Nonnull Function<V, T> function) {
+	protected <T, V> T applyNonNull(V obj, @NotNull Function<V, T> function) {
 		return (obj != null) ? function.apply(obj) : null;
 	}
 
