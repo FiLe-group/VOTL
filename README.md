@@ -3,7 +3,7 @@
  Voice of the Lord - discord bot written in Java using JDA library.  
  Functions: server moderation and sync blacklists, custom voice channels and verification, ticketing.  
 
- Visit https://votl.fileeditor.dev/ to learn more about available commands and to view documentation.   
+Visit https://votl.fileeditor.dev/ to learn more about available commands and to view documentation.   
 
 ## Config file
  data/config.json:

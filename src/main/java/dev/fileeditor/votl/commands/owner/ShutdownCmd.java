@@ -1,6 +1,5 @@
 package dev.fileeditor.votl.commands.owner;
 
-import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -10,8 +9,7 @@ import net.dv8tion.jda.api.entities.Activity;
 
 public class ShutdownCmd extends CommandBase {
 
-	public ShutdownCmd(App bot) {
-		super(bot);
+	public ShutdownCmd() {
 		this.name = "shutdown";
 		this.path = "bot.owner.shutdown";
 		this.category = CmdCategory.OWNER;
@@ -21,9 +19,9 @@ public class ShutdownCmd extends CommandBase {
 	
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		createReply(event, "Shutting down...");
+		event.reply("Shutting down...").queue();
 		event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Shutting down..."));
-		bot.getAppLogger().info("Shutting down, by '%s'".formatted(event.getUser().getName()));
+		bot.getAppLogger().info("Shutting down, by '{}'", event.getUser().getName());
 
 		WebServlet.shutdown();
 		event.getJDA().shutdown();

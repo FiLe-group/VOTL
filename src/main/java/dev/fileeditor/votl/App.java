@@ -69,9 +69,8 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 
 public class App {
-
 	protected static App instance;
-	
+
 	private final Logger logger = (Logger) LoggerFactory.getLogger(App.class);
 
 	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
@@ -121,8 +120,8 @@ public class App {
 		ticketUtil	= new TicketUtil(this);
 		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
 
-		guildLogger		= new GuildLogger(this);
-		logEmbedUtil	= new LogEmbedUtil(localeUtil);
+		logEmbedUtil	= new LogEmbedUtil();
+		guildLogger		= new GuildLogger();
 
 		WAITER			= new EventWaiter();
 		groupHelper		= new GroupHelper(this);
@@ -175,69 +174,72 @@ public class App {
 			.setActivity(Activity.customStatus("/help"))
 			.addSlashCommands(
 				// guild
-				new AccessCmd(this),
-				new AutopunishCmd(this),
-				new LogsCmd(this),
-				new ModuleCmd(this, WAITER),
-				new SetupCmd(this),
+				new AccessCmd(),
+				new AutopunishCmd(),
+				new LogsCmd(),
+				new ModuleCmd(WAITER),
+				new SetupCmd(),
+				new PersistentRoleCmd(),
 				// moderation
-				new BanCmd(this),
-				new BlacklistCmd(this),
-				new CaseCmd(this),
-				new DurationCmd(this),
-				new GroupCmd(this, WAITER),
-				new KickCmd(this, WAITER),
-				new MuteCmd(this),
-				new ModLogsCmd(this),
-				new ModStatsCmd(this),
-				new ReasonCmd(this),
-				new SyncCmd(this, WAITER),
-				new UnbanCmd(this),
-				new UnmuteCmd(this),
+				new BanCmd(),
+				new BlacklistCmd(),
+				new CaseCmd(),
+				new DurationCmd(),
+				new GroupCmd(WAITER),
+				new KickCmd(WAITER),
+				new MuteCmd(),
+				new ModLogsCmd(),
+				new ModStatsCmd(),
+				new ReasonCmd(),
+				new SyncCmd(WAITER),
+				new UnbanCmd(),
+				new UnmuteCmd(),
+				new PurgeCmd(),
 				// other
-				new AboutCmd(this),
-				new HelpCmd(this),
-				new PingCmd(this),
-				new StatusCmd(this),
+				new AboutCmd(),
+				new HelpCmd(),
+				new PingCmd(),
+				new StatusCmd(),
 				// owner
-				new EvalCmd(this),
-				new ForceAccessCmd(this),
-				new GenerateListCmd(this),
-				new ShutdownCmd(this),
-				new DebugCmd(this),
-				new MessageCmd(this),
+				new EvalCmd(),
+				new ForceAccessCmd(),
+				new GenerateListCmd(),
+				new ShutdownCmd(),
+				new DebugCmd(),
+				new MessageCmd(),
+				new SetStatusCmd(),
 				// role
-				new RoleCmd(this),
-				new TempRoleCmd(this),
+				new RoleCmd(),
+				new TempRoleCmd(),
 				// strike
-				new ClearStrikesCmd(this),
-				new DeleteStikeCmd(this, WAITER),
-				new StrikeCmd(this),
-				new StrikesCmd(this),
+				new ClearStrikesCmd(),
+				new DeleteStrikeCmd(WAITER),
+				new StrikeCmd(),
+				new StrikesCmd(),
 				// ticketing
-				new AddUserCmd(this),
-				new CloseCmd(this),
-				new RcloseCmd(this),
-				new RemoveUserCmd(this),
-				new RolesManageCmd(this),
-				new RolesPanelCmd(this),
-				new TicketCountCmd(this),
-				new TicketPanelCmd(this),
+				new AddUserCmd(),
+				new CloseCmd(),
+				new RcloseCmd(),
+				new RemoveUserCmd(),
+				new RolesManageCmd(),
+				new RolesPanelCmd(),
+				new TicketCountCmd(),
+				new TicketPanelCmd(),
 				// verification
-				new VerifyPanelCmd(this),
-				new VerifyRoleCmd(this),
+				new VerifyPanelCmd(),
+				new VerifyRoleCmd(),
 				// voice
-				new VoiceCmd(this),
+				new VoiceCmd(),
 				// webhook
-				new WebhookCmd(this),
+				new WebhookCmd(),
 				// game
-				new GameCmd(this),
-				new GameStrikeCmd(this)
+				new GameCmd(),
+				new GameStrikeCmd()
 			)
 			.addContextMenus(
-				new ReportMenu(this),
-				new ModlogsMenu(this),
-				new ActiveModlogsMenu(this)
+				new ReportMenu(),
+				new ModlogsMenu(),
+				new ActiveModlogsMenu()
 			)
 			.setListener(commandListener)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
@@ -247,7 +249,7 @@ public class App {
 		AutoCompleteListener acListener = new AutoCompleteListener(commandClient, dbUtil);
 
 		final Set<GatewayIntent> intents = Set.of(
-			GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
+			GatewayIntent.GUILD_EXPRESSIONS,
 			GatewayIntent.GUILD_INVITES,
 			GatewayIntent.GUILD_MEMBERS,
 			GatewayIntent.GUILD_MESSAGES,
