@@ -1520,7 +1520,7 @@
 				"kicks": "Kick",
 				"bans": "Ban",
 				"strikes": "Strike",
-				"game-strikes": "Gm strikes",
+				"game_strikes": "Gm strikes",
 				"roles": "Roles",
 				"total": "Total"
 			},
@@ -1773,7 +1773,7 @@
 				"created": "Ticket created {channel}.",
 				"close_failed": "Couldn't close this ticket. Report this to bot developer.",
 				"temp_continue": "**%s** requested role/-s require duration to be set. Continue?",
-				"temp_time": "Enter duration for temporal roles.",
+				"temp_time": "Enter duration for temporal roles",
 				"time_limit": "Provided duration must be between 10m <-> 150d or 0 for infinitely.",
 				"no_member": "User that is requesting roles not found. Maybe, they left this server.",
 				"role_failed": "I was unable to assign roles to the user.",
