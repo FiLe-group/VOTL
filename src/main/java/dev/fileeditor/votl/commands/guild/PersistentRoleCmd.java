@@ -64,7 +64,7 @@ public class PersistentRoleCmd extends CommandBase {
 				return;
 			}
 
-			if (!bot.getDBUtil().persistent.addRole(event.getGuild().getIdLong(), role.getIdLong())) {
+			if (bot.getDBUtil().persistent.addRole(event.getGuild().getIdLong(), role.getIdLong())) {
 				editErrorDatabase(event, "add persistent role");
 				return;
 			}
@@ -89,7 +89,7 @@ public class PersistentRoleCmd extends CommandBase {
 
 			Role role = event.optRole("role");
 
-			if (!bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), role.getIdLong())) {
+			if (bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), role.getIdLong())) {
 				editErrorDatabase(event, "remove persistent role");
 				return;
 			}

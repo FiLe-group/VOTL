@@ -238,7 +238,7 @@ public class RolesPanelCmd extends CommandBase {
 
 			if (event.optString("roles").equalsIgnoreCase("null")) {
 				// Clear roles
-				if (!bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), null)) {
+				if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), null)) {
 					editErrorDatabase(event, "clear ticket support roles");
 					return;
 				}
@@ -253,7 +253,7 @@ public class RolesPanelCmd extends CommandBase {
 					editError(event, path+".bad_input");
 					return;
 				}
-				if (!bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), roles.stream().map(Role::getIdLong).toList())) {
+				if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), roles.stream().map(Role::getIdLong).toList())) {
 					editErrorDatabase(event, "set ticket support roles");
 					return;
 				}

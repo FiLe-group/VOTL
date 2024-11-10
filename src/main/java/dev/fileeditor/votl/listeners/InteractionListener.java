@@ -506,9 +506,12 @@ public class InteractionListener extends ListenerAdapter {
 			event.getChannel().delete().queue();
 			return;
 		}
+		String reason = db.tickets.getUserId(channelId).equals(event.getUser().getIdLong())
+			? lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_author")
+			: lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support");
 		event.editButton(Button.danger("ticket:close", bot.getLocaleUtil().getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled()).queue();
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event).setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.delete_countdown")).build()).queue(msg -> {
-			bot.getTicketUtil().closeTicket(channelId, event.getUser(), (db.tickets.getUserId(channelId).equals(event.getUser().getIdLong()) ? "Closed by ticket's author" : "Closed by Support"), failure -> {
+			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
 				msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed", failure.getMessage())).queue();
 				bot.getAppLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
 			});

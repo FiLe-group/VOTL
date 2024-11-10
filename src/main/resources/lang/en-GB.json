@@ -1784,6 +1784,8 @@
 				"claimed": "The ticket has been successfully claimed by {user}.",
 				"unclaimed": "The ticket has been successfully un-claimed.",
 				"delete_countdown": "This ticket will be closed in 5 seconds.",
+				"closed_author": "Closed by ticket's author",
+				"closed_support": "Closed by Support",
 				"timed": {
 					"title": "Enter temporal roles duration",
 					"placeholder": "(0 - forever, Xw - X weeks, Xd - X days, ...)"
