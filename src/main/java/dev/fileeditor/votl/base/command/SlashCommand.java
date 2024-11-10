@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import dev.fileeditor.votl.metrics.Metrics;
+import dev.fileeditor.votl.metrics.datapoints.Timer;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
@@ -243,8 +245,10 @@ public abstract class SlashCommand extends Interaction
 			}
 		}
 
+		// Metrics
+		Metrics.commandsExecuted.labelValue(event.getFullCommandName()).inc();
 		// execute
-		try {
+		try (Timer ignored = Metrics.executionTime.labelValue(event.getFullCommandName()).startTimer()) {
 			execute(event);
 		} catch (Throwable t) {
 			if (client.getListener() != null) {

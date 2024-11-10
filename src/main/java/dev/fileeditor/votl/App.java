@@ -25,6 +25,7 @@ import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
+import dev.fileeditor.votl.metrics.Metrics;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
@@ -134,6 +135,7 @@ public class App {
 		MessageListener messageListener = new MessageListener(this);
 		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
 		MemberListener memberListener = new MemberListener(this);
+		EventListener eventListener = new EventListener();
 
 		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
 		ScheduledCheck scheduledCheck = new ScheduledCheck(this);
@@ -281,7 +283,7 @@ public class App {
 			.addEventListeners(
 				commandClient, WAITER, acListener, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,
-				auditListener, memberListener
+				auditListener, memberListener, eventListener
 			);
 			
 		JDA tempJda;
@@ -316,6 +318,9 @@ public class App {
 		this.JDA = tempJda;
 
 		createWebhookAppender();
+
+		logger.info("Preparing and setting up metrics.");
+		Metrics.setup();
 
 		instance.logger.info("Success start");
 	}

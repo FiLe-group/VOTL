@@ -239,32 +239,6 @@ public class FileManager {
 		return Collections.emptyList();
 	}
 
-	@SuppressWarnings("unchecked")
-	@NotNull
-	public Map<String, String> getMap(String name, String path){
-		File file = files.get(name);
-		if(file == null) {
-			LOG.error("Couldn't find file {}.json", name);
-			return Collections.emptyMap();
-		}
-
-		try {
-			Map<String, String> map = JsonPath.using(CONF).parse(file).read("$." + path, Map.class);	
-			
-			if (map == null || map.isEmpty())
-				throw new KeyIsNull(path);
-				
-			return map;
-		} catch (FileNotFoundException ex) {
-			LOG.error("Couldn't find file {}.json", name);
-		} catch (KeyIsNull ex) {
-			LOG.warn("Couldn't find \"{}\" in file {}.json", path, name);
-		} catch (IOException ex) {
-			LOG.warn("Couldn't process file {}.json", name, ex);
-		}
-		return Collections.emptyMap();
-	}
-
 	public boolean export(InputStream inputStream, Path destination){
 		boolean success = true;
 		try {
