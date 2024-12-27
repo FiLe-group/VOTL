@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
+import dev.fileeditor.votl.App;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -58,10 +59,13 @@ public class DiscordHtmlTranscripts {
             .takeAsync(200)
             .thenAcceptAsync(list -> {
                 if (list.size() < 2) action.accept(null); // Probably one message is from bot and to be ignored.
-                try {
-                    action.accept(FileUpload.fromData(generateFromMessages(list), "transcript.html"));
-                } catch(Exception ex) {
-                    failure.accept(ex);
+                else {
+                    try {
+                        final String encoded = new String(App.getInstance().getBase62().encode("%s:%s".formatted(channel.getGuild().getId(), channel.getId()).getBytes()));
+                        action.accept(FileUpload.fromData(generateFromMessages(list), "transcript-%s.html".formatted(encoded)));
+                    } catch(Exception ex) {
+                        failure.accept(ex);
+                    }
                 }
             });
     }
