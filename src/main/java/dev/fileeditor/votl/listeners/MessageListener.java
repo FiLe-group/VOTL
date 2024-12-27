@@ -140,4 +140,8 @@ public class MessageListener extends ListenerAdapter {
 			});
 	}
 
+	public void shutdown() {
+		cache.shutdown();
+	}
+
 }

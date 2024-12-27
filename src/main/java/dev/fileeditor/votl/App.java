@@ -82,6 +82,8 @@ public class App {
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
 
+	private final MessageListener messageListener;
+
 	@SuppressWarnings("BusyWait")
 	public App() {
 		App.instance = this;
@@ -119,9 +121,9 @@ public class App {
 		GuildListener guildListener = new GuildListener(this);
 		VoiceListener voiceListener = new VoiceListener(this);
 		ModerationListener moderationListener = new ModerationListener(this);
-		MessageListener messageListener = new MessageListener(this);
 		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
 		MemberListener memberListener = new MemberListener(this);
+		messageListener = new MessageListener(this);
 
 		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
 		ScheduledCheck scheduledCheck = new ScheduledCheck(this);
@@ -343,6 +345,10 @@ public class App {
 
 	public Base62 getBase62() {
 		return base62;
+	}
+
+	public void shutdownUtils() {
+		messageListener.shutdown();
 	}
 
 	private void createWebhookAppender() {
