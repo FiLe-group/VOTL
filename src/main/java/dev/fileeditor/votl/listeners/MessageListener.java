@@ -9,8 +9,8 @@ import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.CastUtil;
-import dev.fileeditor.votl.utils.FixedCache;
 
+import dev.fileeditor.votl.utils.FixedExpirableCache;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogOption;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public class MessageListener extends ListenerAdapter {
 
 	// Cache
-	private final FixedCache<Long, MessageData> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE*60); // messageId, message
+	private final FixedExpirableCache<Long, MessageData> cache = new FixedExpirableCache<>(Constants.DEFAULT_CACHE_SIZE*60, 5*24*3600); // store for max 5 days
 
 	private final App bot;
 	
