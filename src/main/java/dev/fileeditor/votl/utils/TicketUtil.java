@@ -54,7 +54,7 @@ public class TicketUtil {
 		} else {
 			final String finalReason = reasonClosed==null ? "-" : (
 				reasonClosed.equals("activity") || reasonClosed.equals("time")
-					? bot.getLocaleUtil().getLocalized(guild.getLocale(), "logger.ticket.autoclose")
+					? bot.getLocaleUtil().getLocalized(guild.getLocale(), "logger.ticket.autoclosed")
 					: reasonClosed
 			);
 

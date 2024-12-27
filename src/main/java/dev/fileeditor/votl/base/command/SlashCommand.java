@@ -196,6 +196,8 @@ public abstract class SlashCommand extends Interaction
 	 *         The SlashCommandEvent that triggered this Command
 	 */
 	public final void run(SlashCommandEvent event) {
+		// start time
+		final long timeStart = System.currentTimeMillis();
 		// client 
 		final CommandClient client = event.getClient();
 
@@ -243,6 +245,8 @@ public abstract class SlashCommand extends Interaction
 			}
 		}
 
+		// Record time
+		bot.getAppLogger().debug("SlashCommand check duration: {}ms @ {} ", System.currentTimeMillis()-timeStart, event.getResponseNumber());
 		// execute
 		try {
 			execute(event);

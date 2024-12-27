@@ -290,7 +290,6 @@ public class RoleCmd extends CommandBase {
 			List<SelectOption> roleOptions = new ArrayList<>();
 			List<String> defaultValues = new ArrayList<>();
 			int nextMenuId = 2;
-			Member member = event.getMember();
 
 			final boolean whitelistEnabled = bot.getDBUtil().getGuildSettings(event.getGuild()).isRoleWhitelistEnabled();
 			for (Role role : allRoles) {
@@ -329,7 +328,7 @@ public class RoleCmd extends CommandBase {
 			}
 			actionRows.add(ActionRow.of(Button.primary("role:manage-confirm:"+target.getId(), lu.getText(event, path+".button"))));
 
-			if (bot.getDBUtil().modifyRole.create(event.getGuild().getIdLong(), member.getIdLong(),
+			if (bot.getDBUtil().modifyRole.create(event.getGuild().getIdLong(), event.getMember().getIdLong(),
 				target.getIdLong(), Instant.now().plus(2, ChronoUnit.MINUTES))) {
 				editErrorDatabase(event, "start modify role");
 				return;
