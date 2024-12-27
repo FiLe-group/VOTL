@@ -394,6 +394,19 @@
 				"no_guild": "Selected server not found.",
 				"done": "Assigned {target} access {level}."
 			},
+			"checkaccess": {
+				"help": "Check user's access in selected server",
+				"usage": "checkaccess <Server ID> <@User>",
+				"server": {
+					"name": "server",
+					"help": "Enter server's ID"
+				},
+				"user": {
+					"name": "user",
+					"help": "Enter user's ID"
+				},
+				"no_guild": "Selected server not found."
+			},
 			"debug": {
 				"help": "Returns logs file",
 				"usage": "debug [debug logs?] [date]",

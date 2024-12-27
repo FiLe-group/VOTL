@@ -174,6 +174,7 @@ public class App {
 				new DebugCmd(),
 				new MessageCmd(),
 				new SetStatusCmd(),
+				new CheckAccessCmd(),
 				// role
 				new RoleCmd(),
 				new TempRoleCmd(),
