@@ -10,7 +10,8 @@ public enum PunishAction {
 	KICK(2, "punish_action.kick"),
 	BAN(4, "punish_action.ban", "t(\\d+)"),		// ban duration
 	REMOVE_ROLE(8, "punish_action.remove_role", "rr(\\d+)"),	// role ID
-	ADD_ROLE(16, "punish_action.add_role", "ar(\\d+)");		// role ID
+	ADD_ROLE(16, "punish_action.add_role", "ar(\\d+)"),		// role ID
+	TEMP_ROLE(32, "punish_action.temp_role", "tr(\\d+)-(\\d+)");		// role ID & duration
 
 	private final int type;
 	private final String path;
@@ -61,4 +62,11 @@ public enum PunishAction {
 		if (!matcher.find()) return null;
 		return matcher.group(1);
 	}
+
+	public String getMatchedValue(String data, int group) {
+		Matcher matcher = getPattern().matcher(data);
+		if (!matcher.find()) return null;
+		return matcher.group(group);
+	}
+
 }

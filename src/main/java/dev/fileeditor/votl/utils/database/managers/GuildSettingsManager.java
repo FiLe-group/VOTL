@@ -21,9 +21,10 @@ import org.jetbrains.annotations.Nullable;
 public class GuildSettingsManager extends LiteBase {
 
 	private final Set<String> columns = Set.of(
-			"color", "lastWebhookId", "appealLink", "reportChannelId",
-			"strikeExpire", "strikeCooldown", "modulesOff",
-			"informBan", "informKick", "informMute", "informStrike", "informDelstrike"
+		"color", "lastWebhookId", "appealLink", "reportChannelId",
+		"strikeExpire", "strikeCooldown", "modulesOff",
+		"informBan", "informKick", "informMute", "informStrike", "informDelstrike",
+		"roleWhitelist"
 	);
 
 	// Cache
@@ -113,6 +114,11 @@ public class GuildSettingsManager extends LiteBase {
 		execute("INSERT INTO %s(guildId, informDelstrike) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET informDelstrike=%<d".formatted(table, guildId, informLevel.getLevel()));
 	}
 
+	public boolean setRoleWhitelist(long guildId, boolean roleWhitelist) {
+		invalidateCache(guildId);
+		return execute("INSERT INTO %s(guildId, roleWhitelist) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET roleWhitelist=%<d".formatted(table, guildId, roleWhitelist?1:0));
+	}
+
 
 	private void invalidateCache(long guildId) {
 		cache.pull(guildId);
@@ -123,6 +129,7 @@ public class GuildSettingsManager extends LiteBase {
 		private final int color, strikeExpire, strikeCooldown, modulesOff;
 		private final String appealLink;
 		private final ModerationInformLevel informBan, informKick, informMute, informStrike, informDelstrike;
+		private final boolean roleWhitelist;
 
 		public GuildSettings() {
 			this.color = Constants.COLOR_DEFAULT;
@@ -137,6 +144,7 @@ public class GuildSettingsManager extends LiteBase {
 			this.informMute = ModerationInformLevel.DEFAULT;
 			this.informStrike = ModerationInformLevel.DEFAULT;
 			this.informDelstrike = ModerationInformLevel.NONE;
+			this.roleWhitelist = false;
 		}
 
 		public GuildSettings(Map<String, Object> data) {
@@ -152,6 +160,7 @@ public class GuildSettingsManager extends LiteBase {
 			this.informMute = ModerationInformLevel.byLevel(getOrDefault(data.get("informMute"), 1));
 			this.informStrike = ModerationInformLevel.byLevel(getOrDefault(data.get("informStrike"), 1));
 			this.informDelstrike = ModerationInformLevel.byLevel(getOrDefault(data.get("informDelstrike"), 0));
+			this.roleWhitelist = getOrDefault(data.get("roleWhitelist"), 0) == 1;
 		}
 
 		public int getColor() {
@@ -208,6 +217,10 @@ public class GuildSettingsManager extends LiteBase {
 
 		public ModerationInformLevel getInformDelstrike() {
 			return informDelstrike;
+		}
+
+		public boolean isRoleWhitelistEnabled() {
+			return roleWhitelist;
 		}
 	}
 

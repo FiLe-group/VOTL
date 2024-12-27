@@ -1429,7 +1429,7 @@ public class InteractionListener extends ListenerAdapter {
 		}
 	}
 
-	private final List<Permission> AdminPerms = List.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
+	private final Set<Permission> adminPerms = Set.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
 
 	@Override
 	public void onEntitySelectInteraction(@NotNull EntitySelectInteractionEvent event) {
@@ -1477,7 +1477,9 @@ public class InteractionListener extends ListenerAdapter {
 					}
 
 					for (Role role : roles) {
-						if (!role.hasPermission(AdminPerms)) {
+						EnumSet<Permission> rolePerms = EnumSet.copyOf(role.getPermissions());
+						rolePerms.retainAll(adminPerms);
+						if (rolePerms.isEmpty()) {
 							manager = manager.putPermissionOverride(role, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null);
 							mentionStrings.add(role.getName());
 						}
@@ -1494,7 +1496,9 @@ public class InteractionListener extends ListenerAdapter {
 					}
 
 					for (Role role : roles) {
-						if (!role.hasPermission(AdminPerms)) {
+						EnumSet<Permission> rolePerms = EnumSet.copyOf(role.getPermissions());
+						rolePerms.retainAll(adminPerms);
+						if (rolePerms.isEmpty()) {
 							manager = manager.putPermissionOverride(role, null, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL));
 							mentionStrings.add(role.getName());
 						}
@@ -1559,7 +1563,7 @@ public class InteractionListener extends ListenerAdapter {
 		private final int time;
 		private final CooldownScope scope;
 
-		Cooldown(@NotNull int time, @NotNull CooldownScope scope) {
+		Cooldown(int time, @NotNull CooldownScope scope) {
 			this.time = time;
 			this.scope = scope;
 		}
