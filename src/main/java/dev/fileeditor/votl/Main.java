@@ -13,4 +13,3 @@ public class Main {
 		App.instance = new App();
 	}
 }
-

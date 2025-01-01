@@ -88,7 +88,7 @@ public class FileManager {
 
 		return file;
 	}
-	
+
 	public void createUpdateLoad(String name, String internal, String external, boolean forceUpdate) {
 		File file = new File(external);
 		
@@ -179,6 +179,38 @@ public class FileManager {
 		}
 
 		return text;
+	}
+	
+	@Nullable
+	public Boolean getBoolean(String name, String path){
+		File file = files.get(name);
+		
+		if (file == null) return null;
+		
+		try {
+			return JsonPath.using(CONF).parse(file).read("$." + path);
+		} catch (FileNotFoundException ex) {
+			LOG.error("Couldn't find file {}.json", name);
+		} catch (IOException ex) {
+			LOG.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
+		}
+		return null;
+	}
+
+	@Nullable
+	public Integer getInteger(String name, String path){
+		File file = files.get(name);
+
+		if (file == null) return null;
+
+		try {
+			return JsonPath.using(CONF).parse(file).read("$." + path);
+		} catch (FileNotFoundException ex) {
+			LOG.error("Couldn't find file {}.json", name);
+		} catch (IOException ex) {
+			LOG.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
+		}
+		return null;
 	}
 
 	@NotNull

@@ -39,7 +39,18 @@ dependencies {
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
-	implementation 'org.apache.groovy:groovy:4.0.24'				// Groovy - code evaluation
+
+	implementation 'org.apache.groovy:groovy:4.0.23'				// Groovy - code evaluation
+
+	// Metrics
+	// https://mvnrepository.com/artifact/io.github.classgraph/classgraph
+	implementation 'io.github.classgraph:classgraph:4.8.177'        // Class lookup
+
+	// Backend
+	// https://mvnrepository.com/artifact/io.javalin/javalin
+	implementation 'io.javalin:javalin:6.3.0'
+	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.1'
 }
 
 java {
