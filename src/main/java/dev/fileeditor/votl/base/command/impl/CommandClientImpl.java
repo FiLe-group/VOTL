@@ -290,22 +290,22 @@ public class CommandClientImpl implements CommandClient, EventListener {
 
 	@Override
 	public void onEvent(@NotNull GenericEvent event) {
-		if (event instanceof SlashCommandInteractionEvent)
-			onSlashCommand((SlashCommandInteractionEvent)event);
-
-		else if (event instanceof MessageContextInteractionEvent)
-			onMessageContextMenu((MessageContextInteractionEvent)event);
-		else if (event instanceof UserContextInteractionEvent)
-			onUserContextMenu((UserContextInteractionEvent)event);
-
-		else if (event instanceof CommandAutoCompleteInteractionEvent)
-			onCommandAutoComplete((CommandAutoCompleteInteractionEvent)event);
-
-		else if (event instanceof ReadyEvent)
-			onReady((ReadyEvent)event);
-		else if (event instanceof ShutdownEvent) {
-			if (shutdownAutomatically)
-				shutdown();
+		switch (event) {
+			case SlashCommandInteractionEvent slashCommandInteractionEvent ->
+				onSlashCommand(slashCommandInteractionEvent);
+			case MessageContextInteractionEvent messageContextInteractionEvent ->
+				onMessageContextMenu(messageContextInteractionEvent);
+			case UserContextInteractionEvent userContextInteractionEvent ->
+				onUserContextMenu(userContextInteractionEvent);
+			case CommandAutoCompleteInteractionEvent commandAutoCompleteInteractionEvent ->
+				onCommandAutoComplete(commandAutoCompleteInteractionEvent);
+			case ReadyEvent readyEvent -> onReady(readyEvent);
+			case ShutdownEvent ignored -> {
+				if (shutdownAutomatically)
+					shutdown();
+			}
+			default -> {
+			}
 		}
 	}
 

@@ -130,7 +130,7 @@ public class PurgeCmd extends CommandBase {
 
 	private RestAction<Void> deleteMessages(GuildMessageChannel channel, List<Message> messages) {
 		if (messages.size() == 1) {
-			return messages.get(0).delete();
+			return messages.getFirst().delete();
 		}
 		return channel.deleteMessages(messages);
 	}

@@ -109,7 +109,7 @@ public class ModuleCmd extends CommandBase {
 				e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(msg.getId()),
 				actionEvent -> {
 					actionEvent.deferEdit().queue();
-					CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
+					CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().getFirst().getValue());
 					if (bot.getDBUtil().getGuildSettings(guildId).isDisabled(sModule)) {
 						hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".already")).setComponents().queue();
 						return;
@@ -175,7 +175,7 @@ public class ModuleCmd extends CommandBase {
 				e -> e.getComponentId().equals("enable-module") && e.getMessageId().equals(msg.getId()),
 				actionEvent -> actionEvent.deferEdit().queue(
 					actionHook -> {
-						CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().get(0).getValue());
+						CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().getFirst().getValue());
 						if (!bot.getDBUtil().getGuildSettings(guildId).isDisabled(sModule)) {
 							hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".already")).setComponents().queue();
 							return;

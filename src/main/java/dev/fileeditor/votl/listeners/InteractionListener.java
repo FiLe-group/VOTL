@@ -297,14 +297,14 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private void buttonRoleSelectionOther(ButtonInteractionEvent event) {
-		List<Field> fields = event.getMessage().getEmbeds().get(0).getFields();
-		List<Long> roleIds = MessageUtil.getRoleIdsFromString(fields.isEmpty() ? "" : fields.get(0).getValue());
+		List<Field> fields = event.getMessage().getEmbeds().getFirst().getFields();
+		List<Long> roleIds = MessageUtil.getRoleIdsFromString(fields.isEmpty() ? "" : fields.getFirst().getValue());
 		if (roleIds.contains(0L))
 			roleIds.remove(0L);
 		else
 			roleIds.add(0L);
 		
-		MessageEmbed embed = new EmbedBuilder(event.getMessage().getEmbeds().get(0))
+		MessageEmbed embed = new EmbedBuilder(event.getMessage().getEmbeds().getFirst())
 			.clearFields()
 			.addField(lu.getText(event, "bot.ticketing.listener.request_selected"), selectedRolesString(roleIds, event.getUserLocale()), false)
 			.build();
@@ -312,7 +312,7 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private void buttonRoleSelectionClear(ButtonInteractionEvent event) {
-		MessageEmbed embed = new EmbedBuilder(event.getMessage().getEmbeds().get(0))
+		MessageEmbed embed = new EmbedBuilder(event.getMessage().getEmbeds().getFirst())
 			.clearFields()
 			.addField(lu.getText(event, "bot.ticketing.listener.request_selected"), selectedRolesString(Collections.emptyList(), event.getUserLocale()), false)
 			.build();
@@ -394,8 +394,8 @@ public class InteractionListener extends ListenerAdapter {
 		long guildId = guild.getIdLong();
 
 		// Check if user has selected any role
-		List<Field> fields = event.getMessage().getEmbeds().get(0).getFields();
-		List<Long> roleIds = MessageUtil.getRoleIdsFromString(fields.isEmpty() ? "" : fields.get(0).getValue());
+		List<Field> fields = event.getMessage().getEmbeds().getFirst().getFields();
+		List<Long> roleIds = MessageUtil.getRoleIdsFromString(fields.isEmpty() ? "" : fields.getFirst().getValue());
 		if (roleIds.isEmpty()) {
 			sendError(event, "bot.ticketing.listener.request_none");
 			return;
@@ -1365,14 +1365,14 @@ public class InteractionListener extends ListenerAdapter {
 		if (menuId.startsWith("menu:role_row")) {
 			event.deferEdit().queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
 
-			List<Field> fields = event.getMessage().getEmbeds().get(0).getFields();
-			List<Long> roleIds = MessageUtil.getRoleIdsFromString(fields.isEmpty() ? "" : fields.get(0).getValue());
+			List<Field> fields = event.getMessage().getEmbeds().getFirst().getFields();
+			List<Long> roleIds = MessageUtil.getRoleIdsFromString(fields.isEmpty() ? "" : fields.getFirst().getValue());
 			event.getSelectedOptions().forEach(option -> {
 				Long value = CastUtil.castLong(option.getValue());
 				if (!roleIds.contains(value)) roleIds.add(value);
 			});
 
-			MessageEmbed embed = new EmbedBuilder(event.getMessage().getEmbeds().get(0))
+			MessageEmbed embed = new EmbedBuilder(event.getMessage().getEmbeds().getFirst())
 				.clearFields()
 				.addField(lu.getText(event, "bot.ticketing.listener.request_selected"), selectedRolesString(roleIds, event.getUserLocale()), false)
 				.build();

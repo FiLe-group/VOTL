@@ -1,6 +1,6 @@
 package dev.fileeditor.votl.commands.ticketing;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -573,8 +573,7 @@ public class TicketPanelCmd extends CommandBase {
 	private boolean isInvalidURL(String urlString) {
 		if (urlString == null) return false;
 		try {
-			URL url = new URL(urlString);
-			url.toURI();
+			URI ignored = URI.create(urlString);
 			return false;
 		} catch (Exception e) {
 			return true;

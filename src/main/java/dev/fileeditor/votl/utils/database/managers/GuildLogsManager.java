@@ -25,10 +25,10 @@ public class GuildLogsManager extends LiteBase {
 		super(cu, "logWebhooks");
 	}
 
-	public boolean setLogWebhook(LogType type, long guildId, WebhookData webhookData) {
+	public boolean setLogWebhook(@NotNull LogType type, long guildId, WebhookData webhookData) {
 		invalidateCache(guildId);
 		String data = webhookData==null ? "NULL" : webhookData.encodeData();
-		return execute("INSERT INTO %s(guildId, %s) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET %2$s=%4$s".formatted(table, type.getName(), guildId, quote(data)));
+		return execute("INSERT INTO %s(guildId, %s) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET %2$s=%4$s".formatted(table, quote(type.getName()), guildId, quote(data)));
 	}
 
 	public boolean removeLogWebhook(LogType type, long guildId) {

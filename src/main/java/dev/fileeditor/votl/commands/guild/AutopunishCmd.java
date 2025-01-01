@@ -207,23 +207,6 @@ public class AutopunishCmd extends CommandBase {
 		
 	}
 
-	// TODO
-	/* private class Update extends SlashCommand {
-
-		public Update(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
-			this.name = "update";
-			this.path = "bot.guild.autopunish.update";
-		}
-
-		@Override
-		protected void execute(SlashCommandEvent event) {
-
-		}
-		
-	} */
-
 	private class View extends SlashCommand {
 
 		public View() {
@@ -259,9 +242,7 @@ public class AutopunishCmd extends CommandBase {
 				builder.append("`%3s` ".formatted(prefix+strikeCount));
 				actions.forEach(action -> {
 					switch (action) {
-						case KICK -> {
-							builder.append(lu.getText(event, action.getPath()));
-						}
+						case KICK -> builder.append(lu.getText(event, action.getPath()));
 						case MUTE, BAN -> {
 							Duration duration;
 							try {

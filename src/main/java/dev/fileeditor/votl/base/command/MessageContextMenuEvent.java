@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>Classes created inheriting this class gain the unique traits of commands operated using the menu Extension.
  * <br>Using several fields, a command can define properties that make it unique and complex while maintaining
  * a low level of development.
- * <br>All classes extending this class can define any number of these fields in a object constructor and then
+ * <br>All classes extending this class can define any number of these fields in an object constructor and then
  * create the menu action/response in the abstract {@link MessageContextMenu#execute(MessageContextMenuEvent)} body:
  *
  * <pre><code> public class ExampleCmd extends MessageContextMenu {

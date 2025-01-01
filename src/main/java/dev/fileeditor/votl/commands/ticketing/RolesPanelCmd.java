@@ -234,7 +234,7 @@ public class RolesPanelCmd extends CommandBase {
 
 			if (event.optString("roles").equalsIgnoreCase("null")) {
 				// Clear roles
-				if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), null)) {
+				if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), List.of())) {
 					editErrorDatabase(event, "clear ticket support roles");
 					return;
 				}

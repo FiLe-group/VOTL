@@ -95,7 +95,7 @@ public class MessageListener extends ListenerAdapter {
 			.limit(1)
 			.queue(list -> {
 				if (!list.isEmpty() && data != null) {
-					AuditLogEntry entry = list.get(0);
+					AuditLogEntry entry = list.getFirst();
 					if (entry.getTargetIdLong() == data.getAuthorId() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
 						bot.getLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, entry.getUserIdLong());
 						return;
@@ -130,7 +130,7 @@ public class MessageListener extends ListenerAdapter {
 				if (list.isEmpty()) {
 					bot.getLogger().message.onMessageBulkDelete(event.getChannel(), String.valueOf(messageIds.size()), messages, null);
 				} else {
-					AuditLogEntry entry = list.get(0);
+					AuditLogEntry entry = list.getFirst();
 					String count = entry.getOption(AuditLogOption.COUNT);
 					if (entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15)))
 						bot.getLogger().message.onMessageBulkDelete(event.getChannel(), count, messages, entry.getUserIdLong());

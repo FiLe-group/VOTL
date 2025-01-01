@@ -22,7 +22,7 @@ public final class Constants {
 	public static final int COLOR_FAILURE = 0xB31E22;
 	public static final int COLOR_WARNING = 0xFDB81E;
 
-	public static final String DEVELOPER_TAG = "@fileeidtor";
+	public static final String DEVELOPER_TAG = "@fileeditor";
 	public static final String DEVELOPER_ID = "369062521719488524";
 
 	public static final int DEFAULT_CACHE_SIZE = 100;
