@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.guild;
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
 import java.net.URI;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
