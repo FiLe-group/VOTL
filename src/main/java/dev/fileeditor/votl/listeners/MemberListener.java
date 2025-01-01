@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
 
+import dev.fileeditor.votl.utils.database.managers.CaseManager;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
@@ -62,6 +64,17 @@ public class MemberListener extends ListenerAdapter {
 			}
 		} catch (Exception e) {
 			bot.getAppLogger().warn("Failed to assign persistent roles for {} @ {}\n{}", userId, guildId, e.getMessage());
+		}
+
+		// Check for active mute - then give timeout
+		CaseManager.CaseData caseData = db.cases.getMemberActive(userId, guildId, CaseType.MUTE);
+		if (caseData != null) {
+			Instant timeEnd = caseData.getTimeEnd();
+			if (timeEnd != null && timeEnd.isAfter(Instant.now())) {
+				event.getMember().timeoutUntil(timeEnd)
+					.reason("Active mute (#%s): %s".formatted(caseData.getLocalId(), caseData.getReason()))
+					.queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER));
+			}
 		}
 	}
 	

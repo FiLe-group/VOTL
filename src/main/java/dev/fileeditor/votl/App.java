@@ -29,11 +29,7 @@ import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
 import dev.fileeditor.votl.services.ScheduledCheck;
-import dev.fileeditor.votl.utils.CheckUtil;
-import dev.fileeditor.votl.utils.GroupHelper;
-import dev.fileeditor.votl.utils.ModerationUtil;
-import dev.fileeditor.votl.utils.TicketUtil;
-import dev.fileeditor.votl.utils.WebhookAppender;
+import dev.fileeditor.votl.utils.*;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
@@ -75,6 +71,7 @@ public class App {
 
 	private final GuildLogger guildLogger;
 	private final LogEmbedUtil logEmbedUtil;
+	private final Base62 base62;
 
 	private final DBUtil dbUtil;
 	private final MessageUtil messageUtil;
@@ -84,6 +81,8 @@ public class App {
 	private final TicketUtil ticketUtil;
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
+
+	private final MessageListener messageListener;
 
 	@SuppressWarnings("BusyWait")
 	public App() {
@@ -109,6 +108,7 @@ public class App {
 		checkUtil	= new CheckUtil(this, ownerId);
 		ticketUtil	= new TicketUtil(this);
 		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
+		base62		= Base62.createInstance();
 
 		logEmbedUtil	= new LogEmbedUtil();
 		guildLogger		= new GuildLogger();
@@ -121,9 +121,9 @@ public class App {
 		GuildListener guildListener = new GuildListener(this);
 		VoiceListener voiceListener = new VoiceListener(this);
 		ModerationListener moderationListener = new ModerationListener(this);
-		MessageListener messageListener = new MessageListener(this);
 		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
 		MemberListener memberListener = new MemberListener(this);
+		messageListener = new MessageListener(this);
 
 		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
 		ScheduledCheck scheduledCheck = new ScheduledCheck(this);
@@ -174,6 +174,7 @@ public class App {
 				new DebugCmd(),
 				new MessageCmd(),
 				new SetStatusCmd(),
+				new CheckAccessCmd(),
 				// role
 				new RoleCmd(),
 				new TempRoleCmd(),
@@ -340,6 +341,14 @@ public class App {
 
 	public ModerationUtil getModerationUtil() {
 		return moderationUtil;
+	}
+
+	public Base62 getBase62() {
+		return base62;
+	}
+
+	public void shutdownUtils() {
+		messageListener.shutdown();
 	}
 
 	private void createWebhookAppender() {

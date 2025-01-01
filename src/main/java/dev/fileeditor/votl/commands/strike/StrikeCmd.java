@@ -274,6 +274,35 @@ public class StrikeCmd extends CommandBase {
 				}
 			}
 		}
+		if (actions.contains(PunishAction.TEMP_ROLE)) {
+			Long roleId = null;
+			try {
+				roleId = Long.valueOf(PunishAction.TEMP_ROLE.getMatchedValue(data, 1));
+			} catch (NumberFormatException ignored) {}
+			Duration duration = null;
+			try {
+				duration = Duration.ofSeconds(Long.parseLong(PunishAction.TEMP_ROLE.getMatchedValue(data, 2)));
+			} catch (NumberFormatException ignored) {}
+			if (roleId != null && duration != null) {
+				final Duration durationCopy = duration;
+				Role role = guild.getRoleById(roleId);
+				if (role != null && guild.getSelfMember().canInteract(role)) {
+					// Apply action, result will be in logs
+					guild.addRoleToMember(target, role).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queueAfter(5, TimeUnit.SECONDS, done -> {
+							// Add temp
+							bot.getDBUtil().tempRoles.add(guild.getIdLong(), role.getIdLong(), target.getIdLong(), false, Instant.now().plus(durationCopy));
+							// log action
+							bot.getLogger().role.onTempRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), role, durationCopy);
+						},
+						failure -> bot.getAppLogger().error("Strike punishment execution, Add temp role", failure)
+					);
+					builder.append(lu.getLocalized(locale, PunishAction.TEMP_ROLE.getPath()))
+						.append(" ").append(role.getName())
+						.append(" (").append(TimeUtil.durationToLocalizedString(lu, locale, durationCopy))
+						.append(")\n");
+				}
+			}
+		}
 		if (actions.contains(PunishAction.MUTE)) {
 			Duration duration = null;
 			try {

@@ -341,19 +341,15 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		// Get all commands
 		List<CommandData> data = new ArrayList<>();
 		List<SlashCommand> slashCommands = getSlashCommands();
-		//Map<String, SlashCommand> slashCommandMap = new HashMap<>();
 		List<ContextMenu> contextMenus = getContextMenus();
-		//Map<String, ContextMenu> contextMenuMap = new HashMap<>();
 
 		// Build the command and privilege data
 		for (SlashCommand command : slashCommands) {
 			data.add(command.buildCommandData());
-			//slashCommandMap.put(command.getName(), command);
 		}
 
 		for (ContextMenu menu : contextMenus) {
 			data.add(menu.buildCommandData());
-			//contextMenuMap.put(menu.getName(), menu);
 		}
 
 		// Upsert the commands
@@ -382,9 +378,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		List<CommandData> data = new ArrayList<>();
 		List<CommandData> dataDev = new ArrayList<>();
 		List<SlashCommand> slashCommands = getSlashCommands();
-		//Map<String, SlashCommand> slashCommandMap = new HashMap<>();
 		List<ContextMenu> contextMenus = getContextMenus();
-		//Map<String, ContextMenu> contextMenuMap = new HashMap<>();
 
 		// Build the command and privilege data
 		for (SlashCommand command : slashCommands) {
@@ -393,11 +387,9 @@ public class CommandClientImpl implements CommandClient, EventListener {
 			} else {
 				dataDev.add(command.buildCommandData());
 			}
-			//slashCommandMap.put(command.getName(), command);
 		}
 		for (ContextMenu menu : contextMenus) {
 			data.add(menu.buildCommandData());
-			//contextMenuMap.put(menu.getName(), menu);
 		}
 
 		jda.updateCommands().addCommands(data)
@@ -412,7 +404,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 			}
 			Guild server = jda.getGuildById(serverId);
 			if (server == null) {
-				LOG.error("Specified forced guild is null! Slash Commands will NOT be added! Is the bot added?");
+				LOG.error("Specified dev guild is null! Slash Commands will NOT be added! Is the bot added?");
 				return;
 			}
 			// Upsert the commands + their privileges

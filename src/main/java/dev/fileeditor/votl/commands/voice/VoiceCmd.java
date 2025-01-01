@@ -1,9 +1,6 @@
 package dev.fileeditor.votl.commands.voice;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -377,7 +374,7 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private class Permit extends SlashCommand {
-		private final List<Permission> AdminPerms = List.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
+		private final Set<Permission> adminPerms = Set.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
 
 		public Permit() {
 			this.name = "permit";
@@ -427,7 +424,9 @@ public class VoiceCmd extends CommandBase {
 			}
 
 			for (Role role : roles) {
-				if (!role.hasPermission(AdminPerms)) {
+				EnumSet<Permission> rolePerms = EnumSet.copyOf(role.getPermissions());
+				rolePerms.retainAll(adminPerms);
+				if (rolePerms.isEmpty()) {
 					vcManager = vcManager.putPermissionOverride(role, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL), null);
 					mentionStrings.add(role.getName());
 				}
@@ -444,7 +443,7 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private class Reject extends SlashCommand {
-		private final List<Permission> AdminPerms = List.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
+		private final Set<Permission> adminPerms = Set.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
 
 		public Reject() {
 			this.name = "reject";
@@ -497,7 +496,9 @@ public class VoiceCmd extends CommandBase {
 			}
 
 			for (Role role : roles) {
-				if (!role.hasPermission(AdminPerms)) {
+				EnumSet<Permission> rolePerms = EnumSet.copyOf(role.getPermissions());
+				rolePerms.retainAll(adminPerms);
+				if (rolePerms.isEmpty()) {
 					vcManager = vcManager.putPermissionOverride(role, null, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL));
 					mentionStrings.add(role.getName());
 				}
