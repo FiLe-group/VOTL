@@ -206,7 +206,7 @@ public class GroupCmd extends CommandBase {
 				StringSelectInteractionEvent.class,
 				e -> e.getMessageId().equals(msg.getId()),
 				actionMenu -> {
-					long targetId = Long.parseLong(actionMenu.getSelectedOptions().get(0).getValue());
+					long targetId = Long.parseLong(actionMenu.getSelectedOptions().getFirst().getValue());
 					Guild targetGuild = event.getJDA().getGuildById(targetId);
 
 					if (bot.getDBUtil().group.remove(groupId, targetId)) {
@@ -415,7 +415,7 @@ public class GroupCmd extends CommandBase {
 				StringSelectInteractionEvent.class,
 				e -> e.getMessageId().equals(msg.getId()),
 				actionMenu -> {
-					long targetId = Long.parseLong(actionMenu.getSelectedOptions().get(0).getValue());
+					long targetId = Long.parseLong(actionMenu.getSelectedOptions().getFirst().getValue());
 					Guild targetGuild = event.getJDA().getGuildById(targetId);
 
 					StringBuilder builder = new StringBuilder(lu.getText(event, path+".done")

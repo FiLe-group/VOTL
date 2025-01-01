@@ -2,7 +2,8 @@ package dev.fileeditor.votl.commands.guild;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
-import java.net.URL;
+import java.net.URI;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -86,7 +87,7 @@ public class LogsCmd extends CommandBase {
 				}
 				Icon icon = null;
 				try {
-					icon = Icon.from(new URL(Constants.LOGO_URL).openStream(), IconType.PNG);
+					icon = Icon.from(URI.create(Constants.LOGO_URL).toURL().openStream(), IconType.PNG);
 				} catch (Exception ignored) {}
 				channel.createWebhook(lu.getText(type.getNamePath())).setAvatar(icon).reason("By "+event.getUser().getName()).queue(webhook -> {
 					// Add to DB

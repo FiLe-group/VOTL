@@ -16,7 +16,7 @@
 package dev.fileeditor.votl.base.utils;
 
 /**
- * A Utilities class for safely checking and converting String IDs to longs usable with 
+ * AN Utilities class for safely checking and converting String IDs to longs usable with
  * {@link net.dv8tion.jda.api.utils.MiscUtil#parseSnowflake(String) MiscUtil.parseSnowflake(String)}, a utility used in
  * several {@code Object#getXById(String)} methods.
  * 

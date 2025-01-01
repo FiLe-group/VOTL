@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
  * @author John Grosh (jagrosh)
  */
 public class CommandClientImpl implements CommandClient, EventListener {
-	private static final Logger LOG = LoggerFactory.getLogger(CommandClient.class);
+	private static final Logger LOG = LoggerFactory.getLogger(CommandClientImpl.class);
 
 	private final OffsetDateTime start;
 	private final Activity activity;
@@ -91,7 +91,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		Checks.check(ownerId != null, "Owner ID was set null or not set! Please provide an User ID to register as the owner!");
 
 		if (!SafeIdUtil.checkId(ownerId))
-			LOG.warn(String.format("The provided Owner ID (%s) was found unsafe! Make sure ID is a non-negative long!", ownerId));
+			LOG.warn("The provided Owner ID ({}) was found unsafe! Make sure ID is a non-negative long!", ownerId);
 
 		this.start = OffsetDateTime.now();
 
@@ -290,22 +290,22 @@ public class CommandClientImpl implements CommandClient, EventListener {
 
 	@Override
 	public void onEvent(@NotNull GenericEvent event) {
-		if (event instanceof SlashCommandInteractionEvent)
-			onSlashCommand((SlashCommandInteractionEvent)event);
-
-		else if (event instanceof MessageContextInteractionEvent)
-			onMessageContextMenu((MessageContextInteractionEvent)event);
-		else if (event instanceof UserContextInteractionEvent)
-			onUserContextMenu((UserContextInteractionEvent)event);
-
-		else if (event instanceof CommandAutoCompleteInteractionEvent)
-			onCommandAutoComplete((CommandAutoCompleteInteractionEvent)event);
-
-		else if (event instanceof ReadyEvent)
-			onReady((ReadyEvent)event);
-		else if (event instanceof ShutdownEvent) {
-			if (shutdownAutomatically)
-				shutdown();
+		switch (event) {
+			case SlashCommandInteractionEvent slashCommandInteractionEvent ->
+				onSlashCommand(slashCommandInteractionEvent);
+			case MessageContextInteractionEvent messageContextInteractionEvent ->
+				onMessageContextMenu(messageContextInteractionEvent);
+			case UserContextInteractionEvent userContextInteractionEvent ->
+				onUserContextMenu(userContextInteractionEvent);
+			case CommandAutoCompleteInteractionEvent commandAutoCompleteInteractionEvent ->
+				onCommandAutoComplete(commandAutoCompleteInteractionEvent);
+			case ReadyEvent readyEvent -> onReady(readyEvent);
+			case ShutdownEvent ignored -> {
+				if (shutdownAutomatically)
+					shutdown();
+			}
+			default -> {
+			}
 		}
 	}
 
@@ -367,7 +367,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 			// Upsert the commands + their privileges
 			server.updateCommands().addCommands(data)
 				.queue(
-					priv -> LOG.debug("Successfully added {} slash commands and {} menus to server {}", slashCommands.size(), contextMenus.size(), server.getName()),
+					done -> LOG.debug("Successfully added {} slash commands and {} menus to server {}", slashCommands.size(), contextMenus.size(), server.getName()),
 					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?", error)
 				);
 		}
@@ -418,7 +418,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 			// Upsert the commands + their privileges
 			server.updateCommands().addCommands(dataDev)
 				.queue(
-					priv -> LOG.debug("Successfully added {} slash commands to server {}", dataDev.size(), server.getName()),
+					done -> LOG.debug("Successfully added {} slash commands to server {}", dataDev.size(), server.getName()),
 					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?", error)
 				);
 		}

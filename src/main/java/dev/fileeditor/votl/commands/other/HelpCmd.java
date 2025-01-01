@@ -75,7 +75,7 @@ public class HelpCmd extends CommandBase {
 				.setTitle(lu.getLocalized(userLocale, "bot.help.command_info.title").replace("{command}", command.getName()))
 				.setDescription(lu.getLocalized(userLocale, "bot.help.command_info.value")
 					.replace("{category}", Optional.ofNullable(command.getCategory())
-						.map(cat -> lu.getLocalized(userLocale, "bot.help.command_menu.categories."+cat.getName())).orElse(Constants.NONE))
+						.map(cat -> lu.getLocalized(userLocale, "bot.help.command_menu.categories."+cat.name())).orElse(Constants.NONE))
 					.replace("{owner}", command.isOwnerCommand() ? Emote.CHECK_C.getEmote() : Emote.CROSS_C.getEmote())
 					.replace("{guild}", command.isGuildOnly() ? Emote.CROSS_C.getEmote() : Emote.CHECK_C.getEmote())
 					.replace("{module}", Optional.ofNullable(command.getModule()).map(mod -> lu.getLocalized(userLocale, mod.getPath())).orElse(Constants.NONE)))
@@ -121,7 +121,7 @@ public class HelpCmd extends CommandBase {
 			event.getClient().getSlashCommands() :
 				event.getClient().getSlashCommands().stream().filter(cmd -> {
 					if (cmd.getCategory() == null) return false;
-					return cmd.getCategory().getName().contentEquals(filCat);
+					return cmd.getCategory().name().contentEquals(filCat);
 				}).toList()
 		);
 		for (SlashCommand command : commands) {
@@ -132,7 +132,7 @@ public class HelpCmd extends CommandBase {
 					}
 					category = command.getCategory();
 					if (category == null) continue;
-					fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.categories."+category.getName());
+					fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.categories."+category.name());
 					fieldValue = new StringBuilder();
 				}
 				fieldValue.append("`/%s` - %s\n".formatted(command.getName(), command.getDescriptionLocalization().get(userLocale)));

@@ -28,10 +28,6 @@ public class GameStrikeManager extends LiteBase {
 		return execute("INSERT INTO %s(guildId, channelId, maxStrikes) VALUES (%s, %s, %s)".formatted(channels, guildId, channelId, maxStrikes));
 	}
 
-	public void setMaxStrikes(long channelId, int maxStrikes) {
-		execute("UPDATE %s SET maxStrikes=%s WHERE (channelId=%s)".formatted(channels, maxStrikes, channelId));
-	}
-
 	public Integer getMaxStrikes(long channelId) {
 		return selectOne("SELECT maxStrikes FROM %s WHERE (channelId=%s)".formatted(channels, channelId), "maxStrikes", Integer.class);
 	}

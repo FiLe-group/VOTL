@@ -74,7 +74,7 @@ public class MemberListener extends ListenerAdapter {
 				.limit(1)
 				.queue(list -> {
 					if (!list.isEmpty()) {
-						AuditLogEntry entry = list.get(0);
+						AuditLogEntry entry = list.getFirst();
 						if (!entry.getUser().equals(event.getJDA().getSelfUser()) && entry.getTargetIdLong() == event.getUser().getIdLong()
 							&& entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
 							bot.getLogger().mod.onUserKick(entry, event.getUser());

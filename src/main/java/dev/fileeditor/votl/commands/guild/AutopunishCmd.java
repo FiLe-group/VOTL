@@ -177,23 +177,6 @@ public class AutopunishCmd extends CommandBase {
 		
 	}
 
-	// TODO
-	/* private class Update extends SlashCommand {
-
-		public Update(App bot) {
-			this.bot = bot;
-			this.lu = bot.getLocaleUtil();
-			this.name = "update";
-			this.path = "bot.guild.autopunish.update";
-		}
-
-		@Override
-		protected void execute(SlashCommandEvent event) {
-
-		}
-		
-	} */
-
 	private class View extends SlashCommand {
 
 		public View() {

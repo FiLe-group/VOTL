@@ -22,7 +22,7 @@ public class MessageData {
 		if (message.getAttachments().isEmpty())
 			this.attachment = null;
 		else
-			this.attachment = message.getAttachments().get(0);
+			this.attachment = message.getAttachments().getFirst();
 		this.authorId = message.getAuthor().getIdLong();
 		this.authorName = message.getAuthor().getName();
 	}

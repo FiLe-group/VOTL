@@ -30,6 +30,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
+@SuppressWarnings("Duplicates")
 public class RoleCmd extends CommandBase {
 	
 	public RoleCmd() {

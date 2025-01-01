@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.commands.guild;
 
 import java.awt.Color;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -110,8 +110,7 @@ public class SetupCmd extends CommandBase {
 
 		private boolean isValidURL(String urlString) {
 			try {
-				URL url = new URL(urlString);
-				url.toURI();
+				URI ignored = URI.create(urlString);
 				return true;
 			} catch (Exception e) {
 				return false;

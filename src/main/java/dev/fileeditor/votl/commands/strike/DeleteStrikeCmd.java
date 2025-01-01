@@ -110,7 +110,7 @@ public class DeleteStrikeCmd extends CommandBase {
 		event.deferEdit().queue();
 
 		final List<String> strikesInfo = new ArrayList<>(List.of(strikesInfoArray));
-		final String[] selected = event.getValues().get(0).split("-");
+		final String[] selected = event.getValues().getFirst().split("-");
 		final int caseRowId = Integer.parseInt(selected[0]);
 		
 		final CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
@@ -126,7 +126,7 @@ public class DeleteStrikeCmd extends CommandBase {
 			final long guildId = event.getGuild().getIdLong();
 			// As only one strike remains - delete case from strikes data and set case inactive
 			
-			strikesInfo.remove(event.getValues().get(0));
+			strikesInfo.remove(event.getValues().getFirst());
 
 			bot.getDBUtil().cases.setInactive(caseRowId);
 			if (strikesInfo.isEmpty())
@@ -175,7 +175,7 @@ public class DeleteStrikeCmd extends CommandBase {
 				buttonAction -> buttonPressed(buttonAction, msgN, strikesInfo, tu, activeAmount),
 				30,
 				TimeUnit.SECONDS,
-				() -> msg.editMessageEmbeds(new EmbedBuilder(msgN.getEmbeds().get(0)).appendDescription("\n\n"+lu.getText(event, "errors.timed_out")).build())
+				() -> msg.editMessageEmbeds(new EmbedBuilder(msgN.getEmbeds().getFirst()).appendDescription("\n\n"+lu.getText(event, "errors.timed_out")).build())
 					.setComponents().queue()
 			));
 		}
@@ -216,7 +216,7 @@ public class DeleteStrikeCmd extends CommandBase {
 				}
 		} else {
 			// Delete selected amount of strikes (not all)
-			Collections.replaceAll(cases, caseRowId+"-"+activeAmount, caseRowId+"-"+(activeAmount-removeAmount));
+			boolean ignored = Collections.replaceAll(cases, caseRowId+"-"+activeAmount, caseRowId+"-"+(activeAmount-removeAmount));
 			if (bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
 				Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
 				removeAmount, String.join(";", cases)

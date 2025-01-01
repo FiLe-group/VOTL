@@ -112,7 +112,7 @@ public class ScheduledCheck {
 				channel.getIterableHistory()
 					.takeAsync(1)
 					.thenAcceptAsync(list -> {
-						Message msg = list.get(0);
+						Message msg = list.getFirst();
 						if (msg.getAuthor().isBot()) {
 							// Last message is bot - close ticket
 							bot.getTicketUtil().closeTicket(channelId, null, "activity", failure -> {
@@ -147,13 +147,13 @@ public class ScheduledCheck {
 					try {
 						role.delete().reason("Role expired").queue();
 					} catch (InsufficientPermissionException | HierarchyException ex) {
-						logger.warn("Was unable to delete temporary role '%s' during scheduled check.".formatted(roleId), ex);
+						logger.warn("Was unable to delete temporary role '{}' during scheduled check.", roleId, ex);
 					}
 					db.tempRoles.removeRole(roleId);
 				} else {
 					Long userId = castLong(data.get("userId"));
 					role.getGuild().removeRoleFromMember(User.fromId(userId), role).reason("Role expired").queue(null, failure -> {
-						logger.warn("Was unable to remove temporary role '%s' from '%s' during scheduled check.".formatted(roleId, userId), failure);
+						logger.warn("Was unable to remove temporary role '{}' from '{}' during scheduled check.", roleId, userId, failure);
 					});
 					db.tempRoles.remove(roleId, userId);
 					// Log
@@ -202,7 +202,7 @@ public class ScheduledCheck {
 						}
 						if (cases.length > 1) {
 							List<String> list = new ArrayList<>(List.of(cases));
-							list.remove(0);
+							list.removeFirst();
 							newData.append(String.join(";", list));
 						}
 						// Remove one strike and reset time

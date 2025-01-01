@@ -1188,40 +1188,47 @@ public class LogEmbedUtil {
 	private final String guildSplashLink = "[Image](https://cdn.discordapp.com/splashes/{guild}/%s.png)";
 
 	private String formatValue(String key, @NotNull Object object) {
-		if (object instanceof Boolean value) {
-			return value ? Constants.SUCCESS : Constants.FAILURE;
-		} else if (object instanceof String value) {
-			if (value.isEmpty()) return Constants.NONE;
-			return switch (key) {
-				case "afk_channel_id", "system_channel_id", "rules_channel_id", "public_updates_channel_id" -> "<#"+value+">";
-				case "owner_id" -> "<@"+value+">";
-				case "icon_hash" -> guildIconLink.formatted(value);
-				case "splash_hash" -> guildSplashLink.formatted(value);
-				case "communication_disabled_until" -> formatTime(Instant.parse(value), false);
-				default -> "`"+MessageUtil.limitString(value, 1024)+"`";
-			};
-		} else if (object instanceof Integer value) {
-			return switch (key) {
-				case "type" -> formatType(ChannelType.fromId(value));
-				case "color" -> "`#"+Integer.toHexString(value)+"`";
-				case "explicit_content_filter" -> formatType(ExplicitContentLevel.fromKey(value));
-				case "mfa_level" -> formatType(MFALevel.fromKey(value));
-				case "default_message_notifications" -> formatType(NotificationLevel.fromKey(value));
-				default -> String.valueOf(value);
-			};
-		} else if (object instanceof List<?> values) {
-			if (values.isEmpty()) return "";
-			if (values.get(0) instanceof HashMap) {
-				return values.stream()
-					.map(v -> (String) JsonPath.read(v, "$.id"))
-					.collect(Collectors.joining(">, <@&", "<@&", ">"));
-			} else {
-				return values.stream()
-					.map(String::valueOf)
-					.collect(Collectors.joining(", "));
+		switch (object) {
+			case Boolean value -> {
+				return value ? Constants.SUCCESS : Constants.FAILURE;
 			}
-		} else {
-			return String.format("`%s`", object);
+			case String value -> {
+				if (value.isEmpty()) return Constants.NONE;
+				return switch (key) {
+					case "afk_channel_id", "system_channel_id", "rules_channel_id", "public_updates_channel_id" ->
+						"<#" + value + ">";
+					case "owner_id" -> "<@" + value + ">";
+					case "icon_hash" -> guildIconLink.formatted(value);
+					case "splash_hash" -> guildSplashLink.formatted(value);
+					case "communication_disabled_until" -> formatTime(Instant.parse(value), false);
+					default -> "`" + MessageUtil.limitString(value, 1024) + "`";
+				};
+			}
+			case Integer value -> {
+				return switch (key) {
+					case "type" -> formatType(ChannelType.fromId(value));
+					case "color" -> "`#" + Integer.toHexString(value) + "`";
+					case "explicit_content_filter" -> formatType(ExplicitContentLevel.fromKey(value));
+					case "mfa_level" -> formatType(MFALevel.fromKey(value));
+					case "default_message_notifications" -> formatType(NotificationLevel.fromKey(value));
+					default -> String.valueOf(value);
+				};
+			}
+			case List<?> values -> {
+				if (values.isEmpty()) return "";
+				if (values.getFirst() instanceof HashMap) {
+					return values.stream()
+						.map(v -> (String) JsonPath.read(v, "$.id"))
+						.collect(Collectors.joining(">, <@&", "<@&", ">"));
+				} else {
+					return values.stream()
+						.map(String::valueOf)
+						.collect(Collectors.joining(", "));
+				}
+			}
+			default -> {
+				return String.format("`%s`", object);
+			}
 		}
 	}
 
