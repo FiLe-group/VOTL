@@ -634,6 +634,7 @@ public class GuildLogger {
 			if (client == null) return;
 
 			MessageEmbed embed = logUtil.messageUpdate(guild.getLocale(), author, channel.getIdLong(), messageId, oldData, newData);
+			if (embed==null) return;
 			FileUpload fileUpload = uploadContentUpdate(oldData, newData, messageId);
 			if (fileUpload != null) {
 				client.sendMessageEmbeds(embed)
@@ -642,7 +643,6 @@ public class GuildLogger {
 			} else {
 				client.sendMessageEmbeds(embed).queue();
 			}
-			client.sendMessageEmbeds(logUtil.messageUpdate(guild.getLocale(), author, channel.getIdLong(), messageId, oldData, newData)).queue();
 		}
 
 		public void onMessageDelete(GuildChannel channel, long messageId, MessageData data, Long modId) {
@@ -657,9 +657,9 @@ public class GuildLogger {
 				client.sendMessageEmbeds(logUtil.messageDelete(guild.getLocale(), channel.getIdLong(), messageId, data, modId))
 					.addFiles(fileUpload)
 					.queue();
-				return;
+			} else {
+				client.sendMessageEmbeds(logUtil.messageDelete(guild.getLocale(), channel.getIdLong(), messageId, data, modId)).queue();
 			}
-			client.sendMessageEmbeds(logUtil.messageDelete(guild.getLocale(), channel.getIdLong(), messageId, data, modId)).queue();
 		}
 
 		public void onMessageBulkDelete(GuildChannel channel, String count, List<MessageData> messages, Long modId) {

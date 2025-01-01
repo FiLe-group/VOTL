@@ -1049,7 +1049,7 @@ public class LogEmbedUtil {
 	}
 
 	//  Message
-	@NotNull
+	@Nullable
 	public MessageEmbed messageUpdate(DiscordLocale locale, Member member, long channelId, long messageId, @NotNull MessageData oldData, @NotNull MessageData newData) {
 		String diff = MessageData.getDiffContent(oldData.getContentStripped(), newData.getContentStripped());
 		// If there is no change to report - return null
