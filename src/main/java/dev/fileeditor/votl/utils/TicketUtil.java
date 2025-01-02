@@ -89,7 +89,10 @@ public class TicketUtil {
 	}
 
 	public void createTicket(ButtonInteractionEvent event, GuildMessageChannel channel, String mentions, String message) {
-		channel.sendMessage(mentions).queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL)));
+		channel.sendMessage(mentions).queue(msg -> {
+			if (db.getTicketSettings(channel.getGuild()).deletePingsEnabled())
+				msg.delete().queueAfter(5, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
+		});
 
 		MessageEmbed embed = new EmbedBuilder().setColor(db.getGuildSettings(event.getGuild()).getColor())
 			.setDescription(message)

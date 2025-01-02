@@ -430,11 +430,16 @@ public class InteractionListener extends ListenerAdapter {
 				
 				StringBuffer mentions = new StringBuffer(event.getMember().getAsMention());
 				// Get either support roles or use mod roles
+				mentions.append("||");
 				List<Long> supportRoleIds = db.ticketSettings.getSettings(guild.getIdLong()).getRoleSupportIds();
 				if (supportRoleIds.isEmpty()) supportRoleIds = db.access.getRoles(guild.getIdLong(), CmdAccessLevel.MOD);
 				supportRoleIds.forEach(roleId -> mentions.append(" <@&").append(roleId).append(">"));
+				mentions.append("||");
 				// Send message
-				channel.sendMessage(mentions.toString()).queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL)));
+				channel.sendMessage(mentions.toString()).queue(msg -> {
+					if (db.getTicketSettings(guild).deletePingsEnabled())
+						msg.delete().queueAfter(5, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
+				});
 				
 				String rolesString = String.join(" ", add.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), (otherRole ? lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.other") : ""));
 				String proofString = add.stream().map(role -> db.roles.getDescription(role.getIdLong())).filter(Objects::nonNull).distinct().collect(Collectors.joining("\n- ", "- ", ""));
@@ -672,10 +677,14 @@ public class InteractionListener extends ListenerAdapter {
 
 		User user = event.getUser();
 
+		// Pings text
 		StringBuffer mentions = new StringBuffer(user.getAsMention());
 		List<String> supportRoles = tag.getSupportRoles();
+		mentions.append("||");
 		supportRoles.forEach(roleId -> mentions.append(" <@&%s>".formatted(roleId)));
+		mentions.append("||");
 
+		// Ticket message
 		String message = Optional.ofNullable(tag.getMessage())
 			.map(text -> text.replace("{username}", user.getName()).replace("{tag_username}", user.getAsMention()))
 			.orElse("Ticket's controls");
