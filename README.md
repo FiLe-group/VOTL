@@ -14,12 +14,7 @@ Visit https://votl.fileeditor.dev/ to learn more about available commands and to
 	"dev-servers": [
 		"dev server's IDs"
 	],
-	"webhook": "link to webhook, if you want to receive ERROR level logs",
-	"web-servlet": {
-		"enabled": false,
-		"port": 8080,
-        "allow-host": "* OR host origin (http://localhost:3000)"
-	}
+	"webhook": "link to webhook, if you want to receive ERROR level logs"
  }
  ```
 

@@ -2,7 +2,6 @@ package dev.fileeditor.votl.objects;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public enum CmdModule {
 	WEBHOOK("modules.webhook", 1),
@@ -45,9 +44,5 @@ public enum CmdModule {
 			data += v.value;
 		}
 		return data;
-	}
-
-	public static boolean exists(String value) {
-		return Stream.of(values()).anyMatch(v -> v.name().equalsIgnoreCase(value));
 	}
 }

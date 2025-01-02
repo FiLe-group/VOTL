@@ -1,6 +1,5 @@
 package dev.fileeditor.votl.utils.database;
 
-import dev.fileeditor.votl.metrics.Metrics;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,11 +31,7 @@ public class LiteBase {
 	 */
 	// Execute statement
 	protected boolean execute(final String sql) {
-		// Metrics
-		Metrics.databaseLiteQueries.labelValue(sql.split(" ")[0].toUpperCase()).inc();
-		// Log
 		util.logger.debug(sql);
-		// Execute
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
@@ -48,11 +43,7 @@ public class LiteBase {
 	}
 
 	protected int executeWithRow(final String sql) {
-		// Metrics
-		Metrics.databaseLiteQueries.labelValue(sql.split(" ")[0].toUpperCase()).inc();
-		// Log
 		util.logger.debug(sql);
-		// Execute
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
@@ -65,12 +56,9 @@ public class LiteBase {
 
 	// Select
 	protected <T> T selectOne(final String sql, String selectKey, Class<T> selectClass) {
-		// Metrics
-		Metrics.databaseLiteQueries.labelValue("SELECT").inc();
-		// Log
-		util.logger.debug(sql);
-		// Execute
 		T result = null;
+
+		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
@@ -87,12 +75,9 @@ public class LiteBase {
 	}
 
 	protected <T> List<T> select(final String sql, String selectKey, Class<T> selectClass) {
-		// Metrics
-		Metrics.databaseLiteQueries.labelValue("SELECT").inc();
-		// Log
-		util.logger.debug(sql);
-		// Execute
 		List<T> results = new ArrayList<>();
+
+		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
@@ -112,12 +97,9 @@ public class LiteBase {
 
 	@Nullable
 	protected Map<String, Object> selectOne(final String sql, final Set<String> selectKeys) {
-		// Metrics
-		Metrics.databaseLiteQueries.labelValue("SELECT").inc();
-		// Log
-		util.logger.debug(sql);
-		// Execute
 		Map<String, Object> result = new HashMap<>();
+
+		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
@@ -133,12 +115,9 @@ public class LiteBase {
 	}
 
 	protected List<Map<String, Object>> select(final String sql, final Set<String> selectKeys) {
-		// Metrics
-		Metrics.databaseLiteQueries.labelValue("SELECT").inc();
-		// Log
-		util.logger.debug(sql);
-		// Execute
 		List<Map<String, Object>> results = new ArrayList<>();
+
+		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();
@@ -157,12 +136,9 @@ public class LiteBase {
 	}
 
 	protected int count(final String sql) {
-		// Metrics
-		Metrics.databaseLiteQueries.labelValue("SELECT").inc();
-		// Log
-		util.logger.debug(sql);
-		// Execute
 		int result = 0;
+
+		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
 			ResultSet rs = st.executeQuery();

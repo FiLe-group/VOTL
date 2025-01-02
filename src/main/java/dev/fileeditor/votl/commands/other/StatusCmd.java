@@ -4,7 +4,6 @@ import java.util.List;
 
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
-import dev.fileeditor.votl.metrics.Metrics;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -43,14 +42,7 @@ public class StatusCmd extends CommandBase {
 						.formatted(event.getJDA().getGuilds().size()),
 					lu.getLocalized(userLocale, "bot.other.status.embed.stats.shard")
 						.formatted(event.getJDA().getShardInfo().getShardId() + 1, event.getJDA().getShardInfo().getShardTotal()),
-					"",
-					memoryUsage(lu, userLocale),
-					lu.getLocalized(userLocale, "bot.other.status.embed.stats.events")
-						.formatted(Metrics.jdaEvents.sum()),
-					lu.getLocalized(userLocale, "bot.other.status.embed.stats.commands")
-						.formatted(Metrics.commandsReceived.sum()),
-					lu.getLocalized(userLocale, "bot.other.status.embed.stats.messages")
-						.formatted(Metrics.jdaEvents.labelValue("MessageReceivedEvent").get())
+					memoryUsage(lu, userLocale)
 				),
 				false
 			)

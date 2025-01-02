@@ -25,24 +25,11 @@ import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
-import dev.fileeditor.votl.metrics.Metrics;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
 import dev.fileeditor.votl.services.ScheduledCheck;
-import dev.fileeditor.votl.servlet.WebServlet;
-import dev.fileeditor.votl.servlet.routes.DeleteModule;
-import dev.fileeditor.votl.servlet.routes.GetChannels;
-import dev.fileeditor.votl.servlet.routes.GetGuild;
-import dev.fileeditor.votl.servlet.routes.GetMemberSelf;
-import dev.fileeditor.votl.servlet.routes.GetModule;
-import dev.fileeditor.votl.servlet.routes.GetRoles;
-import dev.fileeditor.votl.servlet.routes.PutModule;
-import dev.fileeditor.votl.utils.CheckUtil;
-import dev.fileeditor.votl.utils.GroupHelper;
-import dev.fileeditor.votl.utils.ModerationUtil;
-import dev.fileeditor.votl.utils.TicketUtil;
-import dev.fileeditor.votl.utils.WebhookAppender;
+import dev.fileeditor.votl.utils.*;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
@@ -71,7 +58,7 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 
 public class App {
 	protected static App instance;
-
+	
 	private final Logger logger = (Logger) LoggerFactory.getLogger(App.class);
 
 	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
@@ -95,7 +82,7 @@ public class App {
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
 
-	private final WebServlet servlet;
+	private final MessageListener messageListener;
 
 	@SuppressWarnings("BusyWait")
 	public App() {
@@ -136,37 +123,13 @@ public class App {
 		ModerationListener moderationListener = new ModerationListener(this);
 		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
 		MemberListener memberListener = new MemberListener(this);
-		EventListener eventListener = new EventListener();
+		messageListener = new MessageListener(this);
 
 		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
 		ScheduledCheck scheduledCheck = new ScheduledCheck(this);
 
 		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 5, TimeUnit.MINUTES);
 		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 15, TimeUnit.MINUTES);
-
-		// Start backend server
-		final Boolean servletEnabled = fileManager.getBoolean("config", "web-servlet.enabled");
-		if (servletEnabled != null && servletEnabled) {
-			final Integer port = fileManager.getInteger("config", "web-servlet.port");
-			final String allowedHost = fileManager.getString("config", "web-servlet.allow-host");
-			servlet = new WebServlet(port != null ? port : WebServlet.defaultPort, allowedHost);
-			// Register routes
-			// Get
-			servlet.registerGet("/guilds/{guild}", new GetGuild());
-			servlet.registerGet("/guilds/{guild}/roles", new GetRoles());
-			servlet.registerGet("/guilds/{guild}/channels", new GetChannels());
-			servlet.registerGet("/guilds/{guild}/members/@me", new GetMemberSelf());
-			servlet.registerGet("/guilds/{guild}/modules/{module}", new GetModule());
-			// Delete - Disable module
-			servlet.registerDelete("/guilds/{guild}/modules/{module}", new DeleteModule());
-			// Put - Enable module
-			servlet.registerPut("/guilds/{guild}/modules/{module}", new PutModule());
-			// Patch
-			//servlet.registerPatch("/guilds/{guild}/modules/{module}", new GetModule());
-			//servlet.registerPatch("/guilds/{guild}", new GetModule());
-		} else {
-			servlet = null;
-		}
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()
@@ -285,7 +248,7 @@ public class App {
 			.addEventListeners(
 				commandClient, WAITER, acListener, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,
-				auditListener, memberListener, eventListener
+				auditListener, memberListener
 			);
 			
 		JDA tempJda;
@@ -320,9 +283,6 @@ public class App {
 		this.JDA = tempJda;
 
 		createWebhookAppender();
-
-		logger.info("Preparing and setting up metrics.");
-		Metrics.setup();
 
 		instance.logger.info("Success start");
 	}
@@ -383,8 +343,12 @@ public class App {
 		return moderationUtil;
 	}
 
-	public WebServlet getServlet() {
-		return servlet;
+	public Base62 getBase62() {
+		return base62;
+	}
+
+	public void shutdownUtils() {
+		messageListener.shutdown();
 	}
 
 	private void createWebhookAppender() {
