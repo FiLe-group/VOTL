@@ -32,7 +32,7 @@ public class RolesPanelCmd extends CommandBase {
 	public RolesPanelCmd() {
 		this.name = "rolespanel";
 		this.path = "bot.ticketing.rolespanel";
-		this.children = new SlashCommand[]{new Create(), new Update(), new RowText(), new OtherRole(), new SupportRole()};
+		this.children = new SlashCommand[]{new Create(), new Update(), new RowText(), new OtherRole(), new DeletePing(), new SupportRole()};
 		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
@@ -210,6 +210,31 @@ public class RolesPanelCmd extends CommandBase {
 
 			if (bot.getDBUtil().ticketSettings.setOtherRole(event.getGuild().getIdLong(), enabled)) {
 				editErrorDatabase(event, "set ticket other");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done").formatted(String.valueOf(enabled)))
+				.build());
+		}
+	}
+	
+	private class DeletePing extends SlashCommand {
+		public DeletePing() {
+			this.name = "ping";
+			this.path = "bot.ticketing.rolespanel.ping";
+			this.options = List.of(
+				new OptionData(OptionType.BOOLEAN, "enabled", lu.getText(path+".enabled.help"), true)
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
+			boolean enabled = event.optBoolean("enabled");
+
+			if (bot.getDBUtil().ticketSettings.setDeletePing(event.getGuild().getIdLong(), enabled)) {
+				editErrorDatabase(event, "set delete ping");
 				return;
 			}
 
