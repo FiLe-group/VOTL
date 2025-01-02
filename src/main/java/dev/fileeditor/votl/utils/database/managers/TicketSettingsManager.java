@@ -21,7 +21,7 @@ public class TicketSettingsManager extends LiteBase {
 	private final Set<String> columns = Set.of(
 		"autocloseTime", "autocloseLeft", "timeToReply",
 		"rowName1", "rowName2", "rowName3",
-		"otherRole", "roleSupport"
+		"otherRole", "roleSupport", "deletePing"
 	);
 
 	// Cache
@@ -84,6 +84,11 @@ public class TicketSettingsManager extends LiteBase {
 		return execute("INSERT INTO %s(guildId, roleSupport) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET roleSupport=%<s".formatted(table, guildId, quote(text)));
 	}
 
+	public boolean setDeletePings(long guildId, boolean deletePing) {
+		invalidateCache(guildId);
+		return execute("INSERT INTO %s(guildId, deletePing) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET deletePing=%<d".formatted(table, guildId, deletePing ? 1 : 0));
+	}
+
 
 	private void invalidateCache(long guildId) {
 		cache.pull(guildId);
@@ -91,7 +96,7 @@ public class TicketSettingsManager extends LiteBase {
 
 	public static class TicketSettings {
 		private final int autocloseTime, timeToReply;
-		private final boolean autocloseLeft, otherRole;
+		private final boolean autocloseLeft, otherRole, deletePings;
 		private final List<String> rowText;
 		private final List<Long> roleSupportIds;
 
@@ -102,6 +107,7 @@ public class TicketSettingsManager extends LiteBase {
 			this.otherRole = true;
 			this.rowText = Collections.nCopies(3, "Select roles");
 			this.roleSupportIds = List.of();
+			this.deletePings = true;
 		}
 
 		public TicketSettings(Map<String, Object> data) {
@@ -121,6 +127,7 @@ public class TicketSettingsManager extends LiteBase {
 					.map(Long::parseLong)
 					.toList();
 			}, List.of());
+			this.deletePings = getOrDefault(data.get("deletePing"), 1) == 1;
 		}
 
 		public int getAutocloseTime() {
@@ -147,6 +154,10 @@ public class TicketSettingsManager extends LiteBase {
 
 		public List<Long> getRoleSupportIds() {
 			return roleSupportIds;
+		}
+
+		public boolean deletePingsEnabled() {
+			return deletePings;
 		}
 	}
 

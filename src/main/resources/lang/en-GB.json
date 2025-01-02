@@ -2224,6 +2224,17 @@
 					"changed_autoclose": "\n> Autoclose time set to %s hour/-s.",
 					"changed_left": "\n> When ticket's author leaves, ticket will be closed: %s.",
 					"changed_reply": "\n> Reply time set to %s hour/-s."
+				},
+				"settings": {
+					"help": "Manage global settings for tickets (to view settings - don't select options)",
+					"usage": "settings [delete pings]",
+					"delete_pings": {
+						"name": "delete_pings",
+						"help": "When creating new ticket, delete user/moderator pings?"
+					},
+					"embed_view": "**Ticket settings**",
+					"embed_changes": "**Updated ticket settings**",
+					"changed_delete": "\n> Delete pings after ticket creation: %s"
 				}
 			},
 			"close": {

@@ -7,3 +7,4 @@ CREATE TABLE "cases_new" ("rowId" INTEGER, "localId" INTEGER, "type" INTEGER NOT
 CREATE TABLE "persistentRole" ("roleId" INTEGER NOT NULL UNIQUE, "guildId" INTEGER NOT NULL); CREATE TABLE "returnRole" ("guildId" INTEGER NOT NULL, "userId" INTEGER NOT NULL, "roleIds" TEXT NOT NULL, "expiresAfter" INTEGER, UNIQUE("guildId","userId")); ALTER TABLE "ticketSettings" ADD "roleSupport" TEXT;
 ALTER TABLE "guild" ADD "roleWhitelist" INTEGER DEFAULT 0
 CREATE TABLE "verifySettings_new" ("guildId" INTEGER NOT NULL UNIQUE, "roleId" INTEGER, "panelText" TEXT, "panelImage" TEXT); INSERT INTO "verifySettings_new" ("guildId", "roleId", "panelText", "panelImage") SELECT "guildId", "roleId", "panelText", "panelImage" FROM "verifySettings"; DROP TABLE "verifySettings"; ALTER TABLE "verifySettings_new" RENAME TO "verifySettings";
+ALTER TABLE "ticketSettings" ADD "deletePing" INTEGER DEFAULT 1
