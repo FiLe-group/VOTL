@@ -24,7 +24,7 @@ jobs:
       - name: Build with Gradle and set runId
         run: ./gradlew shadowJar -PrunId=${{ github.run_id }}
       - name: Upload artifact
-        uses: actions/upload-artifact@v4.5
+        uses: actions/upload-artifact@v4
         with:
           name: snapshot
           path: |
