@@ -5,11 +5,11 @@
 
 Visit https://votl.fileeditor.dev/ to learn more about available commands and to view documentation.
 
-## Download or build
+## Download or building
  Stable JAR file can be downloaded from latest Release [here](https://github.com/FileEditor97/VOTL/releases/latest).  
  Additional Snapshot builds can be accessed [here](https://github.com/FileEditor97/VOTL/actions/workflows/build.yml).
  
- Build using from source `.\gradlew shadowJar`.
+ Build from source using `.\gradlew shadowJar`.
 
 ## Config file
  data/config.json:
