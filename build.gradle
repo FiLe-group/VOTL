@@ -69,9 +69,4 @@ shadowJar {
 	}
 }
 
-// Minimizing a shadow JAR
-tasks.named('shadowJar', ShadowJar) {
-	minimize()
-}
-
 compileJava.options.encoding = 'UTF-8'
