@@ -23,7 +23,7 @@ jobs:
       run: ./gradlew shadowJar
     - name: Get App Version
       id: get_version
-      run: echo "version=$(./gradlew getVersion --console=plain -q --warning-mode=none)" >> $GITHUB_ENV
+      run: echo "version=$(./gradlew printVersion --console=plain -q --warning-mode=none)" >> $GITHUB_ENV
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
