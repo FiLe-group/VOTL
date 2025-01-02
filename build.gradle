@@ -62,7 +62,11 @@ jar {
 shadowJar {
 	archiveBaseName.set('VOTL')
 	archiveVersion.set(version)
-	archiveClassifier.set('')
+	if(project.hasProperty('runId')) {
+		archiveClassifier.set("SNAPSHOT-${project.runId}")
+	} else {
+		archiveClassifier.set('')
+	}
 }
 
 // Minimizing a shadow JAR
