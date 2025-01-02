@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
 	id 'java'
 	// ShadowJar
@@ -60,7 +62,16 @@ jar {
 shadowJar {
 	archiveBaseName.set('VOTL')
 	archiveVersion.set(version)
-	archiveClassifier.set('')
+	if(project.hasProperty('runId')) {
+		archiveClassifier.set("SNAPSHOT-${project.runId}")
+	} else {
+		archiveClassifier.set('')
+	}
+}
+
+// Minimizing a shadow JAR
+tasks.named('shadowJar', ShadowJar) {
+	minimize()
 }
 
 compileJava.options.encoding = 'UTF-8'
