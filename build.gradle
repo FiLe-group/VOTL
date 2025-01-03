@@ -1,4 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
 	id 'java'
@@ -10,8 +9,8 @@ plugins {
 // Getting version
 apply from: 'version.gradle'
 
-def version = loadVersion().getVersion()
-def mainClassName = 'dev.fileeditor.votl.Main'
+String version = loadVersion().getVersion()
+String mainClassName = 'dev.fileeditor.votl.Main'
 
 repositories {
 	// Use Maven Central for resolving dependencies
@@ -61,11 +60,11 @@ jar {
 // ShadowJar
 shadowJar {
 	archiveBaseName.set('VOTL')
-	archiveVersion.set(version)
+	archiveClassifier.set('')
 	if(project.hasProperty('runId')) {
-		archiveClassifier.set("SNAPSHOT-${project.runId}")
+		archiveVersion.set("${version}-SNAPSHOT-${project.property('runId')}")
 	} else {
-		archiveClassifier.set('')
+		archiveVersion.set(version)
 	}
 }
 

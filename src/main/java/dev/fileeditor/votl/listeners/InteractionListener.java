@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
@@ -569,22 +570,70 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private void buttonTicketClose(ButtonInteractionEvent event) {
-		long channelId = event.getChannel().getIdLong();
+		long channelId = event.getChannelIdLong();
 		if (db.tickets.isClosed(channelId)) {
 			// Ticket is closed
 			event.getChannel().delete().queue();
 			return;
 		}
-		String reason = db.tickets.getUserId(channelId).equals(event.getUser().getIdLong())
+		// Check who can close tickets
+		final boolean isAuthor = db.tickets.getUserId(channelId).equals(event.getUser().getIdLong());
+		if (!isAuthor) {
+			switch (db.getTicketSettings(event.getGuild()).getAllowClose()) {
+				case EVERYONE -> {}
+				case HELPER -> {
+					// Check if user has Helper+ access
+					if (!bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.HELPER)) {
+						// No access - reject
+						sendError(event, "errors.interaction.no_access", "Helper+ access");
+						return;
+					}
+				}
+				case SUPPORT -> {
+					// Check if user is ticket support or has Admin+ access
+					int tagId = db.tickets.getTag(channelId);
+					if (tagId==0) {
+						// Role request ticket
+						List<Long> supportRoleIds = db.getTicketSettings(event.getGuild()).getRoleSupportIds();
+						if (supportRoleIds.isEmpty()) supportRoleIds = db.access.getRoles(event.getGuild().getIdLong(), CmdAccessLevel.MOD);
+						// Check
+						if (denyCloseSupport(supportRoleIds, event.getMember())) {
+							sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
+							return;
+						}
+					} else {
+						// Standard ticket
+						final List<Long> supportRoleIds = Stream.of(db.ticketTags.getSupportRolesString(tagId).split(";"))
+							.map(Long::parseLong)
+							.toList();
+						// Check
+						if (denyCloseSupport(supportRoleIds, event.getMember())) {
+							sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
+							return;
+						}
+					}
+				}
+			}
+		}
+		// Close
+		String reason = isAuthor
 			? lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_author")
 			: lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support");
 		event.editButton(Button.danger("ticket:close", bot.getLocaleUtil().getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled()).queue();
+		// Send message
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event).setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.delete_countdown")).build()).queue(msg -> {
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
 				msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed", failure.getMessage())).queue();
 				bot.getAppLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
 			});
 		});
+	}
+
+	private boolean denyCloseSupport(List<Long> supportRoleIds, Member member) {
+		if (supportRoleIds.isEmpty()) return false; // No data to check against
+		final List<Role> roles = member.getRoles(); // Check if user has any support role
+		if (!roles.isEmpty() && roles.stream().anyMatch(r -> supportRoleIds.contains(r.getIdLong()))) return false;
+		return !bot.getCheckUtil().hasAccess(member, CmdAccessLevel.ADMIN); // if user has Admin access
 	}
 
 	private void buttonTicketCloseCancel(ButtonInteractionEvent event) {

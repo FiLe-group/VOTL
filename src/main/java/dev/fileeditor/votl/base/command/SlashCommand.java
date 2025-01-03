@@ -197,7 +197,7 @@ public abstract class SlashCommand extends Interaction
 	 */
 	public final void run(SlashCommandEvent event) {
 		// start time
-		final long timeStart = System.currentTimeMillis();
+		final long timeStart = System.nanoTime();
 		// client 
 		final CommandClient client = event.getClient();
 
@@ -246,7 +246,7 @@ public abstract class SlashCommand extends Interaction
 		}
 
 		// Record time
-		bot.getAppLogger().debug("SlashCommand check duration: {}ms @ {} ", System.currentTimeMillis()-timeStart, event.getResponseNumber());
+		bot.getAppLogger().debug("SlashCommand check duration: {}ns @ {} ", System.nanoTime()-timeStart, event.getResponseNumber());
 		// execute
 		try {
 			execute(event);

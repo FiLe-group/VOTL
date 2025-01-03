@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager;
 import dev.fileeditor.votl.utils.transcripts.DiscordHtmlTranscripts;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -21,6 +22,7 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,59 +35,89 @@ public class TicketUtil {
 		this.db = bot.getDBUtil();
 	}
 
-	public void closeTicket(long channelId, @Nullable User userClosed, @Nullable String reasonClosed, @NotNull Consumer<? super Throwable> closeHandle) {
+	public void closeTicket(long channelId, @Nullable User userClosed, @Nullable String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler) {
 		GuildMessageChannel channel = bot.JDA.getChannelById(GuildMessageChannel.class, channelId);
-		if (channel == null) return;
+		if (channel == null) return; // already gone :(
 
-		Guild guild = channel.getGuild();
-		Instant now = Instant.now();
-
+		TicketSettingsManager.TranscriptsMode transcriptsMode = bot.getDBUtil().getTicketSettings(channel.getGuild()).getTranscriptsMode();
 		if (db.tickets.isRoleTicket(channelId)) {
-			channel.delete().reason(reasonClosed).queueAfter(4, TimeUnit.SECONDS, done -> {
-				db.tickets.closeTicket(now, channelId, reasonClosed);
-
-				Long authorId = db.tickets.getUserId(channelId);
-
-				bot.getLogger().ticket.onClose(guild, channel, userClosed, authorId);
-			}, failure -> {
-				bot.getAppLogger().warn("Error while closing ticket, unable to delete", failure);
-				closeHandle.accept(failure);
-			});
+			// Role request ticket
+			if (transcriptsMode.equals(TicketSettingsManager.TranscriptsMode.ALL)) {
+				// With transcript
+				DiscordHtmlTranscripts transcripts = DiscordHtmlTranscripts.getInstance();
+				transcripts.queueCreateTranscript(channel,
+					file -> {
+						closeTicketRole(channel, userClosed, reasonClosed, failureHandler, file);
+					},
+					failureHandler
+				);
+			} else {
+				// Without transcript
+				closeTicketRole(channel, userClosed, reasonClosed, failureHandler, null);
+			}
 		} else {
-			final String finalReason = reasonClosed==null ? "-" : (
-				reasonClosed.equals("activity") || reasonClosed.equals("time")
-					? bot.getLocaleUtil().getLocalized(guild.getLocale(), "logger.ticket.autoclosed")
-					: reasonClosed
-			);
-
-			DiscordHtmlTranscripts transcripts = DiscordHtmlTranscripts.getInstance();
-			transcripts.queueCreateTranscript(channel,
-				file -> {
-					channel.delete().reason(finalReason).queueAfter(4, TimeUnit.SECONDS, done -> {
-						db.tickets.closeTicket(now, channelId, finalReason);
-
-						Long authorId = db.tickets.getUserId(channelId);
-
-						bot.JDA.retrieveUserById(authorId).queue(user -> {
-							user.openPrivateChannel().queue(pm -> {
-								MessageEmbed embed = bot.getLogEmbedUtil().ticketClosedPmEmbed(guild.getLocale(), channel, now, userClosed, finalReason);
-								if (file == null) {
-									pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
-								} else {
-									pm.sendMessageEmbeds(embed).setFiles(file).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
-								}
-							});
-						});
-
-						bot.getLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
-					}, failure -> {
-						bot.getAppLogger().warn("Error while closing ticket, unable to delete", failure);
-						closeHandle.accept(failure);
-					});
-				},
-				closeHandle
-			);
+			// Standard ticket
+			if (transcriptsMode.equals(TicketSettingsManager.TranscriptsMode.NONE)) {
+				// Without transcript
+				closeTicketStandard(channel, userClosed, reasonClosed, failureHandler, null);
+			} else {
+				// With transcript
+				DiscordHtmlTranscripts transcripts = DiscordHtmlTranscripts.getInstance();
+				transcripts.queueCreateTranscript(channel,
+					file -> {
+						closeTicketStandard(channel, userClosed, reasonClosed, failureHandler, file);
+					},
+					failureHandler
+				);
+			}
 		}
+	}
+
+	private void closeTicketRole(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable FileUpload file) {
+		final Instant now = Instant.now();
+
+		channel.delete().reason(reasonClosed).queueAfter(4, TimeUnit.SECONDS, done -> {
+			db.tickets.closeTicket(now, channel.getIdLong(), reasonClosed);
+
+			long authorId = db.tickets.getUserId(channel.getIdLong());
+
+			bot.getLogger().ticket.onClose(channel.getGuild(), channel, userClosed, authorId, file);
+		}, failure -> {
+			bot.getAppLogger().warn("Error while closing ticket, unable to delete", failure);
+			failureHandler.accept(failure);
+		});
+	}
+
+	private void closeTicketStandard(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable FileUpload file) {
+		final Instant now = Instant.now();
+		final Guild guild = channel.getGuild();
+		final String finalReason = reasonClosed==null ? "-" : (
+			reasonClosed.equals("activity") || reasonClosed.equals("time")
+				? bot.getLocaleUtil().getLocalized(guild.getLocale(), "logger.ticket.autoclosed")
+				: reasonClosed
+		);
+
+		channel.delete().reason(finalReason).queueAfter(4, TimeUnit.SECONDS, done -> {
+			db.tickets.closeTicket(now, channel.getIdLong(), finalReason);
+
+			long authorId = db.tickets.getUserId(channel.getIdLong());
+
+			bot.JDA.retrieveUserById(authorId).queue(user -> {
+				user.openPrivateChannel().queue(pm -> {
+					MessageEmbed embed = bot.getLogEmbedUtil().ticketClosedPmEmbed(guild.getLocale(), channel, now, userClosed, finalReason);
+					if (file == null) {
+						pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+					} else {
+						pm.sendMessageEmbeds(embed).setFiles(file).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+					}
+				});
+			});
+
+			bot.getLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
+		}, failure -> {
+			bot.getAppLogger().warn("Error while closing ticket, unable to delete", failure);
+			failureHandler.accept(failure);
+		});
 	}
 
 	public void createTicket(ButtonInteractionEvent event, GuildMessageChannel channel, String mentions, String message) {
