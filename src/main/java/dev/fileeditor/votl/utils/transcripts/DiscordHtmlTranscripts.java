@@ -58,7 +58,7 @@ public class DiscordHtmlTranscripts {
             .deadline(System.currentTimeMillis() + 3000)
             .takeAsync(200)
             .thenAcceptAsync(list -> {
-                if (list.size() < 2) action.accept(null); // Probably one message is from bot and to be ignored.
+                if (list.size() <= 2) action.accept(null); // Both messages are from bot - panel and close message.
                 else {
                     try {
                         final String encoded = new String(App.getInstance().getBase62().encode("%s:%s".formatted(channel.getGuild().getId(), channel.getId()).getBytes()));

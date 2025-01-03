@@ -127,6 +127,10 @@ public class TicketTagManager extends LiteBase {
 		return new Tag(data, false);
 	}
 
+	public String getSupportRolesString(int tagId) {
+		return selectOne("SELECT supportRoles FROM %s WHERE (tagId=%s)".formatted(table, tagId), "supportRoles", String.class);
+	}
+
 	// TOOLS
 	private String replaceNewline(final String text) {
 		return quote(text).replace("\\n", "<br>");

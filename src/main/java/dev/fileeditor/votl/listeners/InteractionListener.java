@@ -569,16 +569,46 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private void buttonTicketClose(ButtonInteractionEvent event) {
-		long channelId = event.getChannel().getIdLong();
+		long channelId = event.getChannelIdLong();
 		if (db.tickets.isClosed(channelId)) {
 			// Ticket is closed
 			event.getChannel().delete().queue();
 			return;
 		}
-		String reason = db.tickets.getUserId(channelId).equals(event.getUser().getIdLong())
+		// Check who can close tickets
+		final boolean isAuthor = db.tickets.getUserId(channelId).equals(event.getUser().getIdLong());
+		if (!isAuthor) {
+			switch (db.getTicketSettings(event.getGuild()).getAllowClose()) {
+				case EVERYONE -> {}
+				case HELPER -> {
+					// Check if user has Helper+ access
+					if (!bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.HELPER)) {
+						// No access - reject
+						sendError(event, "errors.interaction.no_access", "Helper+ access");
+						return;
+					}
+				}
+				case SUPPORT -> {
+					// Check if user is ticket support or has Admin+ access
+					int tagId = db.tickets.getTicketId(channelId);
+					final String supportRoles = db.ticketTags.getSupportRolesString(tagId);
+					final String userId = event.getUser().getId();
+					if (supportRoles!=null && !supportRoles.isEmpty()
+						&& !supportRoles.contains(userId)
+						&& !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.ADMIN)) {
+						// No access - reject
+						sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
+						return;
+					}
+				}
+			}
+		}
+		// Close
+		String reason = isAuthor
 			? lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_author")
 			: lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support");
 		event.editButton(Button.danger("ticket:close", bot.getLocaleUtil().getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled()).queue();
+		// Send message
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event).setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.delete_countdown")).build()).queue(msg -> {
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
 				msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed", failure.getMessage())).queue();

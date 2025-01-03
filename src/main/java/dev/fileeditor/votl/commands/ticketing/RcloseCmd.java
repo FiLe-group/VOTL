@@ -38,8 +38,10 @@ public class RcloseCmd extends CommandBase {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		event.deferReply().queue();
+
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
+
 		if (authorId == null) {
 			// If this channel is not a ticket
 			editError(event, path+".not_ticket");
@@ -50,10 +52,37 @@ public class RcloseCmd extends CommandBase {
 			event.getChannel().delete().queue();
 			return;
 		}
+
 		if (bot.getDBUtil().tickets.getTimeClosing(channelId) > 0) {
 			// If request already exists (if there is no cancel button - GG)
 			editError(event, path+".already_requested");
 			return;
+		}
+
+		// Check access
+		switch (bot.getDBUtil().getTicketSettings(event.getGuild()).getAllowClose()) {
+			case EVERYONE -> {}
+			case HELPER -> {
+				// Check if user has Helper+ access
+				if (!bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.HELPER)) {
+					// No access - reject
+					editError(event, "errors.interaction.no_access", "Helper+ access");
+					return;
+				}
+			}
+			case SUPPORT -> {
+				// Check if user is ticket support or has Admin+ access
+				int tagId = bot.getDBUtil().tickets.getTicketId(channelId);
+				final String supportRoles = bot.getDBUtil().ticketTags.getSupportRolesString(tagId);
+				final String userId = event.getUser().getId();
+				if (supportRoles!=null && !supportRoles.isEmpty()
+					&& !supportRoles.contains(userId)
+					&& !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.ADMIN)) {
+					// No access - reject
+					editError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
+					return;
+				}
+			}
 		}
 		
 		Guild guild = event.getGuild();
