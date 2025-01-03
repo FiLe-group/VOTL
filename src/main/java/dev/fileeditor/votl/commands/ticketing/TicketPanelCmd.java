@@ -569,7 +569,9 @@ public class TicketPanelCmd extends CommandBase {
 			this.name = "settings";
 			this.path = "bot.ticketing.ticket.settings";
 			this.options = List.of(
-				new OptionData(OptionType.BOOLEAN, "delete_pings", lu.getText(path+".delete_pings.help"))
+				new OptionData(OptionType.BOOLEAN, "delete_pings", lu.getText(path+".delete_pings.help")),
+				new OptionData(OptionType.BOOLEAN, "other_roles", lu.getText(path+".other_roles.help")),
+				new OptionData(OptionType.STRING, "role_tickets_support", lu.getText(path+".role_tickets_support.help"))
 			);
 		}
 
@@ -598,6 +600,7 @@ public class TicketPanelCmd extends CommandBase {
 					.build()
 				);
 			} else {
+				// Edit settings
 				if (event.hasOption("delete_pings")) {
 					final boolean deletePings = event.optBoolean("delete_pings");
 
@@ -606,6 +609,39 @@ public class TicketPanelCmd extends CommandBase {
 						return;
 					}
 					response.append(lu.getText(event, path+".changed_delete").formatted(deletePings ? Constants.SUCCESS : Constants.FAILURE));
+				}
+				if (event.hasOption("other_roles")) {
+					final boolean otherRoles = event.optBoolean("other_roles");
+
+					if (bot.getDBUtil().ticketSettings.setOtherRoles(event.getGuild().getIdLong(), otherRoles)) {
+						editErrorDatabase(event, "ticket settings set other roles");
+						return;
+					}
+					response.append(lu.getText(event, path+".changed_other").formatted(otherRoles ? Constants.SUCCESS : Constants.FAILURE));
+				}
+				if (event.hasOption("role_tickets_support")) {
+					if (event.optString("role_tickets_support").equalsIgnoreCase("null")) {
+						// Clear roles
+						if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), List.of())) {
+							editErrorDatabase(event, "clear ticket support roles");
+							return;
+						}
+
+						response.append(lu.getText(event, path+".cleared_support"));
+					} else {
+						// Set roles
+						List<Role> roles = event.optMentions("role_tickets_support").getRoles();
+						if (roles.isEmpty() || roles.size()>3) {
+							editError(event, path+".bad_input");
+							return;
+						}
+						if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), roles.stream().map(Role::getIdLong).toList())) {
+							editErrorDatabase(event, "set ticket support roles");
+							return;
+						}
+
+						response.append(lu.getText(event, path+".changed_support").formatted(roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "))));
+					}
 				}
 
 				if (response.isEmpty()) {

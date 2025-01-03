@@ -73,9 +73,9 @@ public class TicketSettingsManager extends LiteBase {
 		return execute("INSERT INTO %s(guildId, timeToReply) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET timeToReply=%<d".formatted(table, guildId, hours));
 	}
 
-	public boolean setOtherRole(long guildId, boolean otherRole) {
+	public boolean setOtherRoles(long guildId, boolean otherRoles) {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, otherRole) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET otherRole=%<d".formatted(table, guildId, otherRole ? 1 : 0));
+		return execute("INSERT INTO %s(guildId, otherRoles) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET otherRoles=%<d".formatted(table, guildId, otherRoles ? 1 : 0));
 	}
 
 	public boolean setSupportRoles(long guildId, @NotNull List<Long> roleIds) {
@@ -96,7 +96,7 @@ public class TicketSettingsManager extends LiteBase {
 
 	public static class TicketSettings {
 		private final int autocloseTime, timeToReply;
-		private final boolean autocloseLeft, otherRole, deletePings;
+		private final boolean autocloseLeft, otherRoles, deletePings;
 		private final List<String> rowText;
 		private final List<Long> roleSupportIds;
 
@@ -104,7 +104,7 @@ public class TicketSettingsManager extends LiteBase {
 			this.autocloseTime = 0;
 			this.autocloseLeft = false;
 			this.timeToReply = 0;
-			this.otherRole = true;
+			this.otherRoles = true;
 			this.rowText = Collections.nCopies(3, "Select roles");
 			this.roleSupportIds = List.of();
 			this.deletePings = true;
@@ -114,7 +114,7 @@ public class TicketSettingsManager extends LiteBase {
 			this.autocloseTime = getOrDefault(data.get("autocloseTime"), 0);
 			this.autocloseLeft = getOrDefault(data.get("autocloseLeft"), 0) == 1;
 			this.timeToReply = getOrDefault(data.get("timeToReply"), 0);
-			this.otherRole = getOrDefault(data.get("otherRole"), 0) == 1;
+			this.otherRoles = getOrDefault(data.get("otherRole"), 0) == 1;
 			this.rowText = List.of(
 				getOrDefault(data.get("rowName1"), "Select roles"),
 				getOrDefault(data.get("rowName2"), "Select roles"),
@@ -143,7 +143,7 @@ public class TicketSettingsManager extends LiteBase {
 		}
 
 		public boolean otherRoleEnabled() {
-			return otherRole;
+			return otherRoles;
 		}
 
 		public String getRowText(int n) {
