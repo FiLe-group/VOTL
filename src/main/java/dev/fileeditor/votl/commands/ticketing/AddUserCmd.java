@@ -34,8 +34,10 @@ public class AddUserCmd extends CommandBase {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		event.deferReply().queue();
+
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
+
 		if (authorId == null) {
 			// If this channel is not a ticket
 			editError(event, path+".not_ticket");

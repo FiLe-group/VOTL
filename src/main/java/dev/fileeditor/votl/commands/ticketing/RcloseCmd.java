@@ -3,6 +3,7 @@ package dev.fileeditor.votl.commands.ticketing;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Stream;
 
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
@@ -12,10 +13,7 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 
 import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -72,15 +70,26 @@ public class RcloseCmd extends CommandBase {
 			}
 			case SUPPORT -> {
 				// Check if user is ticket support or has Admin+ access
-				int tagId = bot.getDBUtil().tickets.getTicketId(channelId);
-				final String supportRoles = bot.getDBUtil().ticketTags.getSupportRolesString(tagId);
-				final String userId = event.getUser().getId();
-				if (supportRoles!=null && !supportRoles.isEmpty()
-					&& !supportRoles.contains(userId)
-					&& !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.ADMIN)) {
-					// No access - reject
-					editError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
-					return;
+				int tagId = bot.getDBUtil().tickets.getTag(channelId);
+				if (tagId==0) {
+					// Role request ticket
+					List<Long> supportRoleIds = bot.getDBUtil().getTicketSettings(event.getGuild()).getRoleSupportIds();
+					if (supportRoleIds.isEmpty()) supportRoleIds = bot.getDBUtil().access.getRoles(event.getGuild().getIdLong(), CmdAccessLevel.MOD);
+					// Check
+					if (denyCloseSupport(supportRoleIds, event.getMember())) {
+						editError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
+						return;
+					}
+				} else {
+					// Standard ticket
+					final List<Long> supportRoleIds = Stream.of(bot.getDBUtil().ticketTags.getSupportRolesString(tagId).split(";"))
+						.map(Long::parseLong)
+						.toList();
+					// Check
+					if (denyCloseSupport(supportRoleIds, event.getMember())) {
+						editError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
+						return;
+					}
 				}
 			}
 		}
@@ -104,6 +113,13 @@ public class RcloseCmd extends CommandBase {
 			channelId, closeTime.getEpochSecond(),
 			event.optString("reason", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support"))
 		);
+	}
+
+	private boolean denyCloseSupport(List<Long> supportRoleIds, Member member) {
+		if (supportRoleIds.isEmpty()) return false; // No data to check against
+		final List<Role> roles = member.getRoles(); // Check if user has any support role
+		if (!roles.isEmpty() && roles.stream().anyMatch(r -> supportRoleIds.contains(r.getIdLong()))) return false;
+		return !bot.getCheckUtil().hasAccess(member, CmdAccessLevel.ADMIN); // if user has Admin access
 	}
 
 }

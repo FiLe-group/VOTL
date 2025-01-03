@@ -37,12 +37,9 @@ public class TicketUtil {
 
 	public void closeTicket(long channelId, @Nullable User userClosed, @Nullable String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler) {
 		GuildMessageChannel channel = bot.JDA.getChannelById(GuildMessageChannel.class, channelId);
-		if (channel == null) return;
+		if (channel == null) return; // already gone :(
 
-		Guild guild = channel.getGuild();
-		Instant now = Instant.now();
-
-		TicketSettingsManager.TranscriptsMode transcriptsMode = bot.getDBUtil().getTicketSettings(guild).getTranscriptsMode();
+		TicketSettingsManager.TranscriptsMode transcriptsMode = bot.getDBUtil().getTicketSettings(channel.getGuild()).getTranscriptsMode();
 		if (db.tickets.isRoleTicket(channelId)) {
 			// Role request ticket
 			if (transcriptsMode.equals(TicketSettingsManager.TranscriptsMode.ALL)) {

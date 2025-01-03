@@ -2207,7 +2207,7 @@
 				},
 				"settings": {
 					"help": "Manage global settings for tickets (to view settings - don't select options)",
-					"usage": "settings [delete pings] [other roles] [role tickets support]",
+					"usage": "settings [delete pings] [other roles] [role tickets support] [allow close] [transcripts]",
 					"delete_pings": {
 						"name": "delete_pings",
 						"help": "When creating new ticket, delete user/moderator pings?"
@@ -2220,13 +2220,21 @@
 						"name": "role_tickets_support",
 						"help": "Role requests support roles. Mention role/-s to set or enter 'null' to clear/default."
 					},
+					"allow_close": {
+						"name": "allow_close",
+						"help": "Who can close tickets? (Everyone, helper+ or support)"
+					},
+					"transcripts_mode": {
+						"name": "transcripts_mode",
+						"help": "For which tickets transcript will be created? (All, except roles or none)"
+					},
 					"embed_view": "**Ticket settings**",
 					"embed_changes": "**Updated ticket settings**",
 					"changed_delete": "\n> Delete pings after ticket creation: %s",
 					"changed_other": "\n> Allow other roles requests: %s",
 					"cleared_support": "\n> Support roles cleared. (By default, roles with __Mod__ access will be pinged)",
 					"changed_support": "\n> %s will be pinged in role requests.",
-					"changed_close": "\n> Allowed to close tickets: %s",
+					"changed_close": "\n> Allowed to close tickets: **%s**",
 					"changed_transcript": "\n> Transcripts will be created for **%s** tickets."
 				}
 			},

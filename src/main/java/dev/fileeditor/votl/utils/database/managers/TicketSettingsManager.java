@@ -74,7 +74,7 @@ public class TicketSettingsManager extends LiteBase {
 
 	public boolean setOtherRoles(long guildId, boolean otherRoles) {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, otherRoles) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET otherRoles=%<d".formatted(table, guildId, otherRoles ? 1 : 0));
+		return execute("INSERT INTO %s(guildId, otherRole) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET otherRole=%<d".formatted(table, guildId, otherRoles ? 1 : 0));
 	}
 
 	public boolean setSupportRoles(long guildId, @NotNull List<Long> roleIds) {

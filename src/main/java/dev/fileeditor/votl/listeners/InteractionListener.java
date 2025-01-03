@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
@@ -590,15 +591,26 @@ public class InteractionListener extends ListenerAdapter {
 				}
 				case SUPPORT -> {
 					// Check if user is ticket support or has Admin+ access
-					int tagId = db.tickets.getTicketId(channelId);
-					final String supportRoles = db.ticketTags.getSupportRolesString(tagId);
-					final String userId = event.getUser().getId();
-					if (supportRoles!=null && !supportRoles.isEmpty()
-						&& !supportRoles.contains(userId)
-						&& !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.ADMIN)) {
-						// No access - reject
-						sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
-						return;
+					int tagId = db.tickets.getTag(channelId);
+					if (tagId==0) {
+						// Role request ticket
+						List<Long> supportRoleIds = db.getTicketSettings(event.getGuild()).getRoleSupportIds();
+						if (supportRoleIds.isEmpty()) supportRoleIds = db.access.getRoles(event.getGuild().getIdLong(), CmdAccessLevel.MOD);
+						// Check
+						if (denyCloseSupport(supportRoleIds, event.getMember())) {
+							sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
+							return;
+						}
+					} else {
+						// Standard ticket
+						final List<Long> supportRoleIds = Stream.of(db.ticketTags.getSupportRolesString(tagId).split(";"))
+							.map(Long::parseLong)
+							.toList();
+						// Check
+						if (denyCloseSupport(supportRoleIds, event.getMember())) {
+							sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
+							return;
+						}
 					}
 				}
 			}
@@ -615,6 +627,13 @@ public class InteractionListener extends ListenerAdapter {
 				bot.getAppLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
 			});
 		});
+	}
+
+	private boolean denyCloseSupport(List<Long> supportRoleIds, Member member) {
+		if (supportRoleIds.isEmpty()) return false; // No data to check against
+		final List<Role> roles = member.getRoles(); // Check if user has any support role
+		if (!roles.isEmpty() && roles.stream().anyMatch(r -> supportRoleIds.contains(r.getIdLong()))) return false;
+		return !bot.getCheckUtil().hasAccess(member, CmdAccessLevel.ADMIN); // if user has Admin access
 	}
 
 	private void buttonTicketCloseCancel(ButtonInteractionEvent event) {

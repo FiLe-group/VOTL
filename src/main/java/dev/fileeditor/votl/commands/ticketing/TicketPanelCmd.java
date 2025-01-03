@@ -602,8 +602,9 @@ public class TicketPanelCmd extends CommandBase {
 						.map(String::valueOf)
 						.collect(Collectors.joining("`, `", "`", "`")))
 					.append("\n\n> Delete pings: ").append(settings.deletePingsEnabled()?Constants.SUCCESS:Constants.FAILURE)
-					.append("\n> Allow close: ").append(MessageUtil.capitalize(settings.getAllowClose().name()))
-					.append("\n> Transcripts saved: ").append(MessageUtil.capitalize(settings.getTranscriptsMode().name()).replace("_", " "));
+					.append("\n> Allow close: **").append(MessageUtil.capitalize(settings.getAllowClose().name()))
+					.append("**\n> Transcripts saved: **").append(MessageUtil.capitalize(settings.getTranscriptsMode().name()).replace("_", " "))
+					.append("**");
 
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setDescription(lu.getText(event, path+".embed_view"))
