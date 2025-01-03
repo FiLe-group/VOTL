@@ -173,6 +173,14 @@ public class TicketSettingsManager extends LiteBase {
 		public boolean deletePingsEnabled() {
 			return deletePings;
 		}
+
+		public AllowClose getAllowClose() {
+			return allowClose;
+		}
+
+		public TranscriptsMode getTranscriptsMode() {
+			return transcriptsMode;
+		}
 	}
 
 	public enum AllowClose {

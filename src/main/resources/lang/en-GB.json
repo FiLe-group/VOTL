@@ -2225,7 +2225,9 @@
 					"changed_delete": "\n> Delete pings after ticket creation: %s",
 					"changed_other": "\n> Allow other roles requests: %s",
 					"cleared_support": "\n> Support roles cleared. (By default, roles with __Mod__ access will be pinged)",
-					"changed_support": "\n> %s will be pinged in role requests."
+					"changed_support": "\n> %s will be pinged in role requests.",
+					"changed_close": "\n> Allowed to close tickets: %s",
+					"changed_transcript": "\n> Transcripts will be created for **%s** tickets."
 				}
 			},
 			"close": {
