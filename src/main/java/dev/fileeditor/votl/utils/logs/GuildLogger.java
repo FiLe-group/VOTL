@@ -629,9 +629,11 @@ public class GuildLogger {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 
-			MessageEmbed embed = logUtil.messageUpdate(guild.getLocale(), author, channel.getIdLong(), messageId, oldData, newData);
-			if (embed==null) return;
-			FileUpload fileUpload = uploadContentUpdate(oldData, newData, messageId);
+			MessageData.DiffData diff = MessageData.getDiffContent(oldData.getContentStripped(), newData.getContentStripped());
+			MessageEmbed embed = logUtil.messageUpdate(guild.getLocale(), author, channel.getIdLong(), messageId, oldData, newData, diff);
+			if (embed == null) return;
+			// Create changes file only if there are significant changes
+			FileUpload fileUpload = (diff!=null && diff.manyChanges()) ? uploadContentUpdate(oldData, newData, messageId) : null;
 			if (fileUpload != null) {
 				client.sendMessageEmbeds(embed)
 					.addFiles(fileUpload)
@@ -676,9 +678,6 @@ public class GuildLogger {
 		}
 
 		private FileUpload uploadContentUpdate(MessageData oldData, MessageData newData, long messageId) {
-			if (oldData.getContent().isBlank() || newData.getContent().isBlank()) return null;
-			if (newData.getContent().equals(oldData.getContent())) return null;
-			if (newData.getContent().length()+oldData.getContent().length() < 1000) return null;
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				baos.write("[%s (%s)]\n".formatted(newData.getAuthorName(), newData.getAuthorId()).getBytes());

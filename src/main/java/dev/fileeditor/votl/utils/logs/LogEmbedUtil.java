@@ -1050,9 +1050,8 @@ public class LogEmbedUtil {
 
 	//  Message
 	@Nullable
-	public MessageEmbed messageUpdate(DiscordLocale locale, Member member, long channelId, long messageId, @NotNull MessageData oldData, @NotNull MessageData newData) {
-		String diff = MessageData.getDiffContent(oldData.getContentStripped(), newData.getContentStripped());
-		// If there is no change to report - return null
+	public MessageEmbed messageUpdate(DiscordLocale locale, Member member, long channelId, long messageId, @NotNull MessageData oldData, @NotNull MessageData newData, @Nullable MessageData.DiffData diff) {
+		// If it had no attachment
 		if ((oldData.getAttachment() == null || newData.getAttachment() != null) && diff == null) return null;
 
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, AMBER_LIGHT)
@@ -1067,7 +1066,7 @@ public class LogEmbedUtil {
 		}
 		if (diff != null) {
 			builder.appendDescription("**"+localized(locale, "message.content")+"**: ```diff\n")
-				.appendDescription(MessageUtil.limitString(diff, 1600))
+				.appendDescription(MessageUtil.limitString(diff.content(), 1400))
 				.appendDescription("\n```");
 		}
 

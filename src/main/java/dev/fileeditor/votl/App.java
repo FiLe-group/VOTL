@@ -240,7 +240,7 @@ public class App {
 
 		JDABuilder mainBuilder = JDABuilder.create(fileManager.getString("config", "bot-token"), intents)
 			.setMemberCachePolicy(MemberCachePolicy.ALL)	// cache all members
-			.setChunkingFilter(ChunkingFilter.ALL)		// chunk all guilds
+			.setChunkingFilter(ChunkingFilter.NONE)			// disable chunking
 			.enableCache(enabledCacheFlags)
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
