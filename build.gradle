@@ -24,19 +24,19 @@ dependencies {
 		exclude module: 'opus-java'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-	implementation 'ch.qos.logback:logback-classic:1.5.15'			// Logging (required by JDA)
+	implementation 'ch.qos.logback:logback-classic:1.5.16'			// Logging (required by JDA)
 
 	// Tools
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:2.9.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.47.1.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.48.0.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
 	implementation 'org.jsoup:jsoup:1.18.3'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
 	implementation 'io.github.java-diff-utils:java-diff-utils:4.15'	// Diff finder
 	// https://mvnrepository.com/artifact/org.json/json
-	implementation 'org.json:json:20240303'							// JsonObject
+	implementation 'org.json:json:20250107'							// JsonObject
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
