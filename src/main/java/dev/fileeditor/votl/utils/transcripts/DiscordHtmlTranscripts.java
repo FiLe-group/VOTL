@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Consumer;
 
-import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.utils.encoding.EncodingUtil;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -64,8 +64,8 @@ public class DiscordHtmlTranscripts {
                 }
                 else {
                     try {
-                        final String encoded = new String(App.getInstance().getBase62().encode("%s:%s".formatted(channel.getGuild().getId(), channel.getId()).getBytes()));
-                        action.accept(FileUpload.fromData(generateFromMessages(list), "transcript-%s.html".formatted(encoded)));
+                        final String filename = EncodingUtil.encodeTranscript(channel.getGuild().getIdLong(), channel.getIdLong());
+                        action.accept(FileUpload.fromData(generateFromMessages(list), filename));
                     } catch(Exception ex) {
                         failure.accept(ex);
                     }

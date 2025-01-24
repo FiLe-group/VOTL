@@ -8,7 +8,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -23,6 +22,7 @@ import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
+import dev.fileeditor.votl.utils.encoding.EncodingUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogKey;
@@ -411,19 +411,19 @@ public class GuildLogger {
 			sendLog(event.getGuild(), type, () -> logUtil.groupOwnerRenamedEmbed(event.getGuildLocale(), event.getMember().getAsMention(), ownerId, ownerIcon, groupId, oldName, newName));
 		}
 
-		public void informAction(int groupId, Guild target, AuditLogEntry auditLogEntry) {
-			Guild master = Optional.ofNullable(db.group.getOwner(groupId)).map(JDA::getGuildById).orElse(null);
-			if (master == null) return;
-
-			sendLog(master, type, () -> logUtil.auditLogEmbed(master.getLocale(), groupId, target, auditLogEntry));
-		}
-
-		public void informLeave(int groupId, @Nullable Guild guild, String guildId) {
-			Guild master = Optional.ofNullable(db.group.getOwner(groupId)).map(JDA::getGuildById).orElse(null);
-			if (master == null) return;
-
-			sendLog(master, type, () -> logUtil.botLeftEmbed(master.getLocale(), groupId, guild, guildId));
-		}
+//		public void informAction(int groupId, Guild target, AuditLogEntry auditLogEntry) {
+//			Guild master = Optional.ofNullable(db.group.getOwner(groupId)).map(JDA::getGuildById).orElse(null);
+//			if (master == null) return;
+//
+//			sendLog(master, type, () -> logUtil.auditLogEmbed(master.getLocale(), groupId, target, auditLogEntry));
+//		}
+//
+//		public void informLeave(int groupId, @Nullable Guild guild, String guildId) {
+//			Guild master = Optional.ofNullable(db.group.getOwner(groupId)).map(JDA::getGuildById).orElse(null);
+//			if (master == null) return;
+//
+//			sendLog(master, type, () -> logUtil.botLeftEmbed(master.getLocale(), groupId, guild, guildId));
+//		}
 	}
 
 	// Tickets actions
@@ -688,7 +688,7 @@ public class GuildLogger {
 				baos.write("\n\n------- NEW MESSAGE\n\n".getBytes());
 				baos.write(newData.getContent().getBytes(StandardCharsets.UTF_8));
 
-				return FileUpload.fromData(baos.toByteArray(), messageId+"-"+Instant.now().toEpochMilli()+".txt");
+				return FileUpload.fromData(baos.toByteArray(), EncodingUtil.encodeMessage(messageId, Instant.now().getEpochSecond()));
 			} catch (IOException ex) {
 				LOG.error("Error at updated message content upload.", ex);
 				return null;
@@ -704,7 +704,7 @@ public class GuildLogger {
 				baos.write("------- CONTENT\n\n".getBytes());
 				baos.write(data.getContent().getBytes(StandardCharsets.UTF_8));
 
-				return FileUpload.fromData(baos.toByteArray(), messageId+"-"+Instant.now().toEpochMilli()+".txt");
+				return FileUpload.fromData(baos.toByteArray(), EncodingUtil.encodeMessage(messageId, Instant.now().getEpochSecond()));
 			} catch (IOException ex) {
 				LOG.error("Error at deleted message content upload.", ex);
 				return null;
@@ -726,7 +726,7 @@ public class GuildLogger {
 					baos.write("\n\n-------===-------\n\n".getBytes());
 				}
 				if (cached == 0) return null;
-				return FileUpload.fromData(baos.toByteArray(), channelId+"-"+Instant.now().toEpochMilli()+".txt");
+				return FileUpload.fromData(baos.toByteArray(), EncodingUtil.encodeMessage(channelId, Instant.now().getEpochSecond()));
 			} catch (IOException ex) {
 				LOG.error("Error at bulk deleted messages content upload.", ex);
 				return null;

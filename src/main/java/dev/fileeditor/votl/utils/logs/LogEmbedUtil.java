@@ -45,6 +45,7 @@ import com.jayway.jsonpath.JsonPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings({"FieldCanBeLocal", "UnusedReturnValue"})
 public class LogEmbedUtil {
 
 	private final @NotNull LocaleUtil lu;
