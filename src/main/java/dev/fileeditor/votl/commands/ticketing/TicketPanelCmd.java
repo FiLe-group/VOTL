@@ -644,7 +644,7 @@ public class TicketPanelCmd extends CommandBase {
 						// Set roles
 						List<Role> roles = event.optMentions("role_tickets_support").getRoles();
 						if (roles.isEmpty() || roles.size()>3) {
-							editError(event, path+".bad_input");
+							editError(event, path+".bad_roles");
 							return;
 						}
 						if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), roles.stream().map(Role::getIdLong).toList())) {

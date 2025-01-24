@@ -28,7 +28,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.AuditLogChange;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogOption;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
@@ -45,6 +44,7 @@ import com.jayway.jsonpath.JsonPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings({"FieldCanBeLocal", "UnusedReturnValue"})
 public class LogEmbedUtil {
 
 	private final @NotNull LocaleUtil lu;
@@ -710,31 +710,31 @@ public class LogEmbedUtil {
 	}
 
 
-	// Child guild embeds
-	@NotNull
-	public MessageEmbed auditLogEmbed(DiscordLocale locale, int groupId, Guild target, AuditLogEntry auditLogEntry) {
-		String titlePath = switch (auditLogEntry.getType()) {
-			case BAN -> "helper.banned";
-			case UNBAN -> "helper.unbanned";
-			default -> "helper.default";
-		};
-		return new LogEmbedBuilder(locale, AMBER_LIGHT)
-			.setHeaderIcon(titlePath, target.getIconUrl(), target.getName())
-			.setUser(auditLogEntry.getTargetIdLong())
-			.setReason(auditLogEntry.getReason())
-			.setEnforcer(auditLogEntry.getUserIdLong())
-			.setFooter("Group ID: "+groupId)
-			.build();
-	}
-
-	@NotNull
-	public MessageEmbed botLeftEmbed(DiscordLocale locale, int groupId, @Nullable Guild guild, String guildId) {
-		return new LogEmbedBuilder(locale, AMBER_LIGHT)
-			.setHeader("helper.leave_guild", Optional.ofNullable(guild).map(Guild::getName).orElse("unknown"))
-			.addField("helper.guild_id", guildId)
-			.setFooter("Group ID: "+groupId)
-			.build();
-	}
+//	// Child guild embeds
+//	@NotNull
+//	public MessageEmbed auditLogEmbed(DiscordLocale locale, int groupId, Guild target, AuditLogEntry auditLogEntry) {
+//		String titlePath = switch (auditLogEntry.getType()) {
+//			case BAN -> "helper.banned";
+//			case UNBAN -> "helper.unbanned";
+//			default -> "helper.default";
+//		};
+//		return new LogEmbedBuilder(locale, AMBER_LIGHT)
+//			.setHeaderIcon(titlePath, target.getIconUrl(), target.getName())
+//			.setUser(auditLogEntry.getTargetIdLong())
+//			.setReason(auditLogEntry.getReason())
+//			.setEnforcer(auditLogEntry.getUserIdLong())
+//			.setFooter("Group ID: "+groupId)
+//			.build();
+//	}
+//
+//	@NotNull
+//	public MessageEmbed botLeftEmbed(DiscordLocale locale, int groupId, @Nullable Guild guild, String guildId) {
+//		return new LogEmbedBuilder(locale, AMBER_LIGHT)
+//			.setHeader("helper.leave_guild", Optional.ofNullable(guild).map(Guild::getName).orElse("unknown"))
+//			.addField("helper.guild_id", guildId)
+//			.setFooter("Group ID: "+groupId)
+//			.build();
+//	}
 
 
 	// Ticket
@@ -1050,9 +1050,8 @@ public class LogEmbedUtil {
 
 	//  Message
 	@Nullable
-	public MessageEmbed messageUpdate(DiscordLocale locale, Member member, long channelId, long messageId, @NotNull MessageData oldData, @NotNull MessageData newData) {
-		String diff = MessageData.getDiffContent(oldData.getContentStripped(), newData.getContentStripped());
-		// If there is no change to report - return null
+	public MessageEmbed messageUpdate(DiscordLocale locale, Member member, long channelId, long messageId, @NotNull MessageData oldData, @NotNull MessageData newData, @Nullable MessageData.DiffData diff) {
+		// If it had no attachment
 		if ((oldData.getAttachment() == null || newData.getAttachment() != null) && diff == null) return null;
 
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, AMBER_LIGHT)
@@ -1067,7 +1066,7 @@ public class LogEmbedUtil {
 		}
 		if (diff != null) {
 			builder.appendDescription("**"+localized(locale, "message.content")+"**: ```diff\n")
-				.appendDescription(MessageUtil.limitString(diff, 1600))
+				.appendDescription(MessageUtil.limitString(diff.content(), 1400))
 				.appendDescription("\n```");
 		}
 

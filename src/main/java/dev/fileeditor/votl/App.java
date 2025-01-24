@@ -71,7 +71,6 @@ public class App {
 
 	private final GuildLogger guildLogger;
 	private final LogEmbedUtil logEmbedUtil;
-	private final Base62 base62;
 
 	private final DBUtil dbUtil;
 	private final MessageUtil messageUtil;
@@ -108,7 +107,6 @@ public class App {
 		checkUtil	= new CheckUtil(this, ownerId);
 		ticketUtil	= new TicketUtil(this);
 		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
-		base62		= Base62.createInstance();
 
 		logEmbedUtil	= new LogEmbedUtil();
 		guildLogger		= new GuildLogger();
@@ -161,6 +159,7 @@ public class App {
 				new UnbanCmd(),
 				new UnmuteCmd(),
 				new PurgeCmd(),
+				new ModReportCmd(),
 				// other
 				new AboutCmd(),
 				new HelpCmd(),
@@ -241,7 +240,7 @@ public class App {
 
 		JDABuilder mainBuilder = JDABuilder.create(fileManager.getString("config", "bot-token"), intents)
 			.setMemberCachePolicy(MemberCachePolicy.ALL)	// cache all members
-			.setChunkingFilter(ChunkingFilter.ALL)		// chunk all guilds
+			.setChunkingFilter(ChunkingFilter.NONE)			// disable chunking
 			.enableCache(enabledCacheFlags)
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
@@ -341,10 +340,6 @@ public class App {
 
 	public ModerationUtil getModerationUtil() {
 		return moderationUtil;
-	}
-
-	public Base62 getBase62() {
-		return base62;
 	}
 
 	public void shutdownUtils() {
