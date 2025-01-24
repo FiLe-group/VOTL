@@ -33,9 +33,11 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.TimeUtil;
@@ -108,7 +110,11 @@ public class ScheduledCheck {
 					return;
 				}
 				bot.getTicketUtil().closeTicket(channelId, null, "time", failure -> {
-					logger.error("Failed to delete ticket channel, either already deleted or unknown error", failure);
+					new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)
+						.andThen(t -> {
+							logger.error("Failed to delete ticket channel, either already deleted or unknown error", t);
+						})
+						.accept(failure);
 					db.tickets.setRequestStatus(channelId, -1L);
 				});
 			});
@@ -126,7 +132,11 @@ public class ScheduledCheck {
 						if (msg.getAuthor().isBot()) {
 							// Last message is bot - close ticket
 							bot.getTicketUtil().closeTicket(channelId, null, "activity", failure -> {
-								logger.error("Failed to delete ticket channel, either already deleted or unknown error", failure);
+								new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)
+									.andThen(t -> {
+										logger.error("Failed to delete ticket channel, either already deleted or unknown error", t);
+									})
+									.accept(failure);
 								db.tickets.setWaitTime(channelId, -1L);
 							});
 						} else {

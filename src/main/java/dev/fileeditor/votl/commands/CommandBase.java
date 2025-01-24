@@ -33,7 +33,7 @@ public abstract class CommandBase extends SlashCommand {
 			.setComponents()
 			.queue(msg -> {
 				if (!msg.isEphemeral())
-					msg.delete().queueAfter(20, TimeUnit.SECONDS);
+					msg.delete().queueAfter(20, TimeUnit.SECONDS, null, ignoreRest);
 			});
 	}
 
@@ -73,6 +73,7 @@ public abstract class CommandBase extends SlashCommand {
 
 	protected static final Consumer<Throwable> ignoreRest = ignored -> {
 		// Nothing to see here
+		// Ignore everything
 	};
 
 }

@@ -622,10 +622,13 @@ public class InteractionListener extends ListenerAdapter {
 		event.editButton(Button.danger("ticket:close", bot.getLocaleUtil().getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled()).queue();
 		// Send message
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event).setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.delete_countdown")).build()).queue(msg -> {
-			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
-				msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed", failure.getMessage())).queue();
-				bot.getAppLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
-			});
+			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason,
+				new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)
+					.andThen(t -> {
+						bot.getAppLogger().error("Couldn't close ticket with channelID '{}'", channelId, t);
+						msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed", t.getMessage())).queue();
+					})
+			);
 		});
 	}
 

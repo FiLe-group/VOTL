@@ -2271,6 +2271,7 @@
 						"name": "transcripts_mode",
 						"help": "For which tickets transcript will be created? (All, except roles or none)"
 					},
+					"bad_roles": "No roles provided (use @Role) or more than 3.",
 					"embed_view": "**Ticket settings**",
 					"embed_changes": "**Updated ticket settings**",
 					"changed_delete": "\n> Delete pings after ticket creation: %s",

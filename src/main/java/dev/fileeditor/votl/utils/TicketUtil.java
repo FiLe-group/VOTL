@@ -82,10 +82,7 @@ public class TicketUtil {
 			long authorId = db.tickets.getUserId(channel.getIdLong());
 
 			bot.getLogger().ticket.onClose(channel.getGuild(), channel, userClosed, authorId, file);
-		}, failure -> {
-			bot.getAppLogger().warn("Error while closing ticket, unable to delete", failure);
-			failureHandler.accept(failure);
-		});
+		}, failureHandler);
 	}
 
 	private void closeTicketStandard(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable FileUpload file) {
@@ -114,10 +111,7 @@ public class TicketUtil {
 			});
 
 			bot.getLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
-		}, failure -> {
-			bot.getAppLogger().warn("Error while closing ticket, unable to delete", failure);
-			failureHandler.accept(failure);
-		});
+		}, failureHandler);
 	}
 
 	public void createTicket(ButtonInteractionEvent event, GuildMessageChannel channel, String mentions, String message) {
