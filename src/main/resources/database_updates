@@ -9,3 +9,4 @@ ALTER TABLE "guild" ADD "roleWhitelist" INTEGER DEFAULT 0
 CREATE TABLE "verifySettings_new" ("guildId" INTEGER NOT NULL UNIQUE, "roleId" INTEGER, "panelText" TEXT, "panelImage" TEXT); INSERT INTO "verifySettings_new" ("guildId", "roleId", "panelText", "panelImage") SELECT "guildId", "roleId", "panelText", "panelImage" FROM "verifySettings"; DROP TABLE "verifySettings"; ALTER TABLE "verifySettings_new" RENAME TO "verifySettings";
 ALTER TABLE "ticketSettings" ADD "deletePing" INTEGER DEFAULT 1
 ALTER TABLE "ticketSettings" ADD "allowClose" INTEGER DEFAULT 0; ALTER TABLE "ticketSettings" ADD "transcripts" INTEGER DEFAULT 1
+CREATE TABLE "modReport" ("guildId" INTEGER NOT NULL UNIQUE, "channelId" INTEGER NOT NULL, "roleIds" INTEGER NOT NULL, "nextReport" INTEGER NOT NULL, "interval" INTEGER NOT NULL DEFAULT 7)

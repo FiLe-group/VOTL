@@ -2,19 +2,26 @@ package dev.fileeditor.votl.services;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
-import java.time.Instant;
-import java.time.OffsetDateTime;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CaseType;
+import dev.fileeditor.votl.objects.ReportData;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
+import dev.fileeditor.votl.utils.encoding.EncodingUtil;
+import dev.fileeditor.votl.utils.imagegen.renders.ModReportRender;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -23,11 +30,13 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.TimeUtil;
 
@@ -55,7 +64,8 @@ public class ScheduledCheck {
 		CompletableFuture.runAsync(this::checkTicketStatus)
 			.thenRunAsync(this::checkExpiredTempRoles)
 			.thenRunAsync(this::checkExpiredStrikes)
-			.thenRunAsync(this::checkExpiredPersistentRoles);
+			.thenRunAsync(this::checkExpiredPersistentRoles)
+			.thenRunAsync(this::generateReport);
 	}
 
 	private void checkTicketStatus() {
@@ -226,6 +236,74 @@ public class ScheduledCheck {
 			db.persistent.removeExpired();
 		} catch (Throwable t) {
 			logger.error("Exception caught during expired persistent roles check.", t);
+		}
+	}
+
+	private void generateReport() {
+		try {
+			List<Map<String, Object>> expired = db.modReport.getExpired(LocalDateTime.now());
+			if (expired.isEmpty()) return;
+
+			expired.forEach(data -> {
+				long channelId = castLong(data.get("channelId"));
+				TextChannel channel = bot.JDA.getTextChannelById(channelId);
+				if (channel == null) {
+					long guildId = castLong(data.get("guildId"));
+					logger.warn("Channel for modReport @ '{}' not found. Deleting.", guildId);
+					db.modReport.removeGuild(guildId);
+					return;
+				}
+
+				Guild guild = channel.getGuild();
+				String[] roleIds = ((String) data.get("roleIds")).split(";");
+				List<Role> roles = Stream.of(roleIds)
+					.map(guild::getRoleById)
+					.toList();
+				if (roles.isEmpty()) {
+					logger.warn("Roles for modReport @ '{}' not found. Deleting.", guild.getId());
+					db.modReport.removeGuild(guild.getIdLong());
+					return;
+				}
+
+				int interval = (Integer) data.get("interval");
+				LocalDateTime nextReport = LocalDateTime.ofEpochSecond(castLong(data.get("nextReport")), 0, ZoneOffset.UTC);
+				nextReport = interval==30 ? nextReport.plusMonths(1) : nextReport.plusDays(interval);
+				// Update next report date
+				db.modReport.updateNext(channelId, nextReport);
+
+				// Search for members with any of required roles (Mod, Admin, ...)
+				guild.findMembers(m -> !Collections.disjoint(m.getRoles(), roles)).setTimeout(10, TimeUnit.SECONDS).onSuccess(members -> {
+					if (members.isEmpty() || members.size() > 20) return; // TODO normal reply - too much users
+					Instant now = Instant.now();
+					Instant previous = (interval==30 ?
+						now.minus(Period.ofMonths(1)) :
+						now.minus(Period.ofDays(interval))
+					).atZone(ZoneId.systemDefault()).toInstant();
+
+					List<ReportData> reportData = new ArrayList<>(members.size());
+					members.forEach(m -> {
+						int countRoles = bot.getDBUtil().tickets.countTicketsByMod(guild.getIdLong(), m.getIdLong(), previous, now, true);
+						Map<Integer, Integer> countCases = bot.getDBUtil().cases.countCasesByMod(guild.getIdLong(), m.getIdLong(), previous, now);
+						reportData.add(new ReportData(m, countRoles, countCases));
+					});
+
+					ModReportRender render = new ModReportRender(guild.getLocale(), bot.getLocaleUtil(),
+						previous, now, reportData);
+
+					final String attachmentName = EncodingUtil.encodeModreport(guild.getIdLong(), now.getEpochSecond());
+
+					try {
+						channel.sendFiles(FileUpload.fromData(
+							new ByteArrayInputStream(render.renderToBytes()),
+							attachmentName
+						)).queue();
+					} catch (IOException e) {
+						logger.error("Exception caught during rendering of modReport.", e);
+					}
+				});
+			});
+		} catch (Throwable t) {
+			logger.error("Exception caught during modReport schedule check.", t);
 		}
 	}
 

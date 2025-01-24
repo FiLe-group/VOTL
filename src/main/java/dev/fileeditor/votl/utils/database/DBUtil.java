@@ -57,6 +57,7 @@ public class DBUtil {
 	public final ModifyRoleManager modifyRole;
 	public final GameStrikeManager games;
 	public final PersistentManager persistent;
+	public final ModReportManager modReport;
 
 	public DBUtil(FileManager fileManager) {
 		this.fileManager = fileManager;
@@ -85,6 +86,7 @@ public class DBUtil {
 		modifyRole = new ModifyRoleManager(connectionUtil);
 		games = new GameStrikeManager(connectionUtil);
 		persistent = new PersistentManager(connectionUtil);
+		modReport = new ModReportManager(connectionUtil);
 
 		updateDB();
 

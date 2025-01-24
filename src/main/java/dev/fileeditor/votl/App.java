@@ -159,6 +159,7 @@ public class App {
 				new UnbanCmd(),
 				new UnmuteCmd(),
 				new PurgeCmd(),
+				new ModReportCmd(),
 				// other
 				new AboutCmd(),
 				new HelpCmd(),
