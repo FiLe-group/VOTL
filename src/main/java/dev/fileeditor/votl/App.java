@@ -174,6 +174,7 @@ public class App {
 				new MessageCmd(),
 				new SetStatusCmd(),
 				new CheckAccessCmd(),
+				new BotBlacklist(),
 				// role
 				new RoleCmd(),
 				new TempRoleCmd(),

@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class BotBlacklistManager extends LiteBase {
 	// Cache
-	private final Set<Long> cache = Collections.synchronizedSet(new HashSet<Long>());
+	private final Set<Long> cache = Collections.synchronizedSet(new HashSet<>());
 
 	public BotBlacklistManager(ConnectionUtil cu) {
 		super(cu, "botBlacklist");
