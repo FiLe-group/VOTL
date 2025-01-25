@@ -67,7 +67,7 @@ public class VerifyRoleCmd extends CommandBase {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()))
+				.setDescription(lu.getText(event, path+".done").formatted(role.getAsMention()))
 				.build());
 		}
 	}
@@ -107,7 +107,7 @@ public class VerifyRoleCmd extends CommandBase {
 
 			// Check roles
 			for (Role r : roles) {
-				String denyReason = bot.getCheckUtil().denyRole(role, event.getGuild(), event.getMember(), true);
+				String denyReason = bot.getCheckUtil().denyRole(r, event.getGuild(), event.getMember(), true);
 				if (denyReason != null) {
 					editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
 					return;
@@ -119,7 +119,7 @@ public class VerifyRoleCmd extends CommandBase {
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done")
-					.replace("{role}", roles.stream().map(Role::getAsMention).collect(Collectors.joining(" ")))
+					.formatted(roles.stream().map(Role::getAsMention).collect(Collectors.joining(" ")))
 				).build());
 		}
 	}
@@ -150,13 +150,13 @@ public class VerifyRoleCmd extends CommandBase {
 			Set<Long> roleIds = bot.getDBUtil().getVerifySettings(event.getGuild()).getAdditionalRoles();
 
 			if (roleIds.isEmpty()) {
-				event.reply(lu.getText(event, path+".no_roles")).queue();
+				event.reply(lu.getText(event, path+".no_roles")).setEphemeral(true).queue();
 			} else {
-				StringBuilder stringBuilder = new StringBuilder(lu.getText(event, path+".roles"));
+				StringBuilder stringBuilder = new StringBuilder("**Roles:**");
 				for (Long roleId : roleIds) {
-					stringBuilder.append("\n<@&").append(roleId).append(">");
+					stringBuilder.append("\n> <@&").append(roleId).append(">");
 				}
-				event.reply(stringBuilder.toString()).queue();
+				event.reply(stringBuilder.toString()).setEphemeral(true).queue();
 			}
 		}
 	}

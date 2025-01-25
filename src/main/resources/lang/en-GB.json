@@ -1837,7 +1837,7 @@
 					},
 					"no_role": "Provided role not found.",
 					"incorrect_role": "Selected role can't be used.",
-					"done": "Role {role} assigned for verification!"
+					"done": "Role %s assigned for verification!"
 				},
 				"additional": {
 					"help": "Manage additional roles",
@@ -1861,9 +1861,9 @@
 						"done": "Set %s as additional roles."
 					},
 					"clear": {
-						"help": "clear all additional roles",
+						"help": "Clear all additional roles",
 						"usage": "additional clear",
-						"done": "Removed all additional roles."
+						"done": "Cleared all additional roles."
 					},
 					"view": {
 						"help": "View all additional roles",
