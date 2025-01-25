@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.listeners;
 
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -20,8 +21,13 @@ public class GuildListener extends ListenerAdapter {
 
 	@Override
 	public void onGuildJoin(@NotNull GuildJoinEvent event) {
-		String guildId = event.getGuild().getId();
-		bot.getAppLogger().info("Joined guild '{}'({})", event.getGuild().getName(), guildId);
+		Guild guild = event.getGuild();
+		if (bot.getCheckUtil().isBlacklisted(guild)) {
+			guild.leave().queue();
+			bot.getAppLogger().info("Auto-left new guild '{}'({}) BLACKLIST!", guild.getName(), guild.getId());
+		} else {
+			bot.getAppLogger().info("Joined guild '{}'({})", guild.getName(), guild.getId());
+		}
 	}
 
 	@Override

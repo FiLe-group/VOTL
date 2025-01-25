@@ -4,6 +4,7 @@ import java.util.Map;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -16,6 +17,7 @@ import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
+@SuppressWarnings("UnusedReturnValue")
 public class CheckUtil {
 
 	private final App bot;
@@ -140,6 +142,10 @@ public class CheckUtil {
 			throw new CheckException(msg);
 		}
 		return this;
+	}
+
+	public boolean isBlacklisted(ISnowflake snowflake) {
+		return bot.getDBUtil().botBlacklist.blacklisted(snowflake.getIdLong());
 	}
 
 }

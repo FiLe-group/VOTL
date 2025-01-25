@@ -449,6 +449,18 @@
 				"invalid_url": "Invalid URL provided.",
 				"clear": "Activity cleared.",
 				"set": "%s activity set.\n> %s"
+			},
+			"bot_blacklist": {
+				"help": "Manage bot's blacklist",
+				"usage": "bot_blacklist <add?> <ID>",
+				"add": {
+					"name": "add",
+					"help": "Add (or remove)?"
+				},
+				"id": {
+					"name": "id",
+					"help": "Enter user or guild ID"
+				}
 			}
 		},
 		"guild": {

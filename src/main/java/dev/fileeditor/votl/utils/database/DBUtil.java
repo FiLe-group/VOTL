@@ -59,9 +59,13 @@ public class DBUtil {
 	public final PersistentManager persistent;
 	public final ModReportManager modReport;
 
+	public final BotBlacklistManager botBlacklist;
+
 	public DBUtil(FileManager fileManager) {
 		this.fileManager = fileManager;
 		this.connectionUtil = new ConnectionUtil("jdbc:sqlite:"+fileManager.getFiles().get("database"), logger);
+
+		updateDB();
 		
 		guildSettings = new GuildSettingsManager(connectionUtil);
 		access = new AccessManager(connectionUtil);
@@ -88,9 +92,7 @@ public class DBUtil {
 		persistent = new PersistentManager(connectionUtil);
 		modReport = new ModReportManager(connectionUtil);
 
-		updateDB();
-
-		modifyRole.removeExpired(); // Remove expired selections
+		botBlacklist = new BotBlacklistManager(connectionUtil);
 	}
 
 	public GuildSettings getGuildSettings(Guild guild) {

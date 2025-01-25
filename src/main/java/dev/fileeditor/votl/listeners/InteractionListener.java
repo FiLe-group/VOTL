@@ -125,19 +125,15 @@ public class InteractionListener extends ListenerAdapter {
 		function.run();
 	}
 
-	private final Set<String> acceptableButtons = Set.of(
-		"verify", "role", "ticket", "tag",
-		"delete", "voice", "blacklist", "strikes", "sync_unban",
-		"sync_ban", "sync_kick", "thread"
-	);
-
 	@Override
 	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
-		String[] actions = event.getComponentId().split(":");
-		if (!acceptableButtons.contains(actions[0])) return;
+		// Check if blacklisted
+		if (bot.getCheckUtil().isBlacklisted(event.getUser())) return;
 
 		// Acknowledge interaction
 		event.deferEdit().queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
+
+		String[] actions = event.getComponentId().split(":");
 
 		try {
 			switch (actions[0]) {
@@ -192,6 +188,7 @@ public class InteractionListener extends ListenerAdapter {
 				case "sync_kick" -> runButtonInteraction(event, Cooldown.BUTTON_SYNC_ACTION, () -> buttonSyncKick(event));
 				case "strikes" -> runButtonInteraction(event, Cooldown.BUTTON_SHOW_STRIKES, () -> buttonShowStrikes(event));
 				case "manage-confirm" -> runButtonInteraction(event, Cooldown.BUTTON_MODIFY_CONFIRM, () -> buttonModifyConfirm(event));
+				default -> bot.getAppLogger().warn("Unknown button interaction: {}", event.getComponentId());
 			}
 		} catch (Throwable t) {
 			// Logs throwable and tries to respond to the user with the error

@@ -76,9 +76,15 @@ public abstract class UserContextMenu extends ContextMenu {
 		// client 
 		final CommandClient client = event.getClient();
 
+		// check blacklist
+		if (bot.getCheckUtil().isBlacklisted(event.getUser())) {
+			terminate(event, client);
+			return;
+		}
+
 		// owner check
 		if (ownerCommand && !(event.isOwner())) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"));
+			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
 			return;
 		}
 
@@ -87,7 +93,7 @@ public abstract class UserContextMenu extends ContextMenu {
 			String key = getCooldownKey(event);
 			int remaining = client.getRemainingCooldown(key);
 			if (remaining>0) {
-				terminate(event, getCooldownError(event, event.getGuild(), remaining));
+				terminate(event, getCooldownError(event, event.getGuild(), remaining), client);
 				return;
 			}
 			else client.applyCooldown(key, cooldown);
@@ -108,11 +114,11 @@ public abstract class UserContextMenu extends ContextMenu {
 				// check bots perms
 					.hasPermissions(event, guild, author, true, getBotPermissions());
 			} catch (CheckException ex) {
-				terminate(event, ex.getCreateData());
+				terminate(event, ex.getCreateData(), client);
 				return;
 			}
 		} else if (guildOnly) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.guild_only"));
+			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.guild_only"), client);
 			return;
 		}
 
@@ -142,15 +148,20 @@ public abstract class UserContextMenu extends ContextMenu {
 	 */
 	protected abstract void execute(UserContextMenuEvent event);
 
-	private void terminate(UserContextMenuEvent event, @NotNull MessageEmbed embed) {
-		terminate(event, MessageCreateData.fromEmbeds(embed));
+	private void terminate(UserContextMenuEvent event, @NotNull MessageEmbed embed, CommandClient client) {
+		terminate(event, MessageCreateData.fromEmbeds(embed), client);
 	}
 
-	private void terminate(UserContextMenuEvent event, MessageCreateData message) {
+	private void terminate(UserContextMenuEvent event, MessageCreateData message, CommandClient client) {
 		if (message!=null)
 			event.reply(message).setEphemeral(true).queue();
-		if (event.getClient().getListener()!=null)
-			event.getClient().getListener().onTerminatedUserContextMenu(event, this);
+		if (client.getListener()!=null)
+			client.getListener().onTerminatedUserContextMenu(event, this);
+	}
+
+	private void terminate(UserContextMenuEvent event, CommandClient client) {
+		if (client.getListener()!=null)
+			client.getListener().onTerminatedUserContextMenu(event, this);
 	}
 
 	@Override
