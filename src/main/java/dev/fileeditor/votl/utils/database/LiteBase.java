@@ -55,6 +55,7 @@ public class LiteBase {
 	}
 
 	// Select
+	@Nullable
 	protected <T> T selectOne(final String sql, String selectKey, Class<T> selectClass) {
 		T result = null;
 
@@ -74,6 +75,7 @@ public class LiteBase {
 		return result;
 	}
 
+	@NotNull
 	protected <T> List<T> select(final String sql, String selectKey, Class<T> selectClass) {
 		List<T> results = new ArrayList<>();
 
@@ -114,6 +116,7 @@ public class LiteBase {
 		return result.isEmpty() ? null : result;
 	}
 
+	@NotNull
 	protected List<Map<String, Object>> select(final String sql, final Set<String> selectKeys) {
 		List<Map<String, Object>> results = new ArrayList<>();
 
@@ -156,6 +159,7 @@ public class LiteBase {
 
 
 	// UTILS
+	@NotNull
 	protected String quote(@Nullable final Object value) {
 		// Convert to string and replace '(single quote) with ''(2 single quotes) for sql
 		if (value == null ) return "NULL";

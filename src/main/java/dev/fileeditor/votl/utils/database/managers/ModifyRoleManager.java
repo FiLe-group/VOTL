@@ -9,6 +9,7 @@ public class ModifyRoleManager extends LiteBase {
 
 	public ModifyRoleManager(ConnectionUtil cu) {
 		super(cu, "menuSelectRoles");
+		removeExpired();
 	}
 
 	public boolean create(long guildId, long userId, long targetId, Instant expiresAfter) {
@@ -29,7 +30,7 @@ public class ModifyRoleManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 
-	public void removeExpired() {
+	private void removeExpired() {
 		execute("DELETE FROM %s WHERE (expiresAfter=%s)".formatted(table, Instant.now().getEpochSecond()));
 	}
 
