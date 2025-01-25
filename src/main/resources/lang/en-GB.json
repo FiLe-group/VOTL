@@ -2454,6 +2454,7 @@
 					},
 					"no_role": "Role not found.",
 					"incorrect_role": "Selected role can't be assigned.",
+					"not_whitelisted": "Selected role is not whitelisted! Ask Administrator to add it to the list.",
 					"no_member": "Member not found.",
 					"incorrect_user": "Selected member can't be assigned role.",
 					"already_set": "Member already assigned this role.",
