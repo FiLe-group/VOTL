@@ -33,6 +33,7 @@ import dev.fileeditor.votl.utils.*;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+import dev.fileeditor.votl.utils.imagegen.UserBackgroundHandler;
 import dev.fileeditor.votl.utils.level.LevelUtil;
 import dev.fileeditor.votl.utils.logs.GuildLogger;
 import dev.fileeditor.votl.utils.logs.LogEmbedUtil;
@@ -284,6 +285,13 @@ public class App {
 		this.JDA = tempJda;
 
 		createWebhookAppender();
+
+		log.info("Creating user backgrounds...");
+		try {
+			UserBackgroundHandler.getInstance().start();
+		} catch (Throwable ex) {
+			log.error("Error starting background handler", ex);
+		}
 
 		log.info("Success start");
 	}
