@@ -192,7 +192,7 @@ public class App {
 				new RolesManageCmd(),
 				new RolesPanelCmd(),
 				new TicketCountCmd(),
-				new TicketPanelCmd(),
+				new TicketCmd(),
 				// verification
 				new VerifyPanelCmd(),
 				new VerifyRoleCmd(),
