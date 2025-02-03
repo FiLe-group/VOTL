@@ -13,6 +13,8 @@ import dev.fileeditor.votl.commands.games.GameCmd;
 import dev.fileeditor.votl.commands.games.GameStrikeCmd;
 import dev.fileeditor.votl.commands.guild.*;
 import dev.fileeditor.votl.commands.level.LeaderboardCmd;
+import dev.fileeditor.votl.commands.level.LevelExemptCmd;
+import dev.fileeditor.votl.commands.level.LevelRolesCmd;
 import dev.fileeditor.votl.commands.level.UserProfileCmd;
 import dev.fileeditor.votl.commands.moderation.*;
 import dev.fileeditor.votl.commands.other.*;
@@ -209,7 +211,9 @@ public class App {
 				new GameStrikeCmd(),
 				// level
 				new UserProfileCmd(),
-				new LeaderboardCmd()
+				new LeaderboardCmd(),
+				new LevelRolesCmd(),
+				new LevelExemptCmd()
 			)
 			.addContextMenus(
 				new ReportMenu(),
