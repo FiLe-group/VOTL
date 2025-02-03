@@ -12,6 +12,8 @@ import dev.fileeditor.votl.base.waiter.EventWaiter;
 import dev.fileeditor.votl.commands.games.GameCmd;
 import dev.fileeditor.votl.commands.games.GameStrikeCmd;
 import dev.fileeditor.votl.commands.guild.*;
+import dev.fileeditor.votl.commands.level.LeaderboardCmd;
+import dev.fileeditor.votl.commands.level.UserProfileCmd;
 import dev.fileeditor.votl.commands.moderation.*;
 import dev.fileeditor.votl.commands.other.*;
 import dev.fileeditor.votl.commands.owner.*;
@@ -177,6 +179,7 @@ public class App {
 				new SetStatusCmd(),
 				new CheckAccessCmd(),
 				new BotBlacklist(),
+				new ExperienceCmd(),
 				// role
 				new RoleCmd(),
 				new TempRoleCmd(),
@@ -203,7 +206,10 @@ public class App {
 				new WebhookCmd(),
 				// game
 				new GameCmd(),
-				new GameStrikeCmd()
+				new GameStrikeCmd(),
+				// level
+				new UserProfileCmd(),
+				new LeaderboardCmd()
 			)
 			.addContextMenus(
 				new ReportMenu(),

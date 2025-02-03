@@ -16,6 +16,7 @@ public final class CmdCategory {
 	public static final Category ROLES =		new Category("roles");
 	public static final Category TICKETING =	new Category("ticketing");
 	public static final Category GAMES = 		new Category("games");
+	public static final Category LEVELS = 		new Category("levels");
 	public static final Category OTHER =		new Category("other");
 	
 }
