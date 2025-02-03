@@ -14,4 +14,5 @@ public class Links {
 	public static final String CROWDIN = "https://crowdin.com/project/voice-of-the-lord/invite?h=5802e64e5c5e65d74943af6cf97949e91863082";
 	// Other
 	public static final String CHEWTILS_GITHUB = "https://github.com/Chew/JDA-Chewtils";
+	public static final String AVATAR_URL = "https://cdn.fileeditor.dev/media/votl/logo.png";
 }

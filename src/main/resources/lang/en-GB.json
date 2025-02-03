@@ -53,21 +53,33 @@
 			"usage": "no usage description"
 		},
 		"time": {
-			"second": "second",
-			"seconds": "seconds",
-			"minute": "minute",
-			"minutes": "minutes",
-			"hour": "hour",
-			"hours": "hours",
-			"day": "day",
-			"days": "days",
-			"week": "week",
-			"weeks": "weeks"
+			"s1": "second",
+			"s2": "seconds",
+			"s5": "seconds",
+			"m1": "minute",
+			"m2": "minutes",
+			"m5": "minutes",
+			"h1": "hour",
+			"h2": "hours",
+			"h5": "hours",
+			"d1": "day",
+			"d2": "days",
+			"d5": "days",
+			"w1": "week",
+			"w2": "weeks",
+			"w5": "weeks"
 		},
 		"permanently": "permanently",
 		"temporary": "until %s",
 		"ban_expired": "Temporary ban expired",
 		"temp_msg": "\n-# This message will be deleted in 20 seconds."
+	},
+	"imagegen": {
+		"profile": {
+			"text": "TEXT",
+			"voice": "VOICE",
+			"global_xp": "Global XP"
+		}
 	},
 	"modules": {
 		"webhook": "Webhook commands",
@@ -80,6 +92,7 @@
 		"roles": "Role management",
 		"strikes": "Strike punishments",
 		"games": "Games",
+		"levels": "Leveling",
 		"module_disabled": "This command(module) is disabled."
 	},
 	"role_type": {
@@ -312,6 +325,17 @@
 			"override_update": "Permission overwrite updated",
 			"override_delete": "Permission overwrite deleted"
 		},
+		"level": {
+			"name": "Leveling logs",
+			"level_up": "Level up!",
+			"msg_random": [
+				"GG {user}, you just reached **{type} Level {level}**",
+				"Eyy {user}, you just leveled up! You're now **{type} Level {level}**",
+				"\uD83C\uDF1F You just reached **{type} Level {level}** {user}! Congrats \uD83C\uDF1F",
+				"You're on \uD83D\uDD25 {user}, you've just reached **{type} Level {level}**",
+				"Congratulations {user} \uD83C\uDF89 You just leveled up! You're now **{type} Level {level}**"
+			]
+		},
 		"helper": {
 			"banned": "User was banned in %s",
 			"unbanned": "User was unbanned in %s",
@@ -466,6 +490,26 @@
 					"name": "id",
 					"help": "Enter user or guild ID"
 				}
+			},
+			"experience": {
+				"help": "Manage user exp in server and overall",
+				"usage": "experience <choice>",
+				"server": {
+					"name": "server",
+					"help": "Enter server ID"
+				},
+				"user": {
+					"name": "user",
+					"help": "Enter user ID"
+				},
+				"action": {
+					"name": "action",
+					"help": "What action to perform"
+				},
+				"amount": {
+					"name": "amount",
+					"help": "Enter exp amount to add/remove"
+				}
 			}
 		},
 		"guild": {
@@ -599,6 +643,22 @@
 						"help": "Enable role \"whitelist\""
 					},
 					"done": "Set role limiting - %s"
+				},
+				"levels": {
+					"help": "Manage leveling settings (to view settings - don't select options)",
+					"usage": "levels [enable?] [voice enable?]",
+					"enable": {
+						"name": "enable",
+						"help": "Enable leveling in this server"
+					},
+					"voice_enable": {
+						"name": "voice_enable",
+						"help": "Enable levels for voice activity"
+					},
+					"embed_view": "**Leveling settings**",
+					"embed_changes": "**Updated leveling settings**",
+					"changed_enabled": "\n> Enabled: %s",
+					"changed_voice": "\n> Voice activity xp enabled: %s"
 				}
 			},
 			"module": {
@@ -1660,13 +1720,13 @@
 					},
 					"first_report": {
 						"name": "first_report",
-						"help": "When to send the first report (use 'dd/MM/yyyy' or 'dd/MM/yyyy HH:mm' format)"
+						"help": "When to send the first report (UTC time, 'dd/MM/yyyy' or 'dd/MM/yyyy HH:mm' format)"
 					},
 					"no_roles": "No roles provided (use @Role) or more than 4.",
 					"invalid_role": "Invalid role provided.",
 					"failed_parse": "Failed to parse input date! Use format `day/month/year`.",
 					"wrong_date": "Wrong dates provided (next report date is before now).",
-					"done": "Next report will be sent at %s to %s channel.\nIt will repeat every `%s` days.\nInclude roles: %s"
+					"done": "Next report will be sent at %s **(UTC)** to channel %s.\nIt will repeat every `%s` days.\nInclude roles: %s"
 				},
 				"delete": {
 					"help": "Delete automatic moderation reports creation",
@@ -1773,6 +1833,7 @@
 					"voice": "Voice",
 					"roles": "Roles",
 					"games": "Games",
+					"levels": "Leveling",
 					"other": "Other",
 					"title": "Categories"
 				},
@@ -2402,7 +2463,7 @@
 						"name": "role3",
 						"help": "Select role"
 					},
-					"invalid_args":"You haven't selected any role/-s.",
+					"invalid_args": "You haven't selected any role/-s.",
 					"incorrect_role": "Selected roles can't be added.",
 					"not_whitelisted": "Selected role is not whitelisted! Ask Administrator to add it to the list.",
 					"no_member": "Member not found.",
@@ -2428,7 +2489,7 @@
 						"name": "role3",
 						"help": "Select role"
 					},
-					"invalid_args":"You haven't selected any role/-s.",
+					"invalid_args": "You haven't selected any role/-s.",
 					"incorrect_role": "Selected roles can't be removed.",
 					"not_whitelisted": "Selected role is not whitelisted! Ask Administrator to add it to the list.",
 					"no_member": "Member not found.",
@@ -2615,6 +2676,108 @@
 				"not_member": "Selected user is not a member of this server or can't be selected.",
 				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
 				"done": "User %s received Game strike in %s."
+			}
+		},
+		"level": {
+			"profile": {
+				"help": "Get user profile",
+				"usage": "profile [@User] [id]",
+				"user": {
+					"name": "user",
+					"help": "Target user, by default - you"
+				},
+				"id": {
+					"name": "id",
+					"help": "Background ID"
+				},
+				"bad_user": "Can't select this user.",
+				"failed": "Failed to create background."
+			},
+			"leaderboard": {
+				"help": "View levels leaderboard",
+				"usage": "leaderboard [type]",
+				"type": {
+					"name": "type",
+					"help": "The leaderboard type"
+				},
+				"embed_title": "Server Exp Leaderboards",
+				"top_text": "TOP %s TEXT \uD83D\uDCAC",
+				"top_voice": "TOP %s VOICE \uD83C\uDF99\uFE0F",
+				"empty": "*Empty...*"
+			},
+			"level_roles": {
+				"help": "Manage leveling roles",
+				"set": {
+					"help": "Set role for achieved level",
+					"usage": "set <level> <@Role>",
+					"level": {
+						"name": "level",
+						"help": "At which level to assign those roles"
+					},
+					"role": {
+						"name": "role",
+						"help": "Select role"
+					},
+					"type": {
+						"name": "type",
+						"help": "For which type of level to assign those roles"
+					},
+					"invalid_args": "You haven't selected any role.",
+					"incorrect_role": "Selected role can't be used.",
+					"limit": "Level roles limit reached (max 40)!",
+					"done": "Role %s will be assigned at level `%s`."
+				},
+				"remove": {
+					"help": "Remove roles from level",
+					"usage": "remove <level>",
+					"level": {
+						"name": "level",
+						"help": "Remove role from which level"
+					},
+					"done": "Cleared roles for `%s` level."
+				},
+				"view": {
+					"help": "View all levels",
+					"usage": "view",
+					"empty": "No roles set.",
+					"title": "Level roles"
+				}
+			},
+			"level_exempt": {
+				"help": "Manage exempt channels for leveling",
+				"add": {
+					"help": "Add channel to leveling exemption",
+					"usage": "add <#Channel>",
+					"channel": {
+						"name": "channel",
+						"help": "Select channel"
+					},
+					"invalid_args": "You haven't selected any role.",
+					"limit": "Exempt channels limit reached (max 40)!",
+					"already": "This channel is already exempt.",
+					"done": "Channel %s added to exemption."
+				},
+				"remove": {
+					"help": "Remove channel from leveling exemption",
+					"usage": "remove <#Channel>",
+					"channel": {
+						"name": "channel",
+						"help": "Select channel to remove"
+					},
+					"not_exempt": "This channel is not exempt.",
+					"done": "Channel %s removed from exemption."
+				},
+				"clear": {
+					"help": "Remove all exempt channels",
+					"usage": "clear",
+					"done": "Cleared all channels."
+				},
+				"view": {
+					"help": "View all exemptions",
+					"usage": "view",
+					"empty": "No exemptions set.",
+					"title": "Exempt channels"
+				}
 			}
 		}
 	},

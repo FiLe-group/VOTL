@@ -20,7 +20,8 @@ public enum LogType {
 	MESSAGE("message"),
 	MEMBER("member"),
 	VOICE("voice"),
-	CHANNEL("channel");
+	CHANNEL("channel"),
+	LEVEL("level");
 
 	private final String name;
 	private final String path;

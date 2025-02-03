@@ -4,6 +4,8 @@ import dev.fileeditor.votl.utils.exception.RenderNotReadyYetException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -57,6 +59,37 @@ public abstract class Renderer {
 		byteStream.close();
 
 		return bytes;
+	}
+
+	protected final BufferedImage resizedCircle(BufferedImage image, int size) {
+		return resizedRounded(image, size, size, size);
+	}
+
+	/**
+	 * Resizes and rounds the given buffered image to
+	 * the given height and width.
+	 *
+	 * @param image  The image that should be resized.
+	 * @param height The height that the image should be.
+	 * @param width  The width that the image should be.
+	 * @return The resized and rounded image.
+	 */
+	protected final BufferedImage resizedRounded(BufferedImage image, int height, int width, int radius) {
+		Image scaledInstance = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+
+		BufferedImage rounded = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = rounded.createGraphics();
+
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+		RoundRectangle2D roundRectangle = new RoundRectangle2D.Float(0, 0, width, height, radius, radius);
+		g2d.setClip(roundRectangle);
+
+		g2d.drawImage(scaledInstance, 0, 0, null);
+		g2d.dispose();
+
+		return rounded;
 	}
 
 }

@@ -39,6 +39,15 @@ public class EncodingUtil {
 	}
 
 	/**
+	 * @param guildId Guild ID
+	 * @param userId User ID
+	 * @return Filename 'user_bg-[encoded guildId:userId].png'
+	 */
+	public static String encodeUserBg(final long guildId, final long userId) {
+		return "user_bg-%s.png".formatted(encode(guildId, userId));
+	}
+
+	/**
 	 * Encodes a sequence of values in Base62 encoding.
 	 *
 	 * @param values a Long sequence.

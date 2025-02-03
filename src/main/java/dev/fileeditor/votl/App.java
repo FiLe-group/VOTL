@@ -12,6 +12,10 @@ import dev.fileeditor.votl.base.waiter.EventWaiter;
 import dev.fileeditor.votl.commands.games.GameCmd;
 import dev.fileeditor.votl.commands.games.GameStrikeCmd;
 import dev.fileeditor.votl.commands.guild.*;
+import dev.fileeditor.votl.commands.level.LeaderboardCmd;
+import dev.fileeditor.votl.commands.level.LevelExemptCmd;
+import dev.fileeditor.votl.commands.level.LevelRolesCmd;
+import dev.fileeditor.votl.commands.level.UserProfileCmd;
 import dev.fileeditor.votl.commands.moderation.*;
 import dev.fileeditor.votl.commands.other.*;
 import dev.fileeditor.votl.commands.owner.*;
@@ -33,6 +37,8 @@ import dev.fileeditor.votl.utils.*;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+import dev.fileeditor.votl.utils.imagegen.UserBackgroundHandler;
+import dev.fileeditor.votl.utils.level.LevelUtil;
 import dev.fileeditor.votl.utils.logs.GuildLogger;
 import dev.fileeditor.votl.utils.logs.LogEmbedUtil;
 import dev.fileeditor.votl.utils.message.EmbedUtil;
@@ -59,7 +65,7 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 public class App {
 	protected static App instance;
 	
-	private final Logger logger = (Logger) LoggerFactory.getLogger(App.class);
+	private final Logger log = (Logger) LoggerFactory.getLogger(App.class);
 
 	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
 
@@ -80,8 +86,7 @@ public class App {
 	private final TicketUtil ticketUtil;
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
-
-	private final MessageListener messageListener;
+	private final LevelUtil levelUtil;
 
 	@SuppressWarnings("BusyWait")
 	public App() {
@@ -90,6 +95,7 @@ public class App {
 		try {
 			fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "config.json")
 				.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
+				.addFileUpdate("backgrounds", "/backgrounds/index.json", Constants.DATA_PATH+"backgrounds"+Constants.SEPAR+"main.json")
 				.addLang("en-GB")
 				.addLang("ru");
 		} catch (Exception ex) {
@@ -107,6 +113,7 @@ public class App {
 		checkUtil	= new CheckUtil(this, ownerId);
 		ticketUtil	= new TicketUtil(this);
 		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
+		levelUtil	= new LevelUtil(this);
 
 		logEmbedUtil	= new LogEmbedUtil();
 		guildLogger		= new GuildLogger();
@@ -116,18 +123,18 @@ public class App {
 		CommandListener commandListener = new CommandListener(localeUtil);
 		InteractionListener interactionListener = new InteractionListener(this, WAITER);
 
+		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
+
 		GuildListener guildListener = new GuildListener(this);
-		VoiceListener voiceListener = new VoiceListener(this);
+		VoiceListener voiceListener = new VoiceListener(this, scheduledExecutor);
 		ModerationListener moderationListener = new ModerationListener(this);
 		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
 		MemberListener memberListener = new MemberListener(this);
-		messageListener = new MessageListener(this);
+		MessageListener messageListener = new MessageListener(this);
 
-		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
 		ScheduledCheck scheduledCheck = new ScheduledCheck(this);
-
-		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 5, TimeUnit.MINUTES);
-		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 15, TimeUnit.MINUTES);
+		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 3, TimeUnit.MINUTES);
+		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 10, TimeUnit.MINUTES);
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()
@@ -175,6 +182,7 @@ public class App {
 				new SetStatusCmd(),
 				new CheckAccessCmd(),
 				new BotBlacklist(),
+				new ExperienceCmd(),
 				// role
 				new RoleCmd(),
 				new TempRoleCmd(),
@@ -191,7 +199,7 @@ public class App {
 				new RolesManageCmd(),
 				new RolesPanelCmd(),
 				new TicketCountCmd(),
-				new TicketPanelCmd(),
+				new TicketCmd(),
 				// verification
 				new VerifyPanelCmd(),
 				new VerifyRoleCmd(),
@@ -201,7 +209,12 @@ public class App {
 				new WebhookCmd(),
 				// game
 				new GameCmd(),
-				new GameStrikeCmd()
+				new GameStrikeCmd(),
+				// level
+				new UserProfileCmd(),
+				new LeaderboardCmd(),
+				new LevelRolesCmd(),
+				new LevelExemptCmd()
 			)
 			.addContextMenus(
 				new ReportMenu(),
@@ -241,7 +254,7 @@ public class App {
 
 		JDABuilder mainBuilder = JDABuilder.create(fileManager.getString("config", "bot-token"), intents)
 			.setMemberCachePolicy(MemberCachePolicy.ALL)	// cache all members
-			.setChunkingFilter(ChunkingFilter.NONE)			// disable chunking
+			.setChunkingFilter(ChunkingFilter.ALL)			// enable chunking
 			.enableCache(enabledCacheFlags)
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
@@ -261,20 +274,20 @@ public class App {
 				tempJda = mainBuilder.build();
 				break;
 			} catch (IllegalArgumentException | InvalidTokenException ex) {
-				logger.error("Login failed due to Token", ex);
+				log.error("Login failed due to Token", ex);
 				System.exit(0);
 			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits
 				if (retries > 0) {
 					retries--;
-					logger.info("Retrying connecting in {} seconds... {} more attempts", cooldown, retries);
+					log.info("Retrying connecting in {} seconds... {} more attempts", cooldown, retries);
 					try {
 						Thread.sleep(cooldown*1000L);
 					} catch (InterruptedException e) {
-						logger.error("Thread sleep interrupted", e);
+						log.error("Thread sleep interrupted", e);
 					}
 					cooldown*=2;
 				} else {
-					logger.error("No network connection or couldn't connect to DNS", ex);
+					log.error("No network connection or couldn't connect to DNS", ex);
 					System.exit(0);
 				}
 			}
@@ -284,7 +297,14 @@ public class App {
 
 		createWebhookAppender();
 
-		instance.logger.info("Success start");
+		log.info("Creating user backgrounds...");
+		try {
+			UserBackgroundHandler.getInstance().start();
+		} catch (Throwable ex) {
+			log.error("Error starting background handler", ex);
+		}
+
+		log.info("Success start");
 	}
 
 	public static App getInstance() {
@@ -296,7 +316,7 @@ public class App {
 	}
 
 	public Logger getAppLogger() {
-		return logger;
+		return log;
 	}
 
 	public FileManager getFileManager() {
@@ -343,8 +363,12 @@ public class App {
 		return moderationUtil;
 	}
 
+	public LevelUtil getLevelUtil() {
+		return levelUtil;
+	}
+
 	public void shutdownUtils() {
-		messageListener.shutdown();
+		// ignore
 	}
 
 	private void createWebhookAppender() {

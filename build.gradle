@@ -20,7 +20,7 @@ repositories {
 dependencies {
 	// JDA library and additions
 	// https://mvnrepository.com/artifact/net.dv8tion/JDA
-	implementation('net.dv8tion:JDA:5.2.2') {						// JDA library
+	implementation('net.dv8tion:JDA:5.2.3') {						// JDA library
 		exclude module: 'opus-java'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
@@ -37,10 +37,12 @@ dependencies {
 	implementation 'io.github.java-diff-utils:java-diff-utils:4.15'	// Diff finder
 	// https://mvnrepository.com/artifact/org.json/json
 	implementation 'org.json:json:20250107'							// JsonObject
+	// https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.0'	// Cache
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
-	implementation 'org.apache.groovy:groovy:4.0.24'				// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:4.0.25'				// Groovy - code evaluation
 }
 
 java {
@@ -65,6 +67,10 @@ shadowJar {
 		archiveVersion.set("${version}-SNAPSHOT-${project.property('runId')}")
 	} else {
 		archiveVersion.set(version)
+	}
+	minimize {
+		exclude(dependency('ch.qos.logback:logback-classic:.*'))
+		exclude(dependency('org.xerial:sqlite-jdbc:.*'))
 	}
 }
 

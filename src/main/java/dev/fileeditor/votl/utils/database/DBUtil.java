@@ -32,7 +32,7 @@ public class DBUtil {
 	private final FileManager fileManager;
 	private final ConnectionUtil connectionUtil;
 	
-	protected final Logger logger = (Logger) LoggerFactory.getLogger(DBUtil.class);
+	protected final Logger log = (Logger) LoggerFactory.getLogger(DBUtil.class);
 
 	public final GuildSettingsManager guildSettings;
 	public final GuildVoiceManager guildVoice;
@@ -58,12 +58,14 @@ public class DBUtil {
 	public final GameStrikeManager games;
 	public final PersistentManager persistent;
 	public final ModReportManager modReport;
+	public final LevelManager levels;
+	public final LevelRolesManager levelRoles;
 
 	public final BotBlacklistManager botBlacklist;
 
 	public DBUtil(FileManager fileManager) {
 		this.fileManager = fileManager;
-		this.connectionUtil = new ConnectionUtil("jdbc:sqlite:"+fileManager.getFiles().get("database"), logger);
+		this.connectionUtil = new ConnectionUtil("jdbc:sqlite:"+fileManager.getFiles().get("database"), log);
 
 		updateDB();
 		
@@ -91,6 +93,8 @@ public class DBUtil {
 		games = new GameStrikeManager(connectionUtil);
 		persistent = new PersistentManager(connectionUtil);
 		modReport = new ModReportManager(connectionUtil);
+		levels = new LevelManager(connectionUtil);
+		levelRoles = new LevelRolesManager(connectionUtil);
 
 		botBlacklist = new BotBlacklistManager(connectionUtil);
 	}
@@ -129,7 +133,7 @@ public class DBUtil {
 			PreparedStatement st = conn.prepareStatement("PRAGMA user_version")) {
 			version = st.executeQuery().getInt(1);
 		} catch(SQLException ex) {
-			logger.warn("SQLite: Failed to get active database version", ex);
+			log.warn("SQLite: Failed to get active database version", ex);
 		}
 		return version;
 	}
@@ -139,19 +143,19 @@ public class DBUtil {
 		try {
 			File tempFile = File.createTempFile("local-", ".tmp");
 			if (!fileManager.export(getClass().getResourceAsStream("/server.db"), tempFile.toPath())) {
-				logger.error("Failed to write temp file {}!", tempFile.getName());
+				log.error("Failed to write temp file {}!", tempFile.getName());
 				return version;
 			} else {
 				try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + tempFile.getAbsolutePath());
 				PreparedStatement st = conn.prepareStatement("PRAGMA user_version")) {
 					version = st.executeQuery().getInt(1);
 				} catch(SQLException ex) {
-					logger.warn("Failed to get resources database version", ex);
+					log.warn("Failed to get resources database version", ex);
 				}
 			}
 			boolean ignored = tempFile.delete();
 		} catch (IOException ioException) {
-			logger.error("Exception at version check\n", ioException);
+			log.error("Exception at version check\n", ioException);
 		}
 		return version;
 	}
@@ -161,12 +165,12 @@ public class DBUtil {
 		try {
 			File tempFile = File.createTempFile("database_updates", ".tmp");
 			if (!fileManager.export(App.class.getResourceAsStream("/database_updates"), tempFile.toPath())) {
-				logger.error("Failed to write temp file {}!", tempFile.getName());
+				log.error("Failed to write instruction temp file {}!", tempFile.getName());
 			} else {
 				lines = Files.readAllLines(tempFile.toPath(), StandardCharsets.UTF_8);
 			}
 		} catch (Exception ex) {
-			logger.error("SQLite: Failed to read update file", ex);
+			log.error("SQLite: Failed to read update file", ex);
 		}
 		lines = lines.subList(activeVersion - 1, lines.size());
 		List<List<String>> result = new ArrayList<>();
@@ -190,12 +194,12 @@ public class DBUtil {
 			Statement st = conn.createStatement()) {
 				for (List<String> version : loadInstructions(activeVersion)) {
 					for (String sql : version) {
-						logger.debug(sql);
+						log.debug(sql);
 						st.execute(sql);
 					}
 				}
 			} catch(SQLException ex) {
-				logger.error("SQLite: Failed to execute update!\nPerform database update manually or delete it.\n{}", ex.getMessage());
+				log.error("SQLite: Failed to execute update!\nPerform database update manually or delete it.\n{}", ex.getMessage());
 				return;
 			}
 			
@@ -203,9 +207,9 @@ public class DBUtil {
 			try (Connection conn = DriverManager.getConnection(connectionUtil.getUrlSQLite());
 			Statement st = conn.createStatement()) {
 				st.execute("PRAGMA user_version = "+newVersion);
-				logger.info("SQLite: Database version updated to {}", newVersion);
+				log.info("SQLite: Database version updated to {}", newVersion);
 			} catch(SQLException ex) {
-				logger.error("SQLite: Failed to set active database version", ex);
+				log.error("SQLite: Failed to set active database version", ex);
 			}
 		}
 	}

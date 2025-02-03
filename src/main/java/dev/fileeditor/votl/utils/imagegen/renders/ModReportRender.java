@@ -11,13 +11,13 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.time.Instant;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ModReportRender extends Renderer {
 
-	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault());
+	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneOffset.UTC);
 
 	private final DiscordLocale locale;
 	private final LocaleUtil lu;
@@ -45,10 +45,8 @@ public class ModReportRender extends Renderer {
 
 	@Override
 	protected BufferedImage handleRender() {
-		// Filter unusable entries
-		final int dataSize = (int) reportData.stream()
-			.filter(d -> !d.getMember().getUser().isBot() && d.getCountTotalInt()>0)
-			.count();
+		final int dataSize = reportData.size();
+
 		final int WIDTH = 900;
 		final int HEIGHT = 200+(dataSize*50);
 		// Create image
@@ -106,8 +104,6 @@ public class ModReportRender extends Renderer {
 		Font plain = Fonts.Roboto.regular.deriveFont(Font.PLAIN, 20F);
 
 		for (ReportData data : reportData) {
-			// Ignore bots and with 0 value
-			if (data.skip()) continue;
 			x = startingX;
 			g.setFont(username);
 			g.drawString(MessageUtil.limitString(data.getMember().getEffectiveName(), 32), x, y-6); // Username

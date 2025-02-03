@@ -56,7 +56,7 @@ public class PurgeCmd extends CommandBase {
 					return;
 				}
 
-				deleteMessages(event.getChannel().asGuildMessageChannel(), messages).queue(avoid -> {
+				deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(avoid -> {
 					// Log
 					bot.getLogger().mod.onMessagePurge(event.getUser(), null, toDelete, event.getGuildChannel());
 					// Reply
@@ -75,7 +75,7 @@ public class PurgeCmd extends CommandBase {
 				return;
 			}
 
-			deleteMessages(event.getChannel().asGuildMessageChannel(), messages).queue(avoid -> {
+			deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(avoid -> {
 				// Log
 				bot.getLogger().mod.onMessagePurge(event.getUser(), target, toDelete, event.getGuildChannel());
 				// Reply
@@ -128,9 +128,9 @@ public class PurgeCmd extends CommandBase {
 		});
 	}
 
-	private RestAction<Void> deleteMessages(GuildMessageChannel channel, List<Message> messages) {
+	private RestAction<Void> deleteMessages(GuildMessageChannel channel, List<Message> messages, String modName) {
 		if (messages.size() == 1) {
-			return messages.getFirst().delete();
+			return messages.getFirst().delete().reason("By "+modName);
 		}
 		return channel.deleteMessages(messages);
 	}

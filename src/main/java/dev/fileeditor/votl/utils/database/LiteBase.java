@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+@SuppressWarnings("SqlSourceToSinkFlow")
 public class LiteBase {
 
 	private final ConnectionUtil util;
@@ -29,7 +30,6 @@ public class LiteBase {
 	 * @param sql SQL statement to execute
 	 * @return true if exception
 	 */
-	// Execute statement
 	protected boolean execute(final String sql) {
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());

@@ -3,31 +3,36 @@ package dev.fileeditor.votl.listeners;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import ch.qos.logback.classic.Logger;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.CastUtil;
 
-import dev.fileeditor.votl.utils.FixedExpirableCache;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogOption;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
 
 public class MessageListener extends ListenerAdapter {
 
+	private final Logger log = (Logger) LoggerFactory.getLogger(MessageListener.class);
+
 	// Cache
-	private final FixedExpirableCache<Long, MessageData> cache = new FixedExpirableCache<>(Constants.DEFAULT_CACHE_SIZE*60, 5*24*3600); // store for max 5 days
+	private final Cache<Long, MessageData> cache = Caffeine.newBuilder()
+		.expireAfterWrite(5, TimeUnit.DAYS)
+		.maximumSize(5000)
+		.build();
 
 	private final App bot;
 	
@@ -40,12 +45,25 @@ public class MessageListener extends ListenerAdapter {
 		if (event.getAuthor().isBot() || !event.isFromGuild()) return; //ignore bots and Private messages
 		
 		// cache message if not exception channel
-		final Guild guild = event.getGuild();
-		if (bot.getDBUtil().getLogSettings(event.getGuild()).enabled(LogType.MESSAGE)
-			&& !bot.getDBUtil().logExceptions.isException(guild.getIdLong(), event.getChannel().getIdLong()))
-		{
-			cache.put(event.getMessageIdLong(), new MessageData(event.getMessage()));
+		final long guildId = event.getGuild().getIdLong();
+		if (bot.getDBUtil().getLogSettings(event.getGuild()).enabled(LogType.MESSAGE)) {
+			// check channel
+			if (!bot.getDBUtil().logExceptions.isException(guildId, event.getChannel().getIdLong())) {
+				// check category
+				long categoryId = switch (event.getChannelType()) {
+					case TEXT, VOICE, STAGE, NEWS -> event.getGuildChannel().asStandardGuildChannel().getParentCategoryIdLong();
+					case GUILD_PUBLIC_THREAD, GUILD_NEWS_THREAD -> event.getChannel().asThreadChannel().getParentChannel()
+						.asStandardGuildChannel().getParentCategoryIdLong();
+					default -> 0;
+				};
+				if (categoryId == 0 || bot.getDBUtil().logExceptions.isException(guildId, categoryId)) {
+					cache.put(event.getMessageIdLong(), new MessageData(event.getMessage()));
+				}
+			}
 		}
+
+		// reward player
+		bot.getLevelUtil().rewardMessagePlayer(event);
 	}
 
 	
@@ -55,16 +73,21 @@ public class MessageListener extends ListenerAdapter {
 		if (!bot.getDBUtil().getLogSettings(event.getGuild()).enabled(LogType.MESSAGE)) return;
 
 		final long guildId = event.getGuild().getIdLong();
+		// check channel
 		if (bot.getDBUtil().logExceptions.isException(guildId, event.getChannel().getIdLong())) return;
-		if (event.getChannel().getType().equals(ChannelType.TEXT)) {
-			Category parentCategory = event.getChannel().asTextChannel().getParentCategory();
-			if (parentCategory != null) {
-				if (bot.getDBUtil().logExceptions.isException(guildId, parentCategory.getIdLong())) return;
-			}
+		// check category
+		long categoryId = switch (event.getChannelType()) {
+			case TEXT, VOICE, STAGE, NEWS -> event.getGuildChannel().asStandardGuildChannel().getParentCategoryIdLong();
+			case GUILD_PUBLIC_THREAD, GUILD_NEWS_THREAD -> event.getChannel().asThreadChannel().getParentChannel()
+				.asStandardGuildChannel().getParentCategoryIdLong();
+			default -> 0;
+		};
+		if (categoryId != 0 && bot.getDBUtil().logExceptions.isException(guildId, categoryId)) {
+			return;
 		}
 		
 		final long messageId = event.getMessageIdLong();
-		MessageData oldData = cache.get(messageId);
+		MessageData oldData = cache.getIfPresent(messageId);
 		MessageData newData = new MessageData(event.getMessage());
 		cache.put(event.getMessageIdLong(), newData);
 
@@ -78,16 +101,21 @@ public class MessageListener extends ListenerAdapter {
 
 		final long messageId = event.getMessageIdLong();
 
-		MessageData data = cache.get(messageId);
-		if (data != null) cache.pull(messageId);
+		MessageData data = cache.getIfPresent(messageId);
+		if (data != null) cache.invalidate(messageId);
 
 		final long guildId = event.getGuild().getIdLong();
+		// check channel
 		if (bot.getDBUtil().logExceptions.isException(guildId, event.getChannel().getIdLong())) return;
-		if (event.getChannel().getType().equals(ChannelType.TEXT)) {
-			Category parentCategory = event.getChannel().asTextChannel().getParentCategory();
-			if (parentCategory != null) {
-				if (bot.getDBUtil().logExceptions.isException(guildId, parentCategory.getIdLong())) return;
-			}
+		// check category
+		long categoryId = switch (event.getChannelType()) {
+			case TEXT, VOICE, STAGE, NEWS -> event.getGuildChannel().asStandardGuildChannel().getParentCategoryIdLong();
+			case GUILD_PUBLIC_THREAD, GUILD_NEWS_THREAD -> event.getChannel().asThreadChannel().getParentChannel()
+				.asStandardGuildChannel().getParentCategoryIdLong();
+			default -> 0;
+		};
+		if (categoryId != 0 && bot.getDBUtil().logExceptions.isException(guildId, categoryId)) {
+			return;
 		}
 
 		event.getGuild().retrieveAuditLogs()
@@ -96,7 +124,7 @@ public class MessageListener extends ListenerAdapter {
 			.queue(list -> {
 				if (!list.isEmpty() && data != null) {
 					AuditLogEntry entry = list.getFirst();
-					if (entry.getTargetIdLong() == data.getAuthorId() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
+					if (entry.getTargetIdLong() == data.getAuthorId() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(10))) {
 						bot.getLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, entry.getUserIdLong());
 						return;
 					}
@@ -104,7 +132,7 @@ public class MessageListener extends ListenerAdapter {
 				bot.getLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, null);
 			},
 			failure -> {
-				bot.getAppLogger().warn("Failed to queue audit log for message deletion.", failure);
+				log.warn("Failed to queue audit log for message deletion.", failure);
 				bot.getLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, null);
 			});
 	}
@@ -117,11 +145,9 @@ public class MessageListener extends ListenerAdapter {
 		if (messageIds.isEmpty()) return;
 
 		List<MessageData> messages = new ArrayList<>();
-		messageIds.forEach(id -> {
-			if (cache.contains(id)) {
-				messages.add(cache.get(id));
-				cache.pull(id);
-			}
+		cache.getAllPresent(messageIds).forEach((k, v) -> {
+			messages.add(v);
+			cache.invalidate(k);
 		});
 		event.getGuild().retrieveAuditLogs()
 			.type(ActionType.MESSAGE_BULK_DELETE)
@@ -132,16 +158,12 @@ public class MessageListener extends ListenerAdapter {
 				} else {
 					AuditLogEntry entry = list.getFirst();
 					String count = entry.getOption(AuditLogOption.COUNT);
-					if (entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15)))
+					if (entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(10)))
 						bot.getLogger().message.onMessageBulkDelete(event.getChannel(), count, messages, entry.getUserIdLong());
 					else
 						bot.getLogger().message.onMessageBulkDelete(event.getChannel(), count, messages, null);
 				}
 			});
-	}
-
-	public void shutdown() {
-		cache.shutdown();
 	}
 
 }
