@@ -95,6 +95,7 @@ public class App {
 		try {
 			fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "config.json")
 				.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
+				.addFileUpdate("backgrounds", "/backgrounds/index.json", Constants.DATA_PATH+"backgrounds"+Constants.SEPAR+"main.json")
 				.addLang("en-GB")
 				.addLang("ru");
 		} catch (Exception ex) {
