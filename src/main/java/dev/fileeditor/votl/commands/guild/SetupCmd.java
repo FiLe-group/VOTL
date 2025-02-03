@@ -505,7 +505,7 @@ public class SetupCmd extends CommandBase {
 				if (event.hasOption("voice_enable")) {
 					final boolean enabled = event.optBoolean("voice_enable");
 
-					if (bot.getDBUtil().levels.setEnabledVoice(event.getGuild().getIdLong(), enabled)) {
+					if (bot.getDBUtil().levels.setVoiceEnabled(event.getGuild().getIdLong(), enabled)) {
 						editErrorDatabase(event, "leveling settings set voice enabled");
 						return;
 					}

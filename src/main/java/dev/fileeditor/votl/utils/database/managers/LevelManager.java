@@ -54,7 +54,7 @@ public class LevelManager extends LiteBase {
 	}
 
 	private Map<String, Object> getSettingsData(long guildId) {
-		return selectOne("SELECT * FROM %s WHERE (guildId=%d)".formatted(TABLE_SETTINGS, guildId), Set.of("enabled", "exemptChannels", "enabledVoice"));
+		return selectOne("SELECT * FROM %s WHERE (guildId=%d)".formatted(TABLE_SETTINGS, guildId), Set.of("enabled", "exemptChannels", "voiceEnabled"));
 	}
 
 	public void remove(long guildId) {
@@ -72,9 +72,9 @@ public class LevelManager extends LiteBase {
 		return execute("INSERT INTO %s(guildId, exemptChannels) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET exemptChannels=%<s".formatted(TABLE_SETTINGS, guildId, quote(channelIds)));
 	}
 
-	public boolean setEnabledVoice(long guildId, boolean enabled) {
+	public boolean setVoiceEnabled(long guildId, boolean enabled) {
 		invalidateSettings(guildId);
-		return execute("INSERT INTO %s(guildId, enabledVoice) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET enabledVoice=%<d".formatted(TABLE_SETTINGS, guildId, enabled?1:0));
+		return execute("INSERT INTO %s(guildId, voiceEnabled) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET voiceEnabled=%<d".formatted(TABLE_SETTINGS, guildId, enabled?1:0));
 	}
 
 	public void invalidateSettings(long guildId) {
@@ -193,13 +193,13 @@ public class LevelManager extends LiteBase {
 	}
 
 	public static class LevelSettings {
-		private final boolean enabled, enabledVoice;
+		private final boolean enabled, voiceEnabled;
 		private final Set<Long> exemptChannels;
 
 		public LevelSettings() {
 			this.enabled = false;
 			this.exemptChannels = Set.of();
-			this.enabledVoice = true;
+			this.voiceEnabled = true;
 		}
 
 		public LevelSettings(Map<String, Object> data) {
@@ -211,7 +211,7 @@ public class LevelManager extends LiteBase {
 					.collect(Collectors.toSet()),
 				Set.of()
 			);
-			this.enabledVoice = (int) requireNonNull(data.get("enabledVoice"))==1;
+			this.voiceEnabled = (int) requireNonNull(data.get("voiceEnabled"))==1;
 		}
 
 		public boolean isEnabled() {
@@ -227,7 +227,7 @@ public class LevelManager extends LiteBase {
 		}
 
 		public boolean isVoiceEnabled() {
-			return enabled && enabledVoice;
+			return enabled && voiceEnabled;
 		}
 	}
 
@@ -303,7 +303,7 @@ public class LevelManager extends LiteBase {
 		}
 	}
 
-	public class TopInfo {
+	public static class TopInfo {
 		private final Map<Integer, TopUser> textTop = new HashMap<>();
 		private final Map<Integer, TopUser> voiceTop = new HashMap<>();
 
