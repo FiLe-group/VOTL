@@ -66,7 +66,7 @@ public class LevelExemptCmd extends CommandBase {
 			channels.add(channel.getIdLong());
 			String channelIds = channels.stream().map(String::valueOf).collect(Collectors.joining(";"));
 
-			if (!bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), channelIds)) {
+			if (bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), channelIds)) {
 				editErrorDatabase(event, "set level exempt channels");
 				return;
 			}
@@ -93,7 +93,7 @@ public class LevelExemptCmd extends CommandBase {
 			GuildChannel channel = null;
 			long channelId;
 			try {
-				channel = event.optMentions("channel").getChannels().get(0);
+				channel = event.optMentions("channel").getChannels().getFirst();
 				channelId = channel.getIdLong();
 			} catch (Exception ex) {
 				try {
@@ -114,7 +114,7 @@ public class LevelExemptCmd extends CommandBase {
 			channels.remove(channelId);
 			String channelIds = channels.stream().map(String::valueOf).collect(Collectors.joining(";"));
 
-			if (!bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), channelIds)) {
+			if (bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), channelIds)) {
 				editErrorDatabase(event, "set level exempt channels");
 				return;
 			}
@@ -135,7 +135,7 @@ public class LevelExemptCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
 
-			if (!bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), null)) {
+			if (bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), null)) {
 				editErrorDatabase(event, "clear level exempt channels");
 				return;
 			}

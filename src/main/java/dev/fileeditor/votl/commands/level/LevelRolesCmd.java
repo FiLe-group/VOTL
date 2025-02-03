@@ -69,7 +69,7 @@ public class LevelRolesCmd extends CommandBase {
 
 			int typeValue = event.optInteger("type", 0);
 			ExpType type = ExpType.values()[typeValue];
-			if (!bot.getDBUtil().levelRoles.add(event.getGuild().getIdLong(), level, role.getId(), true, type)) {
+			if (bot.getDBUtil().levelRoles.add(event.getGuild().getIdLong(), level, role.getId(), true, type)) {
 				editErrorDatabase(event, "level roles set");
 				return;
 			}
@@ -101,7 +101,7 @@ public class LevelRolesCmd extends CommandBase {
 				return;
 			}
 
-			if (!bot.getDBUtil().levelRoles.remove(event.getGuild().getIdLong(), level)) {
+			if (bot.getDBUtil().levelRoles.remove(event.getGuild().getIdLong(), level)) {
 				editErrorDatabase(event, "level roles remove");
 				return;
 			}
