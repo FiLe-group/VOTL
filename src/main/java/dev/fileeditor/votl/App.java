@@ -59,7 +59,7 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 public class App {
 	protected static App instance;
 	
-	private final Logger logger = (Logger) LoggerFactory.getLogger(App.class);
+	private final Logger log = (Logger) LoggerFactory.getLogger(App.class);
 
 	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
 
@@ -126,8 +126,8 @@ public class App {
 		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
 		ScheduledCheck scheduledCheck = new ScheduledCheck(this);
 
-		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 5, TimeUnit.MINUTES);
-		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 15, TimeUnit.MINUTES);
+		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 3, TimeUnit.MINUTES);
+		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 10, TimeUnit.MINUTES);
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()
@@ -241,7 +241,7 @@ public class App {
 
 		JDABuilder mainBuilder = JDABuilder.create(fileManager.getString("config", "bot-token"), intents)
 			.setMemberCachePolicy(MemberCachePolicy.ALL)	// cache all members
-			.setChunkingFilter(ChunkingFilter.NONE)			// disable chunking
+			.setChunkingFilter(ChunkingFilter.ALL)			// enable chunking
 			.enableCache(enabledCacheFlags)
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
@@ -261,20 +261,20 @@ public class App {
 				tempJda = mainBuilder.build();
 				break;
 			} catch (IllegalArgumentException | InvalidTokenException ex) {
-				logger.error("Login failed due to Token", ex);
+				log.error("Login failed due to Token", ex);
 				System.exit(0);
 			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits
 				if (retries > 0) {
 					retries--;
-					logger.info("Retrying connecting in {} seconds... {} more attempts", cooldown, retries);
+					log.info("Retrying connecting in {} seconds... {} more attempts", cooldown, retries);
 					try {
 						Thread.sleep(cooldown*1000L);
 					} catch (InterruptedException e) {
-						logger.error("Thread sleep interrupted", e);
+						log.error("Thread sleep interrupted", e);
 					}
 					cooldown*=2;
 				} else {
-					logger.error("No network connection or couldn't connect to DNS", ex);
+					log.error("No network connection or couldn't connect to DNS", ex);
 					System.exit(0);
 				}
 			}
@@ -284,7 +284,7 @@ public class App {
 
 		createWebhookAppender();
 
-		instance.logger.info("Success start");
+		log.info("Success start");
 	}
 
 	public static App getInstance() {
@@ -296,7 +296,7 @@ public class App {
 	}
 
 	public Logger getAppLogger() {
-		return logger;
+		return log;
 	}
 
 	public FileManager getFileManager() {

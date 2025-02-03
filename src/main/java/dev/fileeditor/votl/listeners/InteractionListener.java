@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
@@ -73,14 +74,18 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.LoggerFactory;
 
 public class InteractionListener extends ListenerAdapter {
-	
+
+	private final Logger log = (Logger) LoggerFactory.getLogger(InteractionListener.class);
+
 	private final App bot;
 	private final LocaleUtil lu;
 	private final DBUtil db;
 	private final EventWaiter waiter;
 
+	private final Set<Permission> adminPerms = Set.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES, Permission.MANAGE_WEBHOOKS);
 	private final int MAX_GROUP_SELECT = 1;
 
 	public InteractionListener(App bot, EventWaiter waiter) {
@@ -98,6 +103,10 @@ public class InteractionListener extends ListenerAdapter {
 		}
 	}
 
+	public void sendErrorLive(IReplyCallback event, String path) {
+		event.replyEmbeds(bot.getEmbedUtil().getError(event, path)).setEphemeral(true).queue();
+	}
+
 	public void sendError(IReplyCallback event, String path) {
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getError(event, path)).setEphemeral(true).queue();
 	}
@@ -112,6 +121,9 @@ public class InteractionListener extends ListenerAdapter {
 
 	// Check for cooldown parameters, if exists - check if cooldown active, else apply it
 	private void runButtonInteraction(ButtonInteractionEvent event, @Nullable Cooldown cooldown, @NotNull Runnable function) {
+		// Acknowledge interaction
+		event.deferEdit().queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
+
 		if (cooldown != null) {
 			String key = getCooldownKey(cooldown, event);
 			int remaining = bot.getClient().getRemainingCooldown(key);
@@ -129,9 +141,6 @@ public class InteractionListener extends ListenerAdapter {
 	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
 		// Check if blacklisted
 		if (bot.getCheckUtil().isBlacklisted(event.getUser())) return;
-
-		// Acknowledge interaction
-		event.deferEdit().queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
 
 		String[] actions = event.getComponentId().split(":");
 
@@ -161,12 +170,12 @@ public class InteractionListener extends ListenerAdapter {
 				case "delete" -> runButtonInteraction(event, Cooldown.BUTTON_REPORT_DELETE, () -> buttonReportDelete(event));
 				case "voice" -> {
 					if (!event.getMember().getVoiceState().inAudioChannel()) {
-						sendError(event, "bot.voice.listener.not_in_voice");
+						sendErrorLive(event, "bot.voice.listener.not_in_voice");
 						return;
 					}
 					Long channelId = db.voice.getChannel(event.getUser().getIdLong());
 					if (channelId == null) {
-						sendError(event, "errors.no_channel");
+						sendErrorLive(event, "errors.no_channel");
 						return;
 					}
 					VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
@@ -188,12 +197,12 @@ public class InteractionListener extends ListenerAdapter {
 				case "sync_kick" -> runButtonInteraction(event, Cooldown.BUTTON_SYNC_ACTION, () -> buttonSyncKick(event));
 				case "strikes" -> runButtonInteraction(event, Cooldown.BUTTON_SHOW_STRIKES, () -> buttonShowStrikes(event));
 				case "manage-confirm" -> runButtonInteraction(event, Cooldown.BUTTON_MODIFY_CONFIRM, () -> buttonModifyConfirm(event));
-				default -> bot.getAppLogger().warn("Unknown button interaction: {}", event.getComponentId());
+				default -> log.debug("Unknown button interaction: {}", event.getComponentId());
 			}
 		} catch (Throwable t) {
 			// Logs throwable and tries to respond to the user with the error
 			// Thrown errors are not user's error, but code's fault as such things should be caught earlier and replied properly
-			bot.getAppLogger().error("ButtonInteraction Exception", t);
+			log.error("ButtonInteraction Exception", t);
 			bot.getEmbedUtil().sendUnknownError(event.getHook(), event.getUserLocale(), t.getMessage());
 		}
 	}
@@ -234,7 +243,7 @@ public class InteractionListener extends ListenerAdapter {
 				success -> event.getHook().sendMessage(Constants.SUCCESS).setEphemeral(true).queue(),
 				failure -> {
 					sendError(event, "bot.verification.failed_role");
-					bot.getAppLogger().warn("Was unable to add verify role to user in {}({})", guild.getName(), guild.getId(), failure);
+					log.warn("Was unable to add verify role to user in {}({})", guild.getName(), guild.getId(), failure);
 				}
 			);
 		} else {
@@ -252,7 +261,7 @@ public class InteractionListener extends ListenerAdapter {
 				success -> event.getHook().sendMessage(Constants.SUCCESS).setEphemeral(true).queue(),
 				failure -> {
 					sendError(event, "bot.verification.failed_role");
-					bot.getAppLogger().warn("Was unable to add roles to user in {}({})", guild.getName(), guild.getId(), failure);
+					log.warn("Was unable to add roles to user in {}({})", guild.getName(), guild.getId(), failure);
 				}
 			);
 		}
@@ -643,7 +652,7 @@ public class InteractionListener extends ListenerAdapter {
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason,
 				new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)
 					.andThen(t -> {
-						bot.getAppLogger().error("Couldn't close ticket with channelID '{}'", channelId, t);
+						log.error("Couldn't close ticket with channelID '{}'", channelId, t);
 						msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed", t.getMessage())).queue();
 					})
 			);
@@ -929,7 +938,7 @@ public class InteractionListener extends ListenerAdapter {
 			overrides.remove(vc.getPermissionOverride(guild.getBotRole())); // removes bot's role
 			overrides.remove(vc.getPermissionOverride(guild.getPublicRole())); // removes @everyone role
 		} catch (NullPointerException ex) {
-			bot.getAppLogger().warn("PermsCmd null pointer at role override remove");
+			log.warn("PermsCmd null pointer at role override remove");
 		}
 
 		if (overrides.isEmpty()) {
@@ -950,7 +959,7 @@ public class InteractionListener extends ListenerAdapter {
 			overrides.remove(vc.getPermissionOverride(event.getMember())); // removes user
 			overrides.remove(vc.getPermissionOverride(guild.getSelfMember())); // removes bot
 		} catch (NullPointerException ex) {
-			bot.getAppLogger().warn("PermsCmd null pointer at member override remove");
+			log.warn("PermsCmd null pointer at member override remove");
 		}
 
 		EmbedBuilder embedBuilder2 = embedBuilder;
@@ -1503,12 +1512,10 @@ public class InteractionListener extends ListenerAdapter {
 		} catch(Throwable t) {
 			// Log throwable and try to respond to the user with the error
 			// Thrown errors are not user's error, but code's fault as such things should be caught earlier and replied properly
-			bot.getAppLogger().error("Role modify Exception", t);
+			log.error("Role modify Exception", t);
 			bot.getEmbedUtil().sendUnknownError(event.getHook(), event.getUserLocale(), t.getMessage());
 		}
 	}
-
-	private final Set<Permission> adminPerms = Set.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES);
 
 	@Override
 	public void onEntitySelectInteraction(@NotNull EntitySelectInteractionEvent event) {

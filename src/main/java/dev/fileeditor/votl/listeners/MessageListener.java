@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogType;
@@ -23,8 +24,11 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
 
 public class MessageListener extends ListenerAdapter {
+
+	private final Logger log = (Logger) LoggerFactory.getLogger(MessageListener.class);
 
 	// Cache
 	private final FixedExpirableCache<Long, MessageData> cache = new FixedExpirableCache<>(Constants.DEFAULT_CACHE_SIZE*60, 5*24*3600); // store for max 5 days
@@ -104,7 +108,7 @@ public class MessageListener extends ListenerAdapter {
 				bot.getLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, null);
 			},
 			failure -> {
-				bot.getAppLogger().warn("Failed to queue audit log for message deletion.", failure);
+				log.warn("Failed to queue audit log for message deletion.", failure);
 				bot.getLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, null);
 			});
 	}

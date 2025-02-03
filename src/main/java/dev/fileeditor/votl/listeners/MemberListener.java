@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.logs.LogType;
@@ -24,8 +25,11 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
 
 public class MemberListener extends ListenerAdapter {
+
+	private final Logger log = (Logger) LoggerFactory.getLogger(MemberListener.class);
 
 	private final App bot;
 	private final DBUtil db;
@@ -63,7 +67,7 @@ public class MemberListener extends ListenerAdapter {
 				guild.modifyMemberRoles(event.getMember(), newRoles).queueAfter(3, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER));
 			}
 		} catch (Exception e) {
-			bot.getAppLogger().warn("Failed to assign persistent roles for {} @ {}\n{}", userId, guildId, e.getMessage());
+			log.warn("Failed to assign persistent roles for {} @ {}\n{}", userId, guildId, e.getMessage());
 		}
 
 		// Check for active mute - then give timeout
@@ -96,7 +100,7 @@ public class MemberListener extends ListenerAdapter {
 					bot.getLogger().member.onLeft(event.getGuild(), event.getMember(), event.getUser());
 				},
 				failure -> {
-					bot.getAppLogger().warn("Unable to retrieve audit log for member kick.", failure);
+					log.warn("Unable to retrieve audit log for member kick.", failure);
 					bot.getLogger().member.onLeft(event.getGuild(), event.getMember(), event.getUser());
 				});
 		}
@@ -104,21 +108,24 @@ public class MemberListener extends ListenerAdapter {
 		long guildId = event.getGuild().getIdLong();
 		long userId = event.getUser().getIdLong();
 		// Add persistent roles
-		try {
-			List<Role> roles = event.getMember().getRoles();
-			if (!roles.isEmpty()) {
-				List<Long> persistentRoleIds = db.persistent.getRoles(guildId);
-				if (!persistentRoleIds.isEmpty()) {
-					List<Long> common = new ArrayList<>(roles.stream().map(Role::getIdLong).toList());
-					common.retainAll(persistentRoleIds);
-					if (!common.isEmpty()) {
-						db.persistent.addUser(guildId, userId, common);
+		if (event.getMember() != null) {
+			try {
+				List<Role> roles = event.getMember().getRoles();
+				if (!roles.isEmpty()) {
+					List<Long> persistentRoleIds = db.persistent.getRoles(guildId);
+					if (!persistentRoleIds.isEmpty()) {
+						List<Long> common = new ArrayList<>(roles.stream().map(Role::getIdLong).toList());
+						common.retainAll(persistentRoleIds);
+						if (!common.isEmpty()) {
+							db.persistent.addUser(guildId, userId, common);
+						}
 					}
 				}
+			} catch (Exception e) {
+				log.warn("Failed to save persistent roles for {} @ {}\n{}", userId, guildId, e.getMessage());
 			}
-		} catch (Exception e) {
-			bot.getAppLogger().warn("Failed to save persistent roles for {} @ {}\n{}", userId, guildId, e.getMessage());
 		}
+
 		// When user leaves guild, check if there are any records in DB that would be better to remove.
 		// This does not consider clearing User DB, when bot leaves guild.
 		if (db.access.getUserLevel(guildId, userId) != null) {
