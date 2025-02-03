@@ -3,6 +3,7 @@ package dev.fileeditor.votl.objects.constants;
 import java.io.File;
 import java.nio.file.Paths;
 
+@SuppressWarnings("UnnecessaryUnicodeEscape")
 public final class Constants {
 	private Constants() {
 		throw new IllegalStateException("Utility class");
@@ -26,6 +27,4 @@ public final class Constants {
 	public static final String DEVELOPER_ID = "369062521719488524";
 
 	public static final int DEFAULT_CACHE_SIZE = 100;
-
-	public static final String LOGO_URL = "https://cdn.fileeditor.dev/media/votl/logo.png";
 }
