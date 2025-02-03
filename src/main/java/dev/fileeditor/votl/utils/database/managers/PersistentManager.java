@@ -21,8 +21,8 @@ public class PersistentManager extends LiteBase {
 	private final String table_return = "returnRole";
 
 	// Cache
-	private final FixedCache<Long, List<Long>> roleCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE/5); // GuildId - Role Ids
-	private final FixedCache<Long, Map<Long, List<Long>>> returnCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE*4); // GuildId - UserId and Role Ids //
+	private final FixedCache<Long, List<Long>> roleCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE); // GuildId - Role Ids
+	private final FixedCache<Long, Map<Long, List<Long>>> returnCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE); // GuildId - UserId and Role Ids //
 
 	public PersistentManager(ConnectionUtil cu) {
 		super(cu, null);
@@ -42,7 +42,7 @@ public class PersistentManager extends LiteBase {
 		if (roleCache.contains(guildId))
 			return roleCache.get(guildId);
 		List<Long> data = getRolesData(guildId);
-		if (data==null || data.isEmpty())
+		if (data.isEmpty())
 			data = List.of();
 		roleCache.put(guildId, data);
 		return data;
