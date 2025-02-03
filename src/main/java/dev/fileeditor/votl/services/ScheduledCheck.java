@@ -33,7 +33,6 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
-import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -150,13 +149,14 @@ public class ScheduledCheck {
 			if (expired.isEmpty()) return;
 
 			expired.forEach(data -> {
-				Long roleId = castLong(data.get("roleId"));
+				long roleId = castLong(data.get("roleId"));
 				Role role = bot.JDA.getRoleById(roleId);
 				if (role == null) {
 					db.tempRoles.removeRole(roleId);
 					return;
 				}
 
+				long userId = castLong(data.get("userId"));
 				if (db.tempRoles.shouldDelete(roleId)) {
 					try {
 						role.delete().reason("Role expired").queue();
@@ -165,14 +165,14 @@ public class ScheduledCheck {
 					}
 					db.tempRoles.removeRole(roleId);
 				} else {
-					Long userId = castLong(data.get("userId"));
+
 					role.getGuild().removeRoleFromMember(User.fromId(userId), role).reason("Role expired").queue(null, failure -> {
 						log.warn("Was unable to remove temporary role '{}' from '{}' during scheduled check.", roleId, userId, failure);
 					});
 					db.tempRoles.remove(roleId, userId);
-					// Log
-					bot.getLogger().role.onTempRoleAutoRemoved(role.getGuild(), userId, role);
 				}
+				// Log
+				bot.getLogger().role.onTempRoleAutoRemoved(role.getGuild(), userId, role);
 			});
 		} catch (Throwable t) {
 			log.error("Exception caught during expired roles check.", t);
@@ -282,17 +282,21 @@ public class ScheduledCheck {
 					Instant previous = (interval==30 ?
 						now.minus(Period.ofMonths(1)) :
 						now.minus(Period.ofDays(interval))
-					).atZone(ZoneId.systemDefault()).toInstant();
+					).atZone(ZoneOffset.UTC).toInstant();
 
-					List<ReportData> reportData = new ArrayList<>(members.size());
+					List<ReportData> reportDataList = new ArrayList<>(members.size());
 					members.forEach(m -> {
+						if (m.getUser().isBot()) return;
 						int countRoles = bot.getDBUtil().tickets.countTicketsByMod(guild.getIdLong(), m.getIdLong(), previous, now, true);
 						Map<Integer, Integer> countCases = bot.getDBUtil().cases.countCasesByMod(guild.getIdLong(), m.getIdLong(), previous, now);
-						reportData.add(new ReportData(m, countRoles, countCases));
+						ReportData reportData = new ReportData(m, countRoles, countCases);
+						if (reportData.getCountTotalInt() > 0) {
+							reportDataList.add(reportData);
+						}
 					});
 
 					ModReportRender render = new ModReportRender(guild.getLocale(), bot.getLocaleUtil(),
-						previous, now, reportData);
+						previous, now, reportDataList);
 
 					final String attachmentName = EncodingUtil.encodeModreport(guild.getIdLong(), now.getEpochSecond());
 
