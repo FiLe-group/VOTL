@@ -58,6 +58,8 @@ public class DBUtil {
 	public final GameStrikeManager games;
 	public final PersistentManager persistent;
 	public final ModReportManager modReport;
+	public final LevelManager levels;
+	public final LevelRolesManager levelRoles;
 
 	public final BotBlacklistManager botBlacklist;
 
@@ -91,6 +93,8 @@ public class DBUtil {
 		games = new GameStrikeManager(connectionUtil);
 		persistent = new PersistentManager(connectionUtil);
 		modReport = new ModReportManager(connectionUtil);
+		levels = new LevelManager(connectionUtil);
+		levelRoles = new LevelRolesManager(connectionUtil);
 
 		botBlacklist = new BotBlacklistManager(connectionUtil);
 	}

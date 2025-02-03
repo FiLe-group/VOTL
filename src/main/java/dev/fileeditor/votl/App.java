@@ -33,6 +33,7 @@ import dev.fileeditor.votl.utils.*;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+import dev.fileeditor.votl.utils.level.LevelUtil;
 import dev.fileeditor.votl.utils.logs.GuildLogger;
 import dev.fileeditor.votl.utils.logs.LogEmbedUtil;
 import dev.fileeditor.votl.utils.message.EmbedUtil;
@@ -80,6 +81,7 @@ public class App {
 	private final TicketUtil ticketUtil;
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
+	private final LevelUtil levelUtil;
 
 	@SuppressWarnings("BusyWait")
 	public App() {
@@ -105,6 +107,7 @@ public class App {
 		checkUtil	= new CheckUtil(this, ownerId);
 		ticketUtil	= new TicketUtil(this);
 		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
+		levelUtil	= new LevelUtil(this);
 
 		logEmbedUtil	= new LogEmbedUtil();
 		guildLogger		= new GuildLogger();
@@ -339,6 +342,10 @@ public class App {
 
 	public ModerationUtil getModerationUtil() {
 		return moderationUtil;
+	}
+
+	public LevelUtil getLevelUtil() {
+		return levelUtil;
 	}
 
 	public void shutdownUtils() {

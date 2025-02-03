@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogEvent;
 import dev.fileeditor.votl.objects.logs.MessageData;
@@ -180,6 +181,11 @@ public class LogEmbedUtil {
 		}
 
 		public LogEmbedBuilder setTitle(String path) {
+			builder.setTitle(localized(locale, path));
+			return this;
+		}
+
+		public LogEmbedBuilder setTitleText(String path) {
 			builder.setTitle(localized(locale, path));
 			return this;
 		}
@@ -1134,6 +1140,19 @@ public class LogEmbedUtil {
 			builder.setMod(modId);
 		}
 		return builder.build();
+	}
+
+	//  Level
+	@NotNull
+	public MessageEmbed levelUp(DiscordLocale locale, Member member, int level, ExpType expType) {
+		return new LogEmbedBuilder(locale, GREEN_DARK)
+			.setHeaderIcon(LogEvent.LEVEL_UP, member.getEffectiveAvatarUrl(), member.getUser().getName())
+			.setTitleText(lu.getLocalizedRandom(locale, "logger.levels.msg_random")
+				.replace("{user}", "<@!%s>".formatted(member.getIdLong()))
+				.replace("{level}", String.valueOf(level))
+				.replace("{type}", expType.equals(ExpType.TEXT) ? "\uD83D\uDCAC" : "\uD83C\uDF99️")
+			)
+			.build();
 	}
 
 

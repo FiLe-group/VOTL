@@ -61,6 +61,9 @@ public class MessageListener extends ListenerAdapter {
 				}
 			}
 		}
+
+		// reward player
+		bot.getLevelUtil().rewardMessagePlayer(event);
 	}
 
 	

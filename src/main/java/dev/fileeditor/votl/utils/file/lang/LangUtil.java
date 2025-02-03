@@ -3,10 +3,12 @@ package dev.fileeditor.votl.utils.file.lang;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import ch.qos.logback.classic.Logger;
 import com.jayway.jsonpath.JsonPath;
+import dev.fileeditor.votl.utils.RandomUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
 
 import net.dv8tion.jda.api.interactions.DiscordLocale;
@@ -17,7 +19,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
 public final class LangUtil {
 
-	private final Logger LOG = (Logger) LoggerFactory.getLogger(LangUtil.class);
+	private final Logger log = (Logger) LoggerFactory.getLogger(LangUtil.class);
 
 	private final FileManager fileManager;
 	private final Map<String, Object> languages = new HashMap<>();
@@ -29,7 +31,7 @@ public final class LangUtil {
 				if (file==null) continue;
 				languages.put(locale.getLocale(), JsonPath.parse(file).json());
 			} catch (IOException e) {
-				LOG.warn(e.getMessage(), e);
+				log.warn(e.getMessage(), e);
 			}
 		}
 		this.fileManager = fileManager;
@@ -37,17 +39,23 @@ public final class LangUtil {
 
 	@NotNull
 	public String getString(DiscordLocale locale, String path) {
-		return switch (locale) {
-			case RUSSIAN -> getString(locale.getLocale(), path);
-			default -> getString("en-GB", path);
-		};
+		return getString(languageSelector(locale), path);
 	}
 
 	@Nullable
 	public String getNullableString(DiscordLocale locale, String path) {
+		return getNullableString(languageSelector(locale), path);
+	}
+
+	@NotNull
+	public String getRandomString(DiscordLocale locale, String path) {
+		return (String) RandomUtil.pickRandom(getStringList(languageSelector(locale), path));
+	}
+
+	private String languageSelector(@NotNull DiscordLocale locale) {
 		return switch (locale) {
-			case RUSSIAN -> getNullableString(locale.getLocale(), path);
-			default -> getNullableString("en-GB", path);
+			case RUSSIAN -> locale.getLocale();
+			default -> "en-GB";
 		};
 	}
 
@@ -60,7 +68,7 @@ public final class LangUtil {
 	public String getString(String lang, String path) {
 		String result = getNullableString(lang, path);
 		if (result == null) {
-			LOG.warn("Couldn't find \"{}\" in file {}.json", path, lang);
+			log.warn("Couldn't find \"{}\" in file {}.json", path, lang);
 			return "path_error_invalid";
 		}
 		return result;
@@ -74,6 +82,7 @@ public final class LangUtil {
 	@Nullable
 	private String getNullableString(String lang, String path) {
 		final String text;
+
 		if (languages.containsKey(lang)) {
 			text = JsonPath.using(FileManager.CONF)
 				.parse(languages.get(lang))
@@ -83,6 +92,30 @@ public final class LangUtil {
 		} else {
 			return fileManager.getNullableString(lang, path);
 		}
+	}
+
+	/**
+	 * @param lang - language to be used
+	 * @param path - string's json path
+	 * @return Returns string list, or empty if not found.
+	 */
+	@NotNull
+	public List<String> getStringList(String lang, String path) {
+		List<String> result;
+
+		if (languages.containsKey(lang)) {
+			result = JsonPath.using(FileManager.CONF)
+				.parse(languages.get(lang))
+				.read("$." + path);
+		} else {
+			result = fileManager.getStringList(lang, path);
+		}
+
+		if (result == null || result.isEmpty()) {
+			log.warn("Couldn't find \"{}\" in file {}.json", path, lang);
+			result = List.of("path_error_invalid");
+		}
+		return result;
 	}
 
 }

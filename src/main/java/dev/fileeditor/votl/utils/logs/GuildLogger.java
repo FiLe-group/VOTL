@@ -16,6 +16,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.CaseProofUtil;
@@ -60,6 +61,7 @@ public class GuildLogger {
 	public final MemberLogs member =	new MemberLogs();
 	public final MessageLogs message =	new MessageLogs();
 	public final VoiceLogs voice =		new VoiceLogs();
+	public final LevelLogs level =		new LevelLogs();
 
 	public GuildLogger() {
 		this.JDA = App.getInstance().JDA;
@@ -718,6 +720,16 @@ public class GuildLogger {
 				log.error("Error at bulk deleted messages content upload.", ex);
 				return null;
 			}
+		}
+	}
+
+	public class LevelLogs {
+		private final LogType type = LogType.LEVEL;
+
+		public void onLevelUp(Member target, int level, ExpType expType) {
+			final Guild guild = target.getGuild();
+
+			sendLog(guild, type, () -> logUtil.levelUp(guild.getLocale(), target, level, expType));
 		}
 	}
 

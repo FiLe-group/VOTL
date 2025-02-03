@@ -6,10 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -20,8 +17,10 @@ import dev.fileeditor.votl.objects.ReportData;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
+import dev.fileeditor.votl.utils.database.managers.LevelManager;
 import dev.fileeditor.votl.utils.encoding.EncodingUtil;
 import dev.fileeditor.votl.utils.imagegen.renders.ModReportRender;
+import dev.fileeditor.votl.utils.level.PlayerObject;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -317,7 +316,8 @@ public class ScheduledCheck {
 
 	// Each 2-5 minutes
 	public void regularChecks() {
-		CompletableFuture.runAsync(this::checkUnbans);
+		CompletableFuture.runAsync(this::checkUnbans)
+			.thenRunAsync(this::updateDbQueue);
 	}
 
 	private void checkUnbans() {
@@ -337,6 +337,26 @@ public class ScheduledCheck {
 			);
 			db.cases.setInactive(caseData.getRowId());
 		});
+	}
+
+	private void updateDbQueue() {
+		try {
+			// level data
+			Iterator<PlayerObject> itr = bot.getLevelUtil().getUpdateQueue().iterator();
+			int updatedCount = 0;
+			while (itr.hasNext()) {
+				PlayerObject player = itr.next();
+				LevelManager.PlayerData playerData = db.levels.getPlayer(player);
+				if (playerData == null) continue;
+
+				db.levels.updatePlayer(player, playerData);
+				itr.remove();
+				updatedCount++;
+			}
+			if (updatedCount != 0) log.debug("Updated data for {} players", updatedCount);
+		} catch (Throwable t) {
+			log.error("Exception caught during DB queue update.", t);
+		}
 	}
 	
 }
