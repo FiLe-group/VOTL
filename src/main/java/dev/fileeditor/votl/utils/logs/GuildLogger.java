@@ -44,7 +44,7 @@ import ch.qos.logback.classic.Logger;
 
 public class GuildLogger {
 
-	private final Logger LOG = (Logger) LoggerFactory.getLogger(GuildLogger.class);
+	private final Logger log = (Logger) LoggerFactory.getLogger(GuildLogger.class);
 
 	private final @NotNull JDA JDA;
 	private final @NotNull DBUtil db;
@@ -88,7 +88,7 @@ public class GuildLogger {
 				.exceptionally(ex -> null)
 				.thenApply(msg -> msg==null ? null : msg.getJumpUrl());
 		} catch (IOException e) {
-			LOG.error("Exception at log submission.", e);
+			log.error("Exception at log submission.", e);
 			return submitLog(webhookClient, embed);
 		}
 	}
@@ -150,7 +150,7 @@ public class GuildLogger {
 
 		public void onChangeReason(Guild guild, CaseData caseData, Member moderator, String newReason) {
 			if (caseData == null) {
-				LOG.warn("Unknown case provided with interaction, guild: {}", guild.getName());
+				log.warn("Unknown case provided with interaction, guild: {}", guild.getName());
 				return;
 			}
 
@@ -159,7 +159,7 @@ public class GuildLogger {
 
 		public void onChangeDuration(Guild guild, CaseData caseData, Member moderator, String newTime) {
 			if (caseData == null) {
-				LOG.warn("Unknown case provided with interaction, guild: {}", guild.getName());
+				log.warn("Unknown case provided with interaction, guild: {}", guild.getName());
 				return;
 			}
 
@@ -410,20 +410,6 @@ public class GuildLogger {
 			// Master log
 			sendLog(event.getGuild(), type, () -> logUtil.groupOwnerRenamedEmbed(event.getGuildLocale(), event.getMember().getAsMention(), ownerId, ownerIcon, groupId, oldName, newName));
 		}
-
-//		public void informAction(int groupId, Guild target, AuditLogEntry auditLogEntry) {
-//			Guild master = Optional.ofNullable(db.group.getOwner(groupId)).map(JDA::getGuildById).orElse(null);
-//			if (master == null) return;
-//
-//			sendLog(master, type, () -> logUtil.auditLogEmbed(master.getLocale(), groupId, target, auditLogEntry));
-//		}
-//
-//		public void informLeave(int groupId, @Nullable Guild guild, String guildId) {
-//			Guild master = Optional.ofNullable(db.group.getOwner(groupId)).map(JDA::getGuildById).orElse(null);
-//			if (master == null) return;
-//
-//			sendLog(master, type, () -> logUtil.botLeftEmbed(master.getLocale(), groupId, guild, guildId));
-//		}
 	}
 
 	// Tickets actions
@@ -443,7 +429,9 @@ public class GuildLogger {
 				client.sendMessageEmbeds(
 					logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
 				).addFiles(file).queue();
-			} catch (Exception ignored) {}
+			} catch (Exception ex) {
+				log.warn("Failed to send ticket close log: {}", ex.getMessage(), ex);
+			}
 		}
 
 		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId) {
@@ -689,7 +677,7 @@ public class GuildLogger {
 
 				return FileUpload.fromData(baos.toByteArray(), EncodingUtil.encodeMessage(messageId, Instant.now().getEpochSecond()));
 			} catch (IOException ex) {
-				LOG.error("Error at updated message content upload.", ex);
+				log.error("Error at updated message content upload.", ex);
 				return null;
 			}
 		}
@@ -705,7 +693,7 @@ public class GuildLogger {
 
 				return FileUpload.fromData(baos.toByteArray(), EncodingUtil.encodeMessage(messageId, Instant.now().getEpochSecond()));
 			} catch (IOException ex) {
-				LOG.error("Error at deleted message content upload.", ex);
+				log.error("Error at deleted message content upload.", ex);
 				return null;
 			}
 		}
@@ -727,7 +715,7 @@ public class GuildLogger {
 				if (cached == 0) return null;
 				return FileUpload.fromData(baos.toByteArray(), EncodingUtil.encodeMessage(channelId, Instant.now().getEpochSecond()));
 			} catch (IOException ex) {
-				LOG.error("Error at bulk deleted messages content upload.", ex);
+				log.error("Error at bulk deleted messages content upload.", ex);
 				return null;
 			}
 		}
