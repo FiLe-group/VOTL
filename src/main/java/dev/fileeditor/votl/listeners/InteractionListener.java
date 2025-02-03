@@ -1001,8 +1001,8 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		String userId = event.getComponentId().split(":")[1];
-		CaseData caseData = db.cases.getMemberActive(Long.parseLong(userId), event.getGuild().getIdLong(), CaseType.BAN);
+		String targetId = event.getComponentId().split(":")[1];
+		CaseData caseData = db.cases.getMemberActive(Long.parseLong(targetId), event.getGuild().getIdLong(), CaseType.BAN);
 		if (caseData == null || !caseData.getDuration().isZero()) {
 			sendError(event, "bot.moderation.blacklist.expired");
 			return;
@@ -1036,16 +1036,16 @@ public class InteractionListener extends ListenerAdapter {
 				selectEvent.deferEdit().queue();
 				List<Integer> selected = selectEvent.getValues().stream().map(Integer::parseInt).toList();
 
-				event.getJDA().retrieveUserById(userId).queue(user -> {
+				event.getJDA().retrieveUserById(targetId).queue(target -> {
 					selected.forEach(groupId -> {
 						if (!db.blacklist.inGroupUser(groupId, caseData.getTargetId()))
-							db.blacklist.add(selectEvent.getGuild().getIdLong(), groupId, user.getIdLong(), caseData.getReason(), selectEvent.getUser().getIdLong());
+							db.blacklist.add(selectEvent.getGuild().getIdLong(), groupId, target.getIdLong(), caseData.getReason(), selectEvent.getUser().getIdLong());
 
-						bot.getHelper().runBan(groupId, event.getGuild(), user, caseData.getReason());
+						bot.getHelper().runBan(groupId, event.getGuild(), target, caseData.getReason(), event.getUser().getName());
 					});
 
 					// Log to master
-					bot.getLogger().mod.onBlacklistAdded(event.getUser(), user, selected);
+					bot.getLogger().mod.onBlacklistAdded(event.getUser(), target, selected);
 					// Reply
 					selectEvent.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 						.setColor(Constants.COLOR_SUCCESS)
@@ -1074,8 +1074,8 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		String userId = event.getComponentId().split(":")[1];
-		CaseData caseData = db.cases.getMemberActive(Long.parseLong(userId), event.getGuild().getIdLong(), CaseType.BAN);
+		String targetId = event.getComponentId().split(":")[1];
+		CaseData caseData = db.cases.getMemberActive(Long.parseLong(targetId), event.getGuild().getIdLong(), CaseType.BAN);
 		if (caseData == null || !caseData.getDuration().isZero()) {
 			sendError(event, "bot.moderation.sync.expired");
 			return;
@@ -1109,8 +1109,8 @@ public class InteractionListener extends ListenerAdapter {
 				selectEvent.deferEdit().queue();
 				List<Integer> selected = selectEvent.getValues().stream().map(Integer::parseInt).toList();
 
-				event.getJDA().retrieveUserById(userId).queue(user -> {
-						selected.forEach(groupId -> bot.getHelper().runBan(groupId, event.getGuild(), user, caseData.getReason()));
+				event.getJDA().retrieveUserById(targetId).queue(target -> {
+						selected.forEach(groupId -> bot.getHelper().runBan(groupId, event.getGuild(), target, caseData.getReason(), event.getUser().getName()));
 						// Reply
 						selectEvent.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 								.setColor(Constants.COLOR_SUCCESS)
@@ -1162,14 +1162,14 @@ public class InteractionListener extends ListenerAdapter {
 				selectEvent.deferEdit().queue();
 				List<Integer> selected = selectEvent.getValues().stream().map(Integer::parseInt).toList();
 
-				event.getJDA().retrieveUserById(event.getComponentId().split(":")[1]).queue(user -> {
+				event.getJDA().retrieveUserById(event.getComponentId().split(":")[1]).queue(target -> {
 					selected.forEach(groupId -> {
-						if (db.blacklist.inGroupUser(groupId, user.getIdLong())) {
-							db.blacklist.removeUser(groupId, user.getIdLong());
-							bot.getLogger().mod.onBlacklistRemoved(event.getUser(), user, groupId);
+						if (db.blacklist.inGroupUser(groupId, target.getIdLong())) {
+							db.blacklist.removeUser(groupId, target.getIdLong());
+							bot.getLogger().mod.onBlacklistRemoved(event.getUser(), target, groupId);
 						}
 
-						bot.getHelper().runUnban(groupId, event.getGuild(), user, "Sync group unban, by "+event.getUser().getName());
+						bot.getHelper().runUnban(groupId, event.getGuild(), target, "Sync group unban, by "+event.getUser().getName(), event.getUser().getName());
 					});
 
 					// Reply
@@ -1200,8 +1200,8 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		String userId = event.getComponentId().split(":")[1];
-		CaseData caseData = db.cases.getMemberActive(Long.parseLong(userId), event.getGuild().getIdLong(), CaseType.BAN);
+		String targetId = event.getComponentId().split(":")[1];
+		CaseData caseData = db.cases.getMemberActive(Long.parseLong(targetId), event.getGuild().getIdLong(), CaseType.BAN);
 		if (caseData == null || !caseData.getDuration().isZero()) {
 			sendError(event, "bot.moderation.sync.expired");
 			return;
@@ -1236,8 +1236,8 @@ public class InteractionListener extends ListenerAdapter {
 					selectEvent.deferEdit().queue();
 					List<Integer> selected = selectEvent.getValues().stream().map(Integer::parseInt).toList();
 
-					event.getJDA().retrieveUserById(userId).queue(user -> {
-							selected.forEach(groupId -> bot.getHelper().runKick(groupId, event.getGuild(), user, caseData.getReason()));
+					event.getJDA().retrieveUserById(targetId).queue(target -> {
+							selected.forEach(groupId -> bot.getHelper().runKick(groupId, event.getGuild(), target, caseData.getReason(), event.getUser().getName()));
 							// Reply
 							selectEvent.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 									.setColor(Constants.COLOR_SUCCESS)
