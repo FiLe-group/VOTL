@@ -56,7 +56,7 @@ public class MessageListener extends ListenerAdapter {
 						.asStandardGuildChannel().getParentCategoryIdLong();
 					default -> 0;
 				};
-				if (categoryId == 0 || bot.getDBUtil().logExceptions.isException(guildId, categoryId)) {
+				if (categoryId == 0 || !bot.getDBUtil().logExceptions.isException(guildId, categoryId)) {
 					cache.put(event.getMessageIdLong(), new MessageData(event.getMessage()));
 				}
 			}
