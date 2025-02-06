@@ -151,7 +151,7 @@ public class TimeUtil {
 
 	public static String durationToLocalizedString(LocaleUtil lu, DiscordLocale locale, Duration duration) {
 		if (duration.isZero()) {
-			return "0 %s".formatted(lu.getLocalized(locale, "misc.time.seconds"));
+			return "0 %s".formatted(lu.getLocalized(locale, "misc.time.s5"));
 		}
 
 		StringBuilder builder = new StringBuilder();
