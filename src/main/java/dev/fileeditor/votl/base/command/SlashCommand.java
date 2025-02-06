@@ -15,12 +15,7 @@
  */
 package dev.fileeditor.votl.base.command;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.utils.exception.CheckException;
@@ -32,6 +27,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
@@ -184,6 +180,7 @@ public abstract class SlashCommand extends Interaction
 	 * @param event The event to handle.
 	 * @see OptionData#setAutoComplete(boolean)
 	 */
+	@SuppressWarnings("unused")
 	public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {}
 
 	/**
@@ -447,7 +444,7 @@ public abstract class SlashCommand extends Interaction
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
 
-		data.setGuildOnly(this.guildOnly);
+		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
 		return data;
 	}

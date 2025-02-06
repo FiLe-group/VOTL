@@ -33,6 +33,7 @@ import net.dv8tion.jda.api.entities.Activity;
  *
  * @author John Grosh (jagrosh)
  */
+@SuppressWarnings("unused")
 public class CommandClientBuilder
 {
 	private Activity activity = Activity.playing("default");

@@ -21,11 +21,14 @@ import dev.fileeditor.votl.utils.exception.CheckException;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 /**
  * <h2><b>User Context Menus In JDA-Chewtils</b></h2>
@@ -183,7 +186,7 @@ public abstract class UserContextMenu extends ContextMenu {
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
 
-		data.setGuildOnly(this.guildOnly);
+		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
 		return data;
 	}

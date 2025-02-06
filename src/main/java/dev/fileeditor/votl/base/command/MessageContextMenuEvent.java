@@ -66,6 +66,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Olivia (Chew)
  */
+@SuppressWarnings("unused")
 public class MessageContextMenuEvent extends MessageContextInteractionEvent
 {
 	private final CommandClient client;
