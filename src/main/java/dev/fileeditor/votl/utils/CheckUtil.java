@@ -22,19 +22,19 @@ import org.jetbrains.annotations.Nullable;
 public class CheckUtil {
 
 	private final App bot;
-	private final String ownerId;
+	private final long ownerId;
 
-	public CheckUtil(App bot, String ownerId) {
+	public CheckUtil(App bot, long ownerId) {
 		this.bot = bot;
 		this.ownerId = ownerId;
 	}
 
 	public boolean isDeveloper(UserSnowflake user) {
-		return user.getId().equals(Constants.DEVELOPER_ID);
+		return user.getIdLong() == Constants.DEVELOPER_ID;
 	}
 
 	public boolean isBotOwner(UserSnowflake user) {
-		return user.getId().equals(ownerId);
+		return user.getIdLong() == ownerId;
 	}
 
 	public CmdAccessLevel getAccessLevel(Member member) {

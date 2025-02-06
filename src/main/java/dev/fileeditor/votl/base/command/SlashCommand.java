@@ -277,8 +277,7 @@ public abstract class SlashCommand extends Interaction
 	 *
 	 * @return {@code true} if the input is the name or an alias of the Command
 	 */
-	public boolean isCommandFor(String input)
-	{
+	public boolean isCommandFor(String input) {
 		return name.equalsIgnoreCase(input);
 	}
 
@@ -288,8 +287,7 @@ public abstract class SlashCommand extends Interaction
 	 * @return The name for the Command
 	 */
 	@NotNull
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
@@ -299,8 +297,7 @@ public abstract class SlashCommand extends Interaction
 	 * @return The help for the Command
 	 */
 	@NotNull
-	public String getHelp()
-	{
+	public String getHelp() {
 		return help;
 	}
 
@@ -309,8 +306,7 @@ public abstract class SlashCommand extends Interaction
 	 *
 	 * @return The category for the Command
 	 */
-	public Category getCategory()
-	{
+	public Category getCategory() {
 		return category;
 	}
 
@@ -559,8 +555,7 @@ public abstract class SlashCommand extends Interaction
 	 * @return {@code true} if this Command can only be used in a Guild, else {@code false} if it can
 	 *         be used outside of one
 	 */
-	public boolean isGuildOnly()
-	{
+	public boolean isGuildOnly() {
 		return guildOnly;
 	}
 }

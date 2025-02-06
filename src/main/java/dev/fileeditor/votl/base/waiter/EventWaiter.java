@@ -52,7 +52,7 @@ import java.util.function.Predicate;
  * 
  * @author John Grosh (jagrosh)
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"rawtypes", "unchecked", "unused"})
 public class EventWaiter implements EventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger(EventWaiter.class);

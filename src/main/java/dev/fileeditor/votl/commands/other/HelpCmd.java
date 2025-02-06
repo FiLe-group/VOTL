@@ -143,8 +143,7 @@ public class HelpCmd extends CommandBase {
 			builder.addField(fieldTitle, fieldValue.toString(), false);
 		}
 
-		User owner = Optional.ofNullable(event.getClient().getOwnerId()).map(id -> event.getJDA().getUserById(id)).orElse(null);
-
+		User owner = event.getJDA().getUserById(event.getClient().getOwnerIdLong());
 		if (owner != null) {
 			fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.description.support_title");
 			fieldValue = new StringBuilder()

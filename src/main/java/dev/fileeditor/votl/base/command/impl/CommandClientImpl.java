@@ -33,7 +33,6 @@ import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
-import dev.fileeditor.votl.base.utils.SafeIdUtil;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -48,7 +47,6 @@ import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.internal.utils.Checks;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -69,7 +67,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	private final OffsetDateTime start;
 	private final Activity activity;
 	private final OnlineStatus status;
-	private final String ownerId;
+	private final long ownerId;
 	private final String serverInvite;
 	private final HashMap<String, Integer> slashCommandIndex;
 	private final ArrayList<SlashCommand> slashCommands;
@@ -84,15 +82,10 @@ public class CommandClientImpl implements CommandClient, EventListener {
 
 	private CommandListener listener = null;
 
-	public CommandClientImpl(String ownerId, Activity activity, OnlineStatus status, String serverInvite,
+	public CommandClientImpl(long ownerId, Activity activity, OnlineStatus status, String serverInvite,
 							 ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus, String forcedGuildId, String[] devGuildIds, boolean manualUpsert,
 							 boolean shutdownAutomatically, ScheduledExecutorService executor)
 	{
-		Checks.check(ownerId != null, "Owner ID was set null or not set! Please provide an User ID to register as the owner!");
-
-		if (!SafeIdUtil.checkId(ownerId))
-			LOG.warn("The provided Owner ID ({}) was found unsafe! Make sure ID is a non-negative long!", ownerId);
-
 		this.start = OffsetDateTime.now();
 
 		this.ownerId = ownerId;
@@ -259,15 +252,9 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public String getOwnerId()
-	{
-		return ownerId;
-	}
-
-	@Override
 	public long getOwnerIdLong()
 	{
-		return Long.parseLong(ownerId);
+		return ownerId;
 	}
 
 	@Override

@@ -24,7 +24,7 @@ public final class Constants {
 	public static final int COLOR_WARNING = 0xFDB81E;
 
 	public static final String DEVELOPER_TAG = "@fileeditor";
-	public static final String DEVELOPER_ID = "369062521719488524";
+	public static final long DEVELOPER_ID = 369062521719488524L;
 
 	public static final int DEFAULT_CACHE_SIZE = 50;
 }
