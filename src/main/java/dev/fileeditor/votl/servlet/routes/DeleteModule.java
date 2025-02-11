@@ -2,7 +2,7 @@ package dev.fileeditor.votl.servlet.routes;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.servlet.oauth2.Session;
+import dev.fileeditor.votl.servlet.WebServlet;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
@@ -36,7 +36,7 @@ public class DeleteModule implements Handler {
 		}
 
 		ctx.future(() -> {
-			return checkPermissionsAsync(new Session(ctx.cookieStore()), guild, (member) -> {
+			return checkPermissionsAsync(WebServlet.getSession(ctx.cookieStore()), guild, (member) -> {
 				// Write new data
 				final int newData = settings.getModulesOff() + module.getValue();
 				App.getInstance().getDBUtil().guildSettings.setModuleDisabled(guild.getIdLong(), newData);

@@ -45,4 +45,4 @@ app/.settings/org.eclipse.buildship.core.prefs
 !gradle/wrapper/*
 
 # Idea
-.idea
+.idea/

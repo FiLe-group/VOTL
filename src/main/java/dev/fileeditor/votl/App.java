@@ -153,9 +153,12 @@ public class App {
 		// Start backend server
 		final Boolean servletEnabled = fileManager.getBoolean("config", "web-servlet.enabled");
 		if (servletEnabled != null && servletEnabled) {
-			final Integer port = fileManager.getInteger("config", "web-servlet.port");
+			final int port = Optional.ofNullable(fileManager.getInteger("config", "web-servlet.port")).orElse(WebServlet.DEFAULT_PORT);
 			final String allowedHost = fileManager.getString("config", "web-servlet.allow-host");
-			servlet = new WebServlet(port != null ? port : WebServlet.defaultPort, allowedHost);
+			final long clientId = Long.parseLong(fileManager.getString("config", "web-servlet.client-id"));
+			final String clientSecret = fileManager.getString("config", "web-servlet.client-secret");
+
+			servlet = new WebServlet(port, allowedHost, clientId, clientSecret);
 			// Register routes
 			// Get
 			servlet.registerGet("/guilds/{guild}", new GetGuild());
@@ -413,7 +416,7 @@ public class App {
 	}
 
 	public void shutdownUtils() {
-		// ignore
+		WebServlet.shutdown();
 	}
 
 	private void createWebhookAppender() {

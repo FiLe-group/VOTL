@@ -192,9 +192,9 @@ public class FileManager {
 		try {
 			return JsonPath.using(CONF).parse(file).read("$." + path);
 		} catch (FileNotFoundException ex) {
-			LOG.error("Couldn't find file {}.json", name);
+			log.error("Couldn't find file {}.json", name);
 		} catch (IOException ex) {
-			LOG.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
+			log.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
 		}
 		return null;
 	}
@@ -208,9 +208,9 @@ public class FileManager {
 		try {
 			return JsonPath.using(CONF).parse(file).read("$." + path);
 		} catch (FileNotFoundException ex) {
-			LOG.error("Couldn't find file {}.json", name);
+			log.error("Couldn't find file {}.json", name);
 		} catch (IOException ex) {
-			LOG.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
+			log.warn("Couldn't find \"{}\" in file {}.json", path, name, ex);
 		}
 		return null;
 	}

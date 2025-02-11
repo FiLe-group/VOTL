@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.servlet.oauth2.Session;
+import dev.fileeditor.votl.servlet.WebServlet;
 
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
@@ -38,7 +38,7 @@ public class PatchModule implements Handler {
 
 		// Check for permission
 		ctx.future(() -> {
-			return checkPermissionsAsync(new Session(ctx.cookieStore()), guild, (member) -> {
+			return checkPermissionsAsync(WebServlet.getSession(ctx.cookieStore()), guild, (member) -> {
 				// TODO add other modules
 				switch (module) {
 					case REPORT -> {

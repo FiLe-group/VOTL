@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	// ShadowJar
 	// https://mvnrepository.com/artifact/com.gradleup.shadow/shadow-gradle-plugin
-	id 'com.gradleup.shadow' version '8.3.6'
+	id 'com.gradleup.shadow' version '9.0.0-beta8'
 }
 
 // Getting version
@@ -14,6 +14,9 @@ String mainClassName = 'dev.fileeditor.votl.Main'
 repositories {
 	// Use Maven Central for resolving dependencies
 	mavenCentral()
+	flatDir {
+		dirs 'libs'
+	}
 }
 
 dependencies {
@@ -29,7 +32,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:2.9.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.48.0.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.49.0.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
 	implementation 'org.jsoup:jsoup:1.18.3'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
@@ -45,13 +48,16 @@ dependencies {
 
     // Metrics
     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
-    implementation 'io.github.classgraph:classgraph:4.8.177'        // Class lookup
+    implementation 'io.github.classgraph:classgraph:4.8.179'        // Class lookup
 
-    // Backend
-    // https://mvnrepository.com/artifact/io.javalin/javalin
-    implementation 'io.javalin:javalin:6.3.0'
-    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.1'
+	// Backend
+	// https://mvnrepository.com/artifact/io.javalin/javalin
+	implementation 'io.javalin:javalin:6.4.0'
+	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+
+	// OAuth2
+	implementation 'jda-oauth2:jda-oauth2:1.0.0'
 }
 
 java {

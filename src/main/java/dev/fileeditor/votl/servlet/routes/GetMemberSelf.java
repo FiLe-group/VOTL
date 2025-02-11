@@ -2,7 +2,6 @@ package dev.fileeditor.votl.servlet.routes;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.servlet.WebServlet;
-import dev.fileeditor.votl.servlet.oauth2.Session;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -27,7 +26,7 @@ public class GetMemberSelf implements Handler {
 		}
 
 		ctx.future(() -> {
-			return WebServlet.getWebClient().getUser(new Session(ctx.cookieStore())).getFuture()
+			return WebServlet.getClient().getUser(WebServlet.getSession(ctx.cookieStore())).future()
 				.thenAccept(user -> {
 					ObjectNode node = new ObjectMapper().createObjectNode();
 					node.put("id", user.getIdLong());
