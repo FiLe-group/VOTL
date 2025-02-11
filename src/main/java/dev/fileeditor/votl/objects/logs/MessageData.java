@@ -22,7 +22,7 @@ public class MessageData {
 		if (message.getAttachments().isEmpty())
 			this.attachment = null;
 		else
-			this.attachment = message.getAttachments().get(0);
+			this.attachment = message.getAttachments().getFirst();
 		this.authorId = message.getAuthor().getIdLong();
 		this.authorName = message.getAuthor().getName();
 	}
@@ -56,7 +56,7 @@ public class MessageData {
 	}
 
 	@Nullable
-	public static String getDiffContent(@NotNull String oldContent, @NotNull String newContent) {
+	public static DiffData getDiffContent(@NotNull String oldContent, @NotNull String newContent) {
 		if (oldContent.equals(newContent)) return null;
 		DiffRowGenerator generator = DiffRowGenerator.create()
 			.showInlineDiffs(true)
@@ -72,6 +72,8 @@ public class MessageData {
 		);
 		
 		StringBuilder diff = new StringBuilder();
+		int linesChanged = 0;
+		int charsChanged = 0;
 		boolean skipped = false;
 		final int size = rows.size();
 		for (int i = 0; i<size; i++) {
@@ -89,6 +91,10 @@ public class MessageData {
 				skipped = false;
 			}
 
+			if (!row.getTag().equals(Tag.EQUAL)) {
+				linesChanged++;
+				charsChanged += Math.max(row.getOldLine().length(), row.getNewLine().length());
+			}
 			switch (row.getTag()) {
 				case INSERT -> diff.append("+ ").append(row.getNewLine());
 				case DELETE -> diff.append("- ").append(row.getOldLine());
@@ -99,6 +105,12 @@ public class MessageData {
 			}
 			diff.append("\n");
 		}
-		return diff.toString();
+		return new DiffData(diff.toString(), linesChanged, charsChanged);
+	}
+
+	public record DiffData(@NotNull String content, int linesChanged, int charsChanged) {
+		public boolean manyChanges() {
+			return linesChanged > 3 || charsChanged > 600;
+		}
 	}
 }

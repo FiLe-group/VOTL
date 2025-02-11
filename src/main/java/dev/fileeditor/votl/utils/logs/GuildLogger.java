@@ -8,7 +8,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -17,12 +16,14 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
+import dev.fileeditor.votl.utils.encoding.EncodingUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogKey;
@@ -44,7 +45,7 @@ import ch.qos.logback.classic.Logger;
 
 public class GuildLogger {
 
-	private final Logger LOG = (Logger) LoggerFactory.getLogger(GuildLogger.class);
+	private final Logger log = (Logger) LoggerFactory.getLogger(GuildLogger.class);
 
 	private final @NotNull JDA JDA;
 	private final @NotNull DBUtil db;
@@ -60,6 +61,7 @@ public class GuildLogger {
 	public final MemberLogs member =	new MemberLogs();
 	public final MessageLogs message =	new MessageLogs();
 	public final VoiceLogs voice =		new VoiceLogs();
+	public final LevelLogs level =		new LevelLogs();
 
 	public GuildLogger() {
 		this.JDA = App.getInstance().JDA;
@@ -88,7 +90,7 @@ public class GuildLogger {
 				.exceptionally(ex -> null)
 				.thenApply(msg -> msg==null ? null : msg.getJumpUrl());
 		} catch (IOException e) {
-			LOG.error("Exception at log submission.", e);
+			log.error("Exception at log submission.", e);
 			return submitLog(webhookClient, embed);
 		}
 	}
@@ -150,7 +152,7 @@ public class GuildLogger {
 
 		public void onChangeReason(Guild guild, CaseData caseData, Member moderator, String newReason) {
 			if (caseData == null) {
-				LOG.warn("Unknown case provided with interaction, guild: {}", guild.getName());
+				log.warn("Unknown case provided with interaction, guild: {}", guild.getName());
 				return;
 			}
 
@@ -159,7 +161,7 @@ public class GuildLogger {
 
 		public void onChangeDuration(Guild guild, CaseData caseData, Member moderator, String newTime) {
 			if (caseData == null) {
-				LOG.warn("Unknown case provided with interaction, guild: {}", guild.getName());
+				log.warn("Unknown case provided with interaction, guild: {}", guild.getName());
 				return;
 			}
 
@@ -410,20 +412,6 @@ public class GuildLogger {
 			// Master log
 			sendLog(event.getGuild(), type, () -> logUtil.groupOwnerRenamedEmbed(event.getGuildLocale(), event.getMember().getAsMention(), ownerId, ownerIcon, groupId, oldName, newName));
 		}
-
-		public void informAction(int groupId, Guild target, AuditLogEntry auditLogEntry) {
-			Guild master = Optional.ofNullable(db.group.getOwner(groupId)).map(JDA::getGuildById).orElse(null);
-			if (master == null) return;
-
-			sendLog(master, type, () -> logUtil.auditLogEmbed(master.getLocale(), groupId, target, auditLogEntry));
-		}
-
-		public void informLeave(int groupId, @Nullable Guild guild, String guildId) {
-			Guild master = Optional.ofNullable(db.group.getOwner(groupId)).map(JDA::getGuildById).orElse(null);
-			if (master == null) return;
-
-			sendLog(master, type, () -> logUtil.botLeftEmbed(master.getLocale(), groupId, guild, guildId));
-		}
 	}
 
 	// Tickets actions
@@ -435,19 +423,20 @@ public class GuildLogger {
 		}
 
 		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId, FileUpload file) {
+			if (file == null) {
+				onClose(guild, messageChannel, userClosed, authorId);
+				return;
+			}
+
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 			try {
-				if (file == null) {
-					client.sendMessageEmbeds(
-						logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
-					).queue();
-				} else {
-					client.sendMessageEmbeds(
-						logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
-					).addFiles(file).queue();
-				}	
-			} catch (Exception ignored) {}
+				client.sendMessageEmbeds(
+					logUtil.ticketClosedEmbed(guild.getLocale(), messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
+				).addFiles(file).queue();
+			} catch (Exception ex) {
+				log.warn("Failed to send ticket close log: {}", ex.getMessage(), ex);
+			}
 		}
 
 		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId) {
@@ -633,8 +622,11 @@ public class GuildLogger {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 
-			MessageEmbed embed = logUtil.messageUpdate(guild.getLocale(), author, channel.getIdLong(), messageId, oldData, newData);
-			FileUpload fileUpload = uploadContentUpdate(oldData, newData, messageId);
+			MessageData.DiffData diff = MessageData.getDiffContent(oldData.getContentStripped(), newData.getContentStripped());
+			MessageEmbed embed = logUtil.messageUpdate(guild.getLocale(), author, channel.getIdLong(), messageId, oldData, newData, diff);
+			if (embed == null) return;
+			// Create changes file only if there are significant changes
+			FileUpload fileUpload = (diff!=null && diff.manyChanges()) ? uploadContentUpdate(oldData, newData, messageId) : null;
 			if (fileUpload != null) {
 				client.sendMessageEmbeds(embed)
 					.addFiles(fileUpload)
@@ -642,7 +634,6 @@ public class GuildLogger {
 			} else {
 				client.sendMessageEmbeds(embed).queue();
 			}
-			client.sendMessageEmbeds(logUtil.messageUpdate(guild.getLocale(), author, channel.getIdLong(), messageId, oldData, newData)).queue();
 		}
 
 		public void onMessageDelete(GuildChannel channel, long messageId, MessageData data, Long modId) {
@@ -657,9 +648,9 @@ public class GuildLogger {
 				client.sendMessageEmbeds(logUtil.messageDelete(guild.getLocale(), channel.getIdLong(), messageId, data, modId))
 					.addFiles(fileUpload)
 					.queue();
-				return;
+			} else {
+				client.sendMessageEmbeds(logUtil.messageDelete(guild.getLocale(), channel.getIdLong(), messageId, data, modId)).queue();
 			}
-			client.sendMessageEmbeds(logUtil.messageDelete(guild.getLocale(), channel.getIdLong(), messageId, data, modId)).queue();
 		}
 
 		public void onMessageBulkDelete(GuildChannel channel, String count, List<MessageData> messages, Long modId) {
@@ -680,9 +671,6 @@ public class GuildLogger {
 		}
 
 		private FileUpload uploadContentUpdate(MessageData oldData, MessageData newData, long messageId) {
-			if (oldData.getContent().isBlank() || newData.getContent().isBlank()) return null;
-			if (newData.getContent().equals(oldData.getContent())) return null;
-			if (newData.getContent().length()+oldData.getContent().length() < 1000) return null;
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				baos.write("[%s (%s)]\n".formatted(newData.getAuthorName(), newData.getAuthorId()).getBytes());
@@ -692,9 +680,9 @@ public class GuildLogger {
 				baos.write("\n\n------- NEW MESSAGE\n\n".getBytes());
 				baos.write(newData.getContent().getBytes(StandardCharsets.UTF_8));
 
-				return FileUpload.fromData(baos.toByteArray(), messageId+"-"+Instant.now().toEpochMilli()+".txt");
+				return FileUpload.fromData(baos.toByteArray(), EncodingUtil.encodeMessage(messageId, Instant.now().getEpochSecond()));
 			} catch (IOException ex) {
-				LOG.error("Error at updated message content upload.", ex);
+				log.error("Error at updated message content upload.", ex);
 				return null;
 			}
 		}
@@ -708,9 +696,9 @@ public class GuildLogger {
 				baos.write("------- CONTENT\n\n".getBytes());
 				baos.write(data.getContent().getBytes(StandardCharsets.UTF_8));
 
-				return FileUpload.fromData(baos.toByteArray(), messageId+"-"+Instant.now().toEpochMilli()+".txt");
+				return FileUpload.fromData(baos.toByteArray(), EncodingUtil.encodeMessage(messageId, Instant.now().getEpochSecond()));
 			} catch (IOException ex) {
-				LOG.error("Error at deleted message content upload.", ex);
+				log.error("Error at deleted message content upload.", ex);
 				return null;
 			}
 		}
@@ -730,11 +718,21 @@ public class GuildLogger {
 					baos.write("\n\n-------===-------\n\n".getBytes());
 				}
 				if (cached == 0) return null;
-				return FileUpload.fromData(baos.toByteArray(), channelId+"-"+Instant.now().toEpochMilli()+".txt");
+				return FileUpload.fromData(baos.toByteArray(), EncodingUtil.encodeMessage(channelId, Instant.now().getEpochSecond()));
 			} catch (IOException ex) {
-				LOG.error("Error at bulk deleted messages content upload.", ex);
+				log.error("Error at bulk deleted messages content upload.", ex);
 				return null;
 			}
+		}
+	}
+
+	public class LevelLogs {
+		private final LogType type = LogType.LEVEL;
+
+		public void onLevelUp(Member target, int level, ExpType expType) {
+			final Guild guild = target.getGuild();
+
+			sendLog(guild, type, () -> logUtil.levelUp(guild.getLocale(), target, level, expType));
 		}
 	}
 

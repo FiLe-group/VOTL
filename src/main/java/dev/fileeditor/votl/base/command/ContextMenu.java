@@ -15,10 +15,7 @@
  */
 package dev.fileeditor.votl.base.command;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 
@@ -26,6 +23,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
@@ -177,7 +175,7 @@ public abstract class ContextMenu extends Interaction
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
 
-		data.setGuildOnly(this.guildOnly);
+		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
 		return data;
 	}

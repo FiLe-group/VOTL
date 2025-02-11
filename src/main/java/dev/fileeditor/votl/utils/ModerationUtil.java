@@ -118,7 +118,7 @@ public class ModerationUtil {
 	public MessageEmbed actionEmbed(DiscordLocale locale, int localCaseId, String actionPath, User target, User mod, String reason, String logUrl) {
 		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
 			.setDescription(lu.getLocalized(locale, actionPath))
-			.setLink(logUrl)
+			.addLink(logUrl)
 			.build();
 	}
 
@@ -126,7 +126,7 @@ public class ModerationUtil {
 		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
 			.setDescription(lu.getLocalized(locale, actionPath)
 				.formatted(TimeUtil.formatDuration(lu, locale, Instant.now(), duration)))
-			.setLink(logUrl)
+			.addLink(logUrl)
 			.build();
 	}
 
@@ -134,7 +134,7 @@ public class ModerationUtil {
 		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
 			.setDescription(lu.getLocalized(locale, actionPath)
 				.formatted(lu.getLocalized(locale, typePath)))
-			.setLink(logUrl)
+			.addLink(logUrl)
 			.getBuilder();
 	}
 
@@ -167,9 +167,9 @@ public class ModerationUtil {
 			return this;
 		}
 
-		public ActionEmbedBuilder setLink(String logUrl) {
-			if (logUrl != null)
-				embedBuilder.addField("", lu.getLocalized(locale, "logger.moderation.log_url").formatted(logUrl), false);
+		public ActionEmbedBuilder addLink(String logUrl) {
+			if (logUrl!=null)
+				embedBuilder.appendDescription(lu.getLocalized(locale, "logger.moderation.log_url").formatted(logUrl));
 			return this;
 		}
 

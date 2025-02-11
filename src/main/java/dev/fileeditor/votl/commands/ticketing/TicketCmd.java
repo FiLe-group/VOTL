@@ -1,6 +1,6 @@
 package dev.fileeditor.votl.commands.ticketing;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -13,8 +13,10 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.TicketPanelManager.Panel;
+import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager;
 import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
 
+import dev.fileeditor.votl.utils.message.MessageUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Mentions;
@@ -31,14 +33,16 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
-public class TicketPanelCmd extends CommandBase {
+public class TicketCmd extends CommandBase {
 	
-	public TicketPanelCmd() {
+	public TicketCmd() {
 		this.name = "ticket";
 		this.path = "bot.ticketing.ticket";
-		this.children = new SlashCommand[]{new NewPanel(), new ModifyPanel(), new ViewPanel(), new SendPanel(), new DeletePanel(),
+		this.children = new SlashCommand[]{
+			new NewPanel(), new ModifyPanel(), new ViewPanel(), new SendPanel(), new DeletePanel(),
 			new CreateTag(), new ModifyTag(), new ViewTag(), new DeleteTag(),
-			new Automation()};
+			new Automation(), new Settings()
+		};
 		this.category = CmdCategory.TICKETING;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 	}
@@ -62,7 +66,6 @@ public class TicketPanelCmd extends CommandBase {
 					.setMaxLength(2048)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -108,7 +111,6 @@ public class TicketPanelCmd extends CommandBase {
 				new OptionData(OptionType.STRING, "embed_footer", lu.getText(path+".embed_footer.help"))
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -160,7 +162,6 @@ public class TicketPanelCmd extends CommandBase {
 				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true).setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -193,7 +194,6 @@ public class TicketPanelCmd extends CommandBase {
 				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true).setChannelTypes(ChannelType.TEXT)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -240,7 +240,6 @@ public class TicketPanelCmd extends CommandBase {
 				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true).setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -293,7 +292,6 @@ public class TicketPanelCmd extends CommandBase {
 				))
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -369,7 +367,6 @@ public class TicketPanelCmd extends CommandBase {
 				))
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -441,7 +438,6 @@ public class TicketPanelCmd extends CommandBase {
 				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true, true).setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -486,7 +482,6 @@ public class TicketPanelCmd extends CommandBase {
 				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true).setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -512,7 +507,8 @@ public class TicketPanelCmd extends CommandBase {
 	}
 
 
-	// Ticket autoclose
+	// Settings
+
 	private class Automation extends SlashCommand {
 		public Automation() {
 			this.name = "automation";
@@ -524,7 +520,6 @@ public class TicketPanelCmd extends CommandBase {
 				new OptionData(OptionType.INTEGER, "reply_time", lu.getText(path+".reply_time.help"))
 					.setRequiredRange(0, 24)
 			);
-			this.accessLevel = CmdAccessLevel.ADMIN;
 		}
 
 		@Override
@@ -570,11 +565,135 @@ public class TicketPanelCmd extends CommandBase {
 		}
 	}
 
+	private class Settings extends SlashCommand {
+		public Settings() {
+			this.name = "settings";
+			this.path = "bot.ticketing.ticket.settings";
+			this.options = List.of(
+				new OptionData(OptionType.BOOLEAN, "delete_pings", lu.getText(path+".delete_pings.help")),
+				new OptionData(OptionType.BOOLEAN, "other_roles", lu.getText(path+".other_roles.help")),
+				new OptionData(OptionType.STRING, "role_tickets_support", lu.getText(path+".role_tickets_support.help")),
+				new OptionData(OptionType.INTEGER, "allow_close", lu.getText(path+".allow_close.help"))
+					.addChoice("Everyone (default)", TicketSettingsManager.AllowClose.EVERYONE.getValue())
+					.addChoice("Helper+ access", TicketSettingsManager.AllowClose.HELPER.getValue())
+					.addChoice("Ticket support roles", TicketSettingsManager.AllowClose.SUPPORT.getValue()),
+				new OptionData(OptionType.INTEGER, "transcripts_mode", lu.getText(path+".transcripts_mode.help"))
+					.addChoice("All tickets", TicketSettingsManager.TranscriptsMode.ALL.getValue())
+					.addChoice("All, except role requests (default)", TicketSettingsManager.TranscriptsMode.EXCEPT_ROLES.getValue())
+					.addChoice("None", TicketSettingsManager.TranscriptsMode.NONE.getValue())
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			StringBuilder response = new StringBuilder();
+
+			if (event.getOptions().isEmpty()) {
+				event.deferReply(true).queue();
+				// Return overview
+				TicketSettingsManager.TicketSettings settings = bot.getDBUtil().getTicketSettings(event.getGuild());
+
+				response.append("\n> Autoclose time: **").append(settings.getAutocloseTime()).append("** hours")
+					.append("\n> Autoclose on left: ").append(settings.autocloseLeftEnabled()?Constants.SUCCESS:Constants.FAILURE)
+					.append("\n> Time to reply: **").append(settings.getTimeToReply()).append("** hours")
+					.append("\n\n> Allow other roles: ").append(settings.otherRoleEnabled()?Constants.SUCCESS:Constants.FAILURE)
+					.append("\n\n> Support roles: ").append(settings.getRoleSupportIds()
+						.stream()
+						.map(String::valueOf)
+						.collect(Collectors.joining("`, `", "`", "`")))
+					.append("\n\n> Delete pings: ").append(settings.deletePingsEnabled()?Constants.SUCCESS:Constants.FAILURE)
+					.append("\n> Allow close: **").append(MessageUtil.capitalize(settings.getAllowClose().name()))
+					.append("**\n> Transcripts saved: **").append(MessageUtil.capitalize(settings.getTranscriptsMode().name()).replace("_", " "))
+					.append("**");
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
+					.setDescription(lu.getText(event, path+".embed_view"))
+					.appendDescription(response.toString())
+					.build()
+				);
+			} else {
+				event.deferReply().queue();
+				// Edit settings
+				if (event.hasOption("delete_pings")) {
+					final boolean deletePings = event.optBoolean("delete_pings");
+
+					if (bot.getDBUtil().ticketSettings.setDeletePings(event.getGuild().getIdLong(), deletePings)) {
+						editErrorDatabase(event, "ticket settings set delete pings");
+						return;
+					}
+					response.append(lu.getText(event, path+".changed_delete").formatted(deletePings ? Constants.SUCCESS : Constants.FAILURE));
+				}
+				if (event.hasOption("other_roles")) {
+					final boolean otherRoles = event.optBoolean("other_roles");
+
+					if (bot.getDBUtil().ticketSettings.setOtherRoles(event.getGuild().getIdLong(), otherRoles)) {
+						editErrorDatabase(event, "ticket settings set other roles");
+						return;
+					}
+					response.append(lu.getText(event, path+".changed_other").formatted(otherRoles ? Constants.SUCCESS : Constants.FAILURE));
+				}
+				if (event.hasOption("role_tickets_support")) {
+					if (event.optString("role_tickets_support").equalsIgnoreCase("null")) {
+						// Clear roles
+						if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), List.of())) {
+							editErrorDatabase(event, "ticket settings clear support roles");
+							return;
+						}
+
+						response.append(lu.getText(event, path+".cleared_support"));
+					} else {
+						// Set roles
+						List<Role> roles = event.optMentions("role_tickets_support").getRoles();
+						if (roles.isEmpty() || roles.size()>3) {
+							editError(event, path+".bad_roles");
+							return;
+						}
+						if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), roles.stream().map(Role::getIdLong).toList())) {
+							editErrorDatabase(event, "ticket settings set support roles");
+							return;
+						}
+
+						response.append(lu.getText(event, path+".changed_support").formatted(roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "))));
+					}
+				}
+				if (event.hasOption("allow_close")) {
+					TicketSettingsManager.AllowClose allowClose = TicketSettingsManager.AllowClose.valueOf(event.optInteger("allow_close"));
+					if (allowClose != null) {
+						if (bot.getDBUtil().ticketSettings.setAllowClose(event.getGuild().getIdLong(), allowClose)) {
+							editErrorDatabase(event, "ticket settings set allow close");
+							return;
+						}
+						response.append(lu.getText(event, path+".changed_close").formatted(MessageUtil.capitalize(allowClose.name())));
+					}
+				}
+				if (event.hasOption("transcripts_mode")) {
+					TicketSettingsManager.TranscriptsMode transcriptsMode = TicketSettingsManager.TranscriptsMode.valueOf(event.optInteger("transcripts_mode"));
+					if (transcriptsMode != null) {
+						if (bot.getDBUtil().ticketSettings.setTranscript(event.getGuild().getIdLong(), transcriptsMode)) {
+							editErrorDatabase(event, "ticket settings set allow close");
+							return;
+						}
+						response.append(lu.getText(event, path+".changed_transcript").formatted(MessageUtil.capitalize(transcriptsMode.name()).replace("_", " ")));
+					}
+				}
+
+				if (response.isEmpty()) {
+					editErrorUnknown(event, "Response for ticket settings is empty.");
+				} else {
+					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+						.setDescription(lu.getText(event, path+".embed_changes"))
+						.appendDescription(response.toString())
+						.build()
+					);
+				}
+			}
+		}
+	}
+
 	private boolean isInvalidURL(String urlString) {
 		if (urlString == null) return false;
 		try {
-			URL url = new URL(urlString);
-			url.toURI();
+			URI ignored = URI.create(urlString);
 			return false;
 		} catch (Exception e) {
 			return true;

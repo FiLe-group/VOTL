@@ -1,11 +1,11 @@
 package dev.fileeditor.votl.utils;
 
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -15,23 +15,26 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.exception.CheckException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("UnusedReturnValue")
 public class CheckUtil {
 
 	private final App bot;
-	private final String ownerId;
+	private final long ownerId;
 
-	public CheckUtil(App bot, String ownerId) {
+	public CheckUtil(App bot, long ownerId) {
 		this.bot = bot;
 		this.ownerId = ownerId;
 	}
 
 	public boolean isDeveloper(UserSnowflake user) {
-		return user.getId().equals(Constants.DEVELOPER_ID);
+		return user.getIdLong() == Constants.DEVELOPER_ID;
 	}
 
 	public boolean isBotOwner(UserSnowflake user) {
-		return user.getId().equals(ownerId);
+		return user.getIdLong() == ownerId;
 	}
 
 	public CmdAccessLevel getAccessLevel(Member member) {
@@ -140,6 +143,26 @@ public class CheckUtil {
 			throw new CheckException(msg);
 		}
 		return this;
+	}
+
+	public boolean isBlacklisted(ISnowflake snowflake) {
+		return bot.getDBUtil().botBlacklist.blacklisted(snowflake.getIdLong());
+	}
+
+	private final Set<Permission> adminPerms = Set.of(Permission.ADMINISTRATOR, Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_SERVER, Permission.BAN_MEMBERS);
+
+	@Nullable
+	public String denyRole(@NotNull Role role, @NotNull Guild guild, @NotNull Member member, boolean checkPerms) {
+		if (role.isPublicRole()) return "`@everyone` is public";
+		else if (role.isManaged()) return "Bot's role";
+		else if (!member.canInteract(role)) return "You can't interact with this role";
+		else if (!guild.getSelfMember().canInteract(role)) return "Bot can't interact with this role";
+		else if (checkPerms) {
+			EnumSet<Permission> rolePerms = EnumSet.copyOf(role.getPermissions());
+			rolePerms.retainAll(adminPerms);
+			if (!rolePerms.isEmpty()) return "This role has Administrator/Manager permissions";
+		}
+		return null;
 	}
 
 }

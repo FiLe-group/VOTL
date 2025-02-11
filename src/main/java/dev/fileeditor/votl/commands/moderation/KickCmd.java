@@ -132,7 +132,7 @@ public class KickCmd extends CommandBase {
 		failure -> editErrorOther(event, failure.getMessage()));
 	}
 
-	private void buttonSync(SlashCommandEvent event, final Message message, User tu, String reason) {
+	private void buttonSync(SlashCommandEvent event, final Message message, User target, String reason) {
 		if (!bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.OPERATOR)) return;
 		long guildId = event.getGuild().getIdLong();
 
@@ -159,7 +159,7 @@ public class KickCmd extends CommandBase {
 
 				for (SelectOption option : selected) {
 					int groupId = Integer.parseInt(option.getValue());
-					Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), tu, reason));
+					Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), target, reason, event.getUser().getName()));
 				}
 
 				selectEvent.editMessageEmbeds(builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".sync.done")).build())

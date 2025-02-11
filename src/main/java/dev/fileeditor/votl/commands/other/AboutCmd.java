@@ -39,7 +39,7 @@ public class AboutCmd extends CommandBase {
 					.replace("{name}", "VOTL bot"),
 				lu.getLocalized(userLocale, "bot.other.about.embed.about_value")
 					.replace("{developer_name}", Constants.DEVELOPER_TAG)
-					.replace("{developer_id}", Constants.DEVELOPER_ID),
+					.replace("{developer_id}", String.valueOf(Constants.DEVELOPER_ID)),
 				false
 			)
 			.addField(

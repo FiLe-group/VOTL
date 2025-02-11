@@ -29,6 +29,7 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public class UserContextMenuEvent extends UserContextInteractionEvent
 {
 	private final CommandClient client;
@@ -122,6 +123,6 @@ public class UserContextMenuEvent extends UserContextInteractionEvent
 	 */
 	public boolean isOwner()
 	{
-		return getUser().getId().equals(this.getClient().getOwnerId());
+		return getUser().getIdLong() == this.getClient().getOwnerIdLong();
 	}
 }

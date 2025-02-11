@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("unused")
 public class LocaleUtil {
 
 	private final App bot;
@@ -69,6 +70,11 @@ public class LocaleUtil {
 	@Nullable
 	public String getLocalizedNullable(DiscordLocale locale, String path) {
 		return langUtil.getNullableString(locale, path);
+	}
+
+	@NotNull
+	public String getLocalizedRandom(DiscordLocale locale, String path) {
+		return Emote.getWithEmotes(langUtil.getRandomString(locale, path));
 	}
 
 	@NotNull

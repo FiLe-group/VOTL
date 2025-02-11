@@ -33,7 +33,8 @@ public enum LogEvent {
 	VC_CHANGE("change", LogType.VOICE),
 	MESSAGE_DELETE("delete", LogType.MESSAGE),
 	MESSAGE_BULK_DELETE("bulk_delete", LogType.MESSAGE),
-	MESSAGE_UPDATE("update", LogType.MESSAGE);
+	MESSAGE_UPDATE("update", LogType.MESSAGE),
+	LEVEL_UP("level_up", LogType.LEVEL);
 
 	private final String path;
 	private final LogType type;

@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.commands.guild;
 
 import java.awt.Color;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -14,6 +14,7 @@ import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager.ModerationInformLevel;
+import dev.fileeditor.votl.utils.database.managers.LevelManager;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -38,7 +39,7 @@ public class SetupCmd extends CommandBase {
 		this.path = "bot.guild.setup";
 		this.children = new SlashCommand[]{new PanelColor(), new AppealLink(), new ReportChannel(),
 			new VoiceCreate(), new VoiceSelect(), new VoicePanel(), new VoiceName(), new VoiceLimit(),
-			new Strikes(), new InformLevel()
+			new Strikes(), new InformLevel(), new RoleWhitelist(), new Levels()
 		};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -110,8 +111,7 @@ public class SetupCmd extends CommandBase {
 
 		private boolean isValidURL(String urlString) {
 			try {
-				URL url = new URL(urlString);
-				url.toURI();
+				URI ignored = URI.create(urlString);
 				return true;
 			} catch (Exception e) {
 				return false;
@@ -436,6 +436,92 @@ public class SetupCmd extends CommandBase {
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").formatted(action, lu.getText(event, informLevel.getPath())))
 					.build());
+		}
+	}
+
+	private class RoleWhitelist extends SlashCommand {
+		public RoleWhitelist() {
+			this.name = "role_whitelist";
+			this.path = "bot.guild.setup.role_whitelist";
+			this.options = List.of(
+				new OptionData(OptionType.BOOLEAN, "enable", lu.getText(path+".enable.help"), true)
+			);
+		}
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply().queue();
+			boolean enabled = event.optBoolean("enable");
+			// DB
+			if (!bot.getDBUtil().guildSettings.setRoleWhitelist(event.getGuild().getIdLong(), enabled)) {
+				editErrorUnknown(event, "Database error.");
+				return;
+			}
+			// Reply
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done").formatted(enabled?Constants.SUCCESS:Constants.FAILURE))
+				.build());
+		}
+	}
+
+	private class Levels extends SlashCommand {
+		public Levels() {
+			this.name = "levels";
+			this.path = "bot.guild.setup.levels";
+			this.options = List.of(
+				new OptionData(OptionType.BOOLEAN, "enable", lu.getText(path+".enable.help")),
+				new OptionData(OptionType.BOOLEAN, "voice_enable", lu.getText(path+".voice_enable.help"))
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			StringBuilder response = new StringBuilder();
+
+			if (event.getOptions().isEmpty()) {
+				event.deferReply(true).queue();
+				// Return overview
+				LevelManager.LevelSettings settings = bot.getDBUtil().levels.getSettings(event.getGuild());
+
+				response.append("\n> Leveling enabled: ").append(settings.isEnabled()?Constants.SUCCESS:Constants.FAILURE);
+				response.append("\n> Grant xp for voice activity: ").append(settings.isVoiceEnabled()?Constants.SUCCESS:Constants.FAILURE);
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
+					.setDescription(lu.getText(event, path+".embed_view"))
+					.appendDescription(response.toString())
+					.build()
+				);
+			} else {
+				event.deferReply().queue();
+				// Edit settings
+				if (event.hasOption("enable")) {
+					final boolean enabled = event.optBoolean("enable");
+
+					if (bot.getDBUtil().levels.setEnabled(event.getGuild().getIdLong(), enabled)) {
+						editErrorDatabase(event, "leveling settings set enabled");
+						return;
+					}
+					response.append(lu.getText(event, path+".changed_enabled").formatted(enabled ? Constants.SUCCESS : Constants.FAILURE));
+				}
+				if (event.hasOption("voice_enable")) {
+					final boolean enabled = event.optBoolean("voice_enable");
+
+					if (bot.getDBUtil().levels.setVoiceEnabled(event.getGuild().getIdLong(), enabled)) {
+						editErrorDatabase(event, "leveling settings set voice enabled");
+						return;
+					}
+					response.append(lu.getText(event, path+".changed_voice").formatted(enabled ? Constants.SUCCESS : Constants.FAILURE));
+				}
+
+				if (response.isEmpty()) {
+					editErrorUnknown(event, "Response for ticket settings is empty.");
+				} else {
+					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+						.setDescription(lu.getText(event, path+".embed_changes"))
+						.appendDescription(response.toString())
+						.build()
+					);
+				}
+			}
 		}
 	}
 

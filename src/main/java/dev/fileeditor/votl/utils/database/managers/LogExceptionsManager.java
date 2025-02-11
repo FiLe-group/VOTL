@@ -12,7 +12,7 @@ import dev.fileeditor.votl.utils.database.LiteBase;
 public class LogExceptionsManager extends LiteBase {
 
 	// Cache
-	private final FixedCache<Long, Set<Long>> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE*5);
+	private final FixedCache<Long, Set<Long>> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
 	
 	public LogExceptionsManager(ConnectionUtil cu) {
 		super(cu, "logExceptions");

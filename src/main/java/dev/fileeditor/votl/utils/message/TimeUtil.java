@@ -2,7 +2,7 @@ package dev.fileeditor.votl.utils.message;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.HashMap;
@@ -22,7 +22,7 @@ public class TimeUtil {
 	private static final Pattern timePatternFull = Pattern.compile("^(([0-9]+)([smhdw]))+$", Pattern.CASE_INSENSITIVE);
 	private static final Pattern timePattern = Pattern.compile("([0-9]+)([smhdw])", Pattern.CASE_INSENSITIVE);
 
-	private enum TimeUnit{
+	private enum TimeFormats {
 		SECONDS('s', 1),
 		MINUTES('m', 60),
 		HOURS  ('h', 3600),
@@ -32,15 +32,15 @@ public class TimeUtil {
 		private final char character;
 		private final int multip;
 
-		private static final HashMap<Character, TimeUnit> BY_CHAR = new HashMap<>();
+		private static final HashMap<Character, TimeFormats> BY_CHAR = new HashMap<>();
 
 		static {
-			for (TimeUnit format : TimeUnit.values()) {
+			for (TimeFormats format : TimeFormats.values()) {
 				BY_CHAR.put(format.getChar(), format);
 			}
 		}
 
-		TimeUnit(char character, int multip) {
+		TimeFormats(char character, int multip) {
 			this.character = character;
 			this.multip = multip;
 		}
@@ -55,7 +55,7 @@ public class TimeUtil {
 
 		@Nullable
 		public static Integer getMultipByChar(char c) {
-			return Optional.ofNullable(BY_CHAR.get(c)).map(TimeUnit::getMultip).orElse(null);
+			return Optional.ofNullable(BY_CHAR.get(c)).map(TimeFormats::getMultip).orElse(null);
 		}
 	}
 
@@ -80,7 +80,7 @@ public class TimeUtil {
 			if (c.equals('s') && !allowSeconds) {
 				throw new FormatterException("errors.formatter.except_seconds");
 			}
-			Integer multip = TimeUnit.getMultipByChar(c);
+			Integer multip = TimeFormats.getMultipByChar(c);
 			if (multip == null) {
 				throw new FormatterException("errors.formatter.no_multip");
 			}
@@ -97,6 +97,7 @@ public class TimeUtil {
 		return Duration.ofSeconds(time);
 	}
 
+	@SuppressWarnings("unused")
 	public static String durationToString(Duration duration) {
 		if (duration.isZero()) {
 			return "0 seconds";
@@ -104,31 +105,45 @@ public class TimeUtil {
 
 		StringBuilder builder = new StringBuilder();
 
-		long days = duration.toDaysPart();
-		if (days >= 7) {
-			int weeks = Math.floorMod(days, 7);
-			builder.append(weeks).append(" weeks ");
-			days -= weeks*7L;
+		final long weeks = Math.floorDiv(duration.toDaysPart(), 7);
+		final long days = Math.floorMod(duration.toDaysPart(), 7);
+		final int hours = duration.toHoursPart();
+		final int minutes = duration.toMinutesPart();
+		final int seconds = duration.toSecondsPart();
+
+		if (weeks > 0) {
+			if (weeks==1)
+				builder.append("1 week");
+			else
+				builder.append(weeks).append(" weeks");
 		}
 		if (days > 0) {
 			if (!builder.isEmpty()) builder.append(" ");
-			builder.append(days).append(" days");
+			if (days==1)
+				builder.append("1 day");
+			else
+				builder.append(days).append(" days");
 		}
-
-		int value = duration.toHoursPart();
-		if (value > 0) {
+		if (hours > 0) {
 			if (!builder.isEmpty()) builder.append(" ");
-			builder.append(value).append(" hours");
+			if (hours==1)
+				builder.append("1 hour");
+			else
+				builder.append(hours).append(" hours");
 		}
-		value = duration.toMinutesPart();
-		if (value > 0) {
+		if (minutes > 0) {
 			if (!builder.isEmpty()) builder.append(" ");
-			builder.append(value).append(" minutes");
+			if (minutes==1)
+				builder.append("1 minute");
+			else
+				builder.append(minutes).append(" minutes");
 		}
-		value = duration.toSecondsPart();
-		if (value > 0) {
+		if (seconds > 0) {
 			if (!builder.isEmpty()) builder.append(" ");
-			builder.append(value).append(" seconds");
+			if (seconds==1)
+				builder.append("1 second");
+			else
+				builder.append(seconds).append(" seconds");
 		}
 
 		return builder.toString();
@@ -136,35 +151,71 @@ public class TimeUtil {
 
 	public static String durationToLocalizedString(LocaleUtil lu, DiscordLocale locale, Duration duration) {
 		if (duration.isZero()) {
-			return "0 %s".formatted(lu.getLocalized(locale, "misc.time.seconds"));
+			return "0 %s".formatted(lu.getLocalized(locale, "misc.time.s5"));
 		}
 
 		StringBuilder builder = new StringBuilder();
-		long days = duration.toDaysPart();
-		if (days >= 7L) {
-			long weeks = Math.floorDiv(days, 7L);
-			builder.append("%s %s".formatted(weeks, lu.getLocalized(locale, "misc.time.weeks")));
-			days -= weeks*7;
+
+		final long weeks = Math.floorDiv(duration.toDaysPart(), 7);
+		final long days = Math.floorMod(duration.toDaysPart(), 7);
+		final int hours = duration.toHoursPart();
+		final int minutes = duration.toMinutesPart();
+		final int seconds = duration.toSecondsPart();
+
+		if (weeks > 0) {
+			if (weeks==1)
+				builder.append("1 %s".formatted(lu.getLocalized(locale, "misc.time.w1")));
+			else if (weeks<5)
+				builder.append("%s %s".formatted(weeks, lu.getLocalized(locale, "misc.time.w2")));
+			else
+				builder.append("%s %s".formatted(weeks, lu.getLocalized(locale, "misc.time.w5")));
 		}
 		if (days > 0) {
-			if (!builder.isEmpty()) builder.append(" ");
-			builder.append("%s %s".formatted(days, lu.getLocalized(locale, "misc.time.days")));
+			if (!builder.isEmpty()) {
+				builder.append(", ");
+				if (hours==0&&minutes==0&&seconds==0) builder.append(lu.getLocalized(locale, "misc.and")).append(" ");
+			}
+			if (days==1)
+				builder.append("1 %s".formatted(lu.getLocalized(locale, "misc.time.d1")));
+			else if (days<5)
+				builder.append("%s %s".formatted(days, lu.getLocalized(locale, "misc.time.d2")));
+			else
+				builder.append("%s %s".formatted(days, lu.getLocalized(locale, "misc.time.d5")));
 		}
-
-		int value = duration.toHoursPart();
-		if (value > 0) {
-			if (!builder.isEmpty()) builder.append(" ");
-			builder.append("%s %s".formatted(value, lu.getLocalized(locale, "misc.time.hours")));
+		if (hours > 0) {
+			if (!builder.isEmpty()) {
+				builder.append(", ");
+				if (minutes==0&&seconds==0) builder.append(lu.getLocalized(locale, "misc.and")).append(" ");
+			}
+			if (hours==1)
+				builder.append("1 %s".formatted(lu.getLocalized(locale, "misc.time.h1")));
+			else if (hours<5)
+				builder.append("%s %s".formatted(hours, lu.getLocalized(locale, "misc.time.h2")));
+			else
+				builder.append("%s %s".formatted(hours, lu.getLocalized(locale, "misc.time.h5")));
 		}
-		value = duration.toMinutesPart();
-		if (value > 0) {
-			if (!builder.isEmpty()) builder.append(" ");
-			builder.append("%s %s".formatted(value, lu.getLocalized(locale, "misc.time.minutes")));
+		if (minutes > 0) {
+			if (!builder.isEmpty()) {
+				builder.append(", ");
+				if (seconds==0) builder.append(lu.getLocalized(locale, "misc.and")).append(" ");
+			}
+			if (minutes==1)
+				builder.append("1 %s".formatted(lu.getLocalized(locale, "misc.time.m1")));
+			else if (minutes<5)
+				builder.append("%s %s".formatted(minutes, lu.getLocalized(locale, "misc.time.m2")));
+			else
+				builder.append("%s %s".formatted(minutes, lu.getLocalized(locale, "misc.time.m5")));
 		}
-		value = duration.toSecondsPart();
-		if (value > 0) {
-			if (!builder.isEmpty()) builder.append(" ");
-			builder.append("%s %s".formatted(value, lu.getLocalized(locale, "misc.time.seconds")));
+		if (seconds > 0) {
+			if (!builder.isEmpty()) {
+				builder.append(", ").append(lu.getLocalized(locale, "misc.and")).append(" ");
+			}
+			if (seconds==1)
+				builder.append("1 %s".formatted(lu.getLocalized(locale, "misc.time.s1")));
+			else if (seconds<5)
+				builder.append("%s %s".formatted(seconds, lu.getLocalized(locale, "misc.time.s2")));
+			else
+				builder.append("%s %s".formatted(seconds, lu.getLocalized(locale, "misc.time.s5")));
 		}
 
 		return builder.toString();
@@ -187,7 +238,7 @@ public class TimeUtil {
 	}
 
 	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-		.withZone(ZoneId.systemDefault());
+		.withZone(ZoneOffset.UTC);
 	public static String timeToString(TemporalAccessor time) {
 		if (time == null) return "indefinitely";
 		return formatter.format(time);

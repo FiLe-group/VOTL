@@ -1,5 +1,7 @@
 package dev.fileeditor.votl.listeners;
 
+import ch.qos.logback.classic.Logger;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -7,8 +9,11 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
 
 public class GuildListener extends ListenerAdapter {
+
+	private final Logger log = (Logger) LoggerFactory.getLogger(GuildListener.class);
 
 	private final App bot;
 	private final DBUtil db;
@@ -20,14 +25,19 @@ public class GuildListener extends ListenerAdapter {
 
 	@Override
 	public void onGuildJoin(@NotNull GuildJoinEvent event) {
-		String guildId = event.getGuild().getId();
-		bot.getAppLogger().info("Joined guild '{}'({})", event.getGuild().getName(), guildId);
+		Guild guild = event.getGuild();
+		if (bot.getCheckUtil().isBlacklisted(guild)) {
+			guild.leave().queue();
+			log.info("Auto-left new guild '{}'({}) BLACKLIST!", guild.getName(), guild.getId());
+		} else {
+			log.info("Joined guild '{}'({})", guild.getName(), guild.getId());
+		}
 	}
 
 	@Override
 	public void onGuildLeave(@NotNull GuildLeaveEvent event) {
 		long guildId = event.getGuild().getIdLong();
-		bot.getAppLogger().info("Left guild '%s'(%s)".formatted(event.getGuild().getName(), guildId));
+		log.info("Left guild '{}'({})", event.getGuild().getName(), guildId);
 
 		// Deletes every information connected to this guild from bot's DB (except ban tables)
 		// May be dangerous, but provides privacy
@@ -65,6 +75,6 @@ public class GuildListener extends ListenerAdapter {
 		
 		db.guildSettings.remove(guildId);
 
-		bot.getAppLogger().info("Automatically removed guild '%s'(%s) from db.".formatted(event.getGuild().getName(), guildId));
+		log.info("Automatically removed guild '{}'({}) from db.", event.getGuild().getName(), guildId);
 	}
 }

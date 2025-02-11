@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CaseType;
@@ -44,6 +45,8 @@ public class GameStrikeCmd extends CommandBase {
 		this.category = CmdCategory.GAMES;
 		this.module = CmdModule.GAMES;
 		this.accessLevel = CmdAccessLevel.MOD;
+		this.cooldown = 10;
+		this.cooldownScope = CooldownScope.USER;
 	}
 
 	@Override

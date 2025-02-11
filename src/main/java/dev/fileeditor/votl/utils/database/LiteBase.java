@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+@SuppressWarnings("SqlSourceToSinkFlow")
 public class LiteBase {
 
 	private final ConnectionUtil util;
@@ -30,7 +31,6 @@ public class LiteBase {
 	 * @param sql SQL statement to execute
 	 * @return true if exception
 	 */
-	// Execute statement
 	protected boolean execute(final String sql) {
 		// Metrics
 		Metrics.databaseLiteQueries.labelValue(sql.split(" ")[0].toUpperCase()).inc();
@@ -64,6 +64,7 @@ public class LiteBase {
 	}
 
 	// Select
+	@Nullable
 	protected <T> T selectOne(final String sql, String selectKey, Class<T> selectClass) {
 		// Metrics
 		Metrics.databaseLiteQueries.labelValue("SELECT").inc();
@@ -86,6 +87,7 @@ public class LiteBase {
 		return result;
 	}
 
+	@NotNull
 	protected <T> List<T> select(final String sql, String selectKey, Class<T> selectClass) {
 		// Metrics
 		Metrics.databaseLiteQueries.labelValue("SELECT").inc();
@@ -132,6 +134,7 @@ public class LiteBase {
 		return result.isEmpty() ? null : result;
 	}
 
+	@NotNull
 	protected List<Map<String, Object>> select(final String sql, final Set<String> selectKeys) {
 		// Metrics
 		Metrics.databaseLiteQueries.labelValue("SELECT").inc();
@@ -180,6 +183,7 @@ public class LiteBase {
 
 
 	// UTILS
+	@NotNull
 	protected String quote(@Nullable final Object value) {
 		// Convert to string and replace '(single quote) with ''(2 single quotes) for sql
 		if (value == null ) return "NULL";

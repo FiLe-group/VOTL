@@ -1,18 +1,22 @@
 package dev.fileeditor.votl.utils.database.managers;
 
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
+import static dev.fileeditor.votl.utils.CastUtil.resolveOrDefault;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.Nullable;
 
 public class VerifySettingsManager extends LiteBase {
 
-	private final Set<String> columns = Set.of("roleId", "panelText", "panelImage");
+	private final Set<String> columns = Set.of("roleId", "panelText", "panelImage", "additionalRoles");
 
 	// Cache
 	private final FixedCache<Long, VerifySettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
@@ -57,6 +61,11 @@ public class VerifySettingsManager extends LiteBase {
 		return execute("INSERT INTO %s(guildId, panelImage) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelImage=%<s".formatted(table, guildId, quote(imageUrl)));
 	}
 
+	public boolean setAdditionalRoles(long guildId, @Nullable String roleIds) {
+		invalidateCache(guildId);
+		return execute("INSERT INTO %s(guildId, additionalRoles) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET additionalRoles=%<s".formatted(table, guildId, quote(roleIds)));
+	}
+
 	private void invalidateCache(long guildId) {
 		cache.pull(guildId);
 	}
@@ -64,17 +73,26 @@ public class VerifySettingsManager extends LiteBase {
 	public static class VerifySettings {
 		private final Long roleId;
 		private final String panelText, panelImageUrl;
+		private final Set<Long> additionalRoles;
 
 		public VerifySettings() {
 			this.roleId = null;
 			this.panelText = null;
 			this.panelImageUrl = null;
+			this.additionalRoles = Set.of();
 		}
 
 		public VerifySettings(Map<String, Object> data) {
 			this.roleId = getOrDefault(data.get("roleId"), null);
 			this.panelText = getOrDefault(data.get("panelText"), null);
 			this.panelImageUrl = getOrDefault(data.get("panelImage"), null);
+			this.additionalRoles = resolveOrDefault(
+				data.get("additionalRoles"),
+				obj->Stream.of(String.valueOf(obj).split(";"))
+					.map(Long::parseLong)
+					.collect(Collectors.toSet()),
+				Set.of()
+			);
 		}
 
 		public Long getRoleId() {
@@ -87,6 +105,10 @@ public class VerifySettingsManager extends LiteBase {
 
 		public String getPanelImageUrl() {
 			return panelImageUrl;
+		}
+
+		public Set<Long> getAdditionalRoles() {
+			return additionalRoles;
 		}
 	}
 	

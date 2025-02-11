@@ -1,8 +1,10 @@
 package dev.fileeditor.votl.commands.moderation;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -17,10 +19,13 @@ import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
+import dev.fileeditor.votl.utils.encoding.EncodingUtil;
+import dev.fileeditor.votl.utils.imagegen.renders.ModStatsRender;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.utils.FileUpload;
 
 public class ModStatsCmd extends CommandBase {
 	
@@ -30,7 +35,8 @@ public class ModStatsCmd extends CommandBase {
 		this.options = List.of(
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help")),
 			new OptionData(OptionType.STRING, "start_date", lu.getText(path+".start_date.help")),
-			new OptionData(OptionType.STRING, "end_date", lu.getText(path+".end_date.help"))
+			new OptionData(OptionType.STRING, "end_date", lu.getText(path+".end_date.help")),
+			new OptionData(OptionType.BOOLEAN, "as_text", lu.getText(path+".as_text.help"))
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
@@ -42,11 +48,11 @@ public class ModStatsCmd extends CommandBase {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		event.deferReply().queue();
-		if (event.hasOption("start_date") || event.hasOption("end_date")) {
+
+		if (event.hasOption("start_date") || event.hasOption("end_date"))
 			returnIntervalStats(event);
-		} else {
+		else
 			returnFullStats(event);
-		}
 	}
 
 	private void returnIntervalStats(SlashCommandEvent event) {
@@ -61,10 +67,10 @@ public class ModStatsCmd extends CommandBase {
 		DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 		try {
 			beforeTime = beforeDate!=null
-				? LocalDate.parse(beforeDate, inputFormatter).atStartOfDay(ZoneId.systemDefault()).toInstant()
+				? LocalDate.parse(beforeDate, inputFormatter).atStartOfDay(ZoneOffset.UTC).toInstant()
 				: Instant.now();
 			afterTime = afterDate!=null
-				? LocalDate.parse(afterDate, inputFormatter).atStartOfDay(ZoneId.systemDefault()).toInstant()
+				? LocalDate.parse(afterDate, inputFormatter).atStartOfDay(ZoneOffset.UTC).toInstant()
 				: Instant.now().minus(7, ChronoUnit.DAYS);
 		} catch (Exception ex) {
 			editError(event, path+".failed_parse", ex.getMessage());
@@ -78,7 +84,7 @@ public class ModStatsCmd extends CommandBase {
 		int countRoles = bot.getDBUtil().tickets.countTicketsByMod(event.getGuild().getIdLong(), mod.getIdLong(), afterTime, beforeTime, true);
 		Map<Integer, Integer> countCases = bot.getDBUtil().cases.countCasesByMod(guildId, mod.getIdLong(), afterTime, beforeTime);
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneOffset.UTC);
 		String intervalText = "%s\n`%s` - `%s`".formatted(lu.getText(event, path+".title"), formatter.format(afterTime), formatter.format(beforeTime));
 		EmbedBuilder embedBuilder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 			.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())
@@ -112,38 +118,65 @@ public class ModStatsCmd extends CommandBase {
 			return;
 		}
 
-		Map<Integer, Integer> count30 = bot.getDBUtil().cases.countCasesByMod(guildId, modId, Instant.now().minus(30, ChronoUnit.DAYS));
-		final int roles30 = bot.getDBUtil().tickets.countTicketsByMod(guildId, modId, Instant.now().minus(30, ChronoUnit.DAYS), true);
+		Instant now = Instant.now();
 
-		Map<Integer, Integer> count7 = bot.getDBUtil().cases.countCasesByMod(guildId, modId, Instant.now().minus(7, ChronoUnit.DAYS));
-		final int roles7 = bot.getDBUtil().tickets.countTicketsByMod(guildId, modId, Instant.now().minus(7, ChronoUnit.DAYS), true);
+		Map<Integer, Integer> count30 = bot.getDBUtil().cases.countCasesByMod(guildId, modId, now.minus(30, ChronoUnit.DAYS));
+		final int roles30 = bot.getDBUtil().tickets.countTicketsByMod(guildId, modId, now.minus(30, ChronoUnit.DAYS), true);
 
-		EmbedBuilder embedBuilder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
-			.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())
-			.setTitle(lu.getText(event, path+".title"))
-			.setFooter("ID: "+mod.getId())
-			.setTimestamp(Instant.now());
+		Map<Integer, Integer> count7 = bot.getDBUtil().cases.countCasesByMod(guildId, modId, now.minus(7, ChronoUnit.DAYS));
+		final int roles7 = bot.getDBUtil().tickets.countTicketsByMod(guildId, modId, now.minus(7, ChronoUnit.DAYS), true);
 
-		final String sevenText = lu.getText(event, path+".seven");
-		final String thirtyText = lu.getText(event, path+".thirty");
-		StringBuilder builder = new StringBuilder("```\n#         ")
-			.append(sevenText).append(" | ")
-			.append(thirtyText).append(" | ")
-			.append(lu.getText(event, path+".all")).append("\n");
-		final int length7 = sevenText.length()-1;
-		final int length30 = thirtyText.length()-1;
+		if (event.optBoolean("as_text", false)) {
+			// As text
+			EmbedBuilder embedBuilder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
+				.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())
+				.setTitle(lu.getText(event, path+".title"))
+				.setFooter("ID: "+mod.getId())
+				.setTimestamp(now);
 
-		builder.append(buildLine(lu.getText(event, path+".strikes"), countStrikes(count7), countStrikes(count30), countStrikes(countTotal), length7, length30))
-			.append(buildLine(lu.getText(event, path+".game_strikes"), getCount(count7, CaseType.GAME_STRIKE), getCount(count30, CaseType.GAME_STRIKE), getCount(countTotal, CaseType.GAME_STRIKE), length7, length30))
-			.append(buildLine(lu.getText(event, path+".mutes"), getCount(count7, CaseType.MUTE), getCount(count30, CaseType.MUTE), getCount(countTotal, CaseType.MUTE), length7, length30))
-			.append(buildLine(lu.getText(event, path+".kicks"), getCount(count7, CaseType.KICK), getCount(count30, CaseType.KICK), getCount(countTotal, CaseType.KICK), length7, length30))
-			.append(buildLine(lu.getText(event, path+".bans"), getCount(count7, CaseType.BAN), getCount(count30, CaseType.BAN), getCount(countTotal, CaseType.BAN), length7, length30))
-			.append(buildTotal(lu.getText(event, path+".total"), getTotal(count7), getTotal(count30), getTotal(countTotal), length7, length30))
-			.append("\n")
-			.append(buildLine(lu.getText(event, path+".roles"), roles7, roles30, rolesTotal, length7, length30))
-			.append("```");
+			final String sevenText = lu.getText(event, path+".seven");
+			final String thirtyText = lu.getText(event, path+".thirty");
+			StringBuilder builder = new StringBuilder("```\n#         ")
+				.append(sevenText).append(" | ")
+				.append(thirtyText).append(" | ")
+				.append(lu.getText(event, path+".all")).append("\n");
+			final int length7 = sevenText.length()-1;
+			final int length30 = thirtyText.length()-1;
 
-		editEmbed(event, embedBuilder.setDescription(builder.toString()).build());
+			builder.append(buildLine(lu.getText(event, path+".strikes"), countStrikes(count7), countStrikes(count30), countStrikes(countTotal), length7, length30))
+				.append(buildLine(lu.getText(event, path+".game_strikes"), getCount(count7, CaseType.GAME_STRIKE), getCount(count30, CaseType.GAME_STRIKE), getCount(countTotal, CaseType.GAME_STRIKE), length7, length30))
+				.append(buildLine(lu.getText(event, path+".mutes"), getCount(count7, CaseType.MUTE), getCount(count30, CaseType.MUTE), getCount(countTotal, CaseType.MUTE), length7, length30))
+				.append(buildLine(lu.getText(event, path+".kicks"), getCount(count7, CaseType.KICK), getCount(count30, CaseType.KICK), getCount(countTotal, CaseType.KICK), length7, length30))
+				.append(buildLine(lu.getText(event, path+".bans"), getCount(count7, CaseType.BAN), getCount(count30, CaseType.BAN), getCount(countTotal, CaseType.BAN), length7, length30))
+				.append(buildTotal(lu.getText(event, path+".total"), getTotal(count7), getTotal(count30), getTotal(countTotal), length7, length30))
+				.append("\n")
+				.append(buildLine(lu.getText(event, path+".roles"), roles7, roles30, rolesTotal, length7, length30))
+				.append("```");
+
+			editEmbed(event, embedBuilder.setDescription(builder.toString()).build());
+		} else {
+			// As image
+			ModStatsRender render = new ModStatsRender(event.getGuildLocale(), mod.getName(),
+				countTotal, count30, count7, rolesTotal, roles30, roles7);
+
+			final String attachmentName = EncodingUtil.encodeModstats(guildId, mod.getIdLong(), now.getEpochSecond());
+
+			EmbedBuilder embedBuilder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
+				.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())
+				.setImage("attachment://" + attachmentName)
+				.setFooter("ID: "+mod.getId())
+				.setTimestamp(now);
+
+			try {
+				event.getHook().editOriginalEmbeds(embedBuilder.build()).setFiles(FileUpload.fromData(
+					new ByteArrayInputStream(render.renderToBytes()),
+					attachmentName
+				)).queue();
+			} catch (IOException e) {
+				bot.getAppLogger().error("Failed to generate the rank background: {}", e.getMessage(), e);
+				editError(event, path+".failed_image", "Rendering exception");
+			}
+		}
 	}
 
 	private String buildLine(String text, int count7, int count30, int countTotal, int length7, int length30) {

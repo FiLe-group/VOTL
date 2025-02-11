@@ -3,6 +3,7 @@ package dev.fileeditor.votl.utils;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +65,7 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 		// Execute HTTP POST request
 		client.newCall(request).enqueue(new Callback() {
 			@Override
-			public void onFailure(Call call, IOException ex) {
+			public void onFailure(@NotNull Call call, @NotNull IOException ex) {
 				if (ex instanceof UnknownHostException) {
 					logger.warn("Webhook call failed. Can't resolve URL.");
 				} else {
@@ -73,7 +74,7 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 			}
 
 			@Override
-			public void onResponse(Call call, Response response) {
+			public void onResponse(@NotNull Call call, @NotNull Response response) {
 				// Do nothing
 			}
 		});

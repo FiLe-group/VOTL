@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  * Project: discord-html-transcripts
  * Date: 2/12/21 @ 00:32
  * Twitter: @Ryzeon_ 😎
- * Github: github.ryzeon.me
+ * GitHub: github.ryzeon.me
  */
 public class Formatter {
 

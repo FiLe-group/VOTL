@@ -52,7 +52,7 @@ import java.util.function.Predicate;
  * 
  * @author John Grosh (jagrosh)
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"rawtypes", "unchecked", "unused"})
 public class EventWaiter implements EventListener
 {
     private static final Logger LOG = LoggerFactory.getLogger(EventWaiter.class);
@@ -72,8 +72,8 @@ public class EventWaiter implements EventListener
      * Constructs an EventWaiter using the provided {@link java.util.concurrent.ScheduledExecutorService Executor}
      * as it's threadpool.
      *
-     * <p>A developer might choose to use this constructor over the {@link com.jagrosh.jdautilities.commons.waiter.EventWaiter#EventWaiter() default},
-     * for using a alternate form of threadpool, as opposed to a {@link java.util.concurrent.Executors#newSingleThreadExecutor() single thread executor}.
+     * <p>A developer might choose to use this constructor over the {@link dev.fileeditor.votl.base.waiter.EventWaiter#EventWaiter() default},
+     * for using an alternate form of threadpool, as opposed to a {@link java.util.concurrent.Executors#newSingleThreadExecutor() single thread executor}.
      * <br>A developer might also favor this over the default as they use the same waiter for multiple
      * shards, and thus shutdown must be handled externally if a special shutdown sequence is being used.
      *
@@ -87,7 +87,7 @@ public class EventWaiter implements EventListener
      *     made to shutdown the provided Executor.</li>
      * </ul>
      * It's worth noting that this EventWaiter can serve as a delegate to invoke the threadpool's shutdown via
-     * a call to {@link com.jagrosh.jdautilities.commons.waiter.EventWaiter#shutdown() EventWaiter#shutdown()}.
+     * a call to {@link dev.fileeditor.votl.base.waiter.EventWaiter#shutdown() EventWaiter#shutdown()}.
      * However, this operation is only supported for EventWaiters that are not supposed to shutdown automatically,
      * otherwise invocation of {@code EventWaiter#shutdown()} will result in an
      * {@link java.lang.UnsupportedOperationException UnsupportedOperationException}.
@@ -95,14 +95,14 @@ public class EventWaiter implements EventListener
      * @param  threadpool
      *         The ScheduledExecutorService to use for this EventWaiter's threadpool.
      * @param  shutdownAutomatically
-     *         Whether or not the {@code threadpool} will shutdown automatically when a
+     *         Whether the {@code threadpool} will shutdown automatically when a
      *         {@link net.dv8tion.jda.api.events.session.ShutdownEvent ShutdownEvent} is fired.
      *
      * @throws java.lang.IllegalArgumentException
      *         If the threadpool provided is {@code null} or
      *         {@link java.util.concurrent.ScheduledExecutorService#isShutdown() is shutdown}
      *
-     * @see    com.jagrosh.jdautilities.commons.waiter.EventWaiter#shutdown() EventWaiter#shutdown()
+     * @see    dev.fileeditor.votl.base.waiter.EventWaiter#shutdown() EventWaiter#shutdown()
      */
     public EventWaiter(ScheduledExecutorService threadpool, boolean shutdownAutomatically)
     {
@@ -246,7 +246,7 @@ public class EventWaiter implements EventListener
             if(set != null)
             {
                 // WaitingEvent#attempt invocations that return true have passed their condition tests
-                // and executed the action. We remove the ones that have successfully ran (those that returns true)
+                // and executed the action. We remove the ones that have successfully run (those that returns true)
                 set.removeIf(wEvent -> wEvent.attempt(event));
             }
             if(event instanceof ShutdownEvent && shutdownAutomatically)
@@ -274,22 +274,10 @@ public class EventWaiter implements EventListener
 
         threadpool.shutdown();
     }
-    
-    private class WaitingEvent<T extends GenericEvent>
-    {
-        final Predicate<T> condition;
-        final Consumer<T> action;
-        
-        WaitingEvent(Predicate<T> condition, Consumer<T> action)
-        {
-            this.condition = condition;
-            this.action = action;
-        }
-        
-        boolean attempt(T event)
-        {
-            if(condition.test(event))
-            {
+
+    private record WaitingEvent<T extends GenericEvent>(Predicate<T> condition, Consumer<T> action) {
+        boolean attempt(T event) {
+            if (condition.test(event)) {
                 action.accept(event);
                 return true;
             }

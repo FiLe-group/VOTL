@@ -36,7 +36,7 @@ public class ModerationListener extends ListenerAdapter {
 			.limit(1)
 			.queue(list -> {
 				if (list.isEmpty()) return;
-				AuditLogEntry entry = list.get(0);
+				AuditLogEntry entry = list.getFirst();
 				if (entry.getUser().equals(event.getJDA().getSelfUser())) return;  // Ignore self
 				bot.getLogger().mod.onUserBan(entry, event.getUser());
 			});
@@ -55,7 +55,7 @@ public class ModerationListener extends ListenerAdapter {
 			.limit(1)
 			.queue(list -> {
 				if (list.isEmpty()) return;
-				AuditLogEntry entry = list.get(0);
+				AuditLogEntry entry = list.getFirst();
 				if (entry.getUser().equals(event.getJDA().getSelfUser())) return;  // Ignore self
 				bot.getLogger().mod.onUserUnban(entry, event.getUser());
 			});
@@ -77,7 +77,7 @@ public class ModerationListener extends ListenerAdapter {
 				.limit(1)
 				.queue(list -> {
 					if (list.isEmpty()) return;
-					AuditLogEntry entry = list.get(0);
+					AuditLogEntry entry = list.getFirst();
 					if (Objects.equals(entry.getUser(), event.getJDA().getSelfUser())) return;  // Ignore self
 					if (entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT) == null) return; // Not timeout
 					bot.getLogger().mod.onUserTimeoutRemoved(entry, event.getUser());
@@ -90,7 +90,7 @@ public class ModerationListener extends ListenerAdapter {
 				.limit(1)
 				.queue(list -> {
 					if (list.isEmpty()) return;
-					AuditLogEntry entry = list.get(0);
+					AuditLogEntry entry = list.getFirst();
 					if (Objects.equals(entry.getUser(), event.getJDA().getSelfUser())) return;  // Ignore self
 					if (entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT) == null) return; // Not timeout
 					bot.getLogger().mod.onUserTimeoutUpdated(entry, event.getUser(), event.getNewTimeOutEnd());

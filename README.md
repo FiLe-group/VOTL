@@ -1,9 +1,15 @@
 # VOTL
- [![Publish Release](https://github.com/FileEditor97/VOTL/actions/workflows/gradle.yml/badge.svg)](https://github.com/FileEditor97/VOTL/actions/workflows/gradle.yml)  
+ [![Build status](https://github.com/FileEditor97/VOTL/actions/workflows/build.yml/badge.svg)](https://github.com/FileEditor97/VOTL/actions/workflows/build.yml)  
  Voice of the Lord - discord bot written in Java using JDA library.  
  Functions: server moderation and sync blacklists, custom voice channels and verification, ticketing.  
 
-Visit https://votl.fileeditor.dev/ to learn more about available commands and to view documentation.   
+Visit https://votl.fileeditor.dev/ to learn more about available commands and to view documentation.
+
+## Download or building
+ Stable JAR file can be downloaded from latest Release [here](https://github.com/FileEditor97/VOTL/releases/latest).  
+ Additional Snapshot builds can be accessed [here](https://github.com/FileEditor97/VOTL/actions/workflows/build.yml).
+ 
+ Build from source using `.\gradlew shadowJar`.
 
 ## Config file
  data/config.json:

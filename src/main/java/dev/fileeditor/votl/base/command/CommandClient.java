@@ -30,7 +30,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * automatically to handle and execute {@link dev.fileeditor.votl.base.command.SlashCommand SlashCommand}s.
  *
  * <p>Implementations also serve as a useful platforms, carrying reference info such as the bot's
- * {@linkplain #getOwnerId() Owner ID} and a {@linkplain #getServerInvite()
+ * {@linkplain #getOwnerIdLong() Owner ID} and a {@linkplain #getServerInvite()
  * support server invite}.
  *
  * <p>For the CommandClientImpl, once initialized, only the following can be modified:
@@ -58,6 +58,7 @@ import java.util.concurrent.ScheduledExecutorService;
  *                      if you provide {@code null} for the Owner ID, that'll just flat out throw an {@link
  *                      java.lang.IllegalArgumentException IllegalArgumentException}).
  */
+@SuppressWarnings("unused")
 public interface CommandClient
 {
 	/**
@@ -235,13 +236,6 @@ public interface CommandClient
 	 * Cleans up expired cooldowns to reduce memory.
 	 */
 	void cleanCooldowns();
-
-	/**
-	 * Gets the ID of the owner of this bot as a String.
-	 *
-	 * @return The String ID of the owner of the bot
-	 */
-	String getOwnerId();
 
 	/**
 	 * Gets the ID of the owner of this bot as a {@code long}.

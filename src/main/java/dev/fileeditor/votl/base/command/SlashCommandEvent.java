@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Olivia (Chew)
  */
+@SuppressWarnings("unused")
 public class SlashCommandEvent extends SlashCommandInteractionEvent {
 	private final CommandClient client;
 

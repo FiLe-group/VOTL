@@ -53,16 +53,33 @@
 			"usage": "no usage description"
 		},
 		"time": {
-			"seconds": "seconds",
-			"minutes": "minutes",
-			"hours": "hours",
-			"days": "days",
-			"weeks": "weeks"
+			"s1": "second",
+			"s2": "seconds",
+			"s5": "seconds",
+			"m1": "minute",
+			"m2": "minutes",
+			"m5": "minutes",
+			"h1": "hour",
+			"h2": "hours",
+			"h5": "hours",
+			"d1": "day",
+			"d2": "days",
+			"d5": "days",
+			"w1": "week",
+			"w2": "weeks",
+			"w5": "weeks"
 		},
 		"permanently": "permanently",
 		"temporary": "until %s",
 		"ban_expired": "Temporary ban expired",
 		"temp_msg": "\n-# This message will be deleted in 20 seconds."
+	},
+	"imagegen": {
+		"profile": {
+			"text": "TEXT",
+			"voice": "VOICE",
+			"global_xp": "Global XP"
+		}
 	},
 	"modules": {
 		"webhook": "Webhook commands",
@@ -75,6 +92,7 @@
 		"roles": "Role management",
 		"strikes": "Strike punishments",
 		"games": "Games",
+		"levels": "Leveling",
 		"module_disabled": "This command(module) is disabled."
 	},
 	"role_type": {
@@ -99,7 +117,8 @@
 		"kick": "Kick",
 		"ban": "Ban",
 		"remove_role": "Remove role",
-		"add_role": "Add role"
+		"add_role": "Add role",
+		"temp_role": "Temp role"
 	},
 	"ticket": {
 		"close": "Close",
@@ -225,7 +244,7 @@
 			"name": "Ticket logs",
 			"closed_title": "Ticket Closed",
 			"closed_value": "Ticket Name: {name}\nClosed By: {closed}\nCreated By: {created}\nClaimed By: {claimed}\n\n*If available, ticket's transcript is attached to this message.*",
-			"closed_pm": "Ticket closed at **{guild}** server.\n\n**Closed By**: {closed}\n**Close date**: {time}\n**Close Reason**: {reason}\n\n*If available, ticket's transcript is attached to this message.*",
+			"closed_pm": "Ticket closed at **{guild}** server.\n\n**Closed By**: {closed}\n**Close date**: {time}\n**Close Reason**: {reason}\n\n*If available, ticket's transcript is attached to this message.*\n*To view .html file - download it and open in any browser.*",
 			"autoclosed": "No response, autoclosed",
 			"unclaimed": "UnClaimed",
 			"roles_title": "Roles issued | %s",
@@ -305,6 +324,17 @@
 			"override_create": "Permission overwrite created",
 			"override_update": "Permission overwrite updated",
 			"override_delete": "Permission overwrite deleted"
+		},
+		"level": {
+			"name": "Leveling logs",
+			"level_up": "Level up!",
+			"msg_random": [
+				"GG {user}, you just reached **{type} Level {level}**",
+				"Eyy {user}, you just leveled up! You're now **{type} Level {level}**",
+				"\uD83C\uDF1F You just reached **{type} Level {level}** {user}! Congrats \uD83C\uDF1F",
+				"You're on \uD83D\uDD25 {user}, you've just reached **{type} Level {level}**",
+				"Congratulations {user} \uD83C\uDF89 You just leveled up! You're now **{type} Level {level}**"
+			]
 		},
 		"helper": {
 			"banned": "User was banned in %s",
@@ -393,6 +423,19 @@
 				"no_guild": "Selected server not found.",
 				"done": "Assigned {target} access {level}."
 			},
+			"checkaccess": {
+				"help": "Check user's access in selected server",
+				"usage": "checkaccess <Server ID> <@User>",
+				"server": {
+					"name": "server",
+					"help": "Enter server's ID"
+				},
+				"user": {
+					"name": "user",
+					"help": "Enter user's ID"
+				},
+				"no_guild": "Selected server not found."
+			},
 			"debug": {
 				"help": "Returns logs file",
 				"usage": "debug [debug logs?] [date]",
@@ -436,7 +479,39 @@
 				"clear": "Activity cleared.",
 				"set": "%s activity set.\n> %s"
 			},
-			"metrics": {
+			"bot_blacklist": {
+				"help": "Manage bot's blacklist",
+				"usage": "bot_blacklist <add?> <ID>",
+				"add": {
+					"name": "add",
+					"help": "Add (or remove)?"
+				},
+				"id": {
+					"name": "id",
+					"help": "Enter user or guild ID"
+				}
+			},
+			"experience": {
+				"help": "Manage user exp in server and overall",
+				"usage": "experience <choice>",
+				"server": {
+					"name": "server",
+					"help": "Enter server ID"
+				},
+				"user": {
+					"name": "user",
+					"help": "Enter user ID"
+				},
+				"action": {
+					"name": "action",
+					"help": "What action to perform"
+				},
+				"amount": {
+					"name": "amount",
+					"help": "Enter exp amount to add/remove"
+				}
+			},
+				"metrics": {
 				"help": "Different metrics",
 				"usage": "metrics",
 				"command": {
@@ -576,6 +651,31 @@
 					},
 					"unknown": "Unknown action received.",
 					"done": "On `%s` action - %s"
+				},
+				"role_whitelist": {
+					"help": "Only allow \"whitelisted\" roles to be managed with /role command",
+					"usage": "role_whitelist <enable?>",
+					"enable": {
+						"name": "enable",
+						"help": "Enable role \"whitelist\""
+					},
+					"done": "Set role limiting - %s"
+				},
+				"levels": {
+					"help": "Manage leveling settings (to view settings - don't select options)",
+					"usage": "levels [enable?] [voice enable?]",
+					"enable": {
+						"name": "enable",
+						"help": "Enable leveling in this server"
+					},
+					"voice_enable": {
+						"name": "voice_enable",
+						"help": "Enable levels for voice activity"
+					},
+					"embed_view": "**Leveling settings**",
+					"embed_changes": "**Updated leveling settings**",
+					"changed_enabled": "\n> Enabled: %s",
+					"changed_voice": "\n> Voice activity xp enabled: %s"
 				}
 			},
 			"module": {
@@ -780,11 +880,20 @@
 						"name": "add-role",
 						"help": "Add role to the user"
 					},
+					"temp-role": {
+						"name": "temp-role",
+						"help": "Add temp role to the user"
+					},
+					"temp-duration": {
+						"name": "temp-duration",
+						"help": "Set temp role duration"
+					},
 					"one_option": "Only one of this options can be used: Kick, Mute or Ban.",
 					"ban_kick_role": "Can't give or remove role if options Mute or Ban are used.",
 					"same_role": "Can't give or remove same roles.",
-					"not_zero": "Mute duration can't be zero.",
+					"not_zero": "Mute/Temp role duration can't be zero.",
 					"incorrect_role": "I can't interact with provided role.",
+					"no_duration": "Duration for temp role is not set.",
 					"exists": "Action already exists. Remove it and re-add.",
 					"empty": "No options selected.",
 					"title": "Created action for receiving `%d` strikes:\n\n",
@@ -793,7 +902,8 @@
 					"vban": "User will be banned %s.\n",
 					"for": "for",
 					"vremove": "Role `%s` will be removed.\n",
-					"vadd": "Role `%s` will be added.\n"
+					"vadd": "Role `%s` will be added.\n",
+					"vtempadd": "Role `%s` will be temporally added for %s.\n"
 				},
 				"remove": {
 					"help": "Remove actions",
@@ -1513,7 +1623,7 @@
 			},
 			"modstats": {
 				"help": "View moderation statistics for mod/admin",
-				"usage": "modstats [@User] [start date] [end date]",
+				"usage": "modstats [@User] [start date] [end date] [as text?]",
 				"user": {
 					"name": "user",
 					"help": "Select user"
@@ -1526,10 +1636,16 @@
 					"name": "end_date",
 					"help": "Enter end date (day/month/year)"
 				},
+				"as_text": {
+					"name": "as_text",
+					"help": "Return full table as text?"
+				},
 				"failed_parse": "Failed to parse input date! Use format `day/month/year`.",
 				"wrong_date": "Wrong dates provided (before and after inputs).",
 				"empty": "No statistics for this user.",
+				"failed_image": "Failed to generate image.",
 				"title": "Moderation statistics",
+				"title_report": "Moderation report",
 				"seven": "7 days",
 				"thirty": "30 days",
 				"all": "All time",
@@ -1597,6 +1713,43 @@
 				"empty_user": "Unable to delete any message by `%s`.",
 				"done": "Purged %s messages!",
 				"done_user": "Purged %s messages by `%s`!"
+			},
+			"modreport": {
+				"help": "Automatic moderation reports",
+				"usage": "modreport",
+				"setup": {
+					"help": "Setup automatic moderation reports",
+					"usage": "setup <#Channel> <period> <@Roles> [first report]",
+					"channel": {
+						"name": "channel",
+						"help": "Select channel to which send the report"
+					},
+					"interval": {
+						"name": "interval",
+						"help": "How often to create report"
+					},
+					"weekly": "Weekly (7 days)",
+					"biweekly": "Biweekly (14 days)",
+					"monthly": "Monthly (1 month)",
+					"roles": {
+						"name": "roles",
+						"help": "Users with which roles will be included (one or more)"
+					},
+					"first_report": {
+						"name": "first_report",
+						"help": "When to send the first report (UTC time, 'dd/MM/yyyy' or 'dd/MM/yyyy HH:mm' format)"
+					},
+					"no_roles": "No roles provided (use @Role) or more than 4.",
+					"invalid_role": "Invalid role provided.",
+					"failed_parse": "Failed to parse input date! Use format `day/month/year`.",
+					"wrong_date": "Wrong dates provided (next report date is before now).",
+					"done": "Next report will be sent at %s **(UTC)** to channel %s.\nIt will repeat every `%s` days.\nInclude roles: %s"
+				},
+				"delete": {
+					"help": "Delete automatic moderation reports creation",
+					"usage": "delete",
+					"done": "Setup deleted!"
+				}
 			}
 		},
 		"other": {
@@ -1700,6 +1853,7 @@
 					"voice": "Voice",
 					"roles": "Roles",
 					"games": "Games",
+					"levels": "Leveling",
 					"other": "Other",
 					"title": "Categories"
 				},
@@ -1753,15 +1907,51 @@
 				}
 			},
 			"verifyrole": {
-				"help": "Assign server role for verification",
-				"usage": "verifyrole <@Role>",
-				"role": {
-					"name": "role",
-					"help": "Select role which will be used for verification"
+				"help": "Manage verification roles",
+				"usage": "verifyrole",
+				"verify": {
+					"help": "Assign role for verification",
+					"usage": "verify <@Role>",
+					"role": {
+						"name": "role",
+						"help": "Select role which will be used for verification"
+					},
+					"no_role": "Provided role not found.",
+					"incorrect_role": "Selected role can't be used.",
+					"done": "Role %s assigned for verification!"
 				},
-				"disable_check": "Disable account connection check, before changing verification role!",
-				"no_role": "Provided role was incorrect.",
-				"done": "Role {role} assigned for verification!"
+				"additional": {
+					"help": "Manage additional roles",
+					"set": {
+						"help": "Set additional roles to be set to user on verification completion",
+						"usage": "additional set <@Role> [@Role] [@Role]",
+						"role1": {
+							"name": "role1",
+							"help": "Select role"
+						},
+						"role2": {
+							"name": "role2",
+							"help": "Select role"
+						},
+						"role3": {
+							"name": "role3",
+							"help": "Select role"
+						},
+						"invalid_args":"You haven't selected any role/-s.",
+						"incorrect_role": "Selected roles can't be added.",
+						"done": "Set %s as additional roles."
+					},
+					"clear": {
+						"help": "Clear all additional roles",
+						"usage": "additional clear",
+						"done": "Cleared all additional roles."
+					},
+					"view": {
+						"help": "View all additional roles",
+						"usage": "additional view",
+						"no_roles": "No additional roles set."
+					}
+				}
 			}
 		},
 		"ticketing": {
@@ -1852,26 +2042,6 @@
 						"help": "Enter text which will be shown in role selection placeholder"
 					},
 					"done": "Placeholder text for row `{row}` set to `{text}`."
-				},
-				"other": {
-					"help": "Set if user can select 'other' roles request",
-					"usage": "other <enabled?>",
-					"enabled": {
-						"name": "enabled",
-						"help": "Enable other roles request?"
-					},
-					"done": "Other roles request enabled - `%s`."
-				},
-				"support": {
-					"help": "Set support roles for role requests",
-					"usage": "support <@Roles>",
-					"roles": {
-						"name": "roles",
-						"help": "Mention role/-s to set or enter 'null' to clear"
-					},
-					"bad_input": "Incorrect role mentions provided.",
-					"done_clear": "Support roles cleared.",
-					"done": "Roles %s will be pinged in role requests."
 				}
 			},
 			"tcount": {
@@ -2211,6 +2381,39 @@
 					"changed_autoclose": "\n> Autoclose time set to %s hour/-s.",
 					"changed_left": "\n> When ticket's author leaves, ticket will be closed: %s.",
 					"changed_reply": "\n> Reply time set to %s hour/-s."
+				},
+				"settings": {
+					"help": "Manage global settings for tickets (to view settings - don't select options)",
+					"usage": "settings [delete pings] [other roles] [role tickets support] [allow close] [transcripts]",
+					"delete_pings": {
+						"name": "delete_pings",
+						"help": "When creating new ticket, delete user/moderator pings?"
+					},
+					"other_roles": {
+						"name": "other_roles",
+						"help": "Allow users to request 'other' roles?"
+					},
+					"role_tickets_support": {
+						"name": "role_tickets_support",
+						"help": "Role requests support roles. Mention role/-s to set or enter 'null' to clear/default."
+					},
+					"allow_close": {
+						"name": "allow_close",
+						"help": "Who can close tickets? (Everyone, helper+ or support)"
+					},
+					"transcripts_mode": {
+						"name": "transcripts_mode",
+						"help": "For which tickets transcript will be created? (All, except roles or none)"
+					},
+					"bad_roles": "No roles provided (use @Role) or more than 3.",
+					"embed_view": "**Ticket settings**",
+					"embed_changes": "**Updated ticket settings**",
+					"changed_delete": "\n> Delete pings after ticket creation: %s",
+					"changed_other": "\n> Allow other roles requests: %s",
+					"cleared_support": "\n> Support roles cleared. (By default, roles with __Mod__ access will be pinged)",
+					"changed_support": "\n> %s will be pinged in role requests.",
+					"changed_close": "\n> Allowed to close tickets: **%s**",
+					"changed_transcript": "\n> Transcripts will be created for **%s** tickets."
 				}
 			},
 			"close": {
@@ -2280,8 +2483,9 @@
 						"name": "role3",
 						"help": "Select role"
 					},
-					"invalid_args":"You haven't selected any role/-s.",
+					"invalid_args": "You haven't selected any role/-s.",
 					"incorrect_role": "Selected roles can't be added.",
+					"not_whitelisted": "Selected role is not whitelisted! Ask Administrator to add it to the list.",
 					"no_member": "Member not found.",
 					"done": "Added roles {roles} to {user}.",
 					"failed": "Unable to add selected roles to the user."
@@ -2305,8 +2509,9 @@
 						"name": "role3",
 						"help": "Select role"
 					},
-					"invalid_args":"You haven't selected any role/-s.",
+					"invalid_args": "You haven't selected any role/-s.",
 					"incorrect_role": "Selected roles can't be removed.",
+					"not_whitelisted": "Selected role is not whitelisted! Ask Administrator to add it to the list.",
 					"no_member": "Member not found.",
 					"done": "Removed roles {roles} from {user}.",
 					"failed": "Unable to remove selected roles from the user."
@@ -2366,6 +2571,7 @@
 					},
 					"no_role": "Role not found.",
 					"incorrect_role": "Selected role can't be assigned.",
+					"not_whitelisted": "Selected role is not whitelisted! Ask Administrator to add it to the list.",
 					"no_member": "Member not found.",
 					"incorrect_user": "Selected member can't be assigned role.",
 					"already_set": "Member already assigned this role.",
@@ -2490,6 +2696,108 @@
 				"not_member": "Selected user is not a member of this server or can't be selected.",
 				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
 				"done": "User %s received Game strike in %s."
+			}
+		},
+		"level": {
+			"profile": {
+				"help": "Get user profile",
+				"usage": "profile [@User] [id]",
+				"user": {
+					"name": "user",
+					"help": "Target user, by default - you"
+				},
+				"id": {
+					"name": "id",
+					"help": "Background ID"
+				},
+				"bad_user": "Can't select this user.",
+				"failed": "Failed to create background."
+			},
+			"leaderboard": {
+				"help": "View levels leaderboard",
+				"usage": "leaderboard [type]",
+				"type": {
+					"name": "type",
+					"help": "The leaderboard type"
+				},
+				"embed_title": "Server Exp Leaderboards",
+				"top_text": "TOP %s TEXT \uD83D\uDCAC",
+				"top_voice": "TOP %s VOICE \uD83C\uDF99\uFE0F",
+				"empty": "*Empty...*"
+			},
+			"level_roles": {
+				"help": "Manage leveling roles",
+				"set": {
+					"help": "Set role for achieved level",
+					"usage": "set <level> <@Role>",
+					"level": {
+						"name": "level",
+						"help": "At which level to assign those roles"
+					},
+					"role": {
+						"name": "role",
+						"help": "Select role"
+					},
+					"type": {
+						"name": "type",
+						"help": "For which type of level to assign those roles"
+					},
+					"invalid_args": "You haven't selected any role.",
+					"incorrect_role": "Selected role can't be used.",
+					"limit": "Level roles limit reached (max 40)!",
+					"done": "Role %s will be assigned at level `%s`."
+				},
+				"remove": {
+					"help": "Remove roles from level",
+					"usage": "remove <level>",
+					"level": {
+						"name": "level",
+						"help": "Remove role from which level"
+					},
+					"done": "Cleared roles for `%s` level."
+				},
+				"view": {
+					"help": "View all levels",
+					"usage": "view",
+					"empty": "No roles set.",
+					"title": "Level roles"
+				}
+			},
+			"level_exempt": {
+				"help": "Manage exempt channels for leveling",
+				"add": {
+					"help": "Add channel to leveling exemption",
+					"usage": "add <#Channel>",
+					"channel": {
+						"name": "channel",
+						"help": "Select channel"
+					},
+					"invalid_args": "You haven't selected any role.",
+					"limit": "Exempt channels limit reached (max 40)!",
+					"already": "This channel is already exempt.",
+					"done": "Channel %s added to exemption."
+				},
+				"remove": {
+					"help": "Remove channel from leveling exemption",
+					"usage": "remove <#Channel>",
+					"channel": {
+						"name": "channel",
+						"help": "Select channel to remove"
+					},
+					"not_exempt": "This channel is not exempt.",
+					"done": "Channel %s removed from exemption."
+				},
+				"clear": {
+					"help": "Remove all exempt channels",
+					"usage": "clear",
+					"done": "Cleared all channels."
+				},
+				"view": {
+					"help": "View all exemptions",
+					"usage": "view",
+					"empty": "No exemptions set.",
+					"title": "Exempt channels"
+				}
 			}
 		}
 	},

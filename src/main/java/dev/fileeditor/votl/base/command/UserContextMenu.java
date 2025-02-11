@@ -21,11 +21,14 @@ import dev.fileeditor.votl.utils.exception.CheckException;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 /**
  * <h2><b>User Context Menus In JDA-Chewtils</b></h2>
@@ -35,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>Classes created inheriting this class gain the unique traits of commands operated using the menu Extension.
  * <br>Using several fields, a menu can define properties that make it unique and complex while maintaining
  * a low level of development.
- * <br>All classes extending this class can define any number of these fields in a object constructor and then
+ * <br>All classes extending this class can define any number of these fields in an object constructor and then
  * create the menu action/response in the abstract {@link UserContextMenu#execute(UserContextMenuEvent)} body:
  *
  * <pre><code> public class ExampleCmd extends UserContextMenu {
@@ -76,9 +79,15 @@ public abstract class UserContextMenu extends ContextMenu {
 		// client 
 		final CommandClient client = event.getClient();
 
+		// check blacklist
+		if (bot.getCheckUtil().isBlacklisted(event.getUser())) {
+			terminate(event, client);
+			return;
+		}
+
 		// owner check
 		if (ownerCommand && !(event.isOwner())) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"));
+			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
 			return;
 		}
 
@@ -87,7 +96,7 @@ public abstract class UserContextMenu extends ContextMenu {
 			String key = getCooldownKey(event);
 			int remaining = client.getRemainingCooldown(key);
 			if (remaining>0) {
-				terminate(event, getCooldownError(event, event.getGuild(), remaining));
+				terminate(event, getCooldownError(event, event.getGuild(), remaining), client);
 				return;
 			}
 			else client.applyCooldown(key, cooldown);
@@ -108,11 +117,11 @@ public abstract class UserContextMenu extends ContextMenu {
 				// check bots perms
 					.hasPermissions(event, guild, author, true, getBotPermissions());
 			} catch (CheckException ex) {
-				terminate(event, ex.getCreateData());
+				terminate(event, ex.getCreateData(), client);
 				return;
 			}
 		} else if (guildOnly) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.guild_only"));
+			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.guild_only"), client);
 			return;
 		}
 
@@ -142,15 +151,20 @@ public abstract class UserContextMenu extends ContextMenu {
 	 */
 	protected abstract void execute(UserContextMenuEvent event);
 
-	private void terminate(UserContextMenuEvent event, @NotNull MessageEmbed embed) {
-		terminate(event, MessageCreateData.fromEmbeds(embed));
+	private void terminate(UserContextMenuEvent event, @NotNull MessageEmbed embed, CommandClient client) {
+		terminate(event, MessageCreateData.fromEmbeds(embed), client);
 	}
 
-	private void terminate(UserContextMenuEvent event, MessageCreateData message) {
+	private void terminate(UserContextMenuEvent event, MessageCreateData message, CommandClient client) {
 		if (message!=null)
 			event.reply(message).setEphemeral(true).queue();
-		if (event.getClient().getListener()!=null)
-			event.getClient().getListener().onTerminatedUserContextMenu(event, this);
+		if (client.getListener()!=null)
+			client.getListener().onTerminatedUserContextMenu(event, this);
+	}
+
+	private void terminate(UserContextMenuEvent event, CommandClient client) {
+		if (client.getListener()!=null)
+			client.getListener().onTerminatedUserContextMenu(event, this);
 	}
 
 	@Override
@@ -172,7 +186,7 @@ public abstract class UserContextMenu extends ContextMenu {
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
 
-		data.setGuildOnly(this.guildOnly);
+		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
 		return data;
 	}
