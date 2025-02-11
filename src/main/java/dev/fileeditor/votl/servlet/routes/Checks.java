@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import dev.fileeditor.oauth2.session.Session;
 import dev.fileeditor.votl.servlet.WebServlet;
 
+import io.javalin.http.util.CookieStore;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -18,8 +19,7 @@ public class Checks {
 	public static void checkPermissions(Session session, Guild guild, Consumer<Member> success) {
 		WebServlet.getClient().getUser(session).queue(user -> {
 			guild.retrieveMemberById(user.getIdLong()).queue(member -> {
-				if (!member.isOwner() && !member.hasPermission(Permission.ADMINISTRATOR))
-					throw new ForbiddenResponse("User has no permission.");
+				checkPerms(member);
 				// Execute code
 				success.accept(member);
 			},
@@ -33,15 +33,19 @@ public class Checks {
 	}
 
 	// TODO
-	public static CompletableFuture<Void> checkPermissionsAsync(Session session, Guild guild, Consumer<Member> success) {
-		return WebServlet.getClient().getUser(session).future()
+	public static CompletableFuture<Void> checkPermissionsAsync(CookieStore cs, Guild guild, Consumer<Member> success) {
+		return WebServlet.getClient().getUser(WebServlet.getSession(cs)).future()
 			.thenCompose(user -> guild.retrieveMemberById(user.getIdLong()).submit())
 			.thenAccept((member) -> {
-				if (!member.isOwner() && !member.hasPermission(Permission.ADMINISTRATOR))
-					throw new ForbiddenResponse("User has no permission.");
+				checkPerms(member);
 				// Execute code
 				success.accept(member);
 			});
+	}
+
+	private static void checkPerms(Member member) throws ForbiddenResponse{
+		if (!member.hasPermission(Permission.ADMINISTRATOR))
+			throw new ForbiddenResponse("User can not perform this action.");
 	}
 	
 }

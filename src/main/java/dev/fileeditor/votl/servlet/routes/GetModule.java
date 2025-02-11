@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
-import io.javalin.http.BadRequestResponse;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
-import io.javalin.http.NotFoundResponse;
+import io.javalin.http.*;
 import net.dv8tion.jda.api.entities.Guild;
 
 public class GetModule implements Handler {
@@ -28,7 +25,7 @@ public class GetModule implements Handler {
 
 		// Check if disabled
 		if (App.getInstance().getDBUtil().getGuildSettings(guild).isDisabled(module)) {
-			throw new NotFoundResponse("Module " + moduleName + " is disabled.");
+			throw new ConflictResponse("Module '%s' is disabled.".formatted(module));
 		}
 
 		// TODO add other modules

@@ -4,11 +4,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.servlet.WebServlet;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
-import io.javalin.http.BadRequestResponse;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
-import io.javalin.http.HttpStatus;
-import io.javalin.http.NotFoundResponse;
+import io.javalin.http.*;
 import net.dv8tion.jda.api.entities.Guild;
 
 import static dev.fileeditor.votl.servlet.routes.Checks.checkPermissionsAsync;
@@ -26,17 +22,18 @@ public class PutModule implements Handler {
 
 		// Check if module exists by name
 		final String moduleName = ctx.pathParamAsClass("module", String.class)
-			.check(CmdModule::exists, "Incorrect module name provided.").get();
+			.check(CmdModule::exists, "Incorrect module name provided.")
+			.get();
 		final CmdModule module = CmdModule.valueOf(moduleName.toUpperCase());
 
 		// Check if disabled
 		GuildSettingsManager.GuildSettings settings = App.getInstance().getDBUtil().getGuildSettings(guild);
 		if (!settings.isDisabled(module)) {
-			throw new NotFoundResponse("Module " + moduleName + " is already enabled.");
+			throw new ConflictResponse("Module '%s' is already enabled.".formatted(module));
 		}
 
 		ctx.future(() -> {
-			return checkPermissionsAsync(WebServlet.getSession(ctx.cookieStore()), guild, (member) -> {
+			return checkPermissionsAsync(ctx.cookieStore(), guild, (member) -> {
 				// Write new data
 				final int newData = settings.getModulesOff() - module.getValue();
 				App.getInstance().getDBUtil().guildSettings.setModuleDisabled(guild.getIdLong(), newData);

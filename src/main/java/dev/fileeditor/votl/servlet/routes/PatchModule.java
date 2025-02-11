@@ -4,12 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
-import dev.fileeditor.votl.servlet.WebServlet;
 
-import io.javalin.http.BadRequestResponse;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
-import io.javalin.http.NotFoundResponse;
+import io.javalin.http.*;
 import net.dv8tion.jda.api.entities.Guild;
 
 import static dev.fileeditor.votl.servlet.routes.Checks.checkPermissionsAsync;
@@ -28,17 +24,18 @@ public class PatchModule implements Handler {
 
 		// Check if module exists by name
 		String moduleName = ctx.pathParamAsClass("module", String.class)
-			.check(CmdModule::exists, "Incorrect module name provided.").get();
+			.check(CmdModule::exists, "Incorrect module name provided.")
+			.get();
 		final CmdModule module = CmdModule.valueOf(moduleName.toUpperCase());
 
 		// Check if disabled
 		if (App.getInstance().getDBUtil().getGuildSettings(guild).isDisabled(module)) {
-			throw new NotFoundResponse("Module " + moduleName + " is disabled.");
+			throw new ConflictResponse("Module '%s' is disabled.".formatted(module));
 		}
 
 		// Check for permission
 		ctx.future(() -> {
-			return checkPermissionsAsync(WebServlet.getSession(ctx.cookieStore()), guild, (member) -> {
+			return checkPermissionsAsync(ctx.cookieStore(), guild, (member) -> {
 				// TODO add other modules
 				switch (module) {
 					case REPORT -> {
@@ -47,7 +44,7 @@ public class PatchModule implements Handler {
 
 						ObjectNode moduleNode = new ObjectMapper().createObjectNode();
 
-						moduleNode.put("channel", 0L);
+						moduleNode.put("channel", 0L); // TODO temp
 						moduleNode.put("message", "");
 						moduleNode.put("temp", true);
 

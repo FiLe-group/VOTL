@@ -4,6 +4,8 @@ import dev.fileeditor.oauth2.OAuth2Client;
 import dev.fileeditor.oauth2.session.Session;
 import dev.fileeditor.votl.servlet.utils.AuthSessionController;
 import dev.fileeditor.votl.servlet.utils.AuthStateController;
+import io.javalin.http.ServiceUnavailableResponse;
+import io.javalin.http.UnauthorizedResponse;
 import io.javalin.http.util.CookieStore;
 import org.slf4j.LoggerFactory;
 
@@ -59,11 +61,11 @@ public class WebServlet {
 					});
 				});
 			})
-			.beforeMatched(WebFilter.authCheck())
-			.before(WebFilter.filterRequest())
+			.beforeMatched(WebFilter.logRequest())
+			.before(WebFilter.setJsonResponse())
+			.before("/guilds/*", WebFilter.authCheck())
 			.exception(FileNotFoundException.class, (e, ctx) -> ctx.status(HttpStatus.NOT_FOUND))
-			.exception(Exception.class, WebHandler.exceptionHandler())
-			.after(ctx -> ctx.cookieStore().clear())
+			.exception(Exception.class, WebHandler.exceptionHandler()) // TODO add internal error logger
 			.start(port);
 
 		client = new OAuth2Client.Builder()
@@ -84,11 +86,13 @@ public class WebServlet {
 	}
 
 	public static Session getSession(CookieStore cs) {
-		if (!initialized) return null;
+		if (!initialized)
+			throw new ServiceUnavailableResponse("Servlet is not initialized.");
 
-		// TODO session ID encode/decode
+		// TODO session ID encode/decode - userId + timestamp/fingerprint + secret
 		String id = cs.get("session");
-		if (id == null || id.isBlank()) return null;
+		if (id == null || id.isBlank())
+			throw new UnauthorizedResponse("Session cookie is missing.");
 		return getClient().getSessionController().getSession(id);
 	}
 

@@ -35,13 +35,7 @@ import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
 import dev.fileeditor.votl.services.ScheduledCheck;
 import dev.fileeditor.votl.servlet.WebServlet;
-import dev.fileeditor.votl.servlet.routes.DeleteModule;
-import dev.fileeditor.votl.servlet.routes.GetChannels;
-import dev.fileeditor.votl.servlet.routes.GetGuild;
-import dev.fileeditor.votl.servlet.routes.GetMemberSelf;
-import dev.fileeditor.votl.servlet.routes.GetModule;
-import dev.fileeditor.votl.servlet.routes.GetRoles;
-import dev.fileeditor.votl.servlet.routes.PutModule;
+import dev.fileeditor.votl.servlet.routes.*;
 import dev.fileeditor.votl.utils.*;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
@@ -160,19 +154,16 @@ public class App {
 
 			servlet = new WebServlet(port, allowedHost, clientId, clientSecret);
 			// Register routes
-			// Get
+			// Getters
 			servlet.registerGet("/guilds/{guild}", new GetGuild());
 			servlet.registerGet("/guilds/{guild}/roles", new GetRoles());
 			servlet.registerGet("/guilds/{guild}/channels", new GetChannels());
 			servlet.registerGet("/guilds/{guild}/members/@me", new GetMemberSelf());
-			servlet.registerGet("/guilds/{guild}/modules/{module}", new GetModule());
-			// Delete - Disable module
-			servlet.registerDelete("/guilds/{guild}/modules/{module}", new DeleteModule());
-			// Put - Enable module
-			servlet.registerPut("/guilds/{guild}/modules/{module}", new PutModule());
-			// Patch
-			//servlet.registerPatch("/guilds/{guild}/modules/{module}", new GetModule());
-			//servlet.registerPatch("/guilds/{guild}", new GetModule());
+			// Modules
+			servlet.registerGet("/guilds/{guild}/modules/{module}", new GetModule()); // Get data
+			servlet.registerDelete("/guilds/{guild}/modules/{module}", new DeleteModule()); // Disable
+			servlet.registerPut("/guilds/{guild}/modules/{module}", new PutModule()); // Enable
+			servlet.registerPatch("/guilds/{guild}/modules/{module}", new PatchModule()); // Update
 		} else {
 			servlet = null;
 		}
