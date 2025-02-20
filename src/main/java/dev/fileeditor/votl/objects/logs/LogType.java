@@ -21,7 +21,8 @@ public enum LogType {
 	MEMBER("member"),
 	VOICE("voice"),
 	CHANNEL("channel"),
-	LEVEL("level");
+	LEVEL("level"),
+	BOT("bot");
 
 	private final String name;
 	private final String path;

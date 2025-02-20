@@ -126,7 +126,7 @@ public class ModuleCmd extends CommandBase {
 						.build()
 					).setComponents().queue();
 					// Log
-					bot.getLogger().server.onModuleDisabled(event.getGuild(), event.getUser(), sModule);
+					bot.getLogger().botLogs.onModuleDisabled(event.getGuild(), event.getUser(), sModule);
 				},
 				30,
 				TimeUnit.SECONDS,
@@ -189,7 +189,7 @@ public class ModuleCmd extends CommandBase {
 							.build()
 						).setComponents().queue();
 						// Log
-						bot.getLogger().server.onModuleEnabled(event.getGuild(), event.getUser(), sModule);
+						bot.getLogger().botLogs.onModuleEnabled(event.getGuild(), event.getUser(), sModule);
 					}
 				),
 				10,
