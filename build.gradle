@@ -1,9 +1,8 @@
-
 plugins {
 	id 'java'
 	// ShadowJar
 	// https://mvnrepository.com/artifact/com.gradleup.shadow/shadow-gradle-plugin
-	id 'com.gradleup.shadow' version '8.3.6'
+	id 'com.gradleup.shadow' version '9.0.0-beta8'
 }
 
 // Getting version
@@ -30,7 +29,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:2.9.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.48.0.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.49.1.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
 	implementation 'org.jsoup:jsoup:1.18.3'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
@@ -50,28 +49,42 @@ java {
 }
 
 // jar's Manifest
-jar {
-	manifest {
-		attributes 'Implementation-Title': 'VOTL Bot',
-				   'Implementation-Version': version,
-				   'Implementation-Vendor': 'FiLe group',
-				   'Main-Class': mainClassName
-	}
+tasks.jar {
+	enabled = false
 }
 
-// ShadowJar
-shadowJar {
-	archiveBaseName.set('VOTL')
-	archiveClassifier.set('')
-	if(project.hasProperty('runId')) {
-		archiveVersion.set("${version}-SNAPSHOT-${project.property('runId')}")
+tasks.build {
+	dependsOn(shadowJar)
+}
+
+// ShadowJar config
+tasks.shadowJar {
+	archiveBaseName = 'VOTL'
+	if (project.hasProperty('runId')) {
+		archiveVersion = "${version}-SNAPSHOT-${project.property('runId')}"
 	} else {
-		archiveVersion.set(version)
+		archiveVersion = version
 	}
+	archiveVersion = version
+	archiveClassifier = ''
 	minimize {
 		exclude(dependency('ch.qos.logback:logback-classic:.*'))
 		exclude(dependency('org.xerial:sqlite-jdbc:.*'))
 		exclude(dependency('com.github.ben-manes.caffeine:caffeine:.*'))
+	}
+
+	exclude('META-INF/*.SF')
+	exclude('META-INF/*.DSA')
+	exclude('META-INF/*.RSA')
+	exclude('META-INF/LICENSE*')
+	exclude('META-INF/NOTICE*')
+	exclude('META-INF/DEPENDENCIES')
+
+	manifest {
+		attributes 'Implementation-Title': 'VOTL Bot',
+				'Implementation-Version': version,
+				'Implementation-Vendor': 'FiLe group',
+				'Main-Class': mainClassName
 	}
 }
 
