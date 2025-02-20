@@ -45,7 +45,7 @@ public class DBUtil {
 	public final CaseManager cases;
 	public final StrikeManager strikes;
 	public final GuildLogsManager logs;
-	public final LogExceptionsManager logExceptions;
+	public final LogExemptionsManager logExemptions;
 	public final RoleManager roles;
 	public final TempRoleManager tempRoles;
 	public final TicketSettingsManager ticketSettings;
@@ -80,7 +80,7 @@ public class DBUtil {
 		cases = new CaseManager(connectionUtil);
 		strikes = new StrikeManager(connectionUtil);
 		logs = new GuildLogsManager(connectionUtil);
-		logExceptions = new LogExceptionsManager(connectionUtil);
+		logExemptions = new LogExemptionsManager(connectionUtil);
 		roles = new RoleManager(connectionUtil);
 		tempRoles = new TempRoleManager(connectionUtil);
 		ticketSettings = new TicketSettingsManager(connectionUtil);
