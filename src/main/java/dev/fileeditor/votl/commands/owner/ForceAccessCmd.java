@@ -26,7 +26,7 @@ public class ForceAccessCmd extends CommandBase {
 			new OptionData(OptionType.STRING, "target", lu.getText(path+".target.help"), true).setMaxLength(30),
 			new OptionData(OptionType.INTEGER, "access_level", lu.getText(path+".access_level.help"), true)
 				.addChoice("- Remove -", CmdAccessLevel.ALL.getLevel())
-				.addChoice("Automod exception", CmdAccessLevel.EXCEPT.getLevel())
+				.addChoice("Ban exemption", CmdAccessLevel.EXEMPT.getLevel())
 				.addChoice("Helper", CmdAccessLevel.HELPER.getLevel())
 				.addChoice("Moderator", CmdAccessLevel.MOD.getLevel())
 				.addChoice("Operator", CmdAccessLevel.OPERATOR.getLevel())
