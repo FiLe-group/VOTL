@@ -30,7 +30,6 @@ import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.objects.constants.Links;
 import dev.fileeditor.votl.services.CountingThreadFactory;
 import dev.fileeditor.votl.services.ScheduledCheck;
 import dev.fileeditor.votl.utils.*;
@@ -42,7 +41,6 @@ import dev.fileeditor.votl.utils.level.LevelUtil;
 import dev.fileeditor.votl.utils.logs.GuildLogger;
 import dev.fileeditor.votl.utils.logs.LogEmbedUtil;
 import dev.fileeditor.votl.utils.message.EmbedUtil;
-import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -72,7 +70,6 @@ public class App {
 	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
 
 	public final JDA JDA;
-	public final EventWaiter WAITER;
 	private final CommandClient commandClient;
 
 	private final FileManager fileManager = new FileManager();
@@ -81,7 +78,6 @@ public class App {
 	private final LogEmbedUtil logEmbedUtil;
 
 	private final DBUtil dbUtil;
-	private final MessageUtil messageUtil;
 	private final EmbedUtil embedUtil;
 	private final CheckUtil checkUtil;
 	private final LocaleUtil localeUtil;
@@ -110,7 +106,6 @@ public class App {
 		// Define for default
 		dbUtil		= new DBUtil(getFileManager());
 		localeUtil	= new LocaleUtil(this, DiscordLocale.ENGLISH_UK);
-		messageUtil	= new MessageUtil(localeUtil);
 		embedUtil	= new EmbedUtil(localeUtil);
 		checkUtil	= new CheckUtil(this, ownerId);
 		ticketUtil	= new TicketUtil(this);
@@ -118,10 +113,11 @@ public class App {
 		levelUtil	= new LevelUtil(this);
 
 		logEmbedUtil	= new LogEmbedUtil();
-		guildLogger		= new GuildLogger();
-
-		WAITER			= new EventWaiter();
+		guildLogger		= new GuildLogger(this, logEmbedUtil);
 		groupHelper		= new GroupHelper(this);
+
+		EventWaiter WAITER = new EventWaiter();
+
 		CommandListener commandListener = new CommandListener(localeUtil);
 		InteractionListener interactionListener = new InteractionListener(this, WAITER);
 
@@ -141,7 +137,6 @@ public class App {
 		// Define a command client
 		commandClient = new CommandClientBuilder()
 			.setOwnerId(ownerId)
-			.setServerInvite(Links.DISCORD)
 			.setScheduleExecutor(scheduledExecutor)
 			.setStatus(OnlineStatus.ONLINE)
 			.setActivity(Activity.customStatus("/help"))
@@ -159,7 +154,7 @@ public class App {
 				new CaseCmd(),
 				new DurationCmd(),
 				new GroupCmd(WAITER),
-				new KickCmd(WAITER),
+				new KickCmd(),
 				new MuteCmd(),
 				new ModLogsCmd(),
 				new ModStatsCmd(),
@@ -327,10 +322,6 @@ public class App {
 
 	public DBUtil getDBUtil() {
 		return dbUtil;
-	}
-
-	public MessageUtil getMessageUtil() {
-		return messageUtil;
 	}
 
 	public EmbedUtil getEmbedUtil() {

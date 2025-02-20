@@ -48,7 +48,7 @@ public class MessageListener extends ListenerAdapter {
 		final long guildId = event.getGuild().getIdLong();
 		if (bot.getDBUtil().getLogSettings(event.getGuild()).enabled(LogType.MESSAGE)) {
 			// check channel
-			if (!bot.getDBUtil().logExceptions.isException(guildId, event.getChannel().getIdLong())) {
+			if (!bot.getDBUtil().logExemptions.isExemption(guildId, event.getChannel().getIdLong())) {
 				// check category
 				long categoryId = switch (event.getChannelType()) {
 					case TEXT, VOICE, STAGE, NEWS -> event.getGuildChannel().asStandardGuildChannel().getParentCategoryIdLong();
@@ -56,7 +56,7 @@ public class MessageListener extends ListenerAdapter {
 						.asStandardGuildChannel().getParentCategoryIdLong();
 					default -> 0;
 				};
-				if (categoryId == 0 || !bot.getDBUtil().logExceptions.isException(guildId, categoryId)) {
+				if (categoryId == 0 || !bot.getDBUtil().logExemptions.isExemption(guildId, categoryId)) {
 					cache.put(event.getMessageIdLong(), new MessageData(event.getMessage()));
 				}
 			}
@@ -74,7 +74,7 @@ public class MessageListener extends ListenerAdapter {
 
 		final long guildId = event.getGuild().getIdLong();
 		// check channel
-		if (bot.getDBUtil().logExceptions.isException(guildId, event.getChannel().getIdLong())) return;
+		if (bot.getDBUtil().logExemptions.isExemption(guildId, event.getChannel().getIdLong())) return;
 		// check category
 		long categoryId = switch (event.getChannelType()) {
 			case TEXT, VOICE, STAGE, NEWS -> event.getGuildChannel().asStandardGuildChannel().getParentCategoryIdLong();
@@ -82,7 +82,7 @@ public class MessageListener extends ListenerAdapter {
 				.asStandardGuildChannel().getParentCategoryIdLong();
 			default -> 0;
 		};
-		if (categoryId != 0 && bot.getDBUtil().logExceptions.isException(guildId, categoryId)) {
+		if (categoryId != 0 && bot.getDBUtil().logExemptions.isExemption(guildId, categoryId)) {
 			return;
 		}
 		
@@ -106,7 +106,7 @@ public class MessageListener extends ListenerAdapter {
 
 		final long guildId = event.getGuild().getIdLong();
 		// check channel
-		if (bot.getDBUtil().logExceptions.isException(guildId, event.getChannel().getIdLong())) return;
+		if (bot.getDBUtil().logExemptions.isExemption(guildId, event.getChannel().getIdLong())) return;
 		// check category
 		long categoryId = switch (event.getChannelType()) {
 			case TEXT, VOICE, STAGE, NEWS -> event.getGuildChannel().asStandardGuildChannel().getParentCategoryIdLong();
@@ -114,7 +114,7 @@ public class MessageListener extends ListenerAdapter {
 				.asStandardGuildChannel().getParentCategoryIdLong();
 			default -> 0;
 		};
-		if (categoryId != 0 && bot.getDBUtil().logExceptions.isException(guildId, categoryId)) {
+		if (categoryId != 0 && bot.getDBUtil().logExemptions.isExemption(guildId, categoryId)) {
 			return;
 		}
 

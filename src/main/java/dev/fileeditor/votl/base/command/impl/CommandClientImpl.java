@@ -48,6 +48,7 @@ import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
+import net.dv8tion.jda.internal.utils.Checks;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +69,6 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	private final Activity activity;
 	private final OnlineStatus status;
 	private final long ownerId;
-	private final String serverInvite;
 	private final HashMap<String, Integer> slashCommandIndex;
 	private final ArrayList<SlashCommand> slashCommands;
 	private final ArrayList<ContextMenu> contextMenus;
@@ -82,17 +82,20 @@ public class CommandClientImpl implements CommandClient, EventListener {
 
 	private CommandListener listener = null;
 
-	public CommandClientImpl(long ownerId, Activity activity, OnlineStatus status, String serverInvite,
-							 ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus, String forcedGuildId, String[] devGuildIds, boolean manualUpsert,
-							 boolean shutdownAutomatically, ScheduledExecutorService executor)
-	{
+	public CommandClientImpl(
+		long ownerId, Activity activity, OnlineStatus status,
+		ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus,
+		String forcedGuildId, String[] devGuildIds, boolean manualUpsert,
+		boolean shutdownAutomatically, ScheduledExecutorService executor
+	) {
+		Checks.check(ownerId > 0L, "Provided owner ID is incorrect (<0).");
+
 		this.start = OffsetDateTime.now();
 
 		this.ownerId = ownerId;
 
 		this.activity = activity;
 		this.status = status;
-		this.serverInvite = serverInvite;
 		this.slashCommandIndex = new HashMap<>();
 		this.slashCommands = new ArrayList<>();
 		this.contextMenus = new ArrayList<>();
@@ -116,56 +119,47 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public void setListener(CommandListener listener)
-	{
+	public void setListener(CommandListener listener) {
 		this.listener = listener;
 	}
 
 	@Override
-	public CommandListener getListener()
-	{
+	public CommandListener getListener() {
 		return listener;
 	}
 
 	@Override
-	public List<SlashCommand> getSlashCommands()
-	{
+	public List<SlashCommand> getSlashCommands() {
 		return slashCommands;
 	}
 
 	@Override
-	public List<ContextMenu> getContextMenus()
-	{
+	public List<ContextMenu> getContextMenus() {
 		return contextMenus;
 	}
 
 	@Override
-	public boolean isManualUpsert()
-	{
+	public boolean isManualUpsert() {
 		return manualUpsert;
 	}
 
 	@Override
-	public String forcedGuildId()
-	{
+	public String forcedGuildId() {
 		return forcedGuildId;
 	}
 
 	@Override
-	public String[] devGuildIds()
-	{
+	public String[] devGuildIds() {
 		return devGuildIds;
 	}
 
 	@Override
-	public OffsetDateTime getStartTime()
-	{
+	public OffsetDateTime getStartTime() {
 		return start;
 	}
 
 	@Override
-	public OffsetDateTime getCooldown(String name)
-	{
+	public OffsetDateTime getCooldown(String name) {
 		return cooldowns.get(name);
 	}
 
@@ -183,8 +177,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public void applyCooldown(String name, int seconds)
-	{
+	public void applyCooldown(String name, int seconds) {
 		cooldowns.put(name, OffsetDateTime.now().plusSeconds(seconds));
 	}
 
@@ -196,14 +189,13 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public void addSlashCommand(SlashCommand command)
-	{
+	public void addSlashCommand(SlashCommand command) {
 		addSlashCommand(command, slashCommands.size());
 	}
 
 	@Override
 	public void addSlashCommand(SlashCommand command, int index) {
-		if( index>slashCommands.size() || index<0)
+		if (index>slashCommands.size() || index<0)
 			throw new ArrayIndexOutOfBoundsException("Index specified is invalid: ["+index+"/"+slashCommands.size()+"]");
 		synchronized (slashCommandIndex) {
 			String name = command.getName().toLowerCase(Locale.ROOT);
@@ -222,8 +214,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public void addContextMenu(ContextMenu menu)
-	{
+	public void addContextMenu(ContextMenu menu) {
 		addContextMenu(menu, contextMenus.size());
 	}
 
@@ -252,26 +243,17 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public long getOwnerIdLong()
-	{
+	public long getOwnerIdLong() {
 		return ownerId;
 	}
 
 	@Override
-	public ScheduledExecutorService getScheduleExecutor()
-	{
+	public ScheduledExecutorService getScheduleExecutor() {
 		return executor;
 	}
 
 	@Override
-	public String getServerInvite()
-	{
-		return serverInvite;
-	}
-
-	@Override
-	public void shutdown()
-	{
+	public void shutdown() {
 		executor.shutdown();
 	}
 

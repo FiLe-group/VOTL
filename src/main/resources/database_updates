@@ -13,3 +13,4 @@ CREATE TABLE "modReport" ("guildId" INTEGER NOT NULL UNIQUE, "channelId" INTEGER
 CREATE TABLE "botBlacklist" ("id" INTEGER NOT NULL UNIQUE); ALTER TABLE "verifySettings" ADD "additionalRoles" TEXT;
 ALTER TABLE "groups" ADD "appealGuildId" INTEGER;
 ALTER TABLE "logWebhooks" ADD "level" TEXT; CREATE TABLE "levelSettings" ("guildId" INTEGER NOT NULL UNIQUE, "enabled" INTEGER NOT NULL DEFAULT 0, "voiceEnabled" INTEGER NOT NULL DEFAULT 1, "exemptChannels" TEXT); CREATE TABLE "levelPlayers" ("userId" INTEGER NOT NULL, "guildId" INTEGER NOT NULL, "textExp" INTEGER DEFAULT 0, "voiceExp" INTEGER DEFAULT 0, "globalExp" INTEGER DEFAULT 0, "voiceTime" INTEGER DEFAULT 0, "lastUpdate" INTEGER DEFAULT 0, UNIQUE("userId","guildId")); CREATE TABLE "levelRoles" ("guildId" INTEGER NOT NULL, "level" INTEGER NOT NULL, "roles" TEXT NOT NULL, "exact" INTEGER DEFAULT 1, "type" INTEGER DEFAULT 0, UNIQUE("guildId","level","type"));
+ALTER TABLE "logWebhooks" ADD "bot" TEXT;

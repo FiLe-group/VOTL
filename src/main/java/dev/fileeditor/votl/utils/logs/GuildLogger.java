@@ -47,10 +47,10 @@ public class GuildLogger {
 
 	private final Logger log = (Logger) LoggerFactory.getLogger(GuildLogger.class);
 
-	private final @NotNull JDA JDA;
-	private final @NotNull DBUtil db;
-	private final @NotNull LogEmbedUtil logUtil;
-	private final @NotNull WebhookLogUtil webhookUtil;
+	private final JDA JDA;
+	private final DBUtil db;
+	private final LogEmbedUtil logUtil;
+	private final WebhookLogUtil webhookUtil;
 
 	public final ModerationLogs mod =	new ModerationLogs();
 	public final RoleLogs role =		new RoleLogs();
@@ -62,11 +62,12 @@ public class GuildLogger {
 	public final MessageLogs message =	new MessageLogs();
 	public final VoiceLogs voice =		new VoiceLogs();
 	public final LevelLogs level =		new LevelLogs();
+	public final BotLogs botLogs =		new BotLogs();
 
-	public GuildLogger() {
-		this.JDA = App.getInstance().JDA;
-		this.db = App.getInstance().getDBUtil();
-		this.logUtil = App.getInstance().getLogEmbedUtil();
+	public GuildLogger(App bot, LogEmbedUtil logEmbedUtil) {
+		this.JDA = bot.JDA;
+		this.db = bot.getDBUtil();
+		this.logUtil = logEmbedUtil;
 		this.webhookUtil = new WebhookLogUtil(db);
 	}
 
@@ -285,30 +286,6 @@ public class GuildLogger {
 		public void onTempRoleAutoRemoved(Guild guild, Long targetId, Role role) {
 			sendLog(guild, type, () -> logUtil.tempRoleAutoRemovedEmbed(guild.getLocale(), targetId, role));
 		}
-
-		public void onRoleCreate(AuditLogEntry entry) {
-			final Guild guild = entry.getGuild();
-			final long id = entry.getTargetIdLong();
-			final String name = entry.getChangeByKey(AuditLogKey.ROLE_NAME).getNewValue();
-
-			sendLog(guild, type, () -> logUtil.roleCreated(guild.getLocale(), id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
-		}
-
-		public void onRoleDelete(AuditLogEntry entry) {
-			final Guild guild = entry.getGuild();
-			final long id = entry.getTargetIdLong();
-			final String name = entry.getChangeByKey(AuditLogKey.ROLE_NAME).getOldValue();
-
-			sendLog(guild, type, () -> logUtil.roleDeleted(guild.getLocale(), id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
-		}
-
-		public void onRoleUpdate(AuditLogEntry entry) {
-			final Guild guild = entry.getGuild();
-			final long id = entry.getTargetIdLong();
-			final String name = guild.getRoleById(id).getName();
-
-			sendLog(guild, type, () -> logUtil.roleUpdate(guild.getLocale(), id, name, entry.getChanges().values(), entry.getUserIdLong()));
-		}
 	}
 
 	// Group actions
@@ -448,22 +425,6 @@ public class GuildLogger {
 	public class ServerLogs {
 		private final LogType type = LogType.GUILD;
 
-		public void onAccessAdded(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, CmdAccessLevel level) {
-			sendLog(guild, type, () -> logUtil.accessAdded(guild.getLocale(), mod, userTarget, roleTarget, level.getName()));
-		}
-
-		public void onAccessRemoved(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, CmdAccessLevel level) {
-			sendLog(guild, type, () -> logUtil.accessRemoved(guild.getLocale(), mod, userTarget, roleTarget, level.getName()));
-		}
-
-		public void onModuleEnabled(Guild guild, User mod, CmdModule module) {
-			sendLog(guild, type, () -> logUtil.moduleEnabled(guild.getLocale(), mod, module));
-		}
-
-		public void onModuleDisabled(Guild guild, User mod, CmdModule module) {
-			sendLog(guild, type, () -> logUtil.moduleDisabled(guild.getLocale(), mod, module));
-		}
-
 		public void onGuildUpdate(AuditLogEntry entry) {
 			final Guild guild = entry.getGuild();
 			final long id = guild.getIdLong();
@@ -512,6 +473,30 @@ public class GuildLogger {
 			final long id = entry.getTargetIdLong();
 
 			sendLog(guild, type, () -> logUtil.stickerDelete(guild.getLocale(), id, entry.getChanges().values(), entry.getUserIdLong()));
+		}
+
+		public void onRoleCreate(AuditLogEntry entry) {
+			final Guild guild = entry.getGuild();
+			final long id = entry.getTargetIdLong();
+			final String name = entry.getChangeByKey(AuditLogKey.ROLE_NAME).getNewValue();
+
+			sendLog(guild, type, () -> logUtil.roleCreated(guild.getLocale(), id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
+		}
+
+		public void onRoleDelete(AuditLogEntry entry) {
+			final Guild guild = entry.getGuild();
+			final long id = entry.getTargetIdLong();
+			final String name = entry.getChangeByKey(AuditLogKey.ROLE_NAME).getOldValue();
+
+			sendLog(guild, type, () -> logUtil.roleDeleted(guild.getLocale(), id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
+		}
+
+		public void onRoleUpdate(AuditLogEntry entry) {
+			final Guild guild = entry.getGuild();
+			final long id = entry.getTargetIdLong();
+			final String name = guild.getRoleById(id).getName();
+
+			sendLog(guild, type, () -> logUtil.roleUpdate(guild.getLocale(), id, name, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
 	}
@@ -726,6 +711,7 @@ public class GuildLogger {
 		}
 	}
 
+	// Level actions
 	public class LevelLogs {
 		private final LogType type = LogType.LEVEL;
 
@@ -736,4 +722,24 @@ public class GuildLogger {
 		}
 	}
 
+	// Bot actions
+	public class BotLogs {
+		private final LogType type = LogType.BOT;
+
+		public void onAccessAdded(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, CmdAccessLevel level) {
+			sendLog(guild, type, () -> logUtil.accessAdded(guild.getLocale(), mod, userTarget, roleTarget, level.getName()));
+		}
+
+		public void onAccessRemoved(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, CmdAccessLevel level) {
+			sendLog(guild, type, () -> logUtil.accessRemoved(guild.getLocale(), mod, userTarget, roleTarget, level.getName()));
+		}
+
+		public void onModuleEnabled(Guild guild, User mod, CmdModule module) {
+			sendLog(guild, type, () -> logUtil.moduleEnabled(guild.getLocale(), mod, module));
+		}
+
+		public void onModuleDisabled(Guild guild, User mod, CmdModule module) {
+			sendLog(guild, type, () -> logUtil.moduleDisabled(guild.getLocale(), mod, module));
+		}
+	}
 }

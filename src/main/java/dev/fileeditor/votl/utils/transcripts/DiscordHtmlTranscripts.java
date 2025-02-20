@@ -609,7 +609,7 @@ public class DiscordHtmlTranscripts {
 
     private static void handleSlashCommands(Document document, Message message, Element messageGroup) {
         // Referenced message
-        var interaction = message.getInteraction();
+        var interaction = message.getInteraction(); // TODO(change)
 
         // create symbol
         Element referenceSymbol = document.createElement("div");

@@ -53,8 +53,7 @@ import java.util.function.Predicate;
  * @author John Grosh (jagrosh)
  */
 @SuppressWarnings({"rawtypes", "unchecked", "unused"})
-public class EventWaiter implements EventListener
-{
+public class EventWaiter implements EventListener {
     private static final Logger LOG = LoggerFactory.getLogger(EventWaiter.class);
     private final HashMap<Class<?>, Set<WaitingEvent>> waitingEvents;
     private final ScheduledExecutorService threadpool;
@@ -63,8 +62,7 @@ public class EventWaiter implements EventListener
     /**
      * Constructs an empty EventWaiter.
      */
-    public EventWaiter()
-    {
+    public EventWaiter() {
         this(Executors.newSingleThreadScheduledExecutor(), true);
     }
 
@@ -104,8 +102,7 @@ public class EventWaiter implements EventListener
      *
      * @see    dev.fileeditor.votl.base.waiter.EventWaiter#shutdown() EventWaiter#shutdown()
      */
-    public EventWaiter(ScheduledExecutorService threadpool, boolean shutdownAutomatically)
-    {
+    public EventWaiter(ScheduledExecutorService threadpool, boolean shutdownAutomatically) {
         Checks.notNull(threadpool, "ScheduledExecutorService");
         Checks.check(!threadpool.isShutdown(), "Cannot construct EventWaiter with a closed ScheduledExecutorService!");
 
@@ -132,8 +129,7 @@ public class EventWaiter implements EventListener
      *
      * @return {@code true} if the ScheduledExecutorService is shutdown, {@code false} otherwise.
      */
-    public boolean isShutdown()
-    {
+    public boolean isShutdown() {
         return threadpool.isShutdown();
     }
 
@@ -160,8 +156,7 @@ public class EventWaiter implements EventListener
      *             <li>2) The internal threadpool is shut down, meaning that no more tasks can be submitted.</li>
      *         </ul>
      */
-    public <T extends Event> void waitForEvent(Class<T> classType, Predicate<T> condition, Consumer<T> action)
-    {
+    public <T extends Event> void waitForEvent(Class<T> classType, Predicate<T> condition, Consumer<T> action) {
         waitForEvent(classType, condition, action, -1, null, null);
     }
     
@@ -201,9 +196,10 @@ public class EventWaiter implements EventListener
      *             <li>2) The internal threadpool is shut down, meaning that no more tasks can be submitted.</li>
      *         </ul>
      */
-    public <T extends Event> void waitForEvent(Class<T> classType, Predicate<T> condition, Consumer<T> action,
-                                               long timeout, TimeUnit unit, Runnable timeoutAction)
-    {
+    public <T extends Event> void waitForEvent(
+        Class<T> classType, Predicate<T> condition, Consumer<T> action,
+        long timeout, TimeUnit unit, Runnable timeoutAction
+    ) {
         Checks.check(!isShutdown(), "Attempted to register a WaitingEvent while the EventWaiter's threadpool was already shut down!");
         Checks.notNull(classType, "The provided class type");
         Checks.notNull(condition, "The provided condition predicate");
@@ -232,8 +228,7 @@ public class EventWaiter implements EventListener
     
     @Override
     @SubscribeEvent
-    public final void onEvent(GenericEvent event)
-    {
+    public final void onEvent(GenericEvent event) {
         Class c = event.getClass();
 
         // Runs at least once for the fired Event, at most
@@ -267,9 +262,8 @@ public class EventWaiter implements EventListener
      * @throws UnsupportedOperationException
      *         The EventWaiter is supposed to close automatically.
      */
-    public void shutdown()
-    {
-        if(shutdownAutomatically)
+    public void shutdown() {
+        if (shutdownAutomatically)
             throw new UnsupportedOperationException("Shutting down EventWaiters that are set to automatically close is unsupported!");
 
         threadpool.shutdown();

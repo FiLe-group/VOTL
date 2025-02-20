@@ -756,9 +756,9 @@ public class LogEmbedUtil {
 		String targetMention = userTarget!=null ? userTarget.getAsMention() : roleTarget.getAsMention();
 		String targetId = userTarget!=null ? userTarget.getId() : roleTarget.getId();
 		return new LogEmbedBuilder(locale, GREEN_DARK)
-			.setHeaderIcon("guild.access_added", userTarget != null ? userTarget.getEffectiveAvatarUrl() : null)
+			.setHeaderIcon("bot.access_added", userTarget != null ? userTarget.getEffectiveAvatarUrl() : null)
 			.addField("target", targetMention)
-			.addField("guild.access_level", levelName)
+			.addField("bot.access_level", levelName)
 			.setEnforcer(mod.getIdLong())
 			.setId(targetId)
 			.build();
@@ -769,9 +769,9 @@ public class LogEmbedUtil {
 		String targetMention = userTarget!=null ? userTarget.getAsMention() : roleTarget.getAsMention();
 		String targetId = userTarget!=null ? userTarget.getId() : roleTarget.getId();
 		return new LogEmbedBuilder(locale, RED_DARK)
-			.setHeaderIcon("guild.access_removed", userTarget != null ? userTarget.getEffectiveAvatarUrl() : null)
+			.setHeaderIcon("bot.access_removed", userTarget != null ? userTarget.getEffectiveAvatarUrl() : null)
 			.addField("target", targetMention)
-			.addField("guild.access_level", levelName)
+			.addField("bot.access_level", levelName)
 			.setEnforcer(mod.getIdLong())
 			.setId(targetId)
 			.build();
@@ -780,8 +780,8 @@ public class LogEmbedUtil {
 	@NotNull
 	public MessageEmbed moduleEnabled(DiscordLocale locale, User mod, CmdModule module) {
 		return new LogEmbedBuilder(locale, GREEN_DARK)
-			.setHeader("guild.module_enabled")
-			.addField("guild.module", lu.getLocalized(locale, module.getPath()))
+			.setHeader("bot.module_enabled")
+			.addField("bot.module", lu.getLocalized(locale, module.getPath()))
 			.setEnforcer(mod.getIdLong())
 			.build();
 	}
@@ -789,8 +789,8 @@ public class LogEmbedUtil {
 	@NotNull
 	public MessageEmbed moduleDisabled(DiscordLocale locale, User mod, CmdModule module) {
 		return new LogEmbedBuilder(locale, RED_DARK)
-			.setHeader("guild.module_disabled")
-			.addField("guild.module", lu.getLocalized(locale, module.getPath()))
+			.setHeader("bot.module_disabled")
+			.addField("bot.module", lu.getLocalized(locale, module.getPath()))
 			.setEnforcer(mod.getIdLong())
 			.build();
 	}

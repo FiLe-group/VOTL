@@ -72,12 +72,12 @@ public class CheckUtil {
 
 	public boolean hasAccess(Member member, CmdAccessLevel accessLevel) {
 		if (accessLevel.equals(CmdAccessLevel.ALL)) return true;
-		return !accessLevel.isHigherThan(getAccessLevel(member));
+		return getAccessLevel(member).isHigherOrEqual(accessLevel);
 	}
 
 	public CheckUtil hasAccess(IReplyCallback replyCallback, Member member, CmdAccessLevel accessLevel) throws CheckException {
 		if (accessLevel.equals(CmdAccessLevel.ALL)) return this;
-		if (accessLevel.isHigherThan(getAccessLevel(member)))
+		if (getAccessLevel(member).isLowerThan(accessLevel))
 			throw new CheckException(bot.getEmbedUtil().getError(replyCallback, "errors.interaction.no_access", "Required access: "+accessLevel.getName()));
 		return this;
 	}
