@@ -9,6 +9,7 @@ import java.util.Objects;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.Emote;
 
+import dev.fileeditor.votl.utils.message.MessageUtil;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import org.jetbrains.annotations.NotNull;
@@ -19,11 +20,14 @@ public class LocaleUtil {
 
 	private final App bot;
 	private final LangUtil langUtil;
-	public final DiscordLocale defaultLocale;
+	private final MessageUtil messageUtil;
+
+	private final DiscordLocale defaultLocale;
 
 	public LocaleUtil(App bot, DiscordLocale defaultLocale) {
 		this.bot = bot;
 		this.langUtil = new LangUtil(bot.getFileManager());
+		this.messageUtil = new MessageUtil(this);
 		this.defaultLocale = defaultLocale;
 	}
 
@@ -40,7 +44,7 @@ public class LocaleUtil {
 	@NotNull
 	public String getLocalized(DiscordLocale locale, String path, String user, boolean format) {
 		if (format)
-			user = bot.getMessageUtil().getFormattedMembers(user);
+			user = messageUtil.getFormattedMembers(user);
 
 		return Objects.requireNonNull(getLocalized(locale, path).replace("{user}", user));
 	}
@@ -59,7 +63,7 @@ public class LocaleUtil {
 
 	@NotNull
 	public String getLocalized(DiscordLocale locale, String path, String user, List<String> targets, boolean format) {
-		String targetReplacement = targets.isEmpty() ? "null" : bot.getMessageUtil().getFormattedMembers(targets.toArray(new String[0]));
+		String targetReplacement = targets.isEmpty() ? "null" : messageUtil.getFormattedMembers(targets.toArray(new String[0]));
 
 		return Objects.requireNonNull(getLocalized(locale, path, user, format)
 			.replace("{target}", targetReplacement)

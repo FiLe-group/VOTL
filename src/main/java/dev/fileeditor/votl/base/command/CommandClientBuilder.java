@@ -34,12 +34,10 @@ import net.dv8tion.jda.api.entities.Activity;
  * @author John Grosh (jagrosh)
  */
 @SuppressWarnings("unused")
-public class CommandClientBuilder
-{
+public class CommandClientBuilder {
 	private Activity activity = Activity.playing("default");
 	private OnlineStatus status = OnlineStatus.ONLINE;
 	private Long ownerId;
-	private String serverInvite;
 	private final LinkedList<SlashCommand> slashCommands = new LinkedList<>();
 	private final LinkedList<ContextMenu> contextMenus = new LinkedList<>();
 	private String forcedGuildId = null;
@@ -56,12 +54,14 @@ public class CommandClientBuilder
 	 *
 	 * @return The CommandClient built.
 	 */
-	public CommandClient build()
-	{
-		CommandClient client = new CommandClientImpl(ownerId, activity, status, serverInvite,
-													 new ArrayList<>(slashCommands), new ArrayList<>(contextMenus), forcedGuildId, devGuildIds, manualUpsert,
-													 shutdownAutomatically, executor);
-		if(listener!=null)
+	public CommandClient build() {
+		CommandClient client = new CommandClientImpl(
+			ownerId, activity, status,
+			new ArrayList<>(slashCommands), new ArrayList<>(contextMenus),
+			forcedGuildId, devGuildIds, manualUpsert,
+			shutdownAutomatically, executor
+		);
+		if (listener!=null)
 			client.setListener(listener);
 		return client;
 	}
@@ -79,20 +79,6 @@ public class CommandClientBuilder
 	public CommandClientBuilder setOwnerId(long ownerId)
 	{
 		this.ownerId = ownerId;
-		return this;
-	}
-
-	/**
-	 * Sets the bot's support server invite.
-	 *
-	 * @param  serverInvite
-	 *         The support server invite
-	 *
-	 * @return This builder
-	 */
-	public CommandClientBuilder setServerInvite(String serverInvite)
-	{
-		this.serverInvite = serverInvite;
 		return this;
 	}
 
