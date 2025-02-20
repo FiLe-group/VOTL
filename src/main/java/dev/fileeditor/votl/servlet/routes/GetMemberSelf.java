@@ -26,12 +26,14 @@ public class GetMemberSelf implements Handler {
 		}
 
 		ctx.future(() -> {
-			return WebServlet.getClient().getUser(WebServlet.getSession(ctx.cookieStore())).future()
-				.thenAccept(user -> {
+			return WebServlet.getClient().getUser(WebServlet.getSession(ctx)).future()
+				.thenCompose(user -> guild.retrieveMemberById(user.getIdLong()).submit())
+				.thenAccept(member -> {
 					ObjectNode node = new ObjectMapper().createObjectNode();
-					node.put("id", user.getIdLong());
-					node.put("name", user.getName());
-					node.put("avatar", user.getEffectiveAvatarUrl());
+					node.put("id", member.getIdLong());
+					node.put("name", member.getEffectiveName());
+					node.put("avatar", member.getEffectiveAvatarUrl());
+					node.put("access", App.getInstance().getCheckUtil().getAccessLevel(member).getName());
 
 					ctx.json(node);
 				})

@@ -35,7 +35,7 @@ public class PatchModule implements Handler {
 
 		// Check for permission
 		ctx.future(() -> {
-			return checkPermissionsAsync(ctx.cookieStore(), guild, (member) -> {
+			return checkPermissionsAsync(ctx, guild, (member) -> {
 				// TODO add other modules
 				switch (module) {
 					case REPORT -> {

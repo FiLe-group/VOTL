@@ -164,6 +164,10 @@ public class App {
 			servlet.registerDelete("/guilds/{guild}/modules/{module}", new DeleteModule()); // Disable
 			servlet.registerPut("/guilds/{guild}/modules/{module}", new PutModule()); // Enable
 			servlet.registerPatch("/guilds/{guild}/modules/{module}", new PatchModule()); // Update
+			// Auth
+			servlet.registerGet("/login", new ApiLogin());
+			servlet.registerGet("/logout", new ApiLogout());
+			servlet.registerGet("/callback", new ApiCallback());
 		} else {
 			servlet = null;
 		}

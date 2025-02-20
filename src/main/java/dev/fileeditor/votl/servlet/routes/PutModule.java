@@ -33,7 +33,7 @@ public class PutModule implements Handler {
 		}
 
 		ctx.future(() -> {
-			return checkPermissionsAsync(ctx.cookieStore(), guild, (member) -> {
+			return checkPermissionsAsync(ctx, guild, (member) -> {
 				// Write new data
 				final int newData = settings.getModulesOff() - module.getValue();
 				App.getInstance().getDBUtil().guildSettings.setModuleDisabled(guild.getIdLong(), newData);

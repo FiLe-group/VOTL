@@ -4,9 +4,10 @@ import dev.fileeditor.oauth2.OAuth2Client;
 import dev.fileeditor.oauth2.session.Session;
 import dev.fileeditor.votl.servlet.utils.AuthSessionController;
 import dev.fileeditor.votl.servlet.utils.AuthStateController;
-import io.javalin.http.ServiceUnavailableResponse;
-import io.javalin.http.UnauthorizedResponse;
-import io.javalin.http.util.CookieStore;
+import dev.fileeditor.votl.servlet.utils.SessionUtil;
+import io.javalin.http.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -17,8 +18,6 @@ import dev.fileeditor.votl.servlet.handlers.WebFilter;
 import dev.fileeditor.votl.servlet.handlers.WebHandler;
 
 import io.javalin.Javalin;
-import io.javalin.http.Handler;
-import io.javalin.http.HttpStatus;
 
 @SuppressWarnings("unused")
 public class WebServlet {
@@ -53,19 +52,25 @@ public class WebServlet {
 		log.info("Starting Javalin API on port: {}", port);
 
 		web = Javalin.create(config -> {
+				config.router.contextPath = "/api";
 				config.http.asyncTimeout = 10_000;
+				config.http.defaultContentType = "application/json";
+				config.http.strictContentTypes = true;
+				//config.http.generateEtags = true;
 				config.bundledPlugins.enableCors(cors -> {
 					cors.addRule(it -> {
 						it.allowHost(allowedHost);
 						it.allowCredentials = true;
 					});
 				});
+				config.requestLogger.http((ctx, ms) ->
+					log.debug("{} {} took {}ms", ctx.req().getMethod(), ctx.req().getPathInfo(), ms));
 			})
-			.beforeMatched(WebFilter.logRequest())
-			.before(WebFilter.setJsonResponse())
+			.beforeMatched(WebHandler.setContentType())
 			.before("/guilds/*", WebFilter.authCheck())
 			.exception(FileNotFoundException.class, (e, ctx) -> ctx.status(HttpStatus.NOT_FOUND))
-			.exception(Exception.class, WebHandler.exceptionHandler()) // TODO add internal error logger
+			.exception(HttpResponseException.class, WebHandler.errorResponseHandler())
+			.exception(Exception.class, WebHandler.exceptionHandler())
 			.start(port);
 
 		client = new OAuth2Client.Builder()
@@ -85,15 +90,27 @@ public class WebServlet {
 		}
 	}
 
-	public static Session getSession(CookieStore cs) {
+	@Nullable
+	public static Session getSession(@NotNull Context ctx) {
 		if (!initialized)
 			throw new ServiceUnavailableResponse("Servlet is not initialized.");
 
-		// TODO session ID encode/decode - userId + timestamp/fingerprint + secret
-		String id = cs.get("session");
-		if (id == null || id.isBlank())
-			throw new UnauthorizedResponse("Session cookie is missing.");
-		return getClient().getSessionController().getSession(id);
+		String sessionId = SessionUtil.getSessionId(ctx);
+		if (sessionId == null)
+			throw new UnauthorizedResponse("No session.");
+
+		return getClient().getSessionController().getSession(sessionId);
+	}
+
+	public static void endSession(@NotNull Context ctx) {
+		if (!initialized)
+			throw new ServiceUnavailableResponse("Servlet is not initialized.");
+
+		String sessionId = SessionUtil.getSessionId(ctx);
+		if (sessionId != null) {
+			SessionUtil.invalidateSession(ctx);
+			getClient().getSessionController().endSession(sessionId);
+		}
 	}
 
 	/**

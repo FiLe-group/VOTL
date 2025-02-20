@@ -28,18 +28,15 @@ public class AuthSessionController implements SessionController<AuthSessionContr
 		return created;
 	}
 
+	@Override
+	public void endSession(String identifier) {
+		sessions.invalidate(identifier);
+	}
+
 	public static class AuthSession implements Session {
 		private final String accessToken, refreshToken, tokenType;
 		private final OffsetDateTime expiration;
 		private final Scope[] scopes;
-
-		private AuthSession(String accessToken, String refreshToken, String tokenType, OffsetDateTime expiration, Scope[] scopes) {
-			this.accessToken = accessToken;
-			this.refreshToken = refreshToken;
-			this.tokenType = tokenType;
-			this.expiration = expiration;
-			this.scopes = scopes;
-		}
 
 		private AuthSession(SessionData data) {
 			this.accessToken = data.getAccessToken();
