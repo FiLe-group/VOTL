@@ -154,7 +154,7 @@ public class App {
 				new CaseCmd(),
 				new DurationCmd(),
 				new GroupCmd(WAITER),
-				new KickCmd(WAITER),
+				new KickCmd(),
 				new MuteCmd(),
 				new ModLogsCmd(),
 				new ModStatsCmd(),
