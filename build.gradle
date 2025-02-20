@@ -65,7 +65,6 @@ tasks.shadowJar {
 	} else {
 		archiveVersion = version
 	}
-	archiveVersion = version
 	archiveClassifier = ''
 	minimize {
 		exclude(dependency('ch.qos.logback:logback-classic:.*'))
