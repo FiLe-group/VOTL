@@ -47,10 +47,10 @@ public class GuildLogger {
 
 	private final Logger log = (Logger) LoggerFactory.getLogger(GuildLogger.class);
 
-	private final @NotNull JDA JDA;
-	private final @NotNull DBUtil db;
-	private final @NotNull LogEmbedUtil logUtil;
-	private final @NotNull WebhookLogUtil webhookUtil;
+	private final JDA JDA;
+	private final DBUtil db;
+	private final LogEmbedUtil logUtil;
+	private final WebhookLogUtil webhookUtil;
 
 	public final ModerationLogs mod =	new ModerationLogs();
 	public final RoleLogs role =		new RoleLogs();
@@ -64,10 +64,10 @@ public class GuildLogger {
 	public final LevelLogs level =		new LevelLogs();
 	public final BotLogs botLogs =		new BotLogs();
 
-	public GuildLogger() {
-		this.JDA = App.getInstance().JDA;
-		this.db = App.getInstance().getDBUtil();
-		this.logUtil = App.getInstance().getLogEmbedUtil();
+	public GuildLogger(App bot, LogEmbedUtil logEmbedUtil) {
+		this.JDA = bot.JDA;
+		this.db = bot.getDBUtil();
+		this.logUtil = logEmbedUtil;
 		this.webhookUtil = new WebhookLogUtil(db);
 	}
 

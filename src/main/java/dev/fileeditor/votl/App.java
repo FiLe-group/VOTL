@@ -70,7 +70,6 @@ public class App {
 	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
 
 	public final JDA JDA;
-	public final EventWaiter WAITER;
 	private final CommandClient commandClient;
 
 	private final FileManager fileManager = new FileManager();
@@ -114,10 +113,11 @@ public class App {
 		levelUtil	= new LevelUtil(this);
 
 		logEmbedUtil	= new LogEmbedUtil();
-		guildLogger		= new GuildLogger();
-
-		WAITER			= new EventWaiter();
+		guildLogger		= new GuildLogger(this, logEmbedUtil);
 		groupHelper		= new GroupHelper(this);
+
+		EventWaiter WAITER = new EventWaiter();
+
 		CommandListener commandListener = new CommandListener(localeUtil);
 		InteractionListener interactionListener = new InteractionListener(this, WAITER);
 

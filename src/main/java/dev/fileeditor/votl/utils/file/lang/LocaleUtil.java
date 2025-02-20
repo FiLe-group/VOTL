@@ -20,14 +20,12 @@ public class LocaleUtil {
 
 	private final App bot;
 	private final LangUtil langUtil;
-	private final MessageUtil messageUtil;
 
 	private final DiscordLocale defaultLocale;
 
 	public LocaleUtil(App bot, DiscordLocale defaultLocale) {
 		this.bot = bot;
 		this.langUtil = new LangUtil(bot.getFileManager());
-		this.messageUtil = new MessageUtil(this);
 		this.defaultLocale = defaultLocale;
 	}
 
@@ -44,7 +42,7 @@ public class LocaleUtil {
 	@NotNull
 	public String getLocalized(DiscordLocale locale, String path, String user, boolean format) {
 		if (format)
-			user = messageUtil.getFormattedMembers(user);
+			user = MessageUtil.getFormattedMembers(this, user);
 
 		return Objects.requireNonNull(getLocalized(locale, path).replace("{user}", user));
 	}
@@ -63,7 +61,7 @@ public class LocaleUtil {
 
 	@NotNull
 	public String getLocalized(DiscordLocale locale, String path, String user, List<String> targets, boolean format) {
-		String targetReplacement = targets.isEmpty() ? "null" : messageUtil.getFormattedMembers(targets.toArray(new String[0]));
+		String targetReplacement = targets.isEmpty() ? "null" : MessageUtil.getFormattedMembers(this, targets.toArray(new String[0]));
 
 		return Objects.requireNonNull(getLocalized(locale, path, user, format)
 			.replace("{target}", targetReplacement)
