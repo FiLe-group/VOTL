@@ -1401,7 +1401,7 @@ public class InteractionListener extends ListenerAdapter {
 					}
 					// Add to temp only if duration not zero and between 10 minutes and 150 days
 					if (!duration.isZero()) {
-						if (duration.toMinutes() < 10 || duration.toDays() > 150) {
+						if (duration.toMinutes() < 10 || duration.toDays() > 370) {
 							sendError(event, "bot.ticketing.listener.time_limit", "Received: "+duration);
 							return;
 						}
