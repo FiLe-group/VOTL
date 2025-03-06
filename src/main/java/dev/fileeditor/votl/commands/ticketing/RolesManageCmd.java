@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.ticketing;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -105,8 +106,10 @@ public class RolesManageCmd extends CommandBase {
 					}
 				}
 				boolean timed = event.optBoolean("timed", false);
-				if (bot.getDBUtil().roles.add(guildId, roleId, event.optString("description", "NULL"), row, RoleType.ASSIGN, timed)) {
-					editErrorDatabase(event, "add managed role");
+				try {
+					bot.getDBUtil().roles.add(guildId, roleId, event.optString("description", "NULL"), row, RoleType.ASSIGN, timed);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "add managed role");
 					return;
 				}
 				sendSuccess(event, lu.getText(event, RoleType.ASSIGN.getPath()), role);
@@ -116,8 +119,10 @@ public class RolesManageCmd extends CommandBase {
 					return;
 				}
 				String description = event.optString("description", role.getName());
-				if (bot.getDBUtil().roles.add(guildId, roleId, description, null, RoleType.TOGGLE, false)) {
-					editErrorDatabase(event, "add managed role");
+				try {
+					bot.getDBUtil().roles.add(guildId, roleId, description, null, RoleType.TOGGLE, false);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "add managed role");
 					return;
 				}
 				sendSuccess(event, lu.getText(event, RoleType.ASSIGN.getPath()), role);
@@ -126,8 +131,10 @@ public class RolesManageCmd extends CommandBase {
 					editError(event, path+".custom_max");
 					return;
 				}
-				if (bot.getDBUtil().roles.add(guildId, roleId, event.optString("description", null), null, RoleType.CUSTOM, false)) {
-					editErrorDatabase(event, "add managed role");
+				try {
+					bot.getDBUtil().roles.add(guildId, roleId, event.optString("description", null), null, RoleType.CUSTOM, false);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "add managed role");
 					return;
 				}
 				sendSuccess(event, lu.getText(event, RoleType.ASSIGN.getPath()), role);
@@ -191,16 +198,20 @@ public class RolesManageCmd extends CommandBase {
 				} else {
 					response.append(lu.getText(event, path+".changed_description").formatted(description));
 				}
-				if (bot.getDBUtil().roles.setDescription(roleId, description)) {
-					editErrorDatabase(event, "update role description");
+				try {
+					bot.getDBUtil().roles.setDescription(roleId, description);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "update role description");
 					return;
 				}
 			}
 
 			if (event.hasOption("row") && roleType.equals(RoleType.ASSIGN)) {
 				final int row = event.optInteger("row");
-				if (bot.getDBUtil().roles.setRow(roleId, row)) {
-					editErrorDatabase(event, "update role row");
+				try {
+					bot.getDBUtil().roles.setRow(roleId, row);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "update role row");
 					return;
 				}
 				response.append(lu.getText(event, path+".changed_row").formatted(row));
@@ -208,8 +219,10 @@ public class RolesManageCmd extends CommandBase {
 
 			if (event.hasOption("timed") && roleType.equals(RoleType.ASSIGN)) {
 				final boolean timed = event.optBoolean("timed", false);
-				if (bot.getDBUtil().roles.setTimed(roleId, timed)) {
-					editErrorDatabase(event, "update role timed");
+				try {
+					bot.getDBUtil().roles.setTimed(roleId, timed);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "update role timed");
 					return;
 				}
 				response.append(lu.getText(event, path+".changed_timed").formatted(timed?Constants.SUCCESS:Constants.FAILURE));
@@ -261,8 +274,10 @@ public class RolesManageCmd extends CommandBase {
 				editError(event, path+".no_role");
 				return;
 			}
-			if (bot.getDBUtil().roles.remove(roleIdLong)) {
-				editErrorDatabase(event, "remove managed role");
+			try {
+				bot.getDBUtil().roles.remove(roleIdLong);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove managed role");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -316,7 +331,9 @@ public class RolesManageCmd extends CommandBase {
 			roles.forEach(data -> {
 				final Role role = guild.getRoleById(data.getIdLong());
 				if (role == null) {
-					bot.getDBUtil().roles.remove(data.getIdLong());
+					try {
+						bot.getDBUtil().roles.remove(data.getIdLong());
+					} catch (SQLException ignored) {}
 					return;
 				}
 				buffer.append(String.format("%s%s `%s` | %s\n",

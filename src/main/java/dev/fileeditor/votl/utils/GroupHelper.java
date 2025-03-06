@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.utils;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,9 @@ public class GroupHelper {
 			final Guild guild = JDA.getGuildById(guildId);
 			if (guild == null) continue;
 			// fail-safe check if the target has temporal ban (to prevent auto unban)
-			db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
+			try {
+				db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
+			} catch (SQLException ignored) {}
 
 			completableFutures.add(guild.ban(target, 0, TimeUnit.SECONDS).reason(newReason).submit());
 		}
@@ -77,7 +80,9 @@ public class GroupHelper {
 			final Guild guild = JDA.getGuildById(guildId);
 			if (guild == null) continue;
 			// Remove temporal ban case
-			db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
+			try {
+				db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
+			} catch (SQLException ignored) {}
 
 			completableFutures.add(guild.unban(target).reason(newReason).submit());
 		}

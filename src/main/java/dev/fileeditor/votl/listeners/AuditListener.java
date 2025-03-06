@@ -8,6 +8,8 @@ import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.events.guild.GuildAuditLogEntryCreateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.sql.SQLException;
+
 public class AuditListener extends ListenerAdapter {
 	
 	private final DBUtil db;
@@ -40,7 +42,9 @@ public class AuditListener extends ListenerAdapter {
 				
 				logger.channel.onChannelDelete(entry);
 				// remove from db exceptions
-				db.logExemptions.removeExemption(event.getGuild().getIdLong(), entry.getTargetIdLong());
+				try {
+					db.logExemptions.removeExemption(event.getGuild().getIdLong(), entry.getTargetIdLong());
+				} catch (SQLException ignored) {}
 			}
 			case CHANNEL_OVERRIDE_CREATE -> {
 				// check if enabled log

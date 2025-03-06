@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
@@ -20,16 +21,16 @@ public class GroupManager extends LiteBase {
 			.formatted(groups, guildId, quote(name), appealGuildId));
 	}
 
-	public boolean deleteGroup(int groupId) {
-		return execute("DELETE FROM %s WHERE (groupId=%d)".formatted(groups, groupId));
+	public void deleteGroup(int groupId) throws SQLException {
+		execute("DELETE FROM %s WHERE (groupId=%d)".formatted(groups, groupId));
 	}
 
-	public void deleteGuildGroups(long guildId) {
+	public void deleteGuildGroups(long guildId) throws SQLException {
 		execute("DELETE FROM %s WHERE (ownerId=%d)".formatted(groups, guildId));
 	}
 
-	public boolean rename(int groupId, String name) {
-		return execute("UPDATE %s SET name=%s WHERE (groupId=%d)".formatted(groups, quote(name), groupId));
+	public void rename(int groupId, String name) throws SQLException {
+		execute("UPDATE %s SET name=%s WHERE (groupId=%d)".formatted(groups, quote(name), groupId));
 	}
 
 	public Long getOwner(int groupId) {
@@ -49,8 +50,8 @@ public class GroupManager extends LiteBase {
 			.formatted(groups, groupId, guildId), "ownerId", Long.class) != null;
 	}
 
-	public boolean setAppealGuildId(int groupId, long appealGuildId) {
-		return execute("UPDATE %s SET appealGuildId=%s WHERE (groupId=%d)".formatted(groups, appealGuildId, groupId));
+	public void setAppealGuildId(int groupId, long appealGuildId) throws SQLException {
+		execute("UPDATE %s SET appealGuildId=%s WHERE (groupId=%d)".formatted(groups, appealGuildId, groupId));
 	}
 
 	public Long getAppealGuildId(int groupId) {
@@ -58,8 +59,8 @@ public class GroupManager extends LiteBase {
 		return data==null ? 0L : data;
 	}
 
-	public boolean setInvite(int groupId, int invite) {
-		return execute("UPDATE %s SET invite=%s WHERE (groupId=%s)".formatted(groups, invite, groupId));
+	public void setInvite(int groupId, int invite) throws SQLException {
+		execute("UPDATE %s SET invite=%s WHERE (groupId=%s)".formatted(groups, invite, groupId));
 	}
 
 	public Integer getInvite(int groupId) {
@@ -71,19 +72,19 @@ public class GroupManager extends LiteBase {
 	}
 
 	// groupMembers table
-	public boolean add(int groupId, long guildId, boolean canManage) {
-		return execute("INSERT INTO %s(groupId, guildId, canManage) VALUES (%d, %d, %d)".formatted(members, groupId, guildId, canManage ? 1 : 0));
+	public void add(int groupId, long guildId, boolean canManage) throws SQLException {
+		execute("INSERT INTO %s(groupId, guildId, canManage) VALUES (%d, %d, %d)".formatted(members, groupId, guildId, canManage ? 1 : 0));
 	}
 
-	public boolean remove(int groupId, long guildId) {
-		return execute("DELETE FROM %s WHERE (groupId=%d AND guildId=%d)".formatted(members, groupId, guildId));
+	public void remove(int groupId, long guildId) throws SQLException {
+		execute("DELETE FROM %s WHERE (groupId=%d AND guildId=%d)".formatted(members, groupId, guildId));
 	}
 
-	public void removeGuildFromGroups(long guildId) {
+	public void removeGuildFromGroups(long guildId) throws SQLException {
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(members, guildId));
 	}
 	
-	public void clearGroup(int groupId) {
+	public void clearGroup(int groupId) throws SQLException {
 		execute("DELETE FROM %s WHERE (groupId=%d)".formatted(members, groupId));
 	}
 
@@ -116,8 +117,8 @@ public class GroupManager extends LiteBase {
 		return data != null && data == 1;
 	}
 
-	public boolean setManage(int groupId, long guildId, boolean canManage) {
-		return execute("UPDATE %s SET canManage=%d WHERE (groupId=%d AND guildId=%d)".formatted(members, canManage ? 1 : 0, groupId, guildId));
+	public void setManage(int groupId, long guildId, boolean canManage) throws SQLException {
+		execute("UPDATE %s SET canManage=%d WHERE (groupId=%d AND guildId=%d)".formatted(members, canManage ? 1 : 0, groupId, guildId));
 	}
 
 }

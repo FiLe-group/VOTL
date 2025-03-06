@@ -3,6 +3,7 @@ package dev.fileeditor.votl.commands.guild;
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
 import java.net.URI;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -92,8 +93,10 @@ public class LogsCmd extends CommandBase {
 				channel.createWebhook(lu.getText(type.getNamePath())).setAvatar(icon).reason("By "+event.getUser().getName()).queue(webhook -> {
 					// Add to DB
 					WebhookData data = new WebhookData(channel.getIdLong(), webhook.getIdLong(), webhook.getToken());
-					if (bot.getDBUtil().logs.setLogWebhook(type, event.getGuild().getIdLong(), data)) {
-						editErrorDatabase(event, "set logs");
+					try {
+						bot.getDBUtil().logs.setLogWebhook(type, event.getGuild().getIdLong(), data);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "set logs");
 						return;
 					}
 					// Reply
@@ -140,8 +143,10 @@ public class LogsCmd extends CommandBase {
 					}
 				}
 				// Remove guild from db
-				if (bot.getDBUtil().logs.removeGuild(guildId)) {
-					editErrorDatabase(event, "clear logs");
+				try {
+					bot.getDBUtil().logs.removeGuild(guildId);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "clear logs");
 					return;
 				}
 				// Reply
@@ -156,8 +161,10 @@ public class LogsCmd extends CommandBase {
 					event.getJDA().retrieveWebhookById(data.getWebhookId())
 						.queue(webhook -> webhook.delete(data.getToken()).reason("Log disabled").queue());
 				}
-				if (bot.getDBUtil().logs.removeLogWebhook(type, guildId)) {
-					editErrorDatabase(event, "remove logs");
+				try {
+					bot.getDBUtil().logs.removeLogWebhook(type, guildId);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "remove logs");
 					return;
 				}
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -235,8 +242,10 @@ public class LogsCmd extends CommandBase {
 					return;
 				}
 			}
-			if (bot.getDBUtil().logExemptions.addExemption(guildId, channelUnion.getIdLong())) {
-				editErrorDatabase(event, "add log exemption");
+			try {
+				bot.getDBUtil().logExemptions.addExemption(guildId, channelUnion.getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "add log exemption");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -272,8 +281,10 @@ public class LogsCmd extends CommandBase {
 				editError(event, path+".not_found", "Provided ID: "+targetId);
 				return;
 			}
-			if (bot.getDBUtil().logExemptions.removeExemption(guildId, targetId)) {
-				editErrorDatabase(event, "remove log exemption");
+			try {
+				bot.getDBUtil().logExemptions.removeExemption(guildId, targetId);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove log exemption");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)

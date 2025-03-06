@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,8 +70,10 @@ public class LevelRolesCmd extends CommandBase {
 
 			int typeValue = event.optInteger("type", 0);
 			ExpType type = ExpType.values()[typeValue];
-			if (bot.getDBUtil().levelRoles.add(event.getGuild().getIdLong(), level, role.getId(), true, type)) {
-				editErrorDatabase(event, "level roles set");
+			try {
+				bot.getDBUtil().levelRoles.add(event.getGuild().getIdLong(), level, role.getId(), true, type);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "level roles set");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -101,8 +104,10 @@ public class LevelRolesCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().levelRoles.remove(event.getGuild().getIdLong(), level)) {
-				editErrorDatabase(event, "level roles remove");
+			try {
+				bot.getDBUtil().levelRoles.remove(event.getGuild().getIdLong(), level);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "level roles remove");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)

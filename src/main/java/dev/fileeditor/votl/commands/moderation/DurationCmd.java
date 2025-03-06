@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -67,12 +68,18 @@ public class DurationCmd extends CommandBase {
 				} else {
 					// time will be expired, remove time out
 					target.removeTimeout().reason("Expired").queue();
-					bot.getDBUtil().cases.setInactive(caseData.getRowId());
+					try {
+						bot.getDBUtil().cases.setInactive(caseData.getRowId());
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "set case inactive");
+					}
 				}
 			});
 		}
-		if (bot.getDBUtil().cases.updateDuration(caseData.getRowId(), newDuration)) {
-			editErrorDatabase(event, "update duration");
+		try {
+			bot.getDBUtil().cases.updateDuration(caseData.getRowId(), newDuration);
+		} catch (SQLException ex) {
+			editErrorDatabase(event, ex, "update duration");
 			return;
 		}
 		

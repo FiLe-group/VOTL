@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,8 +67,10 @@ public class LevelExemptCmd extends CommandBase {
 			channels.add(channel.getIdLong());
 			String channelIds = channels.stream().map(String::valueOf).collect(Collectors.joining(";"));
 
-			if (bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), channelIds)) {
-				editErrorDatabase(event, "set level exempt channels");
+			try {
+				bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), channelIds);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set level exempt channels");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -114,8 +117,10 @@ public class LevelExemptCmd extends CommandBase {
 			channels.remove(channelId);
 			String channelIds = channels.stream().map(String::valueOf).collect(Collectors.joining(";"));
 
-			if (bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), channelIds)) {
-				editErrorDatabase(event, "set level exempt channels");
+			try {
+				bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), channelIds);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set level exempt channels");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -135,8 +140,10 @@ public class LevelExemptCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
 
-			if (bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), null)) {
-				editErrorDatabase(event, "clear level exempt channels");
+			try {
+				bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), null);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "clear level exempt channels");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)

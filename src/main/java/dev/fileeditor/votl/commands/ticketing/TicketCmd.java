@@ -1,6 +1,7 @@
 package dev.fileeditor.votl.commands.ticketing;
 
 import java.net.URI;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -144,8 +145,10 @@ public class TicketCmd extends CommandBase {
 				editError(event, path+".no_options");
 				return;
 			}
-			if (bot.getDBUtil().ticketPanels.updatePanel(panelId, title, description, image, footer)) {
-				editErrorDatabase(event, "update panel");
+			try {
+				bot.getDBUtil().ticketPanels.updatePanel(panelId, title, description, image, footer);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "update panel");
 				return;
 			}
 			editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS)
@@ -252,8 +255,10 @@ public class TicketCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().ticketPanels.delete(panelId)) {
-				editErrorDatabase(event, "delete ticket panel");
+			try {
+				bot.getDBUtil().ticketPanels.delete(panelId);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "delete ticket panel");
 				return;
 			}
 
@@ -412,12 +417,14 @@ public class TicketCmd extends CommandBase {
 			if (builder.getFields().isEmpty()) {
 				editError(event, path+".no_options");
 			} else {
-				if (bot.getDBUtil().ticketTags.updateTag(
-					tagId, type, buttonText, emoji,
-					Optional.ofNullable(category).map(Category::getIdLong).orElse(null),
-					message, supportRoleIds, ticketName, buttonStyle.getKey())
-				) {
-					editErrorDatabase(event, "update ticket tag");
+				try {
+					bot.getDBUtil().ticketTags.updateTag(
+						tagId, type, buttonText, emoji,
+						Optional.ofNullable(category).map(Category::getIdLong).orElse(null),
+						message, supportRoleIds, ticketName, buttonStyle.getKey()
+					);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "update ticket tag");
 					return;
 				}
 				editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS)
@@ -494,8 +501,10 @@ public class TicketCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().ticketTags.deleteTag(tagId)) {
-				editErrorDatabase(event, "delete ticket tag");
+			try {
+				bot.getDBUtil().ticketTags.deleteTag(tagId);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "delete ticket tag");
 				return;
 			}
 
@@ -530,24 +539,30 @@ public class TicketCmd extends CommandBase {
 			StringBuilder response = new StringBuilder();
 			if (event.hasOption("autoclose")) {
 				int time = event.optInteger("autoclose");
-				if (bot.getDBUtil().ticketSettings.setAutocloseTime(guildId, time)) {
-					editErrorDatabase(event, "set ticket autoclose time");
+				try {
+					bot.getDBUtil().ticketSettings.setAutocloseTime(guildId, time);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "set ticket autoclose time");
 					return;
 				}
 				response.append(lu.getText(event, path+".changed_autoclose").formatted(time));
 			}
 			if (event.hasOption("author_left")) {
 				boolean left = event.optBoolean("author_left");
-				if (bot.getDBUtil().ticketSettings.setAutocloseLeft(guildId, left)) {
-					editErrorDatabase(event, "set ticket autoclose left");
+				try {
+					bot.getDBUtil().ticketSettings.setAutocloseLeft(guildId, left);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "set ticket autoclose left");
 					return;
 				}
 				response.append(lu.getText(event, path+".changed_left").formatted(left ? Constants.SUCCESS : Constants.FAILURE));
 			}
 			if (event.hasOption("reply_time")) {
 				int time = event.optInteger("reply_time");
-				if (bot.getDBUtil().ticketSettings.setTimeToReply(guildId, time)) {
-					editErrorDatabase(event, "set ticket time reply");
+				try {
+					bot.getDBUtil().ticketSettings.setTimeToReply(guildId, time);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "set ticket time reply");
 					return;
 				}
 				response.append(lu.getText(event, path+".changed_reply").formatted(time));
@@ -617,8 +632,10 @@ public class TicketCmd extends CommandBase {
 				if (event.hasOption("delete_pings")) {
 					final boolean deletePings = event.optBoolean("delete_pings");
 
-					if (bot.getDBUtil().ticketSettings.setDeletePings(event.getGuild().getIdLong(), deletePings)) {
-						editErrorDatabase(event, "ticket settings set delete pings");
+					try {
+						bot.getDBUtil().ticketSettings.setDeletePings(event.getGuild().getIdLong(), deletePings);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "ticket settings set delete pings");
 						return;
 					}
 					response.append(lu.getText(event, path+".changed_delete").formatted(deletePings ? Constants.SUCCESS : Constants.FAILURE));
@@ -626,8 +643,10 @@ public class TicketCmd extends CommandBase {
 				if (event.hasOption("other_roles")) {
 					final boolean otherRoles = event.optBoolean("other_roles");
 
-					if (bot.getDBUtil().ticketSettings.setOtherRoles(event.getGuild().getIdLong(), otherRoles)) {
-						editErrorDatabase(event, "ticket settings set other roles");
+					try {
+						bot.getDBUtil().ticketSettings.setOtherRoles(event.getGuild().getIdLong(), otherRoles);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "ticket settings set other roles");
 						return;
 					}
 					response.append(lu.getText(event, path+".changed_other").formatted(otherRoles ? Constants.SUCCESS : Constants.FAILURE));
@@ -635,8 +654,10 @@ public class TicketCmd extends CommandBase {
 				if (event.hasOption("role_tickets_support")) {
 					if (event.optString("role_tickets_support").equalsIgnoreCase("null")) {
 						// Clear roles
-						if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), List.of())) {
-							editErrorDatabase(event, "ticket settings clear support roles");
+						try {
+							bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), List.of());
+						} catch (SQLException ex) {
+							editErrorDatabase(event, ex, "ticket settings clear support roles");
 							return;
 						}
 
@@ -648,8 +669,10 @@ public class TicketCmd extends CommandBase {
 							editError(event, path+".bad_roles");
 							return;
 						}
-						if (bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), roles.stream().map(Role::getIdLong).toList())) {
-							editErrorDatabase(event, "ticket settings set support roles");
+						try {
+							bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), roles.stream().map(Role::getIdLong).toList());
+						} catch (SQLException ex) {
+							editErrorDatabase(event, ex, "ticket settings set support roles");
 							return;
 						}
 
@@ -659,8 +682,10 @@ public class TicketCmd extends CommandBase {
 				if (event.hasOption("allow_close")) {
 					TicketSettingsManager.AllowClose allowClose = TicketSettingsManager.AllowClose.valueOf(event.optInteger("allow_close"));
 					if (allowClose != null) {
-						if (bot.getDBUtil().ticketSettings.setAllowClose(event.getGuild().getIdLong(), allowClose)) {
-							editErrorDatabase(event, "ticket settings set allow close");
+						try {
+							bot.getDBUtil().ticketSettings.setAllowClose(event.getGuild().getIdLong(), allowClose);
+						} catch (SQLException ex) {
+							editErrorDatabase(event, ex, "ticket settings set allow close");
 							return;
 						}
 						response.append(lu.getText(event, path+".changed_close").formatted(MessageUtil.capitalize(allowClose.name())));
@@ -669,8 +694,10 @@ public class TicketCmd extends CommandBase {
 				if (event.hasOption("transcripts_mode")) {
 					TicketSettingsManager.TranscriptsMode transcriptsMode = TicketSettingsManager.TranscriptsMode.valueOf(event.optInteger("transcripts_mode"));
 					if (transcriptsMode != null) {
-						if (bot.getDBUtil().ticketSettings.setTranscript(event.getGuild().getIdLong(), transcriptsMode)) {
-							editErrorDatabase(event, "ticket settings set allow close");
+						try {
+							bot.getDBUtil().ticketSettings.setTranscript(event.getGuild().getIdLong(), transcriptsMode);
+						} catch (SQLException ex) {
+							editErrorDatabase(event, ex, "ticket settings set allow close");
 							return;
 						}
 						response.append(lu.getText(event, path+".changed_transcript").formatted(MessageUtil.capitalize(transcriptsMode.name()).replace("_", " ")));

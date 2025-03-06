@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -14,25 +15,25 @@ public class TempRoleManager extends LiteBase {
 		super(cu, "tempRoles");
 	}
 
-	public boolean add(long guildId, long roleId, long userId, boolean deleteAfter, Instant expiresAt) {
-		return execute("INSERT INTO %s(guildId, roleId, userId, deleteAfter, expiresAt) VALUES (%s, %s, %s, %d, %d) ON CONFLICT(roleId, userId) DO UPDATE SET expiresAt=%<d;"
+	public void add(long guildId, long roleId, long userId, boolean deleteAfter, Instant expiresAt) throws SQLException {
+		execute("INSERT INTO %s(guildId, roleId, userId, deleteAfter, expiresAt) VALUES (%s, %s, %s, %d, %d) ON CONFLICT(roleId, userId) DO UPDATE SET expiresAt=%<d;"
 			.formatted(table, guildId, roleId, userId, (deleteAfter ? 1 : 0), expiresAt.getEpochSecond()));
 	}
 
-	public boolean remove(long roleId, long userId) {
-		return execute("DELETE FROM %s WHERE (roleId=%s AND userId=%s)".formatted(table, roleId, userId));
+	public void remove(long roleId, long userId) throws SQLException {
+		execute("DELETE FROM %s WHERE (roleId=%s AND userId=%s)".formatted(table, roleId, userId));
 	}
 
-	public void removeRole(long roleId) {
+	public void removeRole(long roleId) throws SQLException {
 		execute("DELETE FROM %s WHERE (roleId=%s)".formatted(table, roleId));
 	}
 
-	public void removeAll(long guildId) {
+	public void removeAll(long guildId) throws SQLException {
 		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 
-	public boolean updateTime(long roleId, long userId, Instant expiresAt) {
-		return execute("UPDATE %s SET expiresAt=%s WHERE (roleId=%s AND userId=%s)".formatted(table, expiresAt.getEpochSecond(), roleId, userId));
+	public void updateTime(long roleId, long userId, Instant expiresAt) throws SQLException {
+		execute("UPDATE %s SET expiresAt=%s WHERE (roleId=%s AND userId=%s)".formatted(table, expiresAt.getEpochSecond(), roleId, userId));
 	}
 
 	public Instant expireAt(long roleId, long userId) {

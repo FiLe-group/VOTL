@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -44,8 +45,10 @@ public class ReasonCmd extends CommandBase {
 		}
 
 		String newReason = event.optString("reason");
-		if (bot.getDBUtil().cases.updateReason(caseData.getRowId(), newReason)) {
-			editErrorDatabase(event, "update reason");
+		try {
+			bot.getDBUtil().cases.updateReason(caseData.getRowId(), newReason);
+		} catch (SQLException ex) {
+			editErrorDatabase(event, ex, "update reason");
 			return;
 		}
 

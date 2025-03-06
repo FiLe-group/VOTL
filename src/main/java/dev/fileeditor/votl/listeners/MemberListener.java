@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.listeners;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -128,13 +129,16 @@ public class MemberListener extends ListenerAdapter {
 
 		// When user leaves guild, check if there are any records in DB that would be better to remove.
 		// This does not consider clearing User DB, when bot leaves guild.
-		if (db.access.getUserLevel(guildId, userId) != null) {
+		try {
 			db.access.removeUser(guildId, userId);
-		}
-		db.user.remove(event.getUser().getIdLong());
+			db.user.remove(event.getUser().getIdLong());
+		} catch (SQLException ignored) {}
+
 		if (db.getTicketSettings(event.getGuild()).autocloseLeftEnabled()) {
 			db.tickets.getOpenedChannel(userId, guildId).forEach(channelId -> {
-				db.tickets.closeTicket(Instant.now(), channelId, "Ticket's author left the server");
+				try {
+					db.tickets.closeTicket(Instant.now(), channelId, "Ticket's author left the server");
+				} catch (SQLException ignored) {}
 				GuildChannel channel = event.getGuild().getGuildChannelById(channelId);
 				if (channel != null) channel.delete().reason("Author left").queue();
 			});

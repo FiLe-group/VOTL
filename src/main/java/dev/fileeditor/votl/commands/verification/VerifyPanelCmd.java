@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.verification;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -142,8 +143,10 @@ public class VerifyPanelCmd extends CommandBase {
 				editError(event, path+".unknown_url", "URL: "+imageUrl);
 				return;
 			}
-			if (bot.getDBUtil().verifySettings.setPanelImage(event.getGuild().getIdLong(), imageUrl)) {
-				editErrorDatabase(event, "set verify image");
+			try {
+				bot.getDBUtil().verifySettings.setPanelImage(event.getGuild().getIdLong(), imageUrl);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set verify image");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)

@@ -91,13 +91,16 @@ public class GameStrikeCmd extends CommandBase {
 		String reason = event.optString("reason");
 		// Add to DB
 		long guildId = event.getGuild().getIdLong();
-		CaseManager.CaseData strikeData = bot.getDBUtil().cases.add(
-			CaseType.GAME_STRIKE, tm.getIdLong(), tm.getUser().getName(),
-			event.getUser().getIdLong(), event.getUser().getName(),
-			guildId, reason, Instant.now(), null
-		);
-		if (bot.getDBUtil().games.addStrike(guildId, channelId, tm.getIdLong())) {
-			editErrorDatabase(event, "add strike");
+		CaseManager.CaseData strikeData;
+		try {
+			strikeData = bot.getDBUtil().cases.add(
+				CaseType.GAME_STRIKE, tm.getIdLong(), tm.getUser().getName(),
+				event.getUser().getIdLong(), event.getUser().getName(),
+				guildId, reason, Instant.now(), null
+			);
+			bot.getDBUtil().games.addStrike(guildId, channelId, tm.getIdLong());
+		} catch (Exception ex) {
+			editErrorDatabase(event, ex, "Failed to create case or add strike.");
 			return;
 		}
 		// Inform user

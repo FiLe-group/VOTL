@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.ticketing;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -182,8 +183,10 @@ public class RolesPanelCmd extends CommandBase {
 			Integer row = event.optInteger("row");
 			String text = event.optString("text");
 
-			if (bot.getDBUtil().ticketSettings.setRowText(event.getGuild().getIdLong(), row, text)) {
-				editErrorDatabase(event, "set ticket row text");
+			try {
+				bot.getDBUtil().ticketSettings.setRowText(event.getGuild().getIdLong(), row, text);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set ticket row text");
 				return;
 			}
 

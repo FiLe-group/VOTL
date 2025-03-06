@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.guild;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -116,8 +117,10 @@ public class ModuleCmd extends CommandBase {
 					}
 					// set new data
 					final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() + sModule.getValue();
-					if (bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData)) {
-						editErrorDatabase(event, "set disabled modules");
+					try {
+						bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "set disabled modules");
 						return;
 					}
 					// Send reply
@@ -182,7 +185,12 @@ public class ModuleCmd extends CommandBase {
 						}
 						// set new data
 						final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() - sModule.getValue();
-						bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
+						try {
+							bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
+						} catch (SQLException ex) {
+							editErrorDatabase(event, ex, "set enable module");
+							return;
+						}
 						// Send reply
 						hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 							.setTitle(lu.getText(event, path+".done").replace("{module}", lu.getText(event, sModule.getPath())))

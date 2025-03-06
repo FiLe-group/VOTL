@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import java.sql.SQLException;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -64,8 +65,10 @@ public class PersistentRoleCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().persistent.addRole(event.getGuild().getIdLong(), role.getIdLong())) {
-				editErrorDatabase(event, "add persistent role");
+			try {
+				bot.getDBUtil().persistent.addRole(event.getGuild().getIdLong(), role.getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "add persistent role");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -89,8 +92,10 @@ public class PersistentRoleCmd extends CommandBase {
 
 			Role role = event.optRole("role");
 
-			if (bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), role.getIdLong())) {
-				editErrorDatabase(event, "remove persistent role");
+			try {
+				bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), role.getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove persistent role");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -121,7 +126,9 @@ public class PersistentRoleCmd extends CommandBase {
 			for (Long roleId : roleIds) {
 				Role role = event.getGuild().getRoleById(roleId);
 				if (role == null) {
-					bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), roleId);
+					try {
+						bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), roleId);
+					} catch (SQLException ignored) {}
 					continue;
 				}
 				sb.append(role.getAsMention()).append("\n");

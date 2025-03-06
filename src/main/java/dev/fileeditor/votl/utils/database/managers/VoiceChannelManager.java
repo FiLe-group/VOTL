@@ -3,6 +3,7 @@ package dev.fileeditor.votl.utils.database.managers;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,12 +17,12 @@ public class VoiceChannelManager extends LiteBase {
 		cache.putAll(getDbCache());
 	}
 
-	public void add(long userId, long channelId) {
+	public void add(long userId, long channelId) throws SQLException {
 		cache.put(userId, channelId);
 		execute("INSERT INTO %s(userId, channelId) VALUES (%d, %d) ON CONFLICT(channelId) DO UPDATE SET channelId=%<d".formatted(table, userId, channelId));
 	}
 
-	public void remove(long channelId) {
+	public void remove(long channelId) throws SQLException {
 		Optional.ofNullable(getUser(channelId)).ifPresent(cache::remove);
 		execute("DELETE FROM %s WHERE (channelId=%d)".formatted(table, channelId));
 	}
@@ -34,7 +35,7 @@ public class VoiceChannelManager extends LiteBase {
 		return cache.containsValue(channelId);
 	}
 
-	public void setUser(long userId, long channelId) {
+	public void setUser(long userId, long channelId) throws SQLException {
 		// Remove user with same channelId
 		cache.entrySet().stream()
 			.filter((e) -> e.getValue().equals(channelId))

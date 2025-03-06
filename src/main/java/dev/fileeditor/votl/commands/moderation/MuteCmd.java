@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -112,7 +113,17 @@ public class MuteCmd extends CommandBase {
 				editError(event, path+".abort", "You can't interact with target member.");
 				return;
 			}
-			
+
+			// Set previous mute case inactive, as member is not timeout
+			if (oldMuteData != null) {
+				try {
+					bot.getDBUtil().cases.setInactive(oldMuteData.getRowId());
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "Failed to remove previous timeout case.");
+					return;
+				}
+			}
+			// timeout
 			tm.timeoutFor(duration).reason(reason).queue(done -> {
 				tm.getUser().openPrivateChannel().queue(pm -> {
 					MessageEmbed embed = bot.getModerationUtil().getDmEmbed(CaseType.MUTE, guild, reason, duration, mod.getUser(), false);
@@ -120,16 +131,16 @@ public class MuteCmd extends CommandBase {
 					pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 				});
 
-				// Set previous mute case inactive, as member is not timeout
-				if (oldMuteData != null) bot.getDBUtil().cases.setInactive(oldMuteData.getRowId());
 				// add info to db
-				CaseData newMuteData = bot.getDBUtil().cases.add(
-					CaseType.MUTE, tm.getIdLong(), tm.getUser().getName(),
-					mod.getIdLong(), mod.getUser().getName(),
-					guild.getIdLong(), reason, Instant.now(), duration
-				);
-				if (newMuteData == null) {
-					editErrorOther(event, "Failed to create action data.");
+				CaseData newMuteData;
+				try {
+					newMuteData = bot.getDBUtil().cases.add(
+						CaseType.MUTE, tm.getIdLong(), tm.getUser().getName(),
+						mod.getIdLong(), mod.getUser().getName(),
+						guild.getIdLong(), reason, Instant.now(), duration
+					);
+				} catch (Exception ex) {
+					editErrorDatabase(event, ex, "Failed to create new case.");
 					return;
 				}
 				// log mute

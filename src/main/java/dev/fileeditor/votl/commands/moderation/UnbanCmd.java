@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 
@@ -55,7 +56,12 @@ public class UnbanCmd extends CommandBase {
 		// Remove active ban log
 		CaseData banData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 		if (banData != null) {
-			bot.getDBUtil().cases.setInactive(banData.getRowId());
+			try {
+				bot.getDBUtil().cases.setInactive(banData.getRowId());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set case inactive");
+				return;
+			}
 		}
 
 		guild.retrieveBan(tu).queue(ban -> {
@@ -65,7 +71,12 @@ public class UnbanCmd extends CommandBase {
 				if (bot.getDBUtil().blacklist.inGroupUser(groupId, tu.getIdLong())) {
 					if (bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.OPERATOR)) {
 						// User is Operator+, remove blacklist
-						bot.getDBUtil().blacklist.removeUser(groupId, tu.getIdLong());
+						try {
+							bot.getDBUtil().blacklist.removeUser(groupId, tu.getIdLong());
+						} catch (SQLException ex) {
+							editErrorDatabase(event, ex, "Failed to remove user from blacklist.");
+							return;
+						}
 						bot.getLogger().mod.onBlacklistRemoved(event.getUser(), tu, groupId);
 					} else {
 						// User is not Operator+, reject unban
@@ -76,27 +87,34 @@ public class UnbanCmd extends CommandBase {
 			}
 			Member mod = event.getMember();
 			final String reason = event.optString("reason", lu.getText(event, path+".no_reason"));
-			// add info to db
-			CaseData unbanData = bot.getDBUtil().cases.add(
-				CaseType.UNBAN, tu.getIdLong(), tu.getName(),
-				mod.getIdLong(), mod.getUser().getName(),
-				guild.getIdLong(), reason, Instant.now(), null
-			);
-			if (unbanData == null) {
-				editErrorOther(event, "Failed to create action data.");
-				return;
-			}
+
 			// perform unban
-			guild.unban(tu).reason(reason).queue();
-			// log unban
-			bot.getLogger().mod.onNewCase(guild, tu, unbanData, banData != null ? banData.getReason() : ban.getReason()).thenAccept(logUrl -> {
-				// reply and ask for unban sync
-				event.getHook().editOriginalEmbeds(
-					bot.getModerationUtil().actionEmbed(guild.getLocale(), unbanData.getLocalIdInt(),
-						path+".success", tu, mod.getUser(), reason, logUrl)
-				).setActionRow(
-					Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
-				).queue();
+			guild.unban(tu).reason(reason).queue(done -> {
+				// add info to db
+				CaseData unbanData;
+				try {
+					unbanData = bot.getDBUtil().cases.add(
+						CaseType.UNBAN, tu.getIdLong(), tu.getName(),
+						mod.getIdLong(), mod.getUser().getName(),
+						guild.getIdLong(), reason, Instant.now(), null
+					);
+				} catch (Exception ex) {
+					editErrorDatabase(event, ex, "Failed to create new case.");
+					return;
+				}
+
+				// log unban
+				bot.getLogger().mod.onNewCase(guild, tu, unbanData, banData != null ? banData.getReason() : ban.getReason()).thenAccept(logUrl -> {
+					// reply and ask for unban sync
+					event.getHook().editOriginalEmbeds(
+						bot.getModerationUtil().actionEmbed(guild.getLocale(), unbanData.getLocalIdInt(),
+							path+".success", tu, mod.getUser(), reason, logUrl)
+					).setActionRow(
+						Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
+					).queue();
+				});
+			}, failure -> {
+				editErrorOther(event, "Failed to unban user.\n> "+failure.getMessage());
 			});
 		},
 		failure -> {

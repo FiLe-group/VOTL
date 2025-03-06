@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,16 +17,16 @@ public class RoleManager extends LiteBase {
 		super(cu, "roles");
 	}
 
-	public boolean add(long guildId, long roleId, String description, Integer row, RoleType roleType, boolean timed) {
-		return execute("INSERT INTO %s(guildId, roleId, description, type, row, timed) VALUES (%s, %s, %s, %s, %s, %s)"
+	public void add(long guildId, long roleId, String description, Integer row, RoleType roleType, boolean timed) throws SQLException {
+		execute("INSERT INTO %s(guildId, roleId, description, type, row, timed) VALUES (%s, %s, %s, %s, %s, %s)"
 			.formatted(table, guildId, roleId, quote(description), roleType.getType(), Optional.ofNullable(row).orElse(0), timed ? 1 : 0));
 	}
 
-	public boolean remove(long roleId) {
-		return execute("DELETE FROM %s WHERE (roleId=%s)".formatted(table, roleId));
+	public void remove(long roleId) throws SQLException {
+		execute("DELETE FROM %s WHERE (roleId=%s)".formatted(table, roleId));
 	}
 
-	public void removeAll(long guildId) {
+	public void removeAll(long guildId) throws SQLException {
 		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 
@@ -77,16 +78,16 @@ public class RoleManager extends LiteBase {
 		return selectOne("SELECT description FROM %s WHERE (roleId=%s)".formatted(table, roleId), "description", String.class);
 	}
 
-	public boolean setDescription(long roleId, String description) {
-		return execute("UPDATE %s SET description=%s WHERE (roleId=%s)".formatted(table, quote(description), roleId));
+	public void setDescription(long roleId, String description) throws SQLException {
+		execute("UPDATE %s SET description=%s WHERE (roleId=%s)".formatted(table, quote(description), roleId));
 	}
 
-	public boolean setRow(long roleId, Integer row) {
-		return execute("UPDATE %s SET row=%d WHERE (roleId=%s)".formatted(table, Optional.ofNullable(row).orElse(0), roleId));
+	public void setRow(long roleId, Integer row) throws SQLException {
+		execute("UPDATE %s SET row=%d WHERE (roleId=%s)".formatted(table, Optional.ofNullable(row).orElse(0), roleId));
 	}
 
-	public boolean setTimed(long roleId, boolean timed) {
-		return execute("UPDATE %s SET timed=%s WHERE (roleId=%s)".formatted(table, timed ? 1 : 0, roleId));
+	public void setTimed(long roleId, boolean timed) throws SQLException {
+		execute("UPDATE %s SET timed=%s WHERE (roleId=%s)".formatted(table, timed ? 1 : 0, roleId));
 	}
 
 	public boolean isToggleable(long roleId) {

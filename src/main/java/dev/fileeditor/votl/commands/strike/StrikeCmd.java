@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.strike;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -110,13 +111,15 @@ public class StrikeCmd extends CommandBase {
 		});
 
 		// add info to db
-		CaseData caseData = bot.getDBUtil().cases.add(
-			type, tm.getIdLong(), tm.getUser().getName(),
-			mod.getIdLong(), mod.getUser().getName(),
-			guild.getIdLong(), reason, Instant.now(), null
-		);
-		if (caseData == null) {
-			editErrorOther(event, "Failed to create action data.");
+		CaseData caseData;
+		try {
+			caseData = bot.getDBUtil().cases.add(
+				type, tm.getIdLong(), tm.getUser().getName(),
+				mod.getIdLong(), mod.getUser().getName(),
+				guild.getIdLong(), reason, Instant.now(), null
+			);
+		} catch (Exception ex) {
+			editErrorDatabase(event, ex, "Failed to create new case.");
 			return;
 		}
 		// add strikes
@@ -142,9 +145,11 @@ public class StrikeCmd extends CommandBase {
 
 	private Field executeStrike(DiscordLocale locale, Guild guild, Member target, int addAmount, int caseRowId) throws Exception {
 		// Add strike(-s) to DB
-		if (bot.getDBUtil().strikes.addStrikes(guild.getIdLong(), target.getIdLong(),
-			Instant.now().plus(bot.getDBUtil().getGuildSettings(guild).getStrikeExpires(), ChronoUnit.DAYS),
-			addAmount, caseRowId+"-"+addAmount)) {
+		try {
+			bot.getDBUtil().strikes.addStrikes(guild.getIdLong(), target.getIdLong(),
+				Instant.now().plus(bot.getDBUtil().getGuildSettings(guild).getStrikeExpires(), ChronoUnit.DAYS),
+				addAmount, caseRowId+"-"+addAmount);
+		} catch (SQLException ex) {
 			throw new Exception("Case was created, but strike information was not added to the database (internal error)!");
 		}
 		// Get strike new strike amount
@@ -188,18 +193,22 @@ public class StrikeCmd extends CommandBase {
 				});
 
 				guild.kick(target).reason(reason).queueAfter(3, TimeUnit.SECONDS, done -> {
-						// add case to DB
-						CaseData caseData = bot.getDBUtil().cases.add(
+					// add case to DB
+					CaseData caseData;
+					try {
+						caseData = bot.getDBUtil().cases.add(
 							CaseType.KICK, target.getIdLong(), target.getUser().getName(),
 							0, "Autopunish",
 							guild.getIdLong(), reason, Instant.now(), null
 						);
-						// log case
-						bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
-							bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
-						});
-					},
-					failure -> bot.getAppLogger().error("Strike punishment execution, Kick member", failure));
+					} catch (Exception ignored) {
+						return;
+					}
+					// log case
+					bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+						bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
+					});
+				}, failure -> bot.getAppLogger().error("Strike punishment execution, Kick member", failure));
 				builder.append(lu.getLocalized(locale, PunishAction.KICK.getPath()))
 					.append("\n");
 			}
@@ -225,11 +234,16 @@ public class StrikeCmd extends CommandBase {
 
 					guild.ban(target, 0, TimeUnit.SECONDS).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
 							// add case to DB
-							CaseData caseData = bot.getDBUtil().cases.add(
-								CaseType.BAN, target.getIdLong(), target.getUser().getName(),
-								0, "Autopunish",
-								guild.getIdLong(), reason, Instant.now(), durationCopy
-							);
+							CaseData caseData;
+							try {
+								caseData = bot.getDBUtil().cases.add(
+									CaseType.BAN, target.getIdLong(), target.getUser().getName(),
+									0, "Autopunish",
+									guild.getIdLong(), reason, Instant.now(), durationCopy
+								);
+							} catch (Exception ignored) {
+								return;
+							}
 							// log case
 							bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
 								bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
@@ -300,13 +314,13 @@ public class StrikeCmd extends CommandBase {
 				if (role != null && guild.getSelfMember().canInteract(role)) {
 					// Apply action, result will be in logs
 					guild.addRoleToMember(target, role).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queueAfter(5, TimeUnit.SECONDS, done -> {
-							// Add temp
+						// Add temp
+						try {
 							bot.getDBUtil().tempRoles.add(guild.getIdLong(), role.getIdLong(), target.getIdLong(), false, Instant.now().plus(durationCopy));
-							// log action
-							bot.getLogger().role.onTempRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), role, durationCopy);
-						},
-						failure -> bot.getAppLogger().error("Strike punishment execution, Add temp role", failure)
-					);
+						} catch (Exception ignored) {}
+						// log action
+						bot.getLogger().role.onTempRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), role, durationCopy);
+					}, failure -> bot.getAppLogger().error("Strike punishment execution, Add temp role", failure));
 					builder.append(lu.getLocalized(locale, PunishAction.TEMP_ROLE.getPath()))
 						.append(" ").append(role.getName())
 						.append(" (").append(TimeUtil.durationToLocalizedString(lu, locale, durationCopy))
@@ -331,11 +345,16 @@ public class StrikeCmd extends CommandBase {
 				Duration durationCopy = duration;
 				guild.timeoutFor(target, duration).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
 					// add case to DB
-					CaseData caseData = bot.getDBUtil().cases.add(
-						CaseType.MUTE, target.getIdLong(), target.getUser().getName(),
-						0, "Autopunish",
-						guild.getIdLong(), reason, Instant.now(), durationCopy
-					);
+					CaseData caseData;
+					try {
+						caseData = bot.getDBUtil().cases.add(
+							CaseType.MUTE, target.getIdLong(), target.getUser().getName(),
+							0, "Autopunish",
+							guild.getIdLong(), reason, Instant.now(), durationCopy
+						);
+					} catch (Exception ignored) {
+						return;
+					}
 					// log case
 					bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
 						bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);

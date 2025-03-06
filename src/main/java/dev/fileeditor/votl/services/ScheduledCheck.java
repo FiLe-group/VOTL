@@ -1,9 +1,11 @@
 package dev.fileeditor.votl.services;
 
+import static dev.fileeditor.votl.objects.CaseType.BAN;
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -12,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.ReportData;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
@@ -74,7 +75,7 @@ public class ScheduledCheck {
 				GuildMessageChannel channel = bot.JDA.getChannelById(GuildMessageChannel.class, channelId);
 				if (channel == null) {
 					// Should be closed???
-					bot.getDBUtil().tickets.forceCloseTicket(channelId);
+					ignoreExc(() -> bot.getDBUtil().tickets.forceCloseTicket(channelId));
 					return;
 				}
 				int autocloseTime = db.getTicketSettings(channel.getGuild()).getAutocloseTime();
@@ -96,7 +97,7 @@ public class ScheduledCheck {
 					Button close = Button.primary("ticket:close", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.close"));
 					Button cancel = Button.secondary("ticket:cancel", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.cancel"));
 
-					db.tickets.setRequestStatus(channelId, closeTime.getEpochSecond());
+					ignoreExc(() -> db.tickets.setRequestStatus(channelId, closeTime.getEpochSecond()));
 					channel.sendMessage("||%s||".formatted(user.getAsMention())).addEmbeds(embed).addActionRow(close, cancel).queue();
 				}
 			});
@@ -104,11 +105,11 @@ public class ScheduledCheck {
 			db.tickets.getCloseMarkedTickets().forEach(channelId -> {
 				GuildChannel channel = bot.JDA.getGuildChannelById(channelId);
 				if (channel == null) {
-					bot.getDBUtil().tickets.forceCloseTicket(channelId);
+					ignoreExc(() -> bot.getDBUtil().tickets.forceCloseTicket(channelId));
 					return;
 				}
 				bot.getTicketUtil().closeTicket(channelId, null, "time", failure -> {
-					db.tickets.setRequestStatus(channelId, -1L);
+					ignoreExc(() -> db.tickets.setRequestStatus(channelId, -1L));
 					if (ErrorResponse.UNKNOWN_MESSAGE.test(failure) || ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
 					log.error("Failed to delete ticket channel, either already deleted or unknown error", failure);
 				});
@@ -117,7 +118,7 @@ public class ScheduledCheck {
 			db.tickets.getReplyExpiredTickets().forEach(channelId -> {
 				GuildMessageChannel channel = bot.JDA.getChannelById(GuildMessageChannel.class, channelId);
 				if (channel == null) {
-					bot.getDBUtil().tickets.forceCloseTicket(channelId);
+					ignoreExc(() -> bot.getDBUtil().tickets.forceCloseTicket(channelId));
 					return;
 				}
 				channel.getIterableHistory()
@@ -127,13 +128,13 @@ public class ScheduledCheck {
 						if (msg.getAuthor().isBot()) {
 							// Last message is bot - close ticket
 							bot.getTicketUtil().closeTicket(channelId, null, "activity", failure -> {
-								db.tickets.setWaitTime(channelId, -1L);
+								ignoreExc(() -> db.tickets.setWaitTime(channelId, -1L));
 								if (ErrorResponse.UNKNOWN_MESSAGE.test(failure) || ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
 								log.error("Failed to delete ticket channel, either already deleted or unknown error", failure);
 							});
 						} else {
 							// There is human reply
-							db.tickets.setWaitTime(channelId, -1L);
+							ignoreExc(() -> db.tickets.setWaitTime(channelId, -1L));
 						}
 					});
 			});
@@ -151,7 +152,7 @@ public class ScheduledCheck {
 				long roleId = castLong(data.get("roleId"));
 				Role role = bot.JDA.getRoleById(roleId);
 				if (role == null) {
-					db.tempRoles.removeRole(roleId);
+					ignoreExc(() -> db.tempRoles.removeRole(roleId));
 					return;
 				}
 
@@ -162,13 +163,12 @@ public class ScheduledCheck {
 					} catch (InsufficientPermissionException | HierarchyException ex) {
 						log.warn("Was unable to delete temporary role '{}' during scheduled check.", roleId, ex);
 					}
-					db.tempRoles.removeRole(roleId);
+					ignoreExc(() -> db.tempRoles.removeRole(roleId));
 				} else {
-
 					role.getGuild().removeRoleFromMember(User.fromId(userId), role).reason("Role expired").queue(null, failure -> {
 						log.warn("Was unable to remove temporary role '{}' from '{}' during scheduled check.", roleId, userId, failure);
 					});
-					db.tempRoles.remove(roleId, userId);
+					ignoreExc(() -> db.tempRoles.remove(roleId, userId));
 				}
 				// Log
 				bot.getLogger().role.onTempRoleAutoRemoved(role.getGuild(), userId, role);
@@ -253,7 +253,9 @@ public class ScheduledCheck {
 				if (channel == null) {
 					long guildId = castLong(data.get("guildId"));
 					log.warn("Channel for modReport @ '{}' not found. Deleting.", guildId);
-					db.modReport.removeGuild(guildId);
+					try {
+						db.modReport.removeGuild(guildId);
+					} catch (SQLException ignored) {}
 					return;
 				}
 
@@ -264,7 +266,9 @@ public class ScheduledCheck {
 					.toList();
 				if (roles.isEmpty()) {
 					log.warn("Roles for modReport @ '{}' not found. Deleting.", guild.getId());
-					db.modReport.removeGuild(guild.getIdLong());
+					try {
+						db.modReport.removeGuild(guild.getIdLong());
+					} catch (SQLException ignored) {}
 					return;
 				}
 
@@ -272,7 +276,12 @@ public class ScheduledCheck {
 				LocalDateTime nextReport = LocalDateTime.ofEpochSecond(castLong(data.get("nextReport")), 0, ZoneOffset.UTC);
 				nextReport = interval==30 ? nextReport.plusMonths(1) : nextReport.plusDays(interval);
 				// Update next report date
-				db.modReport.updateNext(channelId, nextReport);
+				// If fails - remove guild
+				try {
+					db.modReport.updateNext(channelId, nextReport);
+				} catch (SQLException ignored) {
+					ignoreExc(() -> db.modReport.removeGuild(guild.getIdLong()));
+				}
 
 				// Search for members with any of required roles (Mod, Admin, ...)
 				guild.findMembers(m -> !Collections.disjoint(m.getRoles(), roles)).setTimeout(10, TimeUnit.SECONDS).onSuccess(members -> {
@@ -316,26 +325,26 @@ public class ScheduledCheck {
 
 	// Each 2-5 minutes
 	public void regularChecks() {
-		CompletableFuture.runAsync(this::checkUnbans)
+		CompletableFuture.runAsync(this::checkExpiredCases)
 			.thenRunAsync(this::updateDbQueue);
 	}
 
-	private void checkUnbans() {
+	private void checkExpiredCases() {
 		List<CaseData> expired = db.cases.getExpired();
 		if (expired.isEmpty()) return;
 		
 		expired.forEach(caseData -> {
-			if (caseData.getType().equals(CaseType.MUTE)) {
+			try {
 				db.cases.setInactive(caseData.getRowId());
-				return;
-			}
-			Guild guild = bot.JDA.getGuildById(caseData.getGuildId());
-			if (guild == null || !guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) return;
-			guild.unban(User.fromId(caseData.getTargetId())).reason(bot.getLocaleUtil().getLocalized(guild.getLocale(), "misc.ban_expired")).queue(
-				s -> bot.getLogger().mod.onAutoUnban(caseData, guild),
-				f -> log.warn("Exception at unban attempt.", f)
-			);
-			db.cases.setInactive(caseData.getRowId());
+				if (caseData.getType().equals(BAN)) {
+					Guild guild = bot.JDA.getGuildById(caseData.getGuildId());
+					if (guild == null || !guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS)) return;
+					guild.unban(User.fromId(caseData.getTargetId())).reason(bot.getLocaleUtil().getLocalized(guild.getLocale(), "misc.ban_expired")).queue(
+						s -> bot.getLogger().mod.onAutoUnban(caseData, guild),
+						f -> log.warn("Exception at unban attempt.", f)
+					);
+				}
+			} catch (SQLException ignored) {}
 		});
 	}
 
@@ -358,5 +367,14 @@ public class ScheduledCheck {
 			log.error("Exception caught during DB queue update.", t);
 		}
 	}
+
+
+	private void ignoreExc(RunnableExc runnable) {
+		try {
+			runnable.run();
+		} catch (SQLException ignored) {}
+	}
+
+	@FunctionalInterface public interface RunnableExc { void run() throws SQLException; }
 	
 }

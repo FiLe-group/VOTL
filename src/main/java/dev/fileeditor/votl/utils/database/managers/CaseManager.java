@@ -3,6 +3,7 @@ package dev.fileeditor.votl.utils.database.managers;
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.NotNull;
 
 public class CaseManager extends LiteBase {
 	
@@ -30,33 +32,38 @@ public class CaseManager extends LiteBase {
 	}
 
 	// add new case
-	public CaseData add(CaseType type, long userId, String userName, long modId, String modName, long guildId, String reason, Instant timeStart, Duration duration) {
+	@NotNull
+	public CaseData add(CaseType type, long userId, String userName, long modId, String modName, long guildId, String reason, Instant timeStart, Duration duration) throws Exception {
 		int rowId = executeWithRow("INSERT INTO %s(type, targetId, targetTag, modId, modTag, guildId, reason, timeStart, duration, active) VALUES (%d, %d, %s, %d, %s, %d, %s, %d, %d, %d)"
 			.formatted(table, type.getValue(), userId, quote(userName), modId, quote(modName), guildId, quote(reason),
 			timeStart.getEpochSecond(), duration == null ? -1 : duration.getSeconds(), type.isActiveInt()));
-		if (rowId == 0) return null;
+		if (rowId == 0) throw new Exception("Failed to create new case");
 		execute("UPDATE %s SET localId=(SELECT IFNULL(MAX(localId), 0) + 1 FROM cases WHERE guildId=%s) WHERE rowId=%s;".formatted(table, guildId, rowId));
-		return getInfo(rowId);
+		CaseData data = getInfo(rowId);
+		if (data == null) throw new Exception("Failed to retrieve new case");
+		return data;
 	}
 
 	// update case reason
-	public boolean updateReason(int rowId, String reason) {
-		return execute("UPDATE %s SET reason=%s WHERE (rowId=%d)".formatted(table, quote(reason), rowId));
+	public void updateReason(int rowId, String reason) throws SQLException {
+		execute("UPDATE %s SET reason=%s WHERE (rowId=%d)".formatted(table, quote(reason), rowId));
 	}
 
 	// update case duration
-	public boolean updateDuration(int rowId, Duration duration) {
-		return execute("UPDATE %s SET duration=%d WHERE (rowId=%d)".formatted(table, duration.getSeconds(), rowId));
+	public void updateDuration(int rowId, Duration duration) throws SQLException {
+		execute("UPDATE %s SET duration=%d WHERE (rowId=%d)".formatted(table, duration.getSeconds(), rowId));
 	}
 
 	// set case inactive
-	public void setInactive(int rowId) {
+	public void setInactive(int rowId) throws SQLException {
 		execute("UPDATE %s SET active=0 WHERE (rowId=%d)".formatted(table, rowId));
 	}
 
 	public void setLogUrl(int rowId, String logUrl) {
 		if (logUrl==null) return;
-		execute("UPDATE %s SET logUrl=%s WHERE (rowId=%d)".formatted(table, quote(logUrl), rowId));
+		try {
+			execute("UPDATE %s SET logUrl=%s WHERE (rowId=%d)".formatted(table, quote(logUrl), rowId));
+		} catch (SQLException ignored) {}
 	}
 
 	// get case info by row
@@ -97,13 +104,13 @@ public class CaseManager extends LiteBase {
 	}
 
 	// set all ban cases for user inactive
-	public void setInactiveStrikeCases(long userId, long guildId) {
+	public void setInactiveStrikeCases(long userId, long guildId) throws SQLException {
 		execute("UPDATE %s SET active=0 WHERE (targetId=%d AND guildId=%d AND type>20)".formatted(table, userId, guildId));
 	}
 
 	// set all strike cases for user inactive
 	// Better way for this is harder...
-	public void setInactiveByType(long userId, long guildId, CaseType type) {
+	public void setInactiveByType(long userId, long guildId, CaseType type) throws SQLException {
 		execute("UPDATE %s SET active=0 WHERE (targetId=%d AND guildId=%d AND type=%d)".formatted(table, userId, guildId, type.getValue()));
 	}
 

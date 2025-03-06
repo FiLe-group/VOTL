@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.voice;
 
+import java.sql.SQLException;
 import java.util.*;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -249,8 +250,10 @@ public class VoiceCmd extends CommandBase {
 		name = name.replace("{user}", event.getMember().getEffectiveName());
 		event.getGuild().getVoiceChannelById(channelId).getManager().setName(name.substring(0, Math.min(100, name.length()))).queue();
 
-		if (bot.getDBUtil().user.setName(userId, name)) {
-			editErrorDatabase(event, "set voice name");
+		try {
+			bot.getDBUtil().user.setName(userId, name);
+		} catch (SQLException ex) {
+			editErrorDatabase(event, ex, "set voice name");
 			return;
 		}
 
@@ -307,8 +310,10 @@ public class VoiceCmd extends CommandBase {
 
 		event.getGuild().getVoiceChannelById(channelId).getManager().setUserLimit(limit).queue();
 
-		if (bot.getDBUtil().user.setLimit(userId, limit)) {
-			editErrorDatabase(event, "set voice limit");
+		try {
+			bot.getDBUtil().user.setLimit(userId, limit);
+		} catch (SQLException ex) {
+			editErrorDatabase(event, ex, "set voice limit");
 			return;
 		}
 
@@ -358,12 +363,15 @@ public class VoiceCmd extends CommandBase {
 					try {
 						vc.getManager().removePermissionOverride(owner).queue();
 						vc.getManager().putPermissionOverride(author, EnumSet.of(Permission.MANAGE_CHANNEL), null).queue();
+						bot.getDBUtil().voice.setUser(author.getIdLong(), vc.getIdLong());
 					} catch (InsufficientPermissionException ex) {
 						editPermError(event, ex.getPermission(), true);
 						return;
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "set new voice owner");
+						return;
 					}
-					bot.getDBUtil().voice.setUser(author.getIdLong(), vc.getIdLong());
-					
+
 					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getText(event, path+".done").replace("{channel}", vc.getAsMention()))
 						.build()

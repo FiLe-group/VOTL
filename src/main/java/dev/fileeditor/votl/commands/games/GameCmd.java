@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.games;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -51,8 +52,10 @@ public class GameCmd extends CommandBase {
 			}
 			int maxStrikes = event.optInteger("max_strikes", 3);
 
-			if (bot.getDBUtil().games.addChannel(event.getGuild().getIdLong(), channel.getIdLong(), maxStrikes)) {
-				editErrorDatabase(event, "add channel");
+			try {
+				bot.getDBUtil().games.addChannel(event.getGuild().getIdLong(), channel.getIdLong(), maxStrikes);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "add channel");
 				return;
 			}
 
@@ -81,8 +84,10 @@ public class GameCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().games.removeChannel(channel.getIdLong())) {
-				editErrorDatabase(event, "remove channel");
+			try {
+				bot.getDBUtil().games.removeChannel(channel.getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove channel");
 				return;
 			}
 
@@ -148,8 +153,10 @@ public class GameCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().games.clearStrikes(channel.getIdLong(), user.getIdLong())) {
-				editErrorDatabase(event, "clear strikes");
+			try {
+				bot.getDBUtil().games.clearStrikes(channel.getIdLong(), user.getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "clear strikes");
 				return;
 			}
 

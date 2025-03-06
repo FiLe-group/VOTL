@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.strike;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import dev.fileeditor.votl.base.command.CooldownScope;
@@ -51,13 +52,16 @@ public class ClearStrikesCmd extends CommandBase {
 			return;
 		}
 		int activeCount = strikeData.getLeft();
-		// Clear strike DB
-		if (bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong())) {
-			editErrorDatabase(event, "clear user strikes");
+		try {
+			// Clear strike DB
+			bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong());
+			// Set all strikes cases inactive
+			bot.getDBUtil().cases.setInactiveStrikeCases(guildId, tu.getIdLong());
+		} catch (SQLException ex) {
+			editErrorDatabase(event, ex, "clear user strikes");
 			return;
 		}
-		// Set all strikes cases inactive
-		bot.getDBUtil().cases.setInactiveStrikeCases(guildId, tu.getIdLong());
+
 		// Log
 		bot.getLogger().mod.onStrikesCleared(event.getGuild(), tu, event.getUser());
 		// Reply

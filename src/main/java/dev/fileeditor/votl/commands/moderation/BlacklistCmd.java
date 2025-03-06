@@ -2,6 +2,7 @@ package dev.fileeditor.votl.commands.moderation;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -103,8 +104,10 @@ public class BlacklistCmd extends CommandBase {
 
 			User user = event.optUser("user");
 			if (bot.getDBUtil().blacklist.inGroupUser(groupId, user.getIdLong())) {
-				if (bot.getDBUtil().blacklist.removeUser(groupId, user.getIdLong())) {
-					editErrorDatabase(event, "remove user");
+				try {
+					bot.getDBUtil().blacklist.removeUser(groupId, user.getIdLong());
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "blacklist remove user");
 					return;
 				}
 				// Log into master

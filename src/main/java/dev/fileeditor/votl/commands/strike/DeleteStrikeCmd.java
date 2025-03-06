@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.strike;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -128,18 +129,27 @@ public class DeleteStrikeCmd extends CommandBase {
 			
 			strikesInfo.remove(event.getValues().getFirst());
 
-			bot.getDBUtil().cases.setInactive(caseRowId);
+			try {
+				bot.getDBUtil().cases.setInactive(caseRowId);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "Failed to set case inactive.");
+				return;
+			}
 			if (strikesInfo.isEmpty())
-				if (bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong())) {
-					editErrorDatabase(event, "delete user strikes");
+				try {
+					bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong());
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "delete user strikes");
 					return;
 				}
 			else
-				if (bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
-					Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
-					1, String.join(";", strikesInfo)
-				)) {
-					editErrorDatabase(event, "delete user strikes");
+				try {
+					bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
+						Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
+						1, String.join(";", strikesInfo)
+					);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "delete user strikes");
 					return;
 				}
 			
@@ -200,28 +210,39 @@ public class DeleteStrikeCmd extends CommandBase {
 			
 			// Delete all strikes, set case inactive
 			cases.remove(event.getComponentId());
-			bot.getDBUtil().cases.setInactive(caseRowId);
+			try {
+				bot.getDBUtil().cases.setInactive(caseRowId);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "Failed to set case inactive.");
+				return;
+			}
 			if (cases.isEmpty())
-				if (bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong())) {
-					editErrorDatabase(event, "delete user strikes");
+				try {
+					bot.getDBUtil().strikes.removeGuildUser(guildId, tu.getIdLong());
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "delete user strikes");
 					return;
 				}
 			else
-				if (bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
-					Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
-					removeAmount, String.join(";", cases)
-				)) {
-					editErrorDatabase(event, "delete user strikes");
+				try {
+					bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
+						Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
+						removeAmount, String.join(";", cases)
+					);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "delete user strikes");
 					return;
 				}
 		} else {
 			// Delete selected amount of strikes (not all)
 			boolean ignored = Collections.replaceAll(cases, caseRowId+"-"+activeAmount, caseRowId+"-"+(activeAmount-removeAmount));
-			if (bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
-				Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
-				removeAmount, String.join(";", cases)
-			)) {
-				editErrorDatabase(event, "delete user strikes");
+			try {
+				bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
+					Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
+					removeAmount, String.join(";", cases)
+				);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "delete user strikes");
 				return;
 			}
 		}

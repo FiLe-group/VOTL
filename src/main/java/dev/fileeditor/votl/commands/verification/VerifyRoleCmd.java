@@ -1,9 +1,7 @@
 package dev.fileeditor.votl.commands.verification;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -61,8 +59,10 @@ public class VerifyRoleCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().verifySettings.setVerifyRole(guild.getIdLong(), role.getIdLong())) {
-				editErrorDatabase(event, "set verify role");
+			try {
+				bot.getDBUtil().verifySettings.setVerifyRole(guild.getIdLong(), role.getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set verify role");
 				return;
 			}
 
@@ -91,14 +91,10 @@ public class VerifyRoleCmd extends CommandBase {
 
 			// Get roles
 			List<Role> roles = new ArrayList<>(3);
-			Role role = event.optRole("role1");
-			if (role != null) roles.add(role);
 
-			role = event.optRole("role2");
-			if (role != null) roles.add(role);
-
-			role = event.optRole("role3");
-			if (role != null) roles.add(role);
+			Optional.ofNullable(event.optRole("role1")).ifPresent(roles::add);
+			Optional.ofNullable(event.optRole("role2")).ifPresent(roles::add);
+			Optional.ofNullable(event.optRole("role3")).ifPresent(roles::add);
 
 			if (roles.isEmpty()) {
 				editError(event, path+".invalid_args");
@@ -115,7 +111,12 @@ public class VerifyRoleCmd extends CommandBase {
 			}
 
 			String roleIds = roles.stream().map(Role::getId).collect(Collectors.joining(";"));
-			bot.getDBUtil().verifySettings.setAdditionalRoles(guild.getIdLong(), roleIds);
+			try {
+				bot.getDBUtil().verifySettings.setAdditionalRoles(guild.getIdLong(), roleIds);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set additional roles");
+				return;
+			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done")
@@ -133,8 +134,15 @@ public class VerifyRoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			bot.getDBUtil().verifySettings.setAdditionalRoles(event.getGuild().getIdLong(), null);
-			event.reply(lu.getText(event, path+".done")).queue();
+			try {
+				bot.getDBUtil().verifySettings.setAdditionalRoles(event.getGuild().getIdLong(), null);
+			} catch (SQLException ex) {
+				event.reply("Failed to update database").setEphemeral(true).queue();
+			}
+			event.replyEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done"))
+				.build()
+			).queue();
 		}
 	}
 

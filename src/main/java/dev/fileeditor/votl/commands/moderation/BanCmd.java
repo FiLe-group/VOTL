@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -96,18 +97,26 @@ public class BanCmd extends CommandBase {
 				// Active temporal ban
 				if (duration.isZero()) {
 					// Set current ban inactive
-					bot.getDBUtil().cases.setInactive(oldBanData.getRowId());
-					// Create new data
-					Member mod = event.getMember();
-					CaseData newBanData = bot.getDBUtil().cases.add(
-						CaseType.BAN, tu.getIdLong(), tu.getName(),
-						mod.getIdLong(), mod.getUser().getName(),
-						guild.getIdLong(), reason, Instant.now(), duration
-					);
-					if (newBanData == null) {
-						editErrorOther(event, "Failed to create action data.");
+					try {
+						bot.getDBUtil().cases.setInactive(oldBanData.getRowId());
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "Failed to remove previous ban.");
 						return;
 					}
+					// Create new data
+					Member mod = event.getMember();
+					CaseData newBanData;
+					try {
+						newBanData = bot.getDBUtil().cases.add(
+							CaseType.BAN, tu.getIdLong(), tu.getName(),
+							mod.getIdLong(), mod.getUser().getName(),
+							guild.getIdLong(), reason, Instant.now(), duration
+						);
+					} catch (Exception ex) {
+						editErrorDatabase(event, ex, "Failed to create new case.");
+						return;
+					}
+
 					// log ban
 					bot.getLogger().mod.onNewCase(guild, tu, newBanData, proofData).thenAccept(logUrl -> {
 						// Add log url to db
@@ -133,13 +142,15 @@ public class BanCmd extends CommandBase {
 				// user has permanent ban, but not in DB
 				// create new case for manual ban (that is not in DB)
 				Member mod = event.getMember();
-				CaseData newBanData = bot.getDBUtil().cases.add(
-					CaseType.BAN, tu.getIdLong(), tu.getName(),
-					mod.getIdLong(), mod.getUser().getName(),
-					guild.getIdLong(), reason, Instant.now(), Duration.ZERO
-				);
-				if (newBanData == null) {
-					editErrorOther(event, "Failed to create action data.");
+				CaseData newBanData;
+				try {
+					newBanData = bot.getDBUtil().cases.add(
+						CaseType.BAN, tu.getIdLong(), tu.getName(),
+						mod.getIdLong(), mod.getUser().getName(),
+						guild.getIdLong(), reason, Instant.now(), Duration.ZERO
+					);
+				} catch (Exception ex) {
+					editErrorDatabase(event, ex, "Failed to create new case.");
 					return;
 				}
 				// log ban
@@ -199,16 +210,20 @@ public class BanCmd extends CommandBase {
 				// fail-safe check if user has temporal ban (to prevent auto unban)
 				CaseData oldBanData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 				if (oldBanData != null) {
-					bot.getDBUtil().cases.setInactive(oldBanData.getRowId());
+					try {
+						bot.getDBUtil().cases.setInactive(oldBanData.getRowId());
+					} catch (SQLException ignored) {}
 				}
 				// add info to db
-				CaseData newBanData = bot.getDBUtil().cases.add(
-					CaseType.BAN, tu.getIdLong(), tu.getName(),
-					mod.getIdLong(), mod.getUser().getName(),
-					guild.getIdLong(), reason, Instant.now(), duration
-				);
-				if (newBanData == null) {
-					editErrorOther(event, "Failed to create action data.");
+				CaseData newBanData;
+				try {
+					newBanData = bot.getDBUtil().cases.add(
+						CaseType.BAN, tu.getIdLong(), tu.getName(),
+						mod.getIdLong(), mod.getUser().getName(),
+						guild.getIdLong(), reason, Instant.now(), duration
+					);
+				} catch (Exception ex) {
+					editErrorDatabase(event, ex, "Failed to create new case.");
 					return;
 				}
 				// log ban

@@ -84,7 +84,7 @@ public class LevelUtil {
 		}
 
 		// If in cache - skip, else give exp and add to it
-		cache.get(asKey(event), (k)->{
+		boolean ignored = cache.get(asKey(event), (k)->{
 			giveExperience(event.getMember(), RandomUtil.getInteger(maxRandomExperience)+maxGuaranteeMessageExperience, ExpType.TEXT);
 			return true;
 		});

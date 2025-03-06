@@ -28,18 +28,17 @@ public class LiteBase {
 
 	/**
 	 * @param sql SQL statement to execute
-	 * @return true if exception
+	 * @throws SQLException rethrows error
 	 */
-	protected boolean execute(final String sql) {
+	protected void execute(final String sql) throws SQLException {
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
 			st.executeUpdate();
 		} catch (SQLException ex) {
 			util.logger.warn("DB SQLite: Error at statement execution\nRequest: {}", sql, ex);
-			return true;
+			throw ex;
 		}
-		return false;
 	}
 
 	protected int executeWithRow(final String sql) {

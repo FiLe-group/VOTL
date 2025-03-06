@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -8,13 +9,14 @@ import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("unused")
 public class BlacklistManager extends LiteBase {
 	
 	public BlacklistManager(ConnectionUtil cu) {
 		super(cu, "blacklist");
 	}
 
-	public void add(long guildId, int groupId, long userId, @Nullable String reason, long modId) {
+	public void add(long guildId, int groupId, long userId, @Nullable String reason, long modId) throws SQLException {
 		execute("INSERT INTO %s(guildId, groupId, userId, reason, modId) VALUES (%s, %s, %s, %s, %s)"
 			.formatted(table, guildId, groupId, userId, quote(reason), modId));
 	}
@@ -23,8 +25,8 @@ public class BlacklistManager extends LiteBase {
 		return selectOne("SELECT userId FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId), "userId", Long.class) != null;
 	}
 
-	public boolean removeUser(int groupId, long userId) {
-		return execute("DELETE FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId));
+	public void removeUser(int groupId, long userId) throws SQLException {
+		execute("DELETE FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId));
 	}
 
 	public Map<String, Object> getInfo(int groupId, long userId) {

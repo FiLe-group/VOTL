@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.webhook;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -131,8 +132,10 @@ public class WebhookCmd extends CommandBase {
 				// DYK, guildChannel doesn't have WebhookContainer! no shit
 				event.getGuild().getTextChannelById(channel.getId()).createWebhook(setName).reason("By "+event.getUser().getName()).queue(
 					webhook -> {
-						if (bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken())) {
-							editErrorDatabase(event, "add created webhook");
+						try {
+							bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken());
+						} catch (SQLException ex) {
+							editErrorDatabase(event, ex, "add created webhook");
 							return;
 						}
 						editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -169,8 +172,10 @@ public class WebhookCmd extends CommandBase {
 						if (bot.getDBUtil().webhook.exists(webhookId)) {
 							editError(event, path+".error_registered");
 						} else {
-							if (bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken())) {
-								editErrorDatabase(event, "add selected webhook");
+							try {
+								bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken());
+							} catch (SQLException ex) {
+								editErrorDatabase(event, ex, "add selected webhook");
 								return;
 							}
 							editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -212,8 +217,10 @@ public class WebhookCmd extends CommandBase {
 								if (delete) {
 									webhook.delete(webhook.getToken()).reason("By "+event.getUser().getName()).queue();
 								}
-								if (bot.getDBUtil().webhook.remove(webhookId)) {
-									editErrorDatabase(event, "delete webhook");
+								try {
+									bot.getDBUtil().webhook.remove(webhookId);
+								} catch (SQLException ex) {
+									editErrorDatabase(event, ex, "delete webhook");
 									return;
 								}
 								editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -265,8 +272,10 @@ public class WebhookCmd extends CommandBase {
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
 					if (bot.getDBUtil().webhook.exists(webhookId)) {
-						if (bot.getDBUtil().guildSettings.setLastWebhookId(guild.getIdLong(), webhookId)) {
-							editErrorDatabase(event, "set last webhook");
+						try {
+							bot.getDBUtil().guildSettings.setLastWebhookId(guild.getIdLong(), webhookId);
+						} catch (SQLException ex) {
+							editErrorDatabase(event, ex, "set last webhook");
 							return;
 						}
 						webhook.getManager().setChannel(textChannel).reason("By "+event.getUser().getName()).queue(

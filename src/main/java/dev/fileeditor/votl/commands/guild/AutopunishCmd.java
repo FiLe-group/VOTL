@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.guild;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -166,8 +167,10 @@ public class AutopunishCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().autopunish.addAction(event.getGuild().getIdLong(), strikeCount, actions, String.join(";", data))) {
-				editErrorDatabase(event, "add action");
+			try {
+				bot.getDBUtil().autopunish.addAction(event.getGuild().getIdLong(), strikeCount, actions, String.join(";", data));
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "add action");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_SUCCESS).setDescription(builder.toString()).build());
@@ -195,8 +198,10 @@ public class AutopunishCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().autopunish.removeAction(event.getGuild().getIdLong(), strikeCount)) {
-				editErrorDatabase(event, "remove action");
+			try {
+				bot.getDBUtil().autopunish.removeAction(event.getGuild().getIdLong(), strikeCount);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove action");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed()

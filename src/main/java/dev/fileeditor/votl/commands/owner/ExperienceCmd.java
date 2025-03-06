@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public class ExperienceCmd extends CommandBase {
@@ -121,13 +122,23 @@ public class ExperienceCmd extends CommandBase {
 					return;
 				}
 
-				bot.getDBUtil().levels.deleteUser(guildId, userId);
+				try {
+					bot.getDBUtil().levels.deleteUser(guildId, userId);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "level delete member");
+					return;
+				}
 
 				editMsg(event, "Deleted user `%s` in guild `%s`".formatted(userId, guildId));
 			}
 			case 6 -> {
 				// Delete all user values
-				bot.getDBUtil().levels.deleteUser(userId);
+				try {
+					bot.getDBUtil().levels.deleteUser(userId);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "level delete user");
+					return;
+				}
 
 				editMsg(event, "Deleted user `%s`".formatted(userId));
 			}
@@ -140,7 +151,12 @@ public class ExperienceCmd extends CommandBase {
 					return;
 				}
 				// Delete all guild values
-				bot.getDBUtil().levels.deleteGuild(guildId);
+				try {
+					bot.getDBUtil().levels.deleteGuild(guildId);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "level delete guild");
+					return;
+				}
 
 				editMsg(event, "Deleted guild `%s`".formatted(guildId));
 			}

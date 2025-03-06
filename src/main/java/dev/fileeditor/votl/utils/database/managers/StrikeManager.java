@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +17,8 @@ public class StrikeManager extends LiteBase {
 		super(cu, "strikeExpire");
 	}
 
-	public boolean addStrikes(long guildId, long userId, Instant expiresAt, int count, String caseInfo) {
-		return execute("INSERT INTO %s(guildId, userId, expiresAt, count, data, lastAddition) VALUES (%d, %d, %d, %d, %s, %s) ON CONFLICT(guildId, userId) DO UPDATE SET count=count+%5$d, data=data || ';' || %6$s, lastAddition=%7$s"
+	public void addStrikes(long guildId, long userId, Instant expiresAt, int count, String caseInfo) throws SQLException {
+		execute("INSERT INTO %s(guildId, userId, expiresAt, count, data, lastAddition) VALUES (%d, %d, %d, %d, %s, %s) ON CONFLICT(guildId, userId) DO UPDATE SET count=count+%5$d, data=data || ';' || %6$s, lastAddition=%7$s"
 			.formatted(table, guildId, userId, expiresAt.getEpochSecond(), count, quote(caseInfo), Instant.now().getEpochSecond()));
 	}
 
@@ -41,15 +42,15 @@ public class StrikeManager extends LiteBase {
 		return Pair.of((Integer) data.get("count"), (Integer) data.get("expiresAt"));
 	}
 
-	public boolean removeStrike(long guildId, long userId, Instant expiresAt, int amount, String newData) {
-		return execute("UPDATE %s SET expiresAt=%d, count=count-%d, data=%s WHERE (guildId=%d AND userId=%d)".formatted(table, expiresAt.getEpochSecond(), amount, quote(newData), guildId, userId));
+	public void removeStrike(long guildId, long userId, Instant expiresAt, int amount, String newData) throws SQLException {
+		execute("UPDATE %s SET expiresAt=%d, count=count-%d, data=%s WHERE (guildId=%d AND userId=%d)".formatted(table, expiresAt.getEpochSecond(), amount, quote(newData), guildId, userId));
 	}
 
-	public boolean removeGuildUser(long guildId, long userId) {
-		return execute("DELETE FROM %s WHERE (guildId=%d AND userId=%d)".formatted(table, guildId, userId));
+	public void removeGuildUser(long guildId, long userId) throws SQLException {
+		execute("DELETE FROM %s WHERE (guildId=%d AND userId=%d)".formatted(table, guildId, userId));
 	}
 
-	public void removeGuild(long guildId) {
+	public void removeGuild(long guildId) throws SQLException {
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 	

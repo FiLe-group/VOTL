@@ -3,6 +3,7 @@ package dev.fileeditor.votl.utils.database.managers;
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 import static dev.fileeditor.votl.utils.CastUtil.resolveOrDefault;
 
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,30 +41,30 @@ public class VerifySettingsManager extends LiteBase {
 		return selectOne("SELECT * FROM %s WHERE (guildId=%d)".formatted(table, guildId), columns);
 	}
 
-	public void remove(long guildId) {
+	public void remove(long guildId) throws SQLException {
 		invalidateCache(guildId);
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 
-	public boolean setVerifyRole(long guildId, long roleId) {
+	public void setVerifyRole(long guildId, long roleId) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, roleId) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET roleId=%<d".formatted(table, guildId, roleId));
+		execute("INSERT INTO %s(guildId, roleId) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET roleId=%<d".formatted(table, guildId, roleId));
 	}
 
-	public void setPanelText(long guildId, String text) {
+	public void setPanelText(long guildId, String text) throws SQLException {
 		invalidateCache(guildId);
 		final String textParsed = quote(text.replace("\\n", "<br>"));
 		execute("INSERT INTO %s(guildId, panelText) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelText=%<s".formatted(table, guildId, textParsed));
 	}
 
-	public boolean setPanelImage(long guildId, String imageUrl) {
+	public void setPanelImage(long guildId, String imageUrl) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, panelImage) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelImage=%<s".formatted(table, guildId, quote(imageUrl)));
+		execute("INSERT INTO %s(guildId, panelImage) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET panelImage=%<s".formatted(table, guildId, quote(imageUrl)));
 	}
 
-	public boolean setAdditionalRoles(long guildId, @Nullable String roleIds) {
+	public void setAdditionalRoles(long guildId, @Nullable String roleIds) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, additionalRoles) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET additionalRoles=%<s".formatted(table, guildId, quote(roleIds)));
+		execute("INSERT INTO %s(guildId, additionalRoles) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET additionalRoles=%<s".formatted(table, guildId, quote(roleIds)));
 	}
 
 	private void invalidateCache(long guildId) {

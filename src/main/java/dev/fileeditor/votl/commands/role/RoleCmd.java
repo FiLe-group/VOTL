@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.role;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -319,9 +320,11 @@ public class RoleCmd extends CommandBase {
 			}
 			actionRows.add(ActionRow.of(Button.primary("role:manage-confirm:"+target.getId(), lu.getText(event, path+".button"))));
 
-			if (bot.getDBUtil().modifyRole.create(event.getGuild().getIdLong(), event.getMember().getIdLong(),
-				target.getIdLong(), Instant.now().plus(2, ChronoUnit.MINUTES))) {
-				editErrorDatabase(event, "start modify role");
+			try {
+				bot.getDBUtil().modifyRole.create(event.getGuild().getIdLong(), event.getMember().getIdLong(),
+					target.getIdLong(), Instant.now().plus(2, ChronoUnit.MINUTES));
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "start modify role");
 				return;
 			}
 

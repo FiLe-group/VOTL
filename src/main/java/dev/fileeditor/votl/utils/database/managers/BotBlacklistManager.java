@@ -3,6 +3,7 @@ package dev.fileeditor.votl.utils.database.managers;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,12 +17,12 @@ public class BotBlacklistManager extends LiteBase {
 		loadCache();
 	}
 
-	public void add(long id) {
+	public void add(long id) throws SQLException {
 		cache.add(id);
 		execute("INSERT INTO %s(id) VALUES (%s) ON CONFLICT (id) DO NOTHING".formatted(table, id));
 	}
 
-	public void remove(long id) {
+	public void remove(long id) throws SQLException {
 		cache.remove(id);
 		execute("DELETE FROM %s WHERE (id = %s)".formatted(table, id));
 	}

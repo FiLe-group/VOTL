@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,11 +44,11 @@ public class TicketPanelManager extends LiteBase {
 		return executeWithRow("INSERT INTO %s(%s) VALUES (%s)".formatted(table, String.join(", ", keys), String.join(", ", values)));
 	}
 
-	public boolean delete(int panelId) {
-		return execute("DELETE FROM %s WHERE (panelId=%d)".formatted(table, panelId));
+	public void delete(int panelId) throws SQLException {
+		execute("DELETE FROM %s WHERE (panelId=%d)".formatted(table, panelId));
 	}
 
-	public void deleteAll(long guildId) {
+	public void deleteAll(long guildId) throws SQLException {
 		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 
@@ -55,7 +56,7 @@ public class TicketPanelManager extends LiteBase {
 		return selectOne("SELECT guildId FROM %s WHERE (panelId=%d)".formatted(table, panelId), "guildId", Long.class);
 	}
 
-	public boolean updatePanel(int panelId, String title, String description, String imageUrl, String footer) {
+	public void updatePanel(int panelId, String title, String description, String imageUrl, String footer) throws SQLException {
 		List<String> values = new ArrayList<>();
 		if (title != null)
 			values.add("title="+quote(title));
@@ -67,8 +68,7 @@ public class TicketPanelManager extends LiteBase {
 			values.add("footer="+replaceNewline(footer));
 
 		if (!values.isEmpty())
-			return execute("UPDATE %s SET %s WHERE (panelId=%d)".formatted(table, String.join(", ", values), panelId));
-		return false;
+			execute("UPDATE %s SET %s WHERE (panelId=%d)".formatted(table, String.join(", ", values), panelId));
 	}
 
 	public Panel getPanel(int panelId) {

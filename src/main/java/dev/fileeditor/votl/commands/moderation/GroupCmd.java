@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -86,7 +87,7 @@ public class GroupCmd extends CommandBase {
 
 			int groupId = bot.getDBUtil().group.create(guildId, groupName, appealGuildId);
 			if (groupId == 0) {
-				editErrorDatabase(event, "group creation");
+				editErrorOther(event, "Failed to create new group.");
 				return;
 			}
 			bot.getLogger().group.onCreation(event, groupId, groupName);
@@ -125,8 +126,10 @@ public class GroupCmd extends CommandBase {
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 
-			if (bot.getDBUtil().group.deleteGroup(groupId)) {
-				editErrorDatabase(event, "delete group");
+			try {
+				bot.getDBUtil().group.deleteGroup(groupId);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "delete group");
 				return;
 			}
 			bot.getLogger().group.onDeletion(event, groupId, groupName);
@@ -209,8 +212,10 @@ public class GroupCmd extends CommandBase {
 					long targetId = Long.parseLong(actionMenu.getSelectedOptions().getFirst().getValue());
 					Guild targetGuild = event.getJDA().getGuildById(targetId);
 
-					if (bot.getDBUtil().group.remove(groupId, targetId)) {
-						editErrorDatabase(event, "remove group member");
+					try {
+						bot.getDBUtil().group.remove(groupId, targetId);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "remove group member");
 						return;
 					}
 					if (targetGuild != null)
@@ -257,8 +262,10 @@ public class GroupCmd extends CommandBase {
 
 			int newInvite = ThreadLocalRandom.current().nextInt(100_000, 1_000_000); // 100000 - 999999
 
-			if (bot.getDBUtil().group.setInvite(groupId, newInvite)) {
-				editErrorDatabase(event, "set group invite");
+			try {
+				bot.getDBUtil().group.setInvite(groupId, newInvite);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set group invite");
 				return;
 			}
 
@@ -311,8 +318,10 @@ public class GroupCmd extends CommandBase {
 					return;
 				}
 
-				if (bot.getDBUtil().group.setAppealGuildId(groupId, appealGuildId)) {
-					editErrorDatabase(event, "set appeal guild id");
+				try {
+					bot.getDBUtil().group.setAppealGuildId(groupId, appealGuildId);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "set appeal guild id");
 					return;
 				}
 
@@ -322,8 +331,10 @@ public class GroupCmd extends CommandBase {
 				String oldName = bot.getDBUtil().group.getName(groupId);
 				String newName = event.optString("name");
 
-				if (bot.getDBUtil().group.rename(groupId, newName)) {
-					editErrorDatabase(event, "rename group");
+				try {
+					bot.getDBUtil().group.rename(groupId, newName);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "rename group");
 					return;
 				}
 				bot.getLogger().group.onRenamed(event, oldName, groupId, newName);
@@ -421,8 +432,10 @@ public class GroupCmd extends CommandBase {
 					StringBuilder builder = new StringBuilder(lu.getText(event, path+".done")
 						.formatted(targetGuild.getName(), groupName));
 
-					if (bot.getDBUtil().group.setManage(groupId, targetId, canManage)) {
-						editErrorDatabase(event, "set group manager");
+					try {
+						bot.getDBUtil().group.setManage(groupId, targetId, canManage);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "set group manager");
 						return;
 					}
 					builder.append(lu.getText(event, path+".manage_change").formatted(canManage ? Constants.SUCCESS : Constants.FAILURE));
@@ -476,8 +489,10 @@ public class GroupCmd extends CommandBase {
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 
-			if (bot.getDBUtil().group.add(groupId, event.getGuild().getIdLong(), false)) {
-				editErrorDatabase(event, "add group member");
+			try {
+				bot.getDBUtil().group.add(groupId, event.getGuild().getIdLong(), false);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "add group member");
 				return;
 			}
 			bot.getLogger().group.onGuildJoined(event, groupId, groupName);
@@ -510,8 +525,10 @@ public class GroupCmd extends CommandBase {
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 
-			if (bot.getDBUtil().group.remove(groupId, event.getGuild().getIdLong())) {
-				editErrorDatabase(event, "remove group member");
+			try {
+				bot.getDBUtil().group.remove(groupId, event.getGuild().getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove group member");
 				return;
 			}
 			bot.getLogger().group.onGuildLeft(event, groupId, groupName);

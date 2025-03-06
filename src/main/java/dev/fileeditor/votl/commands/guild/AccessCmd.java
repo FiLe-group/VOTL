@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.guild;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
@@ -71,8 +72,10 @@ public class AccessCmd extends CommandBase {
 			else for (Long roleId : exemptIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
-					if (bot.getDBUtil().access.removeRole(guildId, roleId)) {
-						editErrorDatabase(event, "remove role");
+					try {
+						bot.getDBUtil().access.removeRole(guildId, roleId);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "remove role");
 						return;
 					}
 					continue;
@@ -85,8 +88,10 @@ public class AccessCmd extends CommandBase {
 			else for (Long roleId : helperIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
-					if (bot.getDBUtil().access.removeRole(guildId, roleId)) {
-						editErrorDatabase(event, "remove role");
+					try {
+						bot.getDBUtil().access.removeRole(guildId, roleId);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "remove role");
 						return;
 					}
 					continue;
@@ -99,8 +104,10 @@ public class AccessCmd extends CommandBase {
 			else for (Long roleId : modIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
-					if (bot.getDBUtil().access.removeRole(guildId, roleId)) {
-						editErrorDatabase(event, "remove role");
+					try {
+						bot.getDBUtil().access.removeRole(guildId, roleId);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "remove role");
 						return;
 					}
 					continue;
@@ -157,8 +164,10 @@ public class AccessCmd extends CommandBase {
 			}
 
 			CmdAccessLevel level = CmdAccessLevel.byLevel(event.optInteger("access_level"));
-			if (bot.getDBUtil().access.addRole(guild.getIdLong(), roleId, level)) {
-				editErrorDatabase(event, "add role");
+			try {
+				bot.getDBUtil().access.addRole(guild.getIdLong(), roleId, level);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "add role");
 				return;
 			}
 
@@ -202,8 +211,10 @@ public class AccessCmd extends CommandBase {
 				editError(event, "bot.guild.access.remove.role.no_access");
 			}
 
-			if (bot.getDBUtil().access.removeRole(event.getGuild().getIdLong(), roleId)) {
-				editErrorDatabase(event, "remove role");
+			try {
+				bot.getDBUtil().access.removeRole(event.getGuild().getIdLong(), roleId);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove role");
 				return;
 			}
 
@@ -252,8 +263,10 @@ public class AccessCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().access.addOperator(guildId, userId)) {
-				editErrorDatabase(event, "add operator");
+			try {
+				bot.getDBUtil().access.addOperator(guildId, userId);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "add operator");
 				return;
 			}
 			
@@ -295,8 +308,10 @@ public class AccessCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().access.removeUser(guildId, userId)) {
-				editErrorDatabase(event, "remove user");
+			try {
+				bot.getDBUtil().access.removeUser(guildId, userId);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove user");
 				return;
 			}
 

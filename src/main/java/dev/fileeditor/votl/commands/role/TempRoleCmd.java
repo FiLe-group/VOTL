@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.role;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -118,8 +119,10 @@ public class TempRoleCmd extends CommandBase {
 			Instant until = Instant.now().plus(duration);
 
 			guild.addRoleToMember(member, role).reason("Assigned temporary role | by %s".formatted(event.getMember().getEffectiveName())).queue(done -> {
-				if (bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, userId, delete, until)) {
-					editErrorDatabase(event, "assign temp role");
+				try {
+					bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, userId, delete, until);
+				} catch (SQLException ex) {
+					editErrorDatabase(event, ex, "assign temp role");
 					return;
 				}
 				// Log
@@ -168,8 +171,10 @@ public class TempRoleCmd extends CommandBase {
 
 			event.getGuild().removeRoleFromMember(member, role).reason("Canceled temporary role | by "+event.getMember().getEffectiveName()).queue();
 
-			if (bot.getDBUtil().tempRoles.remove(role.getIdLong(), member.getIdLong())) {
-				editErrorDatabase(event, "remove temp role");
+			try {
+				bot.getDBUtil().tempRoles.remove(role.getIdLong(), member.getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove temp role");
 				return;
 			}
 			// Log
@@ -229,8 +234,10 @@ public class TempRoleCmd extends CommandBase {
 				return;
 			}
 
-			if (bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), member.getIdLong(), until)) {
-				editErrorDatabase(event, "update temp role duration");
+			try {
+				bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), member.getIdLong(), until);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "update temp role duration");
 				return;
 			}
 			// Log

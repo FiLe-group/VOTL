@@ -7,6 +7,7 @@ import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,19 +25,19 @@ public class LevelRolesManager extends LiteBase {
 		super(cu, "levelRoles");
 	}
 
-	public boolean add(long guildId, int level, String roleIds, boolean exact, ExpType type) {
+	public void add(long guildId, int level, String roleIds, boolean exact, ExpType type) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, level, roles, exact, type) VALUES (%d, %d, %s, %d, %d) ON CONFLICT(guildId, level, type) DO UPDATE SET roles=%4$s, exact=%5$d, type=%6$d".formatted(table, guildId, level, quote(roleIds), exact?1:0, type.ordinal()));
+		execute("INSERT INTO %s(guildId, level, roles, exact, type) VALUES (%d, %d, %s, %d, %d) ON CONFLICT(guildId, level, type) DO UPDATE SET roles=%4$s, exact=%5$d, type=%6$d".formatted(table, guildId, level, quote(roleIds), exact?1:0, type.ordinal()));
 	}
 
-	public void removeGuild(long guildId) {
+	public void removeGuild(long guildId) throws SQLException {
 		invalidateCache(guildId);
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 
-	public boolean remove(long guildId, int level) {
+	public void remove(long guildId, int level) throws SQLException {
 		invalidateCache(guildId);
-		return execute("DELETE FROM %s WHERE (guildId=%d AND level=%d)".formatted(table, guildId, level));
+		execute("DELETE FROM %s WHERE (guildId=%d AND level=%d)".formatted(table, guildId, level));
 	}
 
 	public Set<Long> getRoles(long guildId, int level, ExpType expType) {

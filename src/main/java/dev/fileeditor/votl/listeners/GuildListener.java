@@ -11,6 +11,8 @@ import dev.fileeditor.votl.utils.database.DBUtil;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
+
 public class GuildListener extends ListenerAdapter {
 
 	private final Logger log = (Logger) LoggerFactory.getLogger(GuildListener.class);
@@ -50,31 +52,40 @@ public class GuildListener extends ListenerAdapter {
 		for (Integer groupId : db.group.getOwnedGroups(guildId)) {
 			try {
 				bot.getLogger().group.onDeletion(guildId, ownerIcon, groupId);
+				db.group.clearGroup(groupId);
 			} catch (Exception ignored) {}
-			db.group.clearGroup(groupId);
 		}
-		db.group.removeGuildFromGroups(guildId);
-		db.group.deleteGuildGroups(guildId);
+		ignoreExc(() -> db.group.removeGuildFromGroups(guildId));
+		ignoreExc(() -> db.group.deleteGuildGroups(guildId));
 
-		db.access.removeAll(guildId);
-		db.webhook.removeAll(guildId);
-		db.verifySettings.remove(guildId);
-		db.ticketSettings.remove(guildId);
-		db.roles.removeAll(guildId);
-		db.guildVoice.remove(guildId);
-		db.ticketPanels.deleteAll(guildId);
-		db.ticketTags.deleteAll(guildId);
-		db.tempRoles.removeAll(guildId);
-		db.autopunish.removeGuild(guildId);
-		db.strikes.removeGuild(guildId);
-		db.logs.removeGuild(guildId);
-		db.logExemptions.removeGuild(guildId);
-		db.modifyRole.removeAll(guildId);
-		db.games.removeGuild(guildId);
-		db.persistent.removeGuild(guildId);
+		ignoreExc(() -> db.access.removeAll(guildId));
+		ignoreExc(() -> db.webhook.removeAll(guildId));
+		ignoreExc(() -> db.verifySettings.remove(guildId));
+		ignoreExc(() -> db.ticketSettings.remove(guildId));
+		ignoreExc(() -> db.roles.removeAll(guildId));
+		ignoreExc(() -> db.guildVoice.remove(guildId));
+		ignoreExc(() -> db.ticketPanels.deleteAll(guildId));
+		ignoreExc(() -> db.ticketTags.deleteAll(guildId));
+		ignoreExc(() -> db.tempRoles.removeAll(guildId));
+		ignoreExc(() -> db.autopunish.removeGuild(guildId));
+		ignoreExc(() -> db.strikes.removeGuild(guildId));
+		ignoreExc(() -> db.logs.removeGuild(guildId));
+		ignoreExc(() -> db.logExemptions.removeGuild(guildId));
+		ignoreExc(() -> db.modifyRole.removeAll(guildId));
+		ignoreExc(() -> db.games.removeGuild(guildId));
+		ignoreExc(() -> db.persistent.removeGuild(guildId));
+		ignoreExc(() -> db.modReport.removeGuild(guildId));
 		
-		db.guildSettings.remove(guildId);
+		ignoreExc(() -> db.guildSettings.remove(guildId));
 
 		log.info("Automatically removed guild '{}'({}) from db.", event.getGuild().getName(), guildId);
 	}
+
+	private void ignoreExc(RunnableExc runnable) {
+		try {
+			runnable.run();
+		} catch (SQLException ignored) {}
+	}
+
+	@FunctionalInterface public interface RunnableExc { void run() throws SQLException; }
 }

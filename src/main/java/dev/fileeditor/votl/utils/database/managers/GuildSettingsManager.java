@@ -3,6 +3,7 @@ package dev.fileeditor.votl.utils.database.managers;
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 import static dev.fileeditor.votl.utils.CastUtil.resolveOrDefault;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,74 +50,74 @@ public class GuildSettingsManager extends LiteBase {
 		return selectOne("SELECT * FROM %s WHERE (guildId=%d)".formatted(table, guildId), columns);
 	}
 
-	public void remove(long guildId) {
+	public void remove(long guildId) throws SQLException {
 		invalidateCache(guildId);
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 	
-	public boolean setColor(long guildId, int color) {
+	public void setColor(long guildId, int color) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, color) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET color=%<d".formatted(table, guildId, color));
+		execute("INSERT INTO %s(guildId, color) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET color=%<d".formatted(table, guildId, color));
 	}
 
-	public boolean setLastWebhookId(long guildId, long webhookId) {
+	public void setLastWebhookId(long guildId, long webhookId) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, lastWebhookId) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET lastWebhookId=%<d".formatted(table, guildId, webhookId));
+		execute("INSERT INTO %s(guildId, lastWebhookId) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET lastWebhookId=%<d".formatted(table, guildId, webhookId));
 	}
 
-	public boolean setAppealLink(long guildId, String link) {
+	public void setAppealLink(long guildId, String link) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, appealLink) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET appealLink=%<s".formatted(table, guildId, quote(link)));
+		execute("INSERT INTO %s(guildId, appealLink) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET appealLink=%<s".formatted(table, guildId, quote(link)));
 	}
 
-	public boolean setReportChannelId(long guildId, @Nullable Long channelId) {
+	public void setReportChannelId(long guildId, @Nullable Long channelId) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, reportChannelId) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET reportChannelId=%<s".formatted(table, guildId, channelId==null ? "NULL" : channelId));
+		execute("INSERT INTO %s(guildId, reportChannelId) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET reportChannelId=%<s".formatted(table, guildId, channelId==null ? "NULL" : channelId));
 	}
 
-	public boolean setStrikeExpiresAfter(long guildId, int expiresAfter) {
+	public void setStrikeExpiresAfter(long guildId, int expiresAfter) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, strikeExpire) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET strikeExpire=%<d".formatted(table, guildId, expiresAfter));
+		execute("INSERT INTO %s(guildId, strikeExpire) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET strikeExpire=%<d".formatted(table, guildId, expiresAfter));
 	}
 
-	public boolean setStrikeCooldown(long guildId, int cooldown) {
+	public void setStrikeCooldown(long guildId, int cooldown) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, strikeCooldown) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET strikeCooldown=%<d".formatted(table, guildId, cooldown));
+		execute("INSERT INTO %s(guildId, strikeCooldown) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET strikeCooldown=%<d".formatted(table, guildId, cooldown));
 	}
 
-	public boolean setModuleDisabled(long guildId, int modulesOff) {
+	public void setModuleDisabled(long guildId, int modulesOff) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, modulesOff) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET modulesOff=%<d".formatted(table, guildId, modulesOff));
+		execute("INSERT INTO %s(guildId, modulesOff) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET modulesOff=%<d".formatted(table, guildId, modulesOff));
 	}
 
-	public void setInformBanLevel(long guildId, ModerationInformLevel informLevel) {
+	public void setInformBanLevel(long guildId, ModerationInformLevel informLevel) throws SQLException {
 		invalidateCache(guildId);
 		execute("INSERT INTO %s(guildId, informBan) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET informBan=%<d".formatted(table, guildId, informLevel.getLevel()));
 	}
 
-	public void setInformKickLevel(long guildId, ModerationInformLevel informLevel) {
+	public void setInformKickLevel(long guildId, ModerationInformLevel informLevel) throws SQLException {
 		invalidateCache(guildId);
 		execute("INSERT INTO %s(guildId, informKick) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET informKick=%<d".formatted(table, guildId, informLevel.getLevel()));
 	}
 
-	public void setInformMuteLevel(long guildId, ModerationInformLevel informLevel) {
+	public void setInformMuteLevel(long guildId, ModerationInformLevel informLevel) throws SQLException {
 		invalidateCache(guildId);
 		execute("INSERT INTO %s(guildId, informMute) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET informMute=%<d".formatted(table, guildId, informLevel.getLevel()));
 	}
 
-	public void setInformStrikeLevel(long guildId, ModerationInformLevel informLevel) {
+	public void setInformStrikeLevel(long guildId, ModerationInformLevel informLevel) throws SQLException {
 		invalidateCache(guildId);
 		execute("INSERT INTO %s(guildId, informStrike) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET informStrike=%<d".formatted(table, guildId, informLevel.getLevel()));
 	}
 
-	public void setInformDelstrikeLevel(long guildId, ModerationInformLevel informLevel) {
+	public void setInformDelstrikeLevel(long guildId, ModerationInformLevel informLevel) throws SQLException {
 		invalidateCache(guildId);
 		execute("INSERT INTO %s(guildId, informDelstrike) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET informDelstrike=%<d".formatted(table, guildId, informLevel.getLevel()));
 	}
 
-	public boolean setRoleWhitelist(long guildId, boolean roleWhitelist) {
+	public void setRoleWhitelist(long guildId, boolean roleWhitelist) throws SQLException {
 		invalidateCache(guildId);
-		return execute("INSERT INTO %s(guildId, roleWhitelist) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET roleWhitelist=%<d".formatted(table, guildId, roleWhitelist?1:0));
+		execute("INSERT INTO %s(guildId, roleWhitelist) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET roleWhitelist=%<d".formatted(table, guildId, roleWhitelist?1:0));
 	}
 
 

@@ -1,15 +1,15 @@
 package dev.fileeditor.votl.commands.owner;
 
-import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import java.sql.SQLException;
 import java.util.List;
 
-public class BotBlacklist extends SlashCommand {
-
+public class BotBlacklist extends CommandBase {
 	public BotBlacklist() {
 		this.name = "bot_blacklist";
 		this.path = "bot.owner.bot_blacklist";
@@ -25,13 +25,16 @@ public class BotBlacklist extends SlashCommand {
 	protected void execute(SlashCommandEvent event) {
 		long id = event.optLong("id");
 
-		if (event.optBoolean("add")) {
-			bot.getDBUtil().botBlacklist.add(id);
-			event.reply("Added ID `%s` to blacklist.".formatted(id)).queue();
-		} else {
-			bot.getDBUtil().botBlacklist.remove(id);
-			event.reply("Removed ID `%s` from blacklist.".formatted(id)).queue();
+		try {
+			if (event.optBoolean("add")) {
+				bot.getDBUtil().botBlacklist.add(id);
+				event.reply("Added ID `%s` to blacklist.".formatted(id)).queue();
+			} else {
+				bot.getDBUtil().botBlacklist.remove(id);
+				event.reply("Removed ID `%s` from blacklist.".formatted(id)).queue();
+			}
+		} catch (SQLException ex) {
+			event.reply("Error: %s".formatted(ex.getMessage())).queue();
 		}
 	}
-
 }

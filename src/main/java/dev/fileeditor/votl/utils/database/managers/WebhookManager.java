@@ -1,26 +1,28 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
+@SuppressWarnings("unused")
 public class WebhookManager extends LiteBase {
 
 	public WebhookManager(ConnectionUtil cu) {
 		super(cu, "webhooks");
 	}
 
-	public boolean add(long webhookId, long guildId, String token) {
-		return execute("INSERT INTO %s(webhookId, guildId, token) VALUES (%s, %s, %s) ON CONFLICT(webhookId) DO NOTHING"
+	public void add(long webhookId, long guildId, String token) throws SQLException {
+		execute("INSERT INTO %s(webhookId, guildId, token) VALUES (%s, %s, %s) ON CONFLICT(webhookId) DO NOTHING"
 			.formatted(table, webhookId, guildId, quote(token)));
 	}
 
-	public boolean remove(long webhookId) {
-		return execute("DELETE FROM %s WHERE (webhookId=%s)".formatted(table, webhookId));
+	public void remove(long webhookId) throws SQLException {
+		execute("DELETE FROM %s WHERE (webhookId=%s)".formatted(table, webhookId));
 	}
 
-	public void removeAll(long guildId) {
+	public void removeAll(long guildId) throws SQLException {
 		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 

@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.TimeFormat;
 
+import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -111,11 +112,13 @@ public class ModReportCmd extends CommandBase {
 				.collect(Collectors.joining(";"));
 
 			// Add to DB
-			if (!bot.getDBUtil().modReport.setup(
-				event.getGuild().getIdLong(), channel.getIdLong(), roleIds,
-				firstReport, interval
-			)) {
-				editErrorUnknown(event, "Database error.");
+			try {
+				bot.getDBUtil().modReport.setup(
+					event.getGuild().getIdLong(), channel.getIdLong(), roleIds,
+					firstReport, interval
+				);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "setup mod report");
 				return;
 			}
 			// Reply
@@ -137,8 +140,10 @@ public class ModReportCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply().queue();
-			if (!bot.getDBUtil().modReport.removeGuild(event.getGuild().getIdLong())) {
-				editErrorUnknown(event, "Database error.");
+			try {
+				bot.getDBUtil().modReport.removeGuild(event.getGuild().getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "remove mod report");
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)

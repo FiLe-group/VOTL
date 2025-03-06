@@ -2,6 +2,7 @@ package dev.fileeditor.votl.listeners;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -281,7 +282,7 @@ public class InteractionListener extends ListenerAdapter {
 				).setEphemeral(true).queue();
 				return;
 			}
-			db.tickets.closeTicket(Instant.now(), channelId, "BOT: Channel deleted (not found)");
+			ignoreExc(() -> db.tickets.closeTicket(Instant.now(), channelId, "BOT: Channel deleted (not found)"));
 		}
 
 		List<ActionRow> actionRows = new ArrayList<>();
@@ -454,7 +455,9 @@ public class InteractionListener extends ListenerAdapter {
 		event.getChannel().asTextChannel().createThreadChannel(lu.getLocalized(event.getGuildLocale(), "ticket.role")+"-"+ticketId, true).setInvitable(false).queue(
 			channel -> {
 				int time = bot.getDBUtil().getTicketSettings(guild).getTimeToReply();
-				db.tickets.addRoleTicket(ticketId, event.getMember().getIdLong(), guildId, channel.getIdLong(), String.join(";", finalRoleIds), time);
+				ignoreExc(() ->
+					db.tickets.addRoleTicket(ticketId, event.getMember().getIdLong(), guildId, channel.getIdLong(), String.join(";", finalRoleIds), time)
+				);
 				
 				StringBuffer mentions = new StringBuffer(event.getMember().getAsMention());
 				// Get either support roles or use mod roles
@@ -576,7 +579,7 @@ public class InteractionListener extends ListenerAdapter {
 				.reason("Request role-"+ticketId+" approved by "+event.getMember().getEffectiveName())
 				.queue(done -> {
 					bot.getLogger().role.onApproved(member, event.getMember(), guild, roles, ticketId);
-					db.tickets.setClaimed(channelId, event.getMember().getIdLong());
+					ignoreExc(() -> db.tickets.setClaimed(channelId, event.getMember().getIdLong()));
 					event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
 						.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.role_added"))
 						.setColor(Constants.COLOR_SUCCESS)
@@ -674,7 +677,7 @@ public class InteractionListener extends ListenerAdapter {
 			event.getChannel().delete().queue();
 			return;
 		}
-		db.tickets.setRequestStatus(channelId, -1L);
+		ignoreExc(() -> db.tickets.setRequestStatus(channelId, -1L));
 		MessageEmbed embed = new EmbedBuilder()
 			.setColor(db.getGuildSettings(guild).getColor())
 			.setDescription(bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.autoclose_cancel"))
@@ -695,7 +698,7 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		db.tickets.setClaimed(channelId, event.getUser().getIdLong());
+		ignoreExc(() -> db.tickets.setClaimed(channelId, event.getUser().getIdLong()));
 		event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.claimed").replace("{user}", event.getUser().getAsMention()))
 			.build()
@@ -719,7 +722,7 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		db.tickets.setUnclaimed(channelId);
+		ignoreExc(() -> db.tickets.setUnclaimed(channelId));
 		event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.unclaimed"))
 			.build()
@@ -745,7 +748,7 @@ public class InteractionListener extends ListenerAdapter {
 				).setEphemeral(true).queue();
 				return;
 			}
-			db.tickets.closeTicket(Instant.now(), channelId, "BOT: Channel deleted (not found)");
+			ignoreExc(() -> db.tickets.closeTicket(Instant.now(), channelId, "BOT: Channel deleted (not found)"));
 		}
 
 		Tag tag = db.ticketTags.getTagInfo(tagId);
@@ -774,7 +777,8 @@ public class InteractionListener extends ListenerAdapter {
 			// Thread ticket
 			event.getChannel().asTextChannel().createThreadChannel(ticketName, true).setInvitable(false).queue(channel -> {
 				int time = bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply();
-				db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time);
+				ignoreExc(() -> db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time));
+
 
 				bot.getTicketUtil().createTicket(event, channel, mentions.toString(), message);
 			},
@@ -793,7 +797,7 @@ public class InteractionListener extends ListenerAdapter {
 				.addMemberPermissionOverride(user.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), null)
 				.queue(channel -> {
 					int time = bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply();
-					db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time);
+					ignoreExc(() -> db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time));
 
 					bot.getTicketUtil().createTicket(event, channel, mentions.toString(), message);
 			},
@@ -989,7 +993,8 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private void buttonVoiceDelete(ButtonInteractionEvent event, VoiceChannel vc) {
-		bot.getDBUtil().voice.remove(vc.getIdLong());
+		ignoreExc(() -> bot.getDBUtil().voice.remove(vc.getIdLong()));
+
 		vc.delete().reason("Channel owner request").queue();
 		sendSuccess(event, "bot.voice.listener.panel.delete");
 	}
@@ -1038,8 +1043,11 @@ public class InteractionListener extends ListenerAdapter {
 
 				event.getJDA().retrieveUserById(targetId).queue(target -> {
 					selected.forEach(groupId -> {
-						if (!db.blacklist.inGroupUser(groupId, caseData.getTargetId()))
-							db.blacklist.add(selectEvent.getGuild().getIdLong(), groupId, target.getIdLong(), caseData.getReason(), selectEvent.getUser().getIdLong());
+						if (!db.blacklist.inGroupUser(groupId, caseData.getTargetId())) {
+							ignoreExc(() ->
+								db.blacklist.add(selectEvent.getGuild().getIdLong(), groupId, target.getIdLong(), caseData.getReason(), selectEvent.getUser().getIdLong())
+							);
+						}
 
 						bot.getHelper().runBan(groupId, event.getGuild(), target, caseData.getReason(), event.getUser().getName());
 					});
@@ -1165,7 +1173,7 @@ public class InteractionListener extends ListenerAdapter {
 				event.getJDA().retrieveUserById(event.getComponentId().split(":")[1]).queue(target -> {
 					selected.forEach(groupId -> {
 						if (db.blacklist.inGroupUser(groupId, target.getIdLong())) {
-							db.blacklist.removeUser(groupId, target.getIdLong());
+							ignoreExc(() -> db.blacklist.removeUser(groupId, target.getIdLong()));
 							bot.getLogger().mod.onBlacklistRemoved(event.getUser(), target, groupId);
 						}
 
@@ -1316,24 +1324,24 @@ public class InteractionListener extends ListenerAdapter {
 				finalRoles.removeAll(removeIds.stream().map(guild::getRoleById).toList());
 
 				guild.modifyMemberRoles(target, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(done -> {
-						// Remove from DB
-						db.modifyRole.remove(guildId, userId, targetId);
-						// text
-						StringBuilder builder = new StringBuilder();
-						if (!addIds.isEmpty()) builder.append("\n**Added**: ")
-							.append(addIds.stream().map(String::valueOf).collect(Collectors.joining(">, <@&", "<@&", ">")));
-						if (!removeIds.isEmpty()) builder.append("\n**Removed**: ")
-							.append(removeIds.stream().map(String::valueOf).collect(Collectors.joining(">, <@&", "<@&", ">")));
-						String rolesString = builder.toString();
-						// Log
-						bot.getLogger().role.onRolesModified(guild, event.getUser(), target.getUser(), rolesString);
-						// Send reply
-						event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-							.setDescription(lu.getText(event, "bot.roles.role.modify.done").formatted(target.getAsMention(), rolesString))
-							.build()
-						).setComponents().queue();
-					}, failure -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getError(event, "errors.error", "Unable to modify roles, User ID: "+targetId))
-						.setComponents().queue()
+					// Remove from DB
+					ignoreExc(() -> db.modifyRole.remove(guildId, userId, targetId));
+					// text
+					StringBuilder builder = new StringBuilder();
+					if (!addIds.isEmpty()) builder.append("\n**Added**: ")
+						.append(addIds.stream().map(String::valueOf).collect(Collectors.joining(">, <@&", "<@&", ">")));
+					if (!removeIds.isEmpty()) builder.append("\n**Removed**: ")
+						.append(removeIds.stream().map(String::valueOf).collect(Collectors.joining(">, <@&", "<@&", ">")));
+					String rolesString = builder.toString();
+					// Log
+					bot.getLogger().role.onRolesModified(guild, event.getUser(), target.getUser(), rolesString);
+					// Send reply
+					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+						.setDescription(lu.getText(event, "bot.roles.role.modify.done").formatted(target.getAsMention(), rolesString))
+						.build()
+					).setComponents().queue();
+				}, failure -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getError(event, "errors.error", "Unable to modify roles, User ID: "+targetId))
+					.setComponents().queue()
 				);
 			}, failure -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getError(event, "errors.error", "Member not found, ID: "+targetId))
 				.setComponents().queue()
@@ -1352,7 +1360,7 @@ public class InteractionListener extends ListenerAdapter {
 			}
 
 			String main = event.getValue("main").getAsString();
-			db.verifySettings.setPanelText(event.getGuild().getIdLong(), main.isBlank() ? "NULL" : main);
+			ignoreExc(() -> db.verifySettings.setPanelText(event.getGuild().getIdLong(), main.isBlank() ? "NULL" : main));
 
 			event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, "bot.verification.vfpanel.text.done"))
@@ -1414,10 +1422,12 @@ public class InteractionListener extends ListenerAdapter {
 					.reason("Request role-" + ticketId + " approved by " + event.getMember().getEffectiveName())
 					.queue(done -> {
 						// Set claimed
-						db.tickets.setClaimed(channelId, event.getMember().getIdLong());
+						ignoreExc(() -> db.tickets.setClaimed(channelId, event.getMember().getIdLong()));
 						// Add tempRoles to db and log them
 						roleDurations.forEach((id, duration) -> {
-							bot.getDBUtil().tempRoles.add(guild.getIdLong(), id, userId, false, Instant.now().plus(duration));
+							ignoreExc(() ->
+								bot.getDBUtil().tempRoles.add(guild.getIdLong(), id, userId, false, Instant.now().plus(duration))
+							);
 							// Log
 							bot.getLogger().role.onTempRoleAdded(guild, event.getUser(), member.getUser(), id, duration, false);
 						});
@@ -1700,4 +1710,13 @@ public class InteractionListener extends ListenerAdapter {
 
 		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
 	}
+
+
+	private void ignoreExc(RunnableExc runnable) {
+		try {
+			runnable.run();
+		} catch (SQLException ignored) {}
+	}
+
+	@FunctionalInterface public interface RunnableExc { void run() throws SQLException; }
 }
