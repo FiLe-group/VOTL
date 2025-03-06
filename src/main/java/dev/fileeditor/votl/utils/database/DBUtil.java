@@ -190,16 +190,25 @@ public class DBUtil {
 		if (activeVersion == 0) return;
 
 		if (newVersion > activeVersion) {
-			try (Connection conn = DriverManager.getConnection(connectionUtil.getUrlSQLite());
-			Statement st = conn.createStatement()) {
-				for (List<String> version : loadInstructions(activeVersion)) {
-					for (String sql : version) {
-						log.debug(sql);
-						st.execute(sql);
+			try (
+				Connection conn = DriverManager.getConnection(connectionUtil.getUrlSQLite());
+				Statement st = conn.createStatement()
+			) {
+				conn.setAutoCommit(false);
+				try {
+					for (List<String> version : loadInstructions(activeVersion)) {
+						for (String sql : version) {
+							log.debug(sql);
+							st.execute(sql);
+						}
+						conn.commit();
 					}
+				} catch (SQLException ex) {
+					conn.rollback();
+					throw ex; // rethrow
 				}
 			} catch(SQLException ex) {
-				log.error("SQLite: Failed to execute update!\nPerform database update manually or delete it.\n{}", ex.getMessage());
+				log.error("SQLite: Failed to execute update!\nRollback performed. Continue database update manually.\n{}", ex.getMessage());
 				return;
 			}
 			

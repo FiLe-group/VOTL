@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.utils;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +78,9 @@ public class TicketUtil {
 		final Instant now = Instant.now();
 
 		channel.delete().reason(reasonClosed).queueAfter(4, TimeUnit.SECONDS, done -> {
-			db.tickets.closeTicket(now, channel.getIdLong(), reasonClosed);
+			try{
+				db.tickets.closeTicket(now, channel.getIdLong(), reasonClosed);
+			} catch (SQLException ignored) {}
 
 			long authorId = db.tickets.getUserId(channel.getIdLong());
 
@@ -95,7 +98,9 @@ public class TicketUtil {
 		);
 
 		channel.delete().reason(finalReason).queueAfter(4, TimeUnit.SECONDS, done -> {
-			db.tickets.closeTicket(now, channel.getIdLong(), finalReason);
+			try {
+				db.tickets.closeTicket(now, channel.getIdLong(), finalReason);
+			} catch (SQLException ignored) {}
 
 			long authorId = db.tickets.getUserId(channel.getIdLong());
 

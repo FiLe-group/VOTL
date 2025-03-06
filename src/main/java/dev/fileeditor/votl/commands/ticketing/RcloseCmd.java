@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.ticketing;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -31,6 +32,7 @@ public class RcloseCmd extends CommandBase {
 		this.accessLevel = CmdAccessLevel.HELPER;
 	}
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private final int CLOSE_AFTER_DELAY = 12; // hours
 
 	@Override
@@ -109,10 +111,12 @@ public class RcloseCmd extends CommandBase {
 		Button cancel = Button.secondary("ticket:cancel", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.cancel"));
 		
 		event.getHook().editOriginal("||%s||".formatted(user.getAsMention())).setEmbeds(embed).setActionRow(close, cancel).queue();
-		bot.getDBUtil().tickets.setRequestStatus(
-			channelId, closeTime.getEpochSecond(),
-			event.optString("reason", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support"))
-		);
+		try {
+			bot.getDBUtil().tickets.setRequestStatus(
+				channelId, closeTime.getEpochSecond(),
+				event.optString("reason", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support"))
+			);
+		} catch (SQLException ignored) {}
 	}
 
 	private boolean denyCloseSupport(List<Long> supportRoleIds, Member member) {
