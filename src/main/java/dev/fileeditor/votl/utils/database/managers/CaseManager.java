@@ -5,6 +5,8 @@ import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -127,9 +129,9 @@ public class CaseManager extends LiteBase {
 	}
 
 	// count cases by moderator after and before certain dates
-	public Map<Integer, Integer> countCasesByMod(long guildId, long modId, Instant afterTime, Instant beforeTime) {
+	public Map<Integer, Integer> countCasesByMod(long guildId, long modId, LocalDateTime afterTime, LocalDateTime beforeTime) {
 		List<Map<String, Object>> data = select("SELECT type, COUNT(*) AS cc FROM %s WHERE (guildId=%d AND modId=%d AND timeStart>%d AND timeStart<%d) GROUP BY type"
-			.formatted(table, guildId, modId, afterTime.getEpochSecond(), beforeTime.getEpochSecond()), Set.of("type", "cc"));
+			.formatted(table, guildId, modId, afterTime.toEpochSecond(ZoneOffset.UTC), beforeTime.toEpochSecond(ZoneOffset.UTC)), Set.of("type", "cc"));
 		if (data.isEmpty()) return Collections.emptyMap();
 		return data.stream().collect(Collectors.toMap(s -> (Integer) s.get("type"), s -> (Integer) s.get("cc")));
 	}
