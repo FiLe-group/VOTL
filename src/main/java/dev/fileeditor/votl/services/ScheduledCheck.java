@@ -197,7 +197,7 @@ public class ScheduledCheck {
 					// set case inactive
 					db.cases.setInactiveStrikeCases(userId, guildId);
 				} else {
-					String[] cases = ((String) data.getOrDefault("data", "")).split(";");
+					String[] cases = String.valueOf(data.getOrDefault("data", "")).split(";");
 					// Update data
 					if (!cases[0].isEmpty()) {
 						String[] caseInfo = cases[0].split("-");
@@ -260,7 +260,7 @@ public class ScheduledCheck {
 				}
 
 				Guild guild = channel.getGuild();
-				String[] roleIds = ((String) data.get("roleIds")).split(";");
+				String[] roleIds = String.valueOf(data.getOrDefault("roleIds", "")).split(";");
 				List<Role> roles = Stream.of(roleIds)
 					.map(guild::getRoleById)
 					.toList();
