@@ -18,7 +18,12 @@ public class AuthSessionController implements SessionController<AuthSessionContr
 
 	@Override
 	public AuthSession getSession(String identifier) {
-		return sessions.getIfPresent(identifier);
+		AuthSession session = sessions.getIfPresent(identifier);
+		if (session != null && session.expiration.isBefore(OffsetDateTime.now())) {
+			endSession(identifier);
+			return null;
+		}
+		return session;
 	}
 
 	@Override

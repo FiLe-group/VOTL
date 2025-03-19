@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	// ShadowJar
 	// https://mvnrepository.com/artifact/com.gradleup.shadow/shadow-gradle-plugin
-	id 'com.gradleup.shadow' version '9.0.0-beta8'
+	id 'com.gradleup.shadow' version '9.0.0-beta10'
 }
 
 // Getting version
@@ -26,15 +26,15 @@ dependencies {
 		exclude module: 'opus-java'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-	implementation 'ch.qos.logback:logback-classic:1.5.16'			// Logging (required by JDA)
+	implementation 'ch.qos.logback:logback-classic:1.5.17'			// Logging (required by JDA)
 
 	// Tools
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:2.9.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.49.0.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.49.1.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
-	implementation 'org.jsoup:jsoup:1.18.3'							// HTML tools
+	implementation 'org.jsoup:jsoup:1.19.1'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
 	implementation 'io.github.java-diff-utils:java-diff-utils:4.15'	// Diff finder
 	// https://mvnrepository.com/artifact/org.json/json
@@ -44,7 +44,7 @@ dependencies {
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
-	implementation 'org.apache.groovy:groovy:4.0.25'				// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:4.0.26'				// Groovy - code evaluation
 
     // Metrics
     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
@@ -52,9 +52,9 @@ dependencies {
 
 	// Backend
 	// https://mvnrepository.com/artifact/io.javalin/javalin
-	implementation 'io.javalin:javalin:6.4.0'
+	implementation 'io.javalin:javalin:6.5.0'
 	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-	implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
 
 	// OAuth2
 	implementation 'jda-oauth2:jda-oauth2:1.0.0'

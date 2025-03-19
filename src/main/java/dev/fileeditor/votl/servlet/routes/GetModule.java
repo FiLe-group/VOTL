@@ -6,27 +6,16 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
 import io.javalin.http.*;
 import net.dv8tion.jda.api.entities.Guild;
+import org.jetbrains.annotations.NotNull;
 
 public class GetModule implements Handler {
 	@Override
-	public void handle(Context ctx) throws Exception {
-		// Check if guild id is correct
-		long id = ctx.pathParamAsClass("guild", Long.class)
-			.getOrThrow(e -> new BadRequestResponse("Incorrect guild ID provided."));
+	public void handle(@NotNull Context ctx) throws Exception {
+		final Guild guild = Checks.getGuild(ctx);
 
-		Guild guild = App.getInstance().JDA.getGuildById(id);
-		if (guild == null) {
-			throw new NotFoundResponse("Guild not found.");
-		}
+		final CmdModule module = Checks.getModule(ctx);
 
-		String moduleName = ctx.pathParamAsClass("module", String.class)
-			.check(CmdModule::exists, "Incorrect module name provided.").get();
-		final CmdModule module = CmdModule.valueOf(moduleName.toUpperCase());
-
-		// Check if disabled
-		if (App.getInstance().getDBUtil().getGuildSettings(guild).isDisabled(module)) {
-			throw new ConflictResponse("Module '%s' is disabled.".formatted(module));
-		}
+		final boolean enabled = !App.getInstance().getDBUtil().getGuildSettings(guild).isDisabled(module);
 
 		// TODO add other modules
 		switch (module) {
@@ -36,12 +25,16 @@ public class GetModule implements Handler {
 				moduleNode.put("channel", "");
 				moduleNode.put("message", "");
 				moduleNode.put("temp", true);
+				moduleNode.put("enabled", enabled);
 
 				// Send response
 				ctx.json(moduleNode);
 			}
 			default ->  {
 				ObjectNode moduleNode = new ObjectMapper().createObjectNode();
+
+				moduleNode.put("enabled", enabled);
+
 				ctx.json(moduleNode);
 			}
 		}

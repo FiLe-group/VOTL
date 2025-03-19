@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.javalin.http.*;
+import io.javalin.validation.ValidationException;
 
 public class WebHandler {
 
@@ -17,13 +18,24 @@ public class WebHandler {
 		return (ex, ctx) -> {
 			WebServlet.log.error("{} {}", ctx.req().getMethod(), ctx.req().getPathInfo(), ex);
 
-			ctx.json(response(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage()));
+			ctx.json(response(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage()))
+				.status(HttpStatus.INTERNAL_SERVER_ERROR);
+		};
+	}
+
+	public static ExceptionHandler<ValidationException> validationExceptionHandler() {
+		return (ex, ctx) -> {
+			ctx.json(response(HttpStatus.BAD_REQUEST, ex.getMessage()))
+				.status(HttpStatus.BAD_REQUEST);
 		};
 	}
 
 	public static ExceptionHandler<HttpResponseException> errorResponseHandler() {
 		return (ex, ctx) -> {
-			ctx.json(response(HttpStatus.forStatus(ex.getStatus()), ex.getMessage()));
+			HttpStatus status = HttpStatus.forStatus(ex.getStatus());
+
+			ctx.json(response(status, ex.getMessage()))
+				.status(status);
 		};
 	}
 
@@ -33,4 +45,5 @@ public class WebHandler {
 		node.put("reason", reason);
 		return node;
 	}
+
 }

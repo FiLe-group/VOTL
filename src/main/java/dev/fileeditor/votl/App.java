@@ -155,19 +155,22 @@ public class App {
 			servlet = new WebServlet(port, allowedHost, clientId, clientSecret);
 			// Register routes
 			// Getters
-			servlet.registerGet("/guilds/{guild}", new GetGuild());
-			servlet.registerGet("/guilds/{guild}/roles", new GetRoles());
-			servlet.registerGet("/guilds/{guild}/channels", new GetChannels());
-			servlet.registerGet("/guilds/{guild}/members/@me", new GetMemberSelf());
+			servlet.registerGet("/guilds/@me", new GetGuilds(), true);
+			servlet.registerGet("/guilds/{guild}", new GetGuild(), true);
+			servlet.registerGet("/guilds/{guild}/roles", new GetRoles(), true);
+			servlet.registerGet("/guilds/{guild}/channels", new GetChannels(), true);
+			servlet.registerGet("/guilds/{guild}/members/@me", new GetMemberSelf(), true);
 			// Modules
-			servlet.registerGet("/guilds/{guild}/modules/{module}", new GetModule()); // Get data
-			servlet.registerDelete("/guilds/{guild}/modules/{module}", new DeleteModule()); // Disable
-			servlet.registerPut("/guilds/{guild}/modules/{module}", new PutModule()); // Enable
-			servlet.registerPatch("/guilds/{guild}/modules/{module}", new PatchModule()); // Update
+			servlet.registerGet("/guilds/{guild}/modules/{module}", new GetModule(), true); // Get data
+			servlet.registerDelete("/guilds/{guild}/modules/{module}", new DeleteModule(), true); // Disable
+			servlet.registerPut("/guilds/{guild}/modules/{module}", new PutModule(), true); // Enable
+			servlet.registerPatch("/guilds/{guild}/modules/{module}", new PatchModule(), true); // Update
 			// Auth
-			servlet.registerGet("/login", new ApiLogin());
-			servlet.registerGet("/logout", new ApiLogout());
-			servlet.registerGet("/callback", new ApiCallback());
+			servlet.registerGet("/login", new ApiLogin(), false);
+			servlet.registerPost("/logout", new ApiLogout(), false);
+			servlet.registerPost("/callback", new ApiCallback(), false);
+			servlet.registerGet("/session", new ApiSession(), false);
+			servlet.registerGet("/commands", new ApiCommands(), false);
 		} else {
 			servlet = null;
 		}

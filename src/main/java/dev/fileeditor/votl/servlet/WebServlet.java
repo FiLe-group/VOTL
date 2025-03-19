@@ -6,8 +6,8 @@ import dev.fileeditor.votl.servlet.utils.AuthSessionController;
 import dev.fileeditor.votl.servlet.utils.AuthStateController;
 import dev.fileeditor.votl.servlet.utils.SessionUtil;
 import io.javalin.http.*;
+import io.javalin.validation.ValidationException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -51,12 +51,11 @@ public class WebServlet {
 	private void initialize() {
 		log.info("Starting Javalin API on port: {}", port);
 
-		web = Javalin.create(config -> {
-				config.router.contextPath = "/api";
+		web = Javalin.create(config ->
+			{
 				config.http.asyncTimeout = 10_000;
 				config.http.defaultContentType = "application/json";
 				config.http.strictContentTypes = true;
-				//config.http.generateEtags = true;
 				config.bundledPlugins.enableCors(cors -> {
 					cors.addRule(it -> {
 						it.allowHost(allowedHost);
@@ -64,11 +63,14 @@ public class WebServlet {
 					});
 				});
 				config.requestLogger.http((ctx, ms) ->
-					log.debug("{} {} took {}ms", ctx.req().getMethod(), ctx.req().getPathInfo(), ms));
+					log.debug("{} {} took {}ms", ctx.req().getMethod(), ctx.req().getPathInfo(), ms)
+				);
+				config.useVirtualThreads = true; // TODO: check
 			})
 			.beforeMatched(WebHandler.setContentType())
-			.before("/guilds/*", WebFilter.authCheck())
+			.before("/priv/*", WebFilter.authCheck())
 			.exception(FileNotFoundException.class, (e, ctx) -> ctx.status(HttpStatus.NOT_FOUND))
+			.exception(ValidationException.class, WebHandler.validationExceptionHandler())
 			.exception(HttpResponseException.class, WebHandler.errorResponseHandler())
 			.exception(Exception.class, WebHandler.exceptionHandler())
 			.start(port);
@@ -90,16 +92,23 @@ public class WebServlet {
 		}
 	}
 
-	@Nullable
+	@NotNull
 	public static Session getSession(@NotNull Context ctx) {
 		if (!initialized)
 			throw new ServiceUnavailableResponse("Servlet is not initialized.");
 
 		String sessionId = SessionUtil.getSessionId(ctx);
-		if (sessionId == null)
-			throw new UnauthorizedResponse("No session.");
+		if (sessionId == null) {
+			ctx.header(Header.WWW_AUTHENTICATE, "Bearer");
+			throw new UnauthorizedResponse("No session found.");
+		}
 
-		return getClient().getSessionController().getSession(sessionId);
+		Session session = getClient().getSessionController().getSession(sessionId);
+		if (session == null) {
+			throw new UnauthorizedResponse("No active session.");
+		}
+
+		return session;
 	}
 
 	public static void endSession(@NotNull Context ctx) {
@@ -108,7 +117,6 @@ public class WebServlet {
 
 		String sessionId = SessionUtil.getSessionId(ctx);
 		if (sessionId != null) {
-			SessionUtil.invalidateSession(ctx);
 			getClient().getSessionController().endSession(sessionId);
 		}
 	}
@@ -116,92 +124,105 @@ public class WebServlet {
 	/**
 	 * Map the handler for HTTP GET requests
 	 *
-	 * @param path  the path
+	 * @param path the path
 	 * @param handler The handler
+	 * @param privatePath Path is protected
 	 */
-	public synchronized void registerGet(final String path, final Handler handler) {
+	public synchronized void registerGet(final String path, final Handler handler, final boolean privatePath) {
 		if (!initialized) initialize();
 
-		log.debug("GET {} has been registered to {}", path, handler.getClass().getTypeName());
-		web.get(path, handler);
+		final String finalPath = privatePath ? "/priv"+path : path;
+		log.debug("GET {} has been registered to {}", finalPath, handler.getClass().getTypeName());
+		web.get(finalPath, handler);
 	}
 
 	/**
 	 * Map the handler for HTTP POST requests
 	 *
-	 * @param path  the path
+	 * @param path the path
 	 * @param handler The handler
+	 * @param privatePath Path is protected
 	 */
-	public synchronized void registerPost(final String path, final Handler handler) {
+	public synchronized void registerPost(final String path, final Handler handler, final boolean privatePath) {
 		if (!initialized) initialize();
 
-		log.debug("POST {} has been registered to {}", path, handler.getClass().getTypeName());
-		web.post(path, handler);
+		final String finalPath = privatePath ? "/priv"+path : path;
+		log.debug("POST {} has been registered to {}", finalPath, handler.getClass().getTypeName());
+		web.post(finalPath, handler);
 	}
 
 	/**
 	 * Map the handler for HTTP PUT requests
 	 *
-	 * @param path  the path
+	 * @param path the path
 	 * @param handler The handler
+	 * @param privatePath Path is protected
 	 */
-	public synchronized void registerPut(final String path, final Handler handler) {
+	public synchronized void registerPut(final String path, final Handler handler, final boolean privatePath) {
 		if (!initialized) initialize();
 
-		log.debug("PUT {} has been registered to {}", path, handler.getClass().getTypeName());
-		web.put(path, handler);
+		final String finalPath = privatePath ? "/priv"+path : path;
+		log.debug("PUT {} has been registered to {}", finalPath, handler.getClass().getTypeName());
+		web.put(finalPath, handler);
 	}
 
 	/**
 	 * Map the handler for HTTP PATCH requests
 	 *
-	 * @param path  the path
+	 * @param path the path
 	 * @param handler The handler
+	 * @param privatePath Path is protected
 	 */
-	public synchronized void registerPatch(final String path, final Handler handler) {
+	public synchronized void registerPatch(final String path, final Handler handler, final boolean privatePath) {
 		if (!initialized) initialize();
 
-		log.debug("PATCH {} has been registered to {}", path, handler.getClass().getTypeName());
-		web.patch(path, handler);
+		final String finalPath = privatePath ? "/priv"+path : path;
+		log.debug("PATCH {} has been registered to {}", finalPath, handler.getClass().getTypeName());
+		web.patch(finalPath, handler);
 	}
 
 	/**
 	 * Map the handler for HTTP DELETE requests
 	 *
-	 * @param path  the path
+	 * @param path the path
 	 * @param handler The handler
+	 * @param privatePath Path is protected
 	 */
-	public synchronized void registerDelete(final String path, final Handler handler) {
+	public synchronized void registerDelete(final String path, final Handler handler, final boolean privatePath) {
 		if (!initialized) initialize();
 
-		log.debug("DELETE {} has been registered to {}", path, handler.getClass().getTypeName());
-		web.delete(path, handler);
+		final String finalPath = privatePath ? "/priv"+path : path;
+		log.debug("DELETE {} has been registered to {}", finalPath, handler.getClass().getTypeName());
+		web.delete(finalPath, handler);
 	}
 
 	/**
 	 * Map the handler for HTTP HEAD requests
 	 *
-	 * @param path  the path
+	 * @param path the path
 	 * @param handler The handler
+	 * @param privatePath Path is protected
 	 */
-	public synchronized void registerHead(final String path, final Handler handler) {
+	public synchronized void registerHead(final String path, final Handler handler, final boolean privatePath) {
 		if (!initialized) initialize();
 
-		log.debug("HEAD {} has been registered to {}", path, handler.getClass().getTypeName());
-		web.head(path, handler);
+		final String finalPath = privatePath ? "/priv"+path : path;
+		log.debug("HEAD {} has been registered to {}", finalPath, handler.getClass().getTypeName());
+		web.head(finalPath, handler);
 	}
 
 	/**
 	 * Map the handler for HTTP OPTIONS requests
 	 *
-	 * @param path  the path
+	 * @param path the path
 	 * @param handler The handler
+	 * @param privatePath Path is protected
 	 */
-	public synchronized void registerOptions(final String path, final Handler handler) {
+	public synchronized void registerOptions(final String path, final Handler handler, final boolean privatePath) {
 		if (!initialized) initialize();
 
-		log.debug("OPTIONS {} has been registered to {}", path, handler.getClass().getTypeName());
-		web.options(path, handler);
+		final String finalPath = privatePath ? "/priv"+path : path;
+		log.debug("OPTIONS {} has been registered to {}", finalPath, handler.getClass().getTypeName());
+		web.options(finalPath, handler);
 	}
-
 }

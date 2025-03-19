@@ -1,5 +1,7 @@
 package dev.fileeditor.votl.servlet.routes;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.fileeditor.oauth2.Scope;
 import dev.fileeditor.oauth2.exceptions.InvalidStateException;
 import dev.fileeditor.votl.servlet.WebServlet;
@@ -10,16 +12,18 @@ public class ApiCallback implements Handler {
 	@Override
 	public void handle(Context ctx) throws Exception {
 		var query = ctx.queryParamMap();
+		if (query.containsKey("error") && query.containsKey("state")) {
+			WebServlet.getClient().getStateController().consumeState(ctx.queryParam("state"));
+			ObjectNode node = new ObjectMapper().createObjectNode();
+			node.put("success", false);
+			ctx.json(node);
+			return;
+		}
 		if (!query.containsKey("code") || !query.containsKey("state")) {
-			//ctx.redirect("/");
-			throw new RedirectResponse(HttpStatus.FOUND, "/");
+			throw new BadRequestResponse("Missing required code or state.");
 		}
 
-		String sessionId = SessionUtil.getSessionId(ctx);
-		if (sessionId == null) {
-			//ctx.redirect("/");
-			throw new RedirectResponse(HttpStatus.FOUND, "/");
-		}
+		final String sessionId = SessionUtil.createSessionId();
 
 		ctx.future(() -> {
 			try {
@@ -27,11 +31,13 @@ public class ApiCallback implements Handler {
 					ctx.queryParam("code"), ctx.queryParam("state"), sessionId,
 					Scope.IDENTIFY, Scope.GUILDS
 				).future().thenRunAsync(() -> {
-					//ctx.redirect("/dash/user/home");
-					throw new RedirectResponse(HttpStatus.FOUND, "/dash/user/home");
+					ObjectNode node = new ObjectMapper().createObjectNode();
+					node.put("success", true);
+					node.put("sessionId", sessionId);
+					ctx.json(node);
 				});
 			} catch (InvalidStateException ex) {
-				throw new InternalServerErrorResponse("Invalid state provided: %s".formatted(ex.getMessage()));
+				throw new BadRequestResponse("Invalid state provided: %s".formatted(ex.getMessage()));
 			}
 		});
 
