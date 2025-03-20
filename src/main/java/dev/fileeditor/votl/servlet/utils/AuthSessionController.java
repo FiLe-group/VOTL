@@ -6,6 +6,7 @@ import dev.fileeditor.oauth2.Scope;
 import dev.fileeditor.oauth2.session.Session;
 import dev.fileeditor.oauth2.session.SessionController;
 import dev.fileeditor.oauth2.session.SessionData;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +18,7 @@ public class AuthSessionController implements SessionController<AuthSessionContr
 		.build();
 
 	@Override
-	public AuthSession getSession(String identifier) {
+	public AuthSession getSession(@NotNull String identifier) {
 		AuthSession session = sessions.getIfPresent(identifier);
 		if (session != null && session.expiration.isBefore(OffsetDateTime.now())) {
 			endSession(identifier);
@@ -26,15 +27,16 @@ public class AuthSessionController implements SessionController<AuthSessionContr
 		return session;
 	}
 
+	@NotNull
 	@Override
-	public AuthSession createSession(SessionData data) {
+	public AuthSession createSession(@NotNull SessionData data) {
 		AuthSession created = new AuthSession(data);
 		sessions.put(data.getIdentifier(), created);
 		return created;
 	}
 
 	@Override
-	public void endSession(String identifier) {
+	public void endSession(@NotNull String identifier) {
 		sessions.invalidate(identifier);
 	}
 
@@ -51,26 +53,31 @@ public class AuthSessionController implements SessionController<AuthSessionContr
 			this.scopes = data.getScopes();
 		}
 
+		@NotNull
 		@Override
 		public String getAccessToken() {
 			return accessToken;
 		}
 
+		@NotNull
 		@Override
 		public String getRefreshToken() {
 			return refreshToken;
 		}
 
+		@NotNull
 		@Override
 		public Scope[] getScopes() {
 			return scopes;
 		}
 
+		@NotNull
 		@Override
 		public String getTokenType() {
 			return tokenType;
 		}
 
+		@NotNull
 		@Override
 		public OffsetDateTime getExpiration() {
 			return expiration;
