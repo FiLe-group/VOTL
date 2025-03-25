@@ -2,11 +2,9 @@ package dev.fileeditor.votl.servlet.routes;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import dev.fileeditor.oauth2.entities.OAuth2User;
 import dev.fileeditor.oauth2.session.Session;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -66,45 +64,23 @@ public class Checks {
 			.orElseThrow(() -> new BadRequestResponse("Module not found."));
 	}
 
-	public static CompletableFuture<Void> retrieveGuilds(Session session, Consumer<List<GuildInfo>> filteredGuilds) {
-		return WebServlet.getClient().getUser(session)
-			.future()
-			.thenCombine(getGuilds(session), Checks::filterGuilds)
-			.thenCompose(guilds -> guilds)
-			.thenAccept(filteredGuilds);
-	}
-
-	private static CompletableFuture<List<Guild>> getGuilds(Session session) {
+	public static CompletableFuture<List<GuildInfo>> getGuilds(Session session) {
 		return WebServlet.getClient().getGuilds(session)
 			.future()
-			.thenApply(guilds -> guilds.stream()
-				.map(guild -> App.getInstance().JDA.getGuildById(guild.getIdLong()))
-				.filter(Objects::nonNull)
-				.toList()
-			);
-	}
-
-	private static CompletableFuture<List<GuildInfo>> filterGuilds(OAuth2User user, List<Guild> guilds) {
-		List<CompletableFuture<GuildInfo>> futures = guilds.parallelStream()
-			.map(guild -> guild.retrieveMemberById(user.getIdLong()).submit()
-				.thenApply(member -> new GuildInfo(
-					guild.getId(),
-					guild.getName(),
-					guild.getIconId(),
-					guild.getBannerId(),
-					guild.getMemberCount(),
-					member.hasPermission(Permission.ADMINISTRATOR)
-				))
-				.exceptionally((t) -> {
-					return null;
+			.thenApply(guilds -> guilds
+				.stream()
+				.map(guild -> {
+					Guild jdaGuild = App.getInstance().JDA.getGuildById(guild.getId());
+					int memberCount = guild.getOnlineCount()>-1 ? guild.getOnlineCount() :
+						jdaGuild!=null ? jdaGuild.getMemberCount() : -1;
+					return new GuildInfo(
+						guild.getId(), guild.getName(),
+						guild.getIconId(), guild.getBannerId(),
+						memberCount,
+						guild.hasPermission(Permission.ADMINISTRATOR),
+						jdaGuild != null
+					);
 				})
-			)
-			.toList();
-
-		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-			.thenApply(v -> futures.stream()
-				.map(CompletableFuture::join)
-				.filter(Objects::nonNull)
 				.toList()
 			);
 	}
@@ -114,6 +90,6 @@ public class Checks {
 			throw new ForbiddenResponse("User can not perform this action.");
 	}
 
-	public record GuildInfo(String id, String name, String icon, String banner, int size, boolean isAdmin) {}
+	public record GuildInfo(String id, String name, String icon, String banner, int size, boolean isAdmin, boolean botJoined) {}
 	
 }

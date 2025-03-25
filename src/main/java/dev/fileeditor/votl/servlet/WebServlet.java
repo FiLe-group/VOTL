@@ -99,7 +99,7 @@ public class WebServlet {
 
 		String sessionId = SessionUtil.getSessionId(ctx);
 		if (sessionId == null) {
-			ctx.header(Header.WWW_AUTHENTICATE, "Bearer");
+			ctx.header(Header.WWW_AUTHENTICATE, "Bearer sessionId");
 			throw new UnauthorizedResponse("No session found.");
 		}
 

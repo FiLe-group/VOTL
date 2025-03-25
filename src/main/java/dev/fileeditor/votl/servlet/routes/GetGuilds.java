@@ -13,24 +13,25 @@ public class GetGuilds implements Handler {
 		final Session session = Checks.getSession(ctx);
 
 		ctx.future(() -> {
-			return Checks.retrieveGuilds(session, guilds -> {
+			return Checks.getGuilds(session).thenAccept(guilds -> {
 				ObjectMapper mapper = new ObjectMapper();
 				ArrayNode guildArray = mapper.createArrayNode();
 
-				guilds.forEach(guild -> {
-					ObjectNode guildNode = mapper.createObjectNode();
+				guilds.stream()
+					.filter(Checks.GuildInfo::isAdmin)
+					.forEach(guild -> {
+						ObjectNode guildNode = mapper.createObjectNode();
 
-					guildNode.put("id", guild.id());
-					guildNode.put("name", guild.name());
-					guildNode.put("icon", guild.icon());
-					guildNode.put("banner", guild.banner());
-					guildNode.put("size", guild.size());
+						guildNode.put("id", guild.id());
+						guildNode.put("name", guild.name());
+						guildNode.put("icon", guild.icon());
+						guildNode.put("banner", guild.banner());
+						guildNode.put("size", guild.size());
 
-					guildNode.put("isAdmin", guild.isAdmin());
-					// set if admin
+						guildNode.put("bot", guild.botJoined());
 
-					guildArray.add(guildNode);
-				});
+						guildArray.add(guildNode);
+					});
 
 				ctx.json(guildArray);
 			});
