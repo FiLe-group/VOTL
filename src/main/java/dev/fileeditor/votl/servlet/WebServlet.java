@@ -1,6 +1,9 @@
 package dev.fileeditor.votl.servlet;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.oauth2.OAuth2Client;
+import dev.fileeditor.oauth2.entities.OAuth2User;
 import dev.fileeditor.oauth2.session.Session;
 import dev.fileeditor.votl.servlet.utils.AuthSessionController;
 import dev.fileeditor.votl.servlet.utils.AuthStateController;
@@ -13,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 import java.io.FileNotFoundException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import dev.fileeditor.votl.servlet.handlers.WebFilter;
 import dev.fileeditor.votl.servlet.handlers.WebHandler;
@@ -36,6 +41,11 @@ public class WebServlet {
 
 	private static boolean initialized;
 
+	private static final Cache<Session, OAuth2User> userCache = Caffeine.newBuilder()
+		.expireAfterWrite(10, TimeUnit.MINUTES)
+		.maximumSize(100)
+		.build();
+
 	public WebServlet(int port, String allowedHost, long clientId, String clientSecret) {
 		this.port = port;
 		this.allowedHost = allowedHost;
@@ -46,6 +56,18 @@ public class WebServlet {
 
 	public static OAuth2Client getClient() {
 		return client;
+	}
+
+	public static CompletableFuture<OAuth2User> getUser(Session session) {
+		var cachedUser = userCache.getIfPresent(session);
+		if (cachedUser != null) {
+			return CompletableFuture.completedFuture(cachedUser);
+		}
+		return client.getUser(session).future()
+			.thenApply(user -> {
+				userCache.put(session, user);
+				return user;
+			});
 	}
 
 	private void initialize() {
@@ -65,7 +87,7 @@ public class WebServlet {
 				config.requestLogger.http((ctx, ms) ->
 					log.debug("{} {} took {}ms", ctx.req().getMethod(), ctx.req().getPathInfo(), ms)
 				);
-				config.useVirtualThreads = true; // TODO: check
+				config.useVirtualThreads = true;
 			})
 			.beforeMatched(WebHandler.setContentType())
 			.before("/priv/*", WebFilter.authCheck())

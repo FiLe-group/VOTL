@@ -7,6 +7,8 @@ import dev.fileeditor.votl.servlet.WebServlet;
 import io.javalin.http.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public class ApiSession implements Handler {
 	@Override
 	public void handle(@NotNull Context ctx) throws Exception {
@@ -18,7 +20,9 @@ public class ApiSession implements Handler {
 					ObjectNode node = new ObjectMapper().createObjectNode();
 					node.put("id", user.getId());
 					node.put("name", user.getName());
-					node.put("avatar", user.getEffectiveAvatarUrl());
+					node.put("avatar", Optional.ofNullable(user.getAvatarId())
+						.orElse(user.getDefaultAvatarId()));
+					node.put("banner", user.getBannerId());
 
 					ctx.json(node);
 				})

@@ -24,16 +24,14 @@ public class PutModule implements Handler {
 			throw new ConflictResponse("Module '%s' is already enabled.".formatted(module));
 		}
 
-		ctx.future(() -> {
-			return checkPermissionsAsync(session, guild, (member) -> {
-				// Write new data
-				final int newData = settings.getModulesOff() - module.getValue();
-				App.getInstance().getDBUtil().guildSettings.setModuleDisabled(guild.getIdLong(), newData);
-				// Log
-				App.getInstance().getLogger().server.onModuleEnabled(guild, member.getUser(), module);
-				// Reply
-				ctx.status(HttpStatus.NO_CONTENT);
-			});
-		});
+		ctx.future(() -> checkPermissionsAsync(session, guild, (member) -> {
+			// Write new data
+			final int newData = settings.getModulesOff() - module.getValue();
+			App.getInstance().getDBUtil().guildSettings.setModuleDisabled(guild.getIdLong(), newData);
+			// Log
+			App.getInstance().getLogger().server.onModuleEnabled(guild, member.getUser(), module);
+			// Reply
+			ctx.status(HttpStatus.NO_CONTENT);
+		}));
 	}
 }

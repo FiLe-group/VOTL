@@ -25,6 +25,12 @@ public class GetRoles implements Handler {
 			roleNode.put("id", role.getIdLong());
 			roleNode.put("name", role.getName());
 			roleNode.put("color", role.getColorRaw());
+			if (role.getIcon() != null) {
+				ObjectNode iconNode = mapper.createObjectNode();
+				iconNode.put("iconUrl", role.getIcon().getIconUrl());
+				iconNode.put("emoji", role.getIcon().getEmoji());
+				roleNode.set("icon", iconNode);
+			}
 			roleNode.put("position", role.getPosition());
 
 			roleArray.add(roleNode);

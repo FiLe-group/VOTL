@@ -22,7 +22,7 @@ import static dev.fileeditor.votl.servlet.utils.SessionUtil.SESSION_KEY;
 public class Checks {
 
 	public static CompletableFuture<Void> checkPermissionsAsync(Session session, Guild guild, Consumer<Member> success) {
-		return WebServlet.getClient().getUser(session).future()
+		return WebServlet.getUser(session)
 			.thenCompose(user -> guild.retrieveMemberById(user.getIdLong()).submit())
 			.thenAccept((member) -> {
 				checkAdminPerms(member);
