@@ -134,7 +134,7 @@ public class SetupCmd extends CommandBase {
 			this.name = "report";
 			this.path = "bot.guild.setup.report";
 			this.options = List.of(
-				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"))
 					.setChannelTypes(ChannelType.TEXT)
 			);
 		}
@@ -143,23 +143,36 @@ public class SetupCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
-			MessageChannel channel = event.optMessageChannel("channel");
+			if (event.hasOption("channel")) {
+				MessageChannel channel = event.optMessageChannel("channel");
 
-			if (!channel.canTalk()) {
-				editError(event, path+".cant_send");
-				return;
+				if (!channel.canTalk()) {
+					editError(event, path+".cant_send");
+				}
+
+				try {
+					bot.getDBUtil().guildSettings.setReportChannelId(guildId, channel.getIdLong());
+				} catch (SQLException e) {
+					editErrorDatabase(event, e, "setup report channel");
+					return;
+				}
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
+					.build());
+			} else {
+				try {
+					bot.getDBUtil().guildSettings.setReportChannelId(guildId, null);
+				} catch (SQLException e) {
+					editErrorDatabase(event, e, "setup report channel");
+					return;
+				}
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getText(event, path+".done_cleared"))
+					.build());
 			}
 
-			try {
-				bot.getDBUtil().guildSettings.setReportChannelId(guildId, channel.getIdLong());
-			} catch (SQLException ex) {
-				editErrorDatabase(event, ex, "set guild report channel");
-				return;
-			}
-
-			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
-				.build());
 		}
 	}
 
