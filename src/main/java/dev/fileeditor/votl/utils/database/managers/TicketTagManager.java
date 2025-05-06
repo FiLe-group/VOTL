@@ -20,6 +20,8 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.internal.interactions.component.ButtonImpl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
@@ -127,9 +129,10 @@ public class TicketTagManager extends LiteBase {
 		return new Tag(data, false);
 	}
 
+	@NotNull
 	public String getSupportRolesString(int tagId) {
 		String data = selectOne("SELECT supportRoles FROM %s WHERE (tagId=%s)".formatted(table, tagId), "supportRoles", String.class);
-		return data==null ? "0" : data;
+		return data==null ? "" : data;
 	}
 
 	// TOOLS
@@ -185,22 +188,27 @@ public class TicketTagManager extends LiteBase {
 			return new ButtonImpl("tag:"+tagId, buttonText, style, false, emoji);
 		}
 
+		@NotNull
 		public String getTicketName() {
 			return ticketName;
 		}
 
+		@Nullable
 		public Integer getTagType() {
 			return tagType;
 		}
 
+		@Nullable
 		public String getLocation() {
 			return location;
 		}
 
+		@Nullable
 		public String getMessage() {
 			return message;
 		}
 
+		@NotNull
 		public List<String> getSupportRoles() {
 			if (supportRoles==null) return List.of();
 			return Arrays.asList(supportRoles.split(";"));

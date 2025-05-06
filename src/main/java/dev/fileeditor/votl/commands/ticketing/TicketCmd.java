@@ -277,7 +277,6 @@ public class TicketCmd extends CommandBase {
 	// Tag tools
 
 	private class CreateTag extends SlashCommand {
-
 		public CreateTag() {
 			this.name = "create";
 			this.path = "bot.ticketing.ticket.tags.create";
@@ -350,11 +349,9 @@ public class TicketCmd extends CommandBase {
 				.build()
 			);
 		}
-
 	}
 
 	private class ModifyTag extends SlashCommand {
-
 		public ModifyTag() {
 			this.name = "modify";
 			this.path = "bot.ticketing.ticket.tags.modify";
@@ -439,11 +436,9 @@ public class TicketCmd extends CommandBase {
 				);
 			}
 		}
-
 	}
 
 	private class ViewTag extends SlashCommand {
-
 		public ViewTag() {
 			this.name = "view";
 			this.path = "bot.ticketing.ticket.tags.view";
@@ -474,7 +469,8 @@ public class TicketCmd extends CommandBase {
 
 			String message = Optional.ofNullable(tag.getMessage()).orElse(lu.getText(event, path+".none"));
 			String category = Optional.ofNullable(tag.getLocation()).map(id -> event.getGuild().getCategoryById(id).getAsMention()).orElse(lu.getText(event, path+".none"));
-			String roles = Optional.ofNullable(tag.getSupportRoles())
+			String roles = Optional.of(tag.getSupportRoles())
+				.filter(l -> !l.isEmpty())
 				.map(ids -> ids.stream().map("<@&%s>"::formatted).collect(Collectors.joining(", ")))
 				.orElse(lu.getText(event, path+".none"));
 			
@@ -484,7 +480,6 @@ public class TicketCmd extends CommandBase {
 			
 			event.getHook().editOriginalEmbeds(builder.build()).setActionRow(tag.previewButton()).queue();
 		}
-
 	}
 
 	private class DeleteTag extends SlashCommand {
