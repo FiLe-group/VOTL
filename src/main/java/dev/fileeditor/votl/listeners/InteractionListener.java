@@ -23,6 +23,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import dev.fileeditor.votl.utils.database.managers.BlacklistManager;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.database.managers.RoleManager;
 import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
@@ -254,8 +255,9 @@ public class InteractionListener extends ListenerAdapter {
 		groupIds.addAll(db.group.getOwnedGroups(guild.getIdLong()));
 		groupIds.addAll(db.group.getGuildGroups(guild.getIdLong()));
 		for (int groupId : groupIds) {
-			if (db.blacklist.inGroupUser(groupId, member.getIdLong()) && db.group.getAppealGuildId(groupId)!=guild.getIdLong()) {
-				sendError(event, "bot.verification.blacklisted", "DiscordID: "+member.getId());
+			BlacklistManager.BlacklistData data = db.blacklist.getInfo(groupId, member.getIdLong());
+			if (data != null && db.group.getAppealGuildId(groupId)!=guild.getIdLong()) {
+				sendError(event, "bot.verification.blacklisted", "Reason: "+data.getReason());
 				return;
 			}
 		}

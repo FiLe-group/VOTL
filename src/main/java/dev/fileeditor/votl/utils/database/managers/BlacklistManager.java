@@ -9,6 +9,9 @@ import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.Nullable;
 
+import static dev.fileeditor.votl.utils.CastUtil.castLong;
+import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
+
 @SuppressWarnings("unused")
 public class BlacklistManager extends LiteBase {
 	
@@ -24,22 +27,73 @@ public class BlacklistManager extends LiteBase {
 	}
 
 	public boolean inGroupUser(int groupId, long userId) {
-		return selectOne("SELECT userId FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId), "userId", Long.class) != null;
+		return selectOne("SELECT userId FROM %s WHERE (groupId=%d AND userId=%d)"
+			.formatted(table, groupId, userId), "userId", Long.class) != null;
 	}
 
 	public void removeUser(int groupId, long userId) throws SQLException {
 		execute("DELETE FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId));
 	}
 
-	public Map<String, Object> getInfo(int groupId, long userId) {
-		return selectOne("SELECT * FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId), Set.of("guildId", "reason", "modId"));
+	public BlacklistData getInfo(int groupId, long userId) {
+		Map<String, Object> data = selectOne("SELECT * FROM %s WHERE (groupId=%d AND userId=%d)"
+			.formatted(table, groupId, userId), Set.of("guildId", "reason", "modId"));
+		return (data==null || data.isEmpty()) ? null : new BlacklistData(data);
 	}
 
-	public List<Map<String, Object>> getByPage(int groupId, int page) {
-		return select("SELECT * FROM %s WHERE (groupId=%d) ORDER BY userId DESC LIMIT 20 OFFSET %d".formatted(table, groupId, (page-1)*20), Set.of("guildId", "userId", "reason", "modId"));
+	public List<BlacklistData> getByPage(int groupId, int page) {
+		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (groupId=%d) ORDER BY userId DESC LIMIT 20 OFFSET %d"
+			.formatted(table, groupId, (page-1)*20), Set.of("guildId", "userId", "reason", "modId"));
+		return (data.isEmpty()) ? List.of() : data.stream()
+			.map(BlacklistData::new)
+			.toList();
+	}
+
+	public List<BlacklistData> searchUserId(long userId) {
+		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (userId=%d) "
+			.formatted(table, userId), Set.of("guildId", "groupId", "userId", "reason", "modId"));
+		return (data.isEmpty()) ? List.of() : data.stream()
+			.map(BlacklistData::new)
+			.toList();
 	}
 
 	public Integer countEntries(int groupId) {
 		return count("SELECT COUNT(*) FROM %s WHERE (groupId=%d)".formatted(table, groupId));
 	}
+
+	public class BlacklistData {
+		private final long guildId, modId;
+		private final Long userId;
+		private final Integer groupId;
+		private final String reason;
+
+		BlacklistData(Map<String, Object> data) {
+			this.guildId = castLong(data.get("guildId"));
+			this.groupId = getOrDefault(data.get("groupId"), null);
+			this.userId = castLong(data.get("userId"));
+			this.modId = castLong(data.get("modId"));
+			this.reason = String.valueOf(data.get("reason"));
+		}
+
+		public long getGuildId() {
+			return guildId;
+		}
+
+		public Integer getGroupId() {
+			return groupId;
+		}
+
+		public Long getUserId() {
+			return userId;
+		}
+
+		public long getModId() {
+			return modId;
+		}
+
+		public String getReason() {
+			return reason;
+		}
+	}
+
 }
