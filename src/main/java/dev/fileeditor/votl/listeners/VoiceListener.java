@@ -1,8 +1,8 @@
 package dev.fileeditor.votl.listeners;
 
 import java.time.OffsetDateTime;
-import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +31,11 @@ import dev.fileeditor.votl.utils.database.DBUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class VoiceListener extends ListenerAdapter {
+
+	private final Set<Permission> ownerPerms = Set.of(
+		Permission.MANAGE_CHANNEL, Permission.VOICE_SET_STATUS, Permission.VOICE_MOVE_OTHERS,
+		Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.MESSAGE_SEND
+	);
 
 	// cache users in voice for exp
 	// userId and start time
@@ -143,7 +148,7 @@ public class VoiceListener extends ListenerAdapter {
 			.reason(member.getUser().getEffectiveName()+" private channel")
 			.setUserlimit(channelLimit)
 			.syncPermissionOverrides()
-			.addPermissionOverride(member, EnumSet.of(Permission.MANAGE_CHANNEL, Permission.VOICE_SET_STATUS, Permission.VOICE_MOVE_OTHERS), null)
+			.addPermissionOverride(member, ownerPerms, null)
 			.queue(
 				channel -> {
 					db.voice.add(userId, channel.getIdLong());
