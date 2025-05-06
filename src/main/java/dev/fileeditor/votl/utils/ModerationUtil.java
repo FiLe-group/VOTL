@@ -157,7 +157,7 @@ public class ModerationUtil {
 				.addField(lu.getLocalized(locale, "logger.user"), "%s (%s)".formatted(target.getName(), target.getAsMention()), true)
 				.addField(lu.getLocalized(locale, "logger.reason"), reason, true)
 				.addField(lu.getLocalized(locale, "logger.moderation.mod"), "%s (%s)".formatted(mod.getName(), mod.getAsMention()), false)
-				.setTimestamp(Instant.now())
+				.setTimestamp(LocalDateTime.now())
 				.setFooter("#"+caseLocalId);
 			this.locale = locale;
 		}
