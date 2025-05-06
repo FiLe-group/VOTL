@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.other;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -12,8 +13,8 @@ import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
+import dev.fileeditor.votl.utils.message.MessageUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -49,7 +50,7 @@ public class HelpCmd extends CommandBase {
 		event.deferReply(event.isFromGuild() && !event.optBoolean("show", false)).queue();
 
 		String findCmd = event.optString("command");
-				
+
 		if (findCmd != null) {
 			sendCommandHelp(event, findCmd.split(" ")[0].toLowerCase());
 		} else {
@@ -72,40 +73,59 @@ public class HelpCmd extends CommandBase {
 		if (command == null) {
 			editError(event, "bot.help.command_info.no_command", "Requested: "+findCmd);
 		} else {
-			MessageEmbed embed = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
-				.setTitle(lu.getLocalized(userLocale, "bot.help.command_info.title").replace("{command}", command.getName()))
+			EmbedBuilder builder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
+				.setTitle(lu.getLocalized(userLocale, "bot.help.command_info.title").formatted(command.getName()))
 				.setDescription(lu.getLocalized(userLocale, "bot.help.command_info.value")
-					.replace("{category}", Optional.ofNullable(command.getCategory())
-						.map(cat -> lu.getLocalized(userLocale, "bot.help.command_menu.categories."+cat.name())).orElse(Constants.NONE))
-					.replace("{owner}", command.isOwnerCommand() ? Emote.CHECK_C.getEmote() : Emote.CROSS_C.getEmote())
-					.replace("{guild}", command.isGuildOnly() ? Emote.CROSS_C.getEmote() : Emote.CHECK_C.getEmote())
-					.replace("{module}", Optional.ofNullable(command.getModule()).map(mod -> lu.getLocalized(userLocale, mod.getPath())).orElse(Constants.NONE)))
+					.formatted(
+						Optional.ofNullable(command.getCategory())
+							.map(cat -> lu.getLocalized(userLocale, "bot.help.command_menu.categories."+cat.name()))
+							.orElse(Constants.NONE),
+						MessageUtil.capitalize(command.getAccessLevel().getName()),
+						command.isGuildOnly() ? Emote.CROSS_C.getEmote() : Emote.CHECK_C.getEmote(),
+						Optional.ofNullable(command.getModule())
+							.map(mod -> lu.getLocalized(userLocale, mod.getPath()))
+							.orElse(Constants.NONE)
+					)
+				)
 				.addField(lu.getLocalized(userLocale, "bot.help.command_info.help_title"), lu.getLocalized(userLocale, command.getHelpPath()), false)
-				.addField(lu.getLocalized(userLocale, "bot.help.command_info.usage_title"), getUsageText(userLocale, command), false)
-				.setFooter(lu.getLocalized(userLocale, "bot.help.command_info.usage_subvalue"))
-				.build();
-			
-			editEmbed(event, embed);
+				.setFooter(lu.getLocalized(userLocale, "bot.help.command_info.usage_subvalue"));
+
+			List<String> v = getUsageText(userLocale, command);
+			builder.addField(lu.getLocalized(userLocale, "bot.help.command_info.usage_title"), v.getFirst(), false);
+			for (int i = 1; i < v.size(); i++) {
+				builder.addField("", v.get(i), false);
+			}
+			editEmbed(event, builder.build());
 		}
-		
 	}
 
-	private String getUsageText(DiscordLocale locale, SlashCommand command) {
+	private List<String> getUsageText(DiscordLocale locale, SlashCommand command) {
+		List<String> values = new ArrayList<>();
 		StringBuilder builder = new StringBuilder();
 		if (command.getChildren().length > 0) {
 			String base = command.getName();
 			for (SlashCommand child : command.getChildren()) {
-				builder.append(
-					lu.getLocalized(locale, "bot.help.command_info.usage_child")
-						.replace("{base}", base)
-						.replace("{usage}", lu.getLocalized(locale, child.getUsagePath()))
-						.replace("{help}", lu.getLocalized(locale, child.getHelpPath()))
-					).append("\n");
+				String text = lu.getLocalized(locale, "bot.help.command_info.usage_child")
+					.formatted(
+						base,
+						lu.getLocalized(locale, child.getUsagePath()),
+						lu.getLocalized(locale, child.getHelpPath())
+					);
+				if (builder.length() + text.length() > 1020) {
+					values.add(builder.toString());
+					builder = new StringBuilder(text);
+				} else {
+					builder.append(text);
+				}
+				builder.append("\n");
 			}
 		} else {
-			builder.append(lu.getLocalized(locale, "bot.help.command_info.usage_value").replace("{usage}", lu.getLocalized(locale, command.getUsagePath()))).append("\n");
+			builder.append(lu.getLocalized(locale, "bot.help.command_info.usage_value")
+				.formatted(lu.getLocalized(locale, command.getUsagePath()))
+			).append("\n");
 		}
-		return builder.substring(0, Math.min(1024, builder.length()));
+		values.add(builder.toString());
+		return values;
 	}
 
 	private void sendHelp(SlashCommandEvent event, String filCat) {
@@ -118,8 +138,8 @@ public class HelpCmd extends CommandBase {
 		String fieldTitle = "";
 		StringBuilder fieldValue = new StringBuilder();
 		List<SlashCommand> commands = (
-			filCat == null ? 
-			event.getClient().getSlashCommands() :
+			filCat == null ?
+				event.getClient().getSlashCommands() :
 				event.getClient().getSlashCommands().stream().filter(cmd -> {
 					if (cmd.getCategory() == null) return false;
 					return cmd.getCategory().name().contentEquals(filCat);
@@ -144,13 +164,14 @@ public class HelpCmd extends CommandBase {
 		}
 
 		User owner = event.getJDA().getUserById(event.getClient().getOwnerIdLong());
+
 		if (owner != null) {
 			fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.description.support_title");
 			fieldValue = new StringBuilder()
-				.append(lu.getLocalized(userLocale, "bot.help.command_menu.description.support_value").replace("{owner_name}", "@"+owner.getName()));
+				.append(lu.getLocalized(userLocale, "bot.help.command_menu.description.support_value").formatted("@"+owner.getName()));
 			builder.addField(fieldTitle, fieldValue.toString(), false);
 		}
-		
+
 		editEmbed(event, builder.build());
 	}
 }

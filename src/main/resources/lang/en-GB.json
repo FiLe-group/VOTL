@@ -1662,6 +1662,17 @@
 					"title": "Group's `%d` blacklist (Page %d of %d)",
 					"value": "Server: `%s`\nModerator: %s\nReason: `%s`"
 				},
+				"search": {
+					"help": "Search blacklist for user",
+					"usage": "search <Group> <User>",
+					"user": {
+						"name": "user",
+						"help": "Select user or enter ID"
+					},
+					"cant_view": "Can't view selected group. (Not group's owner or manager)",
+					"not_found": "**User not found.**\nInput: %s",
+					"value": "User: %s\nServer: `%s`\nModerator: %s\nReason: `%s`"
+				},
 				"remove": {
 					"help": "Remove user from blacklist",
 					"usage": "remove <Group> <User ID>",
@@ -1816,12 +1827,12 @@
 			"command_info": {
 				"docs": "Docs",
 				"no_command": "The provided command doesn't exist!\nMake sure you typed it correctly.",
-				"title": "Command help: {command}",
-				"value": "Category: **{category}**\nOwner command: {owner}\nCan be used in DMs: {guild}\nModule: **{module}**",
+				"title": "Command help: %s",
+				"value": "Category: **%s**\nRequired access: **%s**\nCan be used in DMs: %s\nModule: **%s**",
 				"help_title": "Description",
 				"usage_title": "Usage options",
-				"usage_value": "```/{usage}```",
-				"usage_child": "```/{base} {usage}```└ {help}",
+				"usage_value": "```/%s```",
+				"usage_child": "```/%s %s```└ %s",
 				"usage_subvalue": "[] ─ Optional\n<> ─ Required\nA | B ─ Selection"
 			},
 			"command_menu": {
@@ -1843,7 +1854,7 @@
 				"description": {
 					"command_value": "To get more info about a specific command run `/help command:[command]`.\nYou can also run `/help category:[category]` to show the commands of a specific category.",
 					"support_title": "*Additional help*",
-					"support_value": "If you need help with the bot, contact the owner `{owner_name}`."
+					"support_value": "If you need help with the bot, contact the owner `%s`."
 				}
 			}
 		},
