@@ -229,20 +229,20 @@ public class StrikeCmd extends CommandBase {
 				});
 
 				guild.kick(target).reason(reason).queueAfter(3, TimeUnit.SECONDS, done -> {
-						// add case to DB
-						try {
-							CaseData caseData = bot.getDBUtil().cases.add(
-								CaseType.KICK, target.getIdLong(), target.getUser().getName(),
-								0, "Autopunish",
-								guild.getIdLong(), reason, null
-							);
-							// log case
-							bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
-								bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
-							});
-						} catch (SQLException ignored) {}
-					}, failure ->
-						bot.getAppLogger().error("Strike punishment execution, Kick member", failure)
+					// add case to DB
+					try {
+						CaseData caseData = bot.getDBUtil().cases.add(
+							CaseType.KICK, target.getIdLong(), target.getUser().getName(),
+							0, "Autopunish",
+							guild.getIdLong(), reason, null
+						);
+						// log case
+						bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+							bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
+						});
+					} catch (SQLException ignored) {}
+				}, failure ->
+					bot.getAppLogger().error("Strike punishment execution, Kick member", failure)
 				);
 				builder.append(lu.getLocalized(locale, PunishAction.KICK.getPath()))
 					.append("\n");
@@ -265,20 +265,20 @@ public class StrikeCmd extends CommandBase {
 					});
 
 					guild.ban(target, 0, TimeUnit.SECONDS).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
-							// add case to DB
-							try {
-								CaseData caseData = bot.getDBUtil().cases.add(
-									CaseType.BAN, target.getIdLong(), target.getUser().getName(),
-									0, "Autopunish",
-									guild.getIdLong(), reason, duration
-								);
-								// log case
-								bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
-									bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
-								});
-							} catch (SQLException ignored) {}
-						}, failure ->
-							bot.getAppLogger().error("Strike punishment execution, Ban member", failure)
+						// add case to DB
+						try {
+							CaseData caseData = bot.getDBUtil().cases.add(
+								CaseType.BAN, target.getIdLong(), target.getUser().getName(),
+								0, "Autopunish",
+								guild.getIdLong(), reason, duration
+							);
+							// log case
+							bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+								bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
+							});
+						} catch (SQLException ignored) {}
+					}, failure ->
+						bot.getAppLogger().error("Strike punishment execution, Ban member", failure)
 					);
 					builder.append(lu.getLocalized(locale, PunishAction.BAN.getPath()))
 						.append(" ").append(lu.getLocalized(locale, path + ".for")).append(" ")
@@ -336,14 +336,14 @@ public class StrikeCmd extends CommandBase {
 				if (role != null && guild.getSelfMember().canInteract(role)) {
 					// Apply action, result will be in logs
 					guild.addRoleToMember(target, role).reason(reason).queueAfter(5, TimeUnit.SECONDS, done -> {
-							// Add temp
-							try {
-								bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, target.getIdLong(), false, Instant.now().plus(duration));
-								// log action
-								bot.getLogger().role.onTempRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), roleId, duration, false);
-							} catch (SQLException ignored) {}
-						}, failure ->
-							bot.getAppLogger().error("Strike punishment execution, Add temp role", failure)
+						// Add temp
+						try {
+							bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, target.getIdLong(), false, Instant.now().plus(duration));
+							// log action
+							bot.getLogger().role.onTempRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), roleId, duration, false);
+						} catch (SQLException ignored) {}
+					}, failure ->
+						bot.getAppLogger().error("Strike punishment execution, Add temp role", failure)
 					);
 					builder.append(lu.getLocalized(locale, PunishAction.TEMP_ROLE.getPath()))
 						.append(" ").append(role.getName())
@@ -367,20 +367,20 @@ public class StrikeCmd extends CommandBase {
 					});
 
 					guild.timeoutFor(target, duration).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
-							try {
-								// add case to DB
-								CaseData caseData = bot.getDBUtil().cases.add(
-									CaseType.MUTE, target.getIdLong(), target.getUser().getName(),
-									0, "Autopunish",
-									guild.getIdLong(), reason, duration
-								);
-								// log case
-								bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
-									bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
-								});
-							} catch (SQLException ignored) {}
-						}, failure ->
-							bot.getAppLogger().error("Strike punishment execution, Mute member", failure)
+						try {
+							// add case to DB
+							CaseData caseData = bot.getDBUtil().cases.add(
+								CaseType.MUTE, target.getIdLong(), target.getUser().getName(),
+								0, "Autopunish",
+								guild.getIdLong(), reason, duration
+							);
+							// log case
+							bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+								bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
+							});
+						} catch (SQLException ignored) {}
+					}, failure ->
+						bot.getAppLogger().error("Strike punishment execution, Mute member", failure)
 					);
 					builder.append(lu.getLocalized(locale, PunishAction.MUTE.getPath()))
 						.append(" ").append(lu.getLocalized(locale, path + ".for")).append(" ")
