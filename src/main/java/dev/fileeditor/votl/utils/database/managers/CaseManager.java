@@ -11,10 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Logger;
@@ -193,11 +190,13 @@ public class CaseManager extends LiteBase {
 
 	public static class CaseData {
 		private final int rowId, localId;
+		@NotNull
 		private final CaseType type;
-		private final long guildId, targetId;
-		private final Long modId;
+		private final long guildId, targetId, modId;
 		private final String targetTag, modTag, reason, logUrl;
+		@NotNull
 		private final LocalDateTime timeStart;
+		@NotNull
 		private final Duration duration;
 		private final boolean active;
 
@@ -205,9 +204,9 @@ public class CaseManager extends LiteBase {
 			int rowId, int localId,
 			@NotNull CaseType type, long guildId,
 			long targetId, String targetTag,
-			Long modId, String modTag,
-			String reason,
-			LocalDateTime timeStart, Duration duration,
+			long modId, String modTag,
+			@Nullable String reason,
+			@NotNull LocalDateTime timeStart, Duration duration,
 			boolean active, String logUrl
 		) {
 			this.rowId = rowId;
@@ -220,7 +219,7 @@ public class CaseManager extends LiteBase {
 			this.modTag = modTag;
 			this.reason = reason;
 			this.timeStart = timeStart;
-			this.duration = duration;
+			this.duration = Optional.ofNullable(duration).orElse(Duration.ofSeconds(-1));
 			this.active = active;
 			this.logUrl = logUrl;
 		}
@@ -236,7 +235,7 @@ public class CaseManager extends LiteBase {
 			this.modTag = getOrDefault(map.get("modTag"), null);
 			this.reason = getOrDefault(map.get("reason"), null);
 			this.timeStart = LocalDateTime.ofEpochSecond(getOrDefault(map.get("timeStart"), 0L), 0, ZoneOffset.UTC);
-			this.duration = Duration.ofSeconds(getOrDefault(map.get("duration"), 0L));
+			this.duration = Duration.ofSeconds(getOrDefault(map.get("duration"), -1L));
 			this.active = ((Integer) requireNonNull(map.get("active"))) == 1;
 			this.logUrl = getOrDefault(map.get("logUrl"), null);
 		}
@@ -294,7 +293,11 @@ public class CaseManager extends LiteBase {
 			return duration.isZero() ? null : timeStart.plus(duration);
 		}
 
-		@Nullable
+		/**
+		 * @return Not-null duration, where negative - "not expirable type",
+		 * 0 duration - permanent action, and positive - expirable action.
+		 */
+		@NotNull
 		public Duration getDuration() {
 			return duration;
 		}
