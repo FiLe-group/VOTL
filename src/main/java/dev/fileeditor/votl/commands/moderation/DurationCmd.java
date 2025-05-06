@@ -61,6 +61,10 @@ public class DurationCmd extends CommandBase {
 				editErrorOther(event, "Duration must be larger than 1 minute.");
 				return;
 			}
+			if (newDuration.toDaysPart() > 28) {
+				editErrorOther(event, "Maximum mute duration: 28 days.");
+				return;
+			}
 			event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(target -> {
 				if (caseData.getTimeStart().plus(newDuration).isAfter(LocalDateTime.now())) {
 					// time out member for new time

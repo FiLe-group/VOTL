@@ -342,6 +342,7 @@ public class InteractionListener extends ListenerAdapter {
 			if (role == null) continue;
 			options.add(SelectOption.of(role.getName(), role.getId()).withDescription(data.getDescription(null)));
 		}
+		if (options.isEmpty()) return null;
 		StringSelectMenu menu = StringSelectMenu.create("menu:role_row:"+row)
 			.setPlaceholder(db.getTicketSettings(guild).getRowText(row))
 			.setMaxValues(25)
