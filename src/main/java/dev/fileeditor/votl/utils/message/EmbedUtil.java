@@ -1,7 +1,5 @@
 package dev.fileeditor.votl.utils.message;
 
-import java.time.ZonedDateTime;
-
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
@@ -29,7 +27,7 @@ public class EmbedUtil {
 
 	@NotNull
 	public EmbedBuilder getEmbed(int color) {
-		return new EmbedBuilder().setColor(color).setTimestamp(ZonedDateTime.now());
+		return new EmbedBuilder().setColor(color);
 	}
 
 	@NotNull
