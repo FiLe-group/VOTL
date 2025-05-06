@@ -114,12 +114,15 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	private void handleVoiceCreate(Guild guild, Member member) {
-		long userId = member.getIdLong();
-		DiscordLocale guildLocale = guild.getLocale();
+		if (!member.getVoiceState().inAudioChannel()) return;
+		final long userId = member.getIdLong();
+		final DiscordLocale guildLocale = guild.getLocale();
 
 		if (db.voice.existsUser(userId)) {
 			member.getUser().openPrivateChannel()
-				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
+				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown"))
+					.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
+				);
 			return;
 		}
 		VoiceSettings voiceSettings = db.getVoiceSettings(guild);
