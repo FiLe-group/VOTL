@@ -6,7 +6,6 @@ import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
@@ -103,16 +102,9 @@ public class EmbedUtil {
 
 	@NotNull
 	public MessageCreateData createPermError(IReplyCallback replyCallback, GuildChannel channel, Permission perm, boolean self) {
-		User user = replyCallback.getUser();
-		if (perm.equals(Permission.MESSAGE_SEND)) {
-			user.openPrivateChannel()
-				.flatMap(ch -> ch.sendMessage(lu.getText(replyCallback, "errors.no_send_perm")))
-				.queue();
-			return MessageCreateData.fromContent("No MESSAGE_SEND perm"); //useless?
-		}
 		MessageCreateBuilder mb = new MessageCreateBuilder();
 
-		if (perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
+		if (self && perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
 			if (channel == null) {
 				mb.setContent(
 					lu.getText(replyCallback, "errors.missing_perms.self")
