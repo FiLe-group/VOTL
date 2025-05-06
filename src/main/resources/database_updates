@@ -16,4 +16,3 @@ ALTER TABLE "logWebhooks" ADD "level" TEXT; CREATE TABLE "levelSettings" ("guild
 ALTER TABLE "logWebhooks" ADD "bot" TEXT;
 CREATE TABLE "autopunish_new" ("guildId" INTEGER NOT NULL, "strike" INTEGER NOT NULL, "actions" INTEGER NOT NULL, "data" TEXT, UNIQUE("guildId","strike")); INSERT INTO "autopunish_new"("guildId", "strike", "actions", "data") SELECT "guildId", "strike", "actions", "data" FROM "autopunish"; DROP TABLE "autopunish"; ALTER TABLE "autopunish_new" RENAME TO "autopunish";
 ALTER TABLE "guild" ADD "drama" INTEGER DEFAULT 0; ALTER TABLE "guild" ADD "dramaChannel" INTEGER;
-CREATE TABLE "connectedRoles" ("roleId" INTEGER NOT NULL UNIQUE, "mainRoleId" INTEGER NOT NULL, "guildId" INTEGER NOT NULL, "mainGuildId" INTEGER NOT NULL)
