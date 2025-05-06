@@ -30,7 +30,7 @@ import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 public class GroupCmd extends CommandBase {
 	
-	private static EventWaiter waiter;
+	private final EventWaiter waiter;
 
 	public GroupCmd(EventWaiter waiter) {
 		this.name = "group";
@@ -42,7 +42,7 @@ public class GroupCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.OPERATOR;
-		GroupCmd.waiter = waiter;
+		this.waiter = waiter;
 	}
 
 	@Override

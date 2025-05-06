@@ -11,6 +11,7 @@ import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.TicketPanelManager.Panel;
@@ -46,6 +47,7 @@ public class TicketCmd extends CommandBase {
 		};
 		this.category = CmdCategory.TICKETING;
 		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.module = CmdModule.TICKETING;
 	}
 
 	@Override

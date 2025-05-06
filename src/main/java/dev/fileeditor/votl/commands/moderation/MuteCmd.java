@@ -72,6 +72,10 @@ public class MuteCmd extends CommandBase {
 			editError(event, path+".abort", "Duration must larger than 1 minute");
 			return;
 		}
+		if (duration.toDaysPart() > 28) {
+			editError(event, path+".abort", "Maximum mute duration: 28 days");
+			return;
+		}
 
 		// Get proof
 		final CaseProofUtil.ProofData proofData;
