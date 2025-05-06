@@ -87,8 +87,10 @@ public class TicketCmd extends CommandBase {
 				return;
 			}
 
-			int panelId = bot.getDBUtil().ticketPanels.createPanel(event.getGuild().getIdLong(), title, description, image, footer);
-			if (panelId == 0) {
+			final int panelId;
+			try {
+				panelId = bot.getDBUtil().ticketPanels.createPanel(event.getGuild().getIdLong(), title, description, image, footer);
+			} catch (SQLException e) {
 				editErrorOther(event, "Panel creation failed.");
 				return;
 			}
@@ -333,8 +335,10 @@ public class TicketCmd extends CommandBase {
 				supportRoleIds = supportRoles.stream().map(Role::getId).collect(Collectors.joining(";"));
 			}
 
-			int tagId = bot.getDBUtil().ticketTags.createTag(guildId, panelId, type, buttonName, emoji, categoryId, message, supportRoleIds, ticketName, buttonStyle.getKey());
-			if (tagId == 0) {
+			final int tagId;
+			try {
+				tagId = bot.getDBUtil().ticketTags.createTag(guildId, panelId, type, buttonName, emoji, categoryId, message, supportRoleIds, ticketName, buttonStyle.getKey());
+			} catch (SQLException e) {
 				editErrorOther(event, "Tag creation failed.");
 				return;
 			}

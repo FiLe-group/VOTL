@@ -30,7 +30,7 @@ public class TicketTagManager extends LiteBase {
 		super(cu, "ticketTag");
 	}
 
-	public int createTag(long guildId, int panelId, int tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, int buttonStyle) {
+	public int createTag(long guildId, int panelId, int tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, int buttonStyle) throws SQLException {
 		List<String> keys = new ArrayList<>(10);
 		List<String> values = new ArrayList<>(10);
 		keys.addAll(List.of("guildId", "panelId", "tagType", "buttonText", "ticketName", "buttonStyle"));

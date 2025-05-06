@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.utils;
 
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -90,7 +90,7 @@ public class ModerationUtil {
 	}
 
 	@NotNull
-	public MessageEmbed getReasonUpdateEmbed(DiscordLocale locale, Guild guild, Instant timestamp, CaseType caseType, String oldReason, String newReason) {
+	public MessageEmbed getReasonUpdateEmbed(DiscordLocale locale, Guild guild, LocalDateTime timestamp, CaseType caseType, String oldReason, String newReason) {
 		if (oldReason == null) oldReason = "-";
 		if (caseType.equals(CaseType.MUTE)) {
 			// if is mute
@@ -107,7 +107,7 @@ public class ModerationUtil {
 		}
 	}
 
-	private String formatText(String text, Guild guild, String reason, Duration duration, User mod) {
+	private String formatText(final String text, Guild guild, String reason, Duration duration, User mod) {
 		String newText = (duration == null) ? text : text.replace("{time}", TimeUtil.durationToLocalizedString(lu, guild.getLocale(), duration));
 		StringBuilder builder = new StringBuilder(newText.replace("{guild}", guild.getName()));
 		if (reason != null) builder.append(" | ").append(reason);
@@ -125,7 +125,7 @@ public class ModerationUtil {
 	public MessageEmbed actionEmbed(DiscordLocale locale, int localCaseId, String actionPath, User target, User mod, String reason, Duration duration, String logUrl) {
 		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
 			.setDescription(lu.getLocalized(locale, actionPath)
-				.formatted(TimeUtil.formatDuration(lu, locale, Instant.now(), duration)))
+				.formatted(TimeUtil.formatDuration(lu, locale, LocalDateTime.now(), duration)))
 			.addLink(logUrl)
 			.build();
 	}

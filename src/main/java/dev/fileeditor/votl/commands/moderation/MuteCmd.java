@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.sql.SQLException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -137,7 +136,7 @@ public class MuteCmd extends CommandBase {
 					newMuteData = bot.getDBUtil().cases.add(
 						CaseType.MUTE, tm.getIdLong(), tm.getUser().getName(),
 						mod.getIdLong(), mod.getUser().getName(),
-						guild.getIdLong(), reason, Instant.now(), duration
+						guild.getIdLong(), reason, duration
 					);
 				} catch (Exception ex) {
 					editErrorDatabase(event, ex, "Failed to create new case.");

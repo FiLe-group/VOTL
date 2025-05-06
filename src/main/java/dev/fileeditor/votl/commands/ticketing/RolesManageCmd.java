@@ -331,9 +331,7 @@ public class RolesManageCmd extends CommandBase {
 			roles.forEach(data -> {
 				final Role role = guild.getRoleById(data.getIdLong());
 				if (role == null) {
-					try {
-						bot.getDBUtil().roles.remove(data.getIdLong());
-					} catch (SQLException ignored) {}
+					ignoreExc(() -> bot.getDBUtil().roles.remove(data.getIdLong()));
 					return;
 				}
 				buffer.append(String.format("%s%s `%s` | %s\n",

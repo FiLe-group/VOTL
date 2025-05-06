@@ -3,7 +3,7 @@ package dev.fileeditor.votl.commands.strike;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -78,11 +78,11 @@ public class StrikeCmd extends CommandBase {
 		Guild guild = Objects.requireNonNull(event.getGuild());
 		int strikeCooldown = bot.getDBUtil().getGuildSettings(guild).getStrikeCooldown();
 		if (strikeCooldown > 0) {
-			Instant lastAddition = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), tm.getIdLong());
-			if (lastAddition != null && lastAddition.isAfter(Instant.now().minus(strikeCooldown, ChronoUnit.MINUTES))) {
+			LocalDateTime lastAddition = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), tm.getIdLong());
+			if (lastAddition != null && lastAddition.isAfter(LocalDateTime.now().minusMinutes(strikeCooldown))) {
 				// Cooldown active
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
-					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.format(lastAddition.plus(strikeCooldown, ChronoUnit.MINUTES))))
+					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.format(lastAddition.plusMinutes(strikeCooldown))))
 					.build()
 				);
 				return;
@@ -116,7 +116,7 @@ public class StrikeCmd extends CommandBase {
 			caseData = bot.getDBUtil().cases.add(
 				type, tm.getIdLong(), tm.getUser().getName(),
 				mod.getIdLong(), mod.getUser().getName(),
-				guild.getIdLong(), reason, Instant.now(), null
+				guild.getIdLong(), reason, null
 			);
 		} catch (Exception ex) {
 			editErrorDatabase(event, ex, "Failed to create new case.");
@@ -147,7 +147,7 @@ public class StrikeCmd extends CommandBase {
 		// Add strike(-s) to DB
 		try {
 			bot.getDBUtil().strikes.addStrikes(guild.getIdLong(), target.getIdLong(),
-				Instant.now().plus(bot.getDBUtil().getGuildSettings(guild).getStrikeExpires(), ChronoUnit.DAYS),
+				LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guild).getStrikeExpires()),
 				addAmount, caseRowId+"-"+addAmount);
 		} catch (SQLException ex) {
 			throw new Exception("Case was created, but strike information was not added to the database (internal error)!");
@@ -199,7 +199,7 @@ public class StrikeCmd extends CommandBase {
 						caseData = bot.getDBUtil().cases.add(
 							CaseType.KICK, target.getIdLong(), target.getUser().getName(),
 							0, "Autopunish",
-							guild.getIdLong(), reason, Instant.now(), null
+							guild.getIdLong(), reason, null
 						);
 					} catch (Exception ignored) {
 						return;
@@ -239,7 +239,7 @@ public class StrikeCmd extends CommandBase {
 								caseData = bot.getDBUtil().cases.add(
 									CaseType.BAN, target.getIdLong(), target.getUser().getName(),
 									0, "Autopunish",
-									guild.getIdLong(), reason, Instant.now(), durationCopy
+									guild.getIdLong(), reason, durationCopy
 								);
 							} catch (Exception ignored) {
 								return;
@@ -350,7 +350,7 @@ public class StrikeCmd extends CommandBase {
 						caseData = bot.getDBUtil().cases.add(
 							CaseType.MUTE, target.getIdLong(), target.getUser().getName(),
 							0, "Autopunish",
-							guild.getIdLong(), reason, Instant.now(), durationCopy
+							guild.getIdLong(), reason, durationCopy
 						);
 					} catch (Exception ignored) {
 						return;

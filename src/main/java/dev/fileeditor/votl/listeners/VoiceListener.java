@@ -1,6 +1,5 @@
 package dev.fileeditor.votl.listeners;
 
-import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -99,9 +98,7 @@ public class VoiceListener extends ListenerAdapter {
 		AudioChannelUnion channelLeft = event.getChannelLeft();
 		if (channelLeft != null && db.voice.existsChannel(channelLeft.getIdLong()) && channelLeft.getMembers().isEmpty()) {
 			channelLeft.delete().reason("Custom channel, empty").queueAfter(500, TimeUnit.MILLISECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
-			try {
-				db.voice.remove(channelLeft.getIdLong());
-			} catch (SQLException ignored) {}
+			db.voice.remove(channelLeft.getIdLong());
 		}
 
 		// start reward counting
@@ -146,9 +143,7 @@ public class VoiceListener extends ListenerAdapter {
 			.addPermissionOverride(member, EnumSet.of(Permission.MANAGE_CHANNEL, Permission.VOICE_SET_STATUS, Permission.VOICE_MOVE_OTHERS), null)
 			.queue(
 				channel -> {
-					try {
-						db.voice.add(userId, channel.getIdLong());
-					} catch (SQLException ignored) {}
+					db.voice.add(userId, channel.getIdLong());
 					guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS, null, new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED));
 				},
 				failure -> {
@@ -205,9 +200,7 @@ public class VoiceListener extends ListenerAdapter {
 		if (timeJoined != null) {
 			long duration = Math.round((System.currentTimeMillis()-timeJoined)/1000f); // to seconds
 			if (duration > 0) {
-				try {
-					bot.getDBUtil().levels.addVoiceTime(player, duration);
-				} catch (SQLException ignored) {}
+				bot.getDBUtil().levels.addVoiceTime(player, duration);
 			}
 		}
 		cache.invalidate(player);

@@ -1,7 +1,5 @@
 package dev.fileeditor.votl.commands.moderation;
 
-import java.sql.SQLException;
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -52,12 +50,7 @@ public class UnmuteCmd extends CommandBase {
 		
 		CaseData muteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 		if (muteData != null) {
-			try {
-				bot.getDBUtil().cases.setInactive(muteData.getRowId());
-			} catch (SQLException ex) {
-				editErrorDatabase(event, ex, "set mute case inactive");
-				return;
-			}
+			ignoreExc(() -> bot.getDBUtil().cases.setInactive(muteData.getRowId()));
 		}
 
 		if (tm.isTimedOut()) {
@@ -69,7 +62,7 @@ public class UnmuteCmd extends CommandBase {
 					unmuteData = bot.getDBUtil().cases.add(
 						CaseType.UNMUTE, tm.getIdLong(), tm.getUser().getName(),
 						mod.getIdLong(), mod.getUser().getName(),
-						guild.getIdLong(), reason, Instant.now(), null
+						guild.getIdLong(), reason, null
 					);
 				} catch (Exception ex) {
 					editErrorDatabase(event, ex, "Failed to create new case.");

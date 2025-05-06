@@ -85,8 +85,10 @@ public class GroupCmd extends CommandBase {
 				}
 			}
 
-			int groupId = bot.getDBUtil().group.create(guildId, groupName, appealGuildId);
-			if (groupId == 0) {
+			final int groupId;
+			try {
+				groupId = bot.getDBUtil().group.create(guildId, groupName, appealGuildId);
+			} catch (SQLException e) {
 				editErrorOther(event, "Failed to create new group.");
 				return;
 			}
@@ -128,11 +130,12 @@ public class GroupCmd extends CommandBase {
 
 			try {
 				bot.getDBUtil().group.deleteGroup(groupId);
+				bot.getLogger().group.onDeletion(event, groupId, groupName);
+				bot.getDBUtil().group.clearGroup(groupId);
 			} catch (SQLException ex) {
 				editErrorDatabase(event, ex, "delete group");
 				return;
 			}
-			bot.getLogger().group.onDeletion(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(groupName, groupId))

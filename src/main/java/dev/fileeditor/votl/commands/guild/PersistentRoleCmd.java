@@ -126,9 +126,7 @@ public class PersistentRoleCmd extends CommandBase {
 			for (Long roleId : roleIds) {
 				Role role = event.getGuild().getRoleById(roleId);
 				if (role == null) {
-					try {
-						bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), roleId);
-					} catch (SQLException ignored) {}
+					ignoreExc(() -> bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), roleId));
 					continue;
 				}
 				sb.append(role.getAsMention()).append("\n");

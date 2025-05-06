@@ -96,7 +96,7 @@ public class GameStrikeCmd extends CommandBase {
 			strikeData = bot.getDBUtil().cases.add(
 				CaseType.GAME_STRIKE, tm.getIdLong(), tm.getUser().getName(),
 				event.getUser().getIdLong(), event.getUser().getName(),
-				guildId, reason, Instant.now(), null
+				guildId, reason, null
 			);
 			bot.getDBUtil().games.addStrike(guildId, channelId, tm.getIdLong());
 		} catch (Exception ex) {

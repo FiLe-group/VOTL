@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.sql.SQLException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -110,7 +109,7 @@ public class BanCmd extends CommandBase {
 						newBanData = bot.getDBUtil().cases.add(
 							CaseType.BAN, tu.getIdLong(), tu.getName(),
 							mod.getIdLong(), mod.getUser().getName(),
-							guild.getIdLong(), reason, Instant.now(), duration
+							guild.getIdLong(), reason, duration
 						);
 					} catch (Exception ex) {
 						editErrorDatabase(event, ex, "Failed to create new case.");
@@ -147,7 +146,7 @@ public class BanCmd extends CommandBase {
 					newBanData = bot.getDBUtil().cases.add(
 						CaseType.BAN, tu.getIdLong(), tu.getName(),
 						mod.getIdLong(), mod.getUser().getName(),
-						guild.getIdLong(), reason, Instant.now(), Duration.ZERO
+						guild.getIdLong(), reason, Duration.ZERO
 					);
 				} catch (Exception ex) {
 					editErrorDatabase(event, ex, "Failed to create new case.");
@@ -210,9 +209,7 @@ public class BanCmd extends CommandBase {
 				// fail-safe check if user has temporal ban (to prevent auto unban)
 				CaseData oldBanData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 				if (oldBanData != null) {
-					try {
-						bot.getDBUtil().cases.setInactive(oldBanData.getRowId());
-					} catch (SQLException ignored) {}
+					ignoreExc(() -> bot.getDBUtil().cases.setInactive(oldBanData.getRowId()));
 				}
 				// add info to db
 				CaseData newBanData;
@@ -220,7 +217,7 @@ public class BanCmd extends CommandBase {
 					newBanData = bot.getDBUtil().cases.add(
 						CaseType.BAN, tu.getIdLong(), tu.getName(),
 						mod.getIdLong(), mod.getUser().getName(),
-						guild.getIdLong(), reason, Instant.now(), duration
+						guild.getIdLong(), reason, duration
 					);
 				} catch (Exception ex) {
 					editErrorDatabase(event, ex, "Failed to create new case.");

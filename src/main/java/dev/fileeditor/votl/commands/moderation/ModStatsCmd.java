@@ -2,11 +2,9 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -90,7 +88,7 @@ public class ModStatsCmd extends CommandBase {
 			.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())
 			.setTitle(intervalText)
 			.setFooter("ID: "+mod.getId())
-			.setTimestamp(Instant.now());
+			.setTimestamp(LocalDateTime.now());
 
 		String builder = "```\n" +
 			buildLine(lu.getText(event, path + ".strikes"), countStrikes(countCases)) +
@@ -118,13 +116,13 @@ public class ModStatsCmd extends CommandBase {
 			return;
 		}
 
-		Instant now = Instant.now();
+		LocalDateTime now = LocalDateTime.now();
 
-		Map<Integer, Integer> count30 = bot.getDBUtil().cases.countCasesByMod(guildId, modId, now.minus(30, ChronoUnit.DAYS));
-		final int roles30 = bot.getDBUtil().tickets.countTicketsByMod(guildId, modId, now.minus(30, ChronoUnit.DAYS), true);
+		Map<Integer, Integer> count30 = bot.getDBUtil().cases.countCasesByMod(guildId, modId, now.minusDays(30));
+		final int roles30 = bot.getDBUtil().tickets.countTicketsByMod(guildId, modId, now.minusDays(30), true);
 
-		Map<Integer, Integer> count7 = bot.getDBUtil().cases.countCasesByMod(guildId, modId, now.minus(7, ChronoUnit.DAYS));
-		final int roles7 = bot.getDBUtil().tickets.countTicketsByMod(guildId, modId, now.minus(7, ChronoUnit.DAYS), true);
+		Map<Integer, Integer> count7 = bot.getDBUtil().cases.countCasesByMod(guildId, modId, now.minusDays(7));
+		final int roles7 = bot.getDBUtil().tickets.countTicketsByMod(guildId, modId, now.minusDays(7), true);
 
 		if (event.optBoolean("as_text", false)) {
 			// As text
@@ -159,7 +157,7 @@ public class ModStatsCmd extends CommandBase {
 			ModStatsRender render = new ModStatsRender(event.getGuildLocale(), mod.getName(),
 				countTotal, count30, count7, rolesTotal, roles30, roles7);
 
-			final String attachmentName = EncodingUtil.encodeModstats(guildId, mod.getIdLong(), now.getEpochSecond());
+			final String attachmentName = EncodingUtil.encodeModstats(guildId, mod.getIdLong(), now.toEpochSecond(ZoneOffset.UTC));
 
 			EmbedBuilder embedBuilder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 				.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())

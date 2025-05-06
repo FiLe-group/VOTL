@@ -76,6 +76,14 @@ public abstract class CommandBase extends SlashCommand {
 	}
 
 
+	protected void ignoreExc(RunnableExc runnable) {
+		try {
+			runnable.run();
+		} catch (SQLException ignored) {}
+	}
+
+	@FunctionalInterface protected interface RunnableExc { void run() throws SQLException; }
+
 	protected static final Consumer<Throwable> ignoreRest = ignored -> {
 		// Nothing to see here
 		// Ignore everything

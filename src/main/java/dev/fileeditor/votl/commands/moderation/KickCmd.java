@@ -1,6 +1,5 @@
 package dev.fileeditor.votl.commands.moderation;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -100,7 +99,7 @@ public class KickCmd extends CommandBase {
 				kickData = bot.getDBUtil().cases.add(
 					CaseType.KICK, tm.getIdLong(), tm.getUser().getName(),
 					mod.getIdLong(), mod.getUser().getName(),
-					guild.getIdLong(), reason, Instant.now(), null
+					guild.getIdLong(), reason, null
 				);
 			} catch (Exception ex) {
 				editErrorDatabase(event, ex, "Failed to create new case.");

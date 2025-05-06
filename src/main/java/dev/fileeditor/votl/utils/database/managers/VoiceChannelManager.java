@@ -17,14 +17,18 @@ public class VoiceChannelManager extends LiteBase {
 		cache.putAll(getDbCache());
 	}
 
-	public void add(long userId, long channelId) throws SQLException {
+	public void add(long userId, long channelId) {
 		cache.put(userId, channelId);
-		execute("INSERT INTO %s(userId, channelId) VALUES (%d, %d) ON CONFLICT(channelId) DO UPDATE SET channelId=%<d".formatted(table, userId, channelId));
+		try {
+			execute("INSERT INTO %s(userId, channelId) VALUES (%d, %d) ON CONFLICT(channelId) DO UPDATE SET channelId=%<d".formatted(table, userId, channelId));
+		} catch (SQLException ignored) {}
 	}
 
-	public void remove(long channelId) throws SQLException {
+	public void remove(long channelId) {
 		Optional.ofNullable(getUser(channelId)).ifPresent(cache::remove);
-		execute("DELETE FROM %s WHERE (channelId=%d)".formatted(table, channelId));
+		try {
+			execute("DELETE FROM %s WHERE (channelId=%d)".formatted(table, channelId));
+		} catch (SQLException ignored) {}
 	}
 
 	public boolean existsUser(long userId) {

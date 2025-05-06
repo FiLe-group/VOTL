@@ -5,6 +5,7 @@ import static dev.fileeditor.votl.utils.message.TimeUtil.formatTime;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -82,7 +83,7 @@ public class LogEmbedUtil {
 			this.builder = new EmbedBuilder().setColor(color).setTimestamp(Instant.now());
 		}
 
-		public LogEmbedBuilder(DiscordLocale locale, Instant timestamp) {
+		public LogEmbedBuilder(DiscordLocale locale, LocalDateTime timestamp) {
 			this.locale = locale;
 			this.builder = new EmbedBuilder().setColor(DEFAULT).setTimestamp(timestamp);
 		}
@@ -412,7 +413,7 @@ public class LogEmbedUtil {
 	public MessageEmbed reasonChangedEmbed(DiscordLocale locale, CaseData caseData, long modId, String newReason) {
 		return new LogEmbedBuilder(locale)
 			.setHeader("moderation.change.reason", caseData.getLocalId(), caseData.getTargetTag())
-			.setDescription("> %s\n\n🔴 ~~%s~~\n🟢 %s".formatted(lu.getLocalized(locale, caseData.getType().getPath()), Optional.ofNullable(caseData.getReason()).orElse("None"), newReason))
+			.setDescription("> %s\n\n🔴 ~~%s~~\n🟢 %s".formatted(lu.getLocalized(locale, caseData.getType().getPath()), caseData.getReason(), newReason))
 			.setUser(caseData.getTargetId())
 			.setMod(modId)
 			.setId(caseData.getTargetId())
@@ -737,7 +738,7 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
-	public MessageEmbed ticketClosedPmEmbed(DiscordLocale locale, GuildChannel channel, Instant timeClosed, User userClosed, String reasonClosed) {
+	public MessageEmbed ticketClosedPmEmbed(DiscordLocale locale, GuildChannel channel, LocalDateTime timeClosed, User userClosed, String reasonClosed) {
 		return new LogEmbedBuilder(locale, WHITE)
 			.setDescription(localized(locale, "ticket.closed_pm")
 				.replace("{guild}", channel.getGuild().getName())

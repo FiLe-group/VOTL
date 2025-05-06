@@ -16,9 +16,11 @@ public class BlacklistManager extends LiteBase {
 		super(cu, "blacklist");
 	}
 
-	public void add(long guildId, int groupId, long userId, @Nullable String reason, long modId) throws SQLException {
-		execute("INSERT INTO %s(guildId, groupId, userId, reason, modId) VALUES (%s, %s, %s, %s, %s)"
-			.formatted(table, guildId, groupId, userId, quote(reason), modId));
+	public void add(long guildId, int groupId, long userId, @Nullable String reason, long modId) {
+		try {
+			execute("INSERT INTO %s(guildId, groupId, userId, reason, modId) VALUES (%s, %s, %s, %s, %s)"
+				.formatted(table, guildId, groupId, userId, quote(reason), modId));
+		} catch (SQLException ignored) {}
 	}
 
 	public boolean inGroupUser(int groupId, long userId) {

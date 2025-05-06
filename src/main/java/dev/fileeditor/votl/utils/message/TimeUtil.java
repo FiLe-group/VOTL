@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.utils.message;
 
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -244,7 +244,7 @@ public class TimeUtil {
 		return formatter.format(time);
 	}
 
-	public static String formatDuration(LocaleUtil lu, DiscordLocale locale, Instant startTime, Duration duration) {
+	public static String formatDuration(LocaleUtil lu, DiscordLocale locale, LocalDateTime startTime, Duration duration) {
 		return duration.isZero() ?
 			lu.getLocalized(locale, "misc.permanently")
 			:

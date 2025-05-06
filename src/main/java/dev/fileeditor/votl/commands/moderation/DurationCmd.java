@@ -2,7 +2,7 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.sql.SQLException;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -62,7 +62,7 @@ public class DurationCmd extends CommandBase {
 				return;
 			}
 			event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(target -> {
-				if (caseData.getTimeStart().plus(newDuration).isAfter(Instant.now())) {
+				if (caseData.getTimeStart().plus(newDuration).isAfter(LocalDateTime.now())) {
 					// time out member for new time
 					target.timeoutUntil(caseData.getTimeStart().plus(newDuration)).reason("Duration change by "+event.getUser().getName()).queue();
 				} else {

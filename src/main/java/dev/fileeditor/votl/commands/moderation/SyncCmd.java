@@ -99,7 +99,7 @@ public class SyncCmd extends CommandBase {
 						.build()
 					).setComponents().queue();
 					// Perform action using Helper bot
-					Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), target, "Manual kick", event.getUser().getName()));
+					Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), target, "Manual kick", event.getUser()));
 				},
 				20,
 				TimeUnit.SECONDS,

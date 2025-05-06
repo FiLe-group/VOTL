@@ -107,10 +107,12 @@ public class LevelManager extends LiteBase {
 		);
 	}
 
-	public void addVoiceTime(PlayerObject player, long duration) throws SQLException {
-		execute("INSERT INTO %s(guildId, userId, voiceTime) VALUES (%d, %d, %d) ON CONFLICT(guildId, userId) DO UPDATE SET voiceTime=voiceTime+%<d;"
-			.formatted(TABLE_PLAYERS, player.guildId, player.userId, duration)
-		);
+	public void addVoiceTime(PlayerObject player, long duration) {
+		try {
+			execute("INSERT INTO %s(guildId, userId, voiceTime) VALUES (%d, %d, %d) ON CONFLICT(guildId, userId) DO UPDATE SET voiceTime=voiceTime+%<d;"
+				.formatted(TABLE_PLAYERS, player.guildId, player.userId, duration)
+			);
+		} catch (SQLException ignored) {}
 	}
 
 	public long getSumGlobalExp(long userId) {

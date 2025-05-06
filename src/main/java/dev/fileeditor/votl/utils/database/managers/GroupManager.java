@@ -16,7 +16,7 @@ public class GroupManager extends LiteBase {
 	}
 
 	// groups table
-	public int create(long guildId, String name, long appealGuildId) {
+	public int create(long guildId, String name, long appealGuildId) throws SQLException {
 		return executeWithRow("INSERT INTO %s(ownerId, name, appealGuildId) VALUES (%d, %s, %d)"
 			.formatted(groups, guildId, quote(name), appealGuildId));
 	}

@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.listeners;
 
 import java.sql.SQLException;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,8 +74,8 @@ public class MemberListener extends ListenerAdapter {
 		// Check for active mute - then give timeout
 		CaseManager.CaseData caseData = db.cases.getMemberActive(userId, guildId, CaseType.MUTE);
 		if (caseData != null) {
-			Instant timeEnd = caseData.getTimeEnd();
-			if (timeEnd != null && timeEnd.isAfter(Instant.now())) {
+			LocalDateTime timeEnd = caseData.getTimeEnd();
+			if (timeEnd != null && timeEnd.isAfter(LocalDateTime.now())) {
 				event.getMember().timeoutUntil(timeEnd)
 					.reason("Active mute (#%s): %s".formatted(caseData.getLocalId(), caseData.getReason()))
 					.queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER));
@@ -137,7 +137,7 @@ public class MemberListener extends ListenerAdapter {
 		if (db.getTicketSettings(event.getGuild()).autocloseLeftEnabled()) {
 			db.tickets.getOpenedChannel(userId, guildId).forEach(channelId -> {
 				try {
-					db.tickets.closeTicket(Instant.now(), channelId, "Ticket's author left the server");
+					db.tickets.closeTicket(LocalDateTime.now(), channelId, "Ticket's author left the server");
 				} catch (SQLException ignored) {}
 				GuildChannel channel = event.getGuild().getGuildChannelById(channelId);
 				if (channel != null) channel.delete().reason("Author left").queue();

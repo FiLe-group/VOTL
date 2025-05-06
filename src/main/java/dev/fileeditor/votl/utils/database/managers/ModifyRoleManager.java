@@ -23,8 +23,10 @@ public class ModifyRoleManager extends LiteBase {
 			.formatted(table, expiresAfter.getEpochSecond(), quote(newRoles), guildId, userId, targetId));
 	}
 
-	public void remove(long guildId, long userId, long targetId) throws SQLException {
-		execute("DELETE FROM %s WHERE (guildId=%s AND userId=%s AND targetId=%s)".formatted(table, guildId, userId, targetId));
+	public void remove(long guildId, long userId, long targetId) {
+		try {
+			execute("DELETE FROM %s WHERE (guildId=%s AND userId=%s AND targetId=%s)".formatted(table, guildId, userId, targetId));
+		} catch (SQLException ignored) {}
 	}
 
 	public void removeAll(long guildId) throws SQLException {
@@ -45,11 +47,7 @@ public class ModifyRoleManager extends LiteBase {
 		Long data = selectOne("SELECT expiresAfter FROM %s WHERE (guildId=%s AND userId=%s AND targetId=%s)".formatted(table, guildId, userId, targetId), "expiresAfter", Long.class);
 		if (data == null) return true;
 		boolean expired = Instant.ofEpochSecond(data).isBefore(Instant.now());
-		if (expired) {
-			try {
-				remove(guildId, userId, targetId);
-			} catch (SQLException ignored) {}
-		}
+		if (expired) remove(guildId, userId, targetId);
 		return expired;
 	}
 

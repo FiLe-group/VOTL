@@ -69,7 +69,7 @@ public class StrikesCmd extends CommandBase {
 				getSquares(strikeAmount, caseData.getType().getValue()-20),
 				MessageUtil.limitString(caseData.getReason(), 50),
 				TimeFormat.DATE_SHORT.format(caseData.getTimeStart()),
-				caseData.getModTag()
+				caseData.getModId()>0 ? caseData.getModTag() : "-"
 			));
 		}
 
