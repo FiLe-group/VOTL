@@ -1538,10 +1538,11 @@
 					},
 					"no_group": "Couldn't find requested server Group.",
 					"not_owned": "This server is not Group's owner (creator).",
-					"empty": "No changes.",
+					"no_options": "No changes were made.",
 					"embed_title": "Group **%s** updated.",
-					"changed_name": "\n> Renamed from ~~%s~~ to __%s__.",
-					"changed_appeal": "\n> Appeal server ID set to `%s`."
+					"changed_name": "> Renamed to `%s`.",
+					"changed_appeal": "> Appeal server ID set to `%s`.",
+					"done_title": "Group `%s` modified."
 				},
 				"manage": {
 					"help": "Set whether the server can perform actions in the Group",
@@ -1598,8 +1599,8 @@
 					"no_group": "Couldn't find requested server Group.",
 					"not_owned": "This server is not Group's owner (creator).",
 					"embed_title": "Group '%s' (#%s)",
-					"embed_full": "Owner: %s (`%s`)\nGroup size: %d server/-s\nAppeal server ID: `%s`",
-					"embed_short": "Owner: %s (`%s`)\nGroup size: %d server/-s",
+					"embed_full": "Owner: %s (`%s`)\nGroup size: **%d** server/-s\nAppeal server ID: `%s`",
+					"embed_short": "Owner: %s (`%s`)\nGroup size: **%d** server/-s",
 					"embed_invite": "Invite code",
 					"embed_guilds": "Server name | size | ID",
 					"embed_groups": "Group name | #ID",

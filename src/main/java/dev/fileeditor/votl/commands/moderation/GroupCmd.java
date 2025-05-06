@@ -285,9 +285,12 @@ public class GroupCmd extends CommandBase {
 			this.name = "modify";
 			this.path = "bot.moderation.group.modify";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(0),
-				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true).setMaxLength(120),
-				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help")).setRequiredLength(12, 20)
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
+					.setMinValue(0),
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"))
+					.setMaxLength(120),
+				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help"))
+					.setRequiredLength(12, 20)
 			);
 		}
 
@@ -305,8 +308,23 @@ public class GroupCmd extends CommandBase {
 				return;
 			}
 
+			String currentGroupName = bot.getDBUtil().group.getName(groupId);
 			StringBuilder builder = new StringBuilder();
 
+			if (event.hasOption("name")) {
+				String newName = event.optString("name");
+
+				try {
+					bot.getDBUtil().group.rename(groupId, newName);
+				} catch (SQLException e) {
+					editErrorDatabase(event, e, "group rename");
+					return;
+				}
+				bot.getLogger().group.onRenamed(event, currentGroupName, groupId, newName);
+
+				builder.append(lu.getText(event, path+".changed_name").formatted(newName))
+					.append("\n");
+			}
 			if (event.hasOption("appeal_server")) {
 				long appealGuildId;
 
@@ -328,33 +346,24 @@ public class GroupCmd extends CommandBase {
 					return;
 				}
 
-				builder.append(lu.getText(event, path+".changed_appeal").formatted(appealGuildId));
-			}
-			if (event.hasOption("name")) {
-				String oldName = bot.getDBUtil().group.getName(groupId);
-				String newName = event.optString("name");
-
-				try {
-					bot.getDBUtil().group.rename(groupId, newName);
-				} catch (SQLException ex) {
-					editErrorDatabase(event, ex, "rename group");
-					return;
-				}
-				bot.getLogger().group.onRenamed(event, oldName, groupId, newName);
-
-				builder.append(lu.getText(event, path+".changed_name").formatted(oldName, newName));
+				builder.append(lu.getText(event, path+".changed_appeal").formatted(appealGuildId))
+					.append("\n");
 			}
 
 			if (builder.isEmpty()) {
-				editError(event, path+".empty");
-				return;
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
+					.setDescription(lu.getText(event, path+".no_options"))
+					.setFooter("Group ID: `%s`".formatted(groupId))
+					.build()
+				);
+			} else {
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setTitle(lu.getText(event, path+".done_title").formatted(currentGroupName))
+					.setDescription(builder.toString())
+					.setFooter("Group ID: #%s".formatted(groupId))
+					.build()
+				);
 			}
-			String groupName = bot.getDBUtil().group.getName(groupId);
-			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setTitle(lu.getText(path+".embed_title").formatted(groupName))
-				.setDescription(builder.toString())
-				.build()
-			);
 		}
 	}
 
@@ -382,7 +391,7 @@ public class GroupCmd extends CommandBase {
 				return;
 			}
 
-			boolean canManage = event.optBoolean("manage", false);
+			boolean canManage = event.optBoolean("manage");
 
 			List<Guild> guilds = bot.getDBUtil().group.getGroupMembers(groupId).stream()
 				.map(event.getJDA()::getGuildById)
