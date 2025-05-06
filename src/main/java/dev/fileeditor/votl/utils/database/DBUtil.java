@@ -64,6 +64,14 @@ public class DBUtil {
 	public final BotBlacklistManager botBlacklist;
 
 	public DBUtil(FileManager fileManager) {
+		// Check if drivers are initiated
+		try {
+			Class.forName("org.sqlite.JDBC").getDeclaredConstructor().newInstance();
+		} catch (Exception ex) {
+			log.error("SQLite: Exiting!\nSQLite java client driver not found.\nPossibly, this OS/architecture is not supported or Driver has problems.", ex);
+			System.exit(666);
+		}
+
 		this.fileManager = fileManager;
 		this.connectionUtil = new ConnectionUtil("jdbc:sqlite:"+fileManager.getFiles().get("database"), log);
 
