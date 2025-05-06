@@ -110,10 +110,6 @@ public class InteractionListener extends ListenerAdapter {
 		event.replyEmbeds(bot.getEmbedUtil().getError(event, path)).setEphemeral(true).queue();
 	}
 
-	public void sendErrorLive(IReplyCallback event, String path, String info) {
-		event.replyEmbeds(bot.getEmbedUtil().getError(event, path, info)).setEphemeral(true).queue();
-	}
-
 	public void sendError(IReplyCallback event, String path) {
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getError(event, path)).setEphemeral(true).queue();
 	}
@@ -128,36 +124,20 @@ public class InteractionListener extends ListenerAdapter {
 
 	// Check for cooldown parameters, if exists - check if cooldown active, else apply it
 	private void runButtonInteraction(ButtonInteractionEvent event, @Nullable Cooldown cooldown, @NotNull Runnable function) {
-		runButtonInteraction(event, cooldown, function, true);
-	}
+		// Acknowledge interaction
+		event.deferEdit().queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
 
-	private void runButtonInteraction(ButtonInteractionEvent event, @Nullable Cooldown cooldown, @NotNull Runnable function, boolean acknowledge) {
-		if (acknowledge) {
-			// Acknowledge interaction
-			event.deferEdit().queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
-
-			if (cooldown != null) {
-				String key = getCooldownKey(cooldown, event);
-				int remaining = bot.getClient().getRemainingCooldown(key);
-				if (remaining > 0) {
-					event.getHook().sendMessage(getCooldownErrorString(cooldown, event, remaining)).setEphemeral(true).queue();
-					return;
-				} else {
-					bot.getClient().applyCooldown(key, cooldown.getTime());
-				}
-			}
-		} else {
-			if (cooldown != null) {
-				String key = getCooldownKey(cooldown, event);
-				int remaining = bot.getClient().getRemainingCooldown(key);
-				if (remaining > 0) {
-					event.reply(getCooldownErrorString(cooldown, event, remaining)).setEphemeral(true).queue();
-					return;
-				} else {
-					bot.getClient().applyCooldown(key, cooldown.getTime());
-				}
+		if (cooldown != null) {
+			String key = getCooldownKey(cooldown, event);
+			int remaining = bot.getClient().getRemainingCooldown(key);
+			if (remaining > 0) {
+				event.getHook().sendMessage(getCooldownErrorString(cooldown, event, remaining)).setEphemeral(true).queue();
+				return;
+			} else {
+				bot.getClient().applyCooldown(key, cooldown.getTime());
 			}
 		}
+
 		function.run();
 	}
 

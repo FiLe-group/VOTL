@@ -4,10 +4,7 @@ import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 import static dev.fileeditor.votl.utils.CastUtil.resolveOrDefault;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import dev.fileeditor.votl.objects.CmdModule;
@@ -184,14 +181,17 @@ public class GuildSettingsManager extends LiteBase {
 			return color;
 		}
 
+		@Nullable
 		public Long getLastWebhookId() {
 			return lastWebhookId;
 		}
 
+		@Nullable
 		public String getAppealLink() {
 			return appealLink;
 		}
 
+		@Nullable
 		public Long getReportChannelId() {
 			return reportChannelId;
 		}
@@ -208,7 +208,8 @@ public class GuildSettingsManager extends LiteBase {
 			return modulesOff;
 		}
 
-		public Set<CmdModule> getDisabledModules() {
+		@NotNull
+		public EnumSet<CmdModule> getDisabledModules() {
 			return CmdModule.decodeModules(modulesOff);
 		}
 
@@ -216,22 +217,27 @@ public class GuildSettingsManager extends LiteBase {
 			return (modulesOff & module.getValue()) == module.getValue();
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformBan() {
 			return informBan;
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformKick() {
 			return informKick;
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformMute() {
 			return informMute;
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformStrike() {
 			return informStrike;
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformDelstrike() {
 			return informDelstrike;
 		}

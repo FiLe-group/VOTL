@@ -277,7 +277,7 @@
 		},
 		"guild": {
 			"name": "Server logs",
-			"update": "Guild settings updated",
+			"update": "Server settings updated",
 			"emoji_create": "Emoji created",
 			"emoji_update": "Emoji updated",
 			"emoji_delete": "Emoji deleted",
@@ -499,7 +499,7 @@
 				},
 				"id": {
 					"name": "id",
-					"help": "Enter user or guild ID"
+					"help": "Enter user or server ID"
 				}
 			},
 			"experience": {
