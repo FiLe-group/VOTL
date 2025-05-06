@@ -24,8 +24,10 @@ public class TempRoleManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (roleId=%s AND userId=%s)".formatted(table, roleId, userId));
 	}
 
-	public void removeRole(long roleId) throws SQLException {
-		execute("DELETE FROM %s WHERE (roleId=%s)".formatted(table, roleId));
+	public void removeRole(long roleId) {
+		try {
+			execute("DELETE FROM %s WHERE (roleId=%s)".formatted(table, roleId));
+		} catch (SQLException ignored) {}
 	}
 
 	public void removeAll(long guildId) throws SQLException {

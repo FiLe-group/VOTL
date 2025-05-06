@@ -137,21 +137,29 @@
 	},
 	"logger_embed": {
 		"pm": {
-			"banned_temp": "You were banned from {guild} server for {time}.",
-			"banned_perm": "You were permanently banned from {guild} server.",
-			"banned": "You were banned from {guild} server.",
-			"kicked": "You were kicked from {guild} server.",
-			"muted": "You were timed out in {guild} server.",
-			"strike": "You received %s in {guild} server.",
+			"banned_temp": "You were banned from **{guild}** server for {time}.",
+			"banned_perm": "You were permanently banned from **{guild}** server.",
+			"banned": "You were banned from **{guild}** server.",
+			"kicked": "You were kicked from **{guild}** server.",
+			"muted": "You were timed out in **{guild}** server for {time}.",
+			"strike": "You received %s in **{guild}** server.",
 			"strike1": "one warning",
 			"strike2": "two warnings",
 			"strike3": "three warnings",
 			"button_strikes": "View active strikes",
-			"delstrike": "%s warning removed from you in by server's {guild} moderation.",
-			"appeal": "\nAppeal this action by following this link:\n> %s",
-			"reason_mute": "Reason changed for a mute issued by %s server's moderation at %s.",
-			"reason_strike": "Reason changed for a warning issued by %s server's moderation at %s.",
-			"gamestrike": "You received Game strike in [__#%s__](%s) in {guild} server."
+			"delstrike": "%s warning removed from you in by server's **{guild}** moderation.",
+			"appeal": "You can appeal this action by following this link:\n> %s",
+			"rules": "-# [View server rules](%s)",
+			"reason_mute": "Reason changed for *a mute* issued by **{guild}** server's moderation at {time}.",
+			"reason_strike": "Reason changed for *a warning* issued by **{guild}** server's moderation at {time}.",
+			"gamestrike": "You received Game strike in [__#%s__](%s) in **{guild}** server.\n> Count: `%d`/`%d`",
+			"gamestrike_limit": "> Access limited to this channel - strike limit reached."
+		},
+		"drama": {
+			"kicked": "Was kicked from this server.",
+			"muted": "Was timed out for {time}.",
+			"strike": "Received %s.",
+			"gamestrike": "Received Game strike in [__#%s__](%s)."
 		},
 		"inform": {
 			"0": "Do not dm offender",
@@ -192,7 +200,7 @@
 			},
 			"mute": {
 				"short_title": "Mute info",
-				"short_info": "*Username:* `{username}`\n*Is timed out until:* `{until}`"
+				"short_info": "*Username:* {username}\n*Is timed out until:* {until}"
 			},
 			"unmute": {
 				"mute_reason": "Muted for"
@@ -269,7 +277,7 @@
 		},
 		"guild": {
 			"name": "Server logs",
-			"update": "Guild settings updated",
+			"update": "Server settings updated",
 			"emoji_create": "Emoji created",
 			"emoji_update": "Emoji updated",
 			"emoji_delete": "Emoji deleted",
@@ -491,7 +499,7 @@
 				},
 				"id": {
 					"name": "id",
-					"help": "Enter user or guild ID"
+					"help": "Enter user or server ID"
 				}
 			},
 			"experience": {
@@ -546,7 +554,8 @@
 						"help": "Select channel to which to send complaints"
 					},
 					"cant_send": "I cant send messages in selected channel! Check my permissions or select other channel.",
-					"done": "Selected {channel} to receive user reports."
+					"done": "Selected %s to receive user reports.",
+					"done_cleared": "Cleared report setup."
 				},
 				"voice": {
 					"help": "Manage custom voice channel settings",
@@ -662,6 +671,22 @@
 					"embed_changes": "**Updated leveling settings**",
 					"changed_enabled": "\n> Enabled: %s",
 					"changed_voice": "\n> Voice activity xp enabled: %s"
+				},
+				"drama": {
+					"help": "Manage drama channel",
+					"usage": "drama [level] [#Channel]",
+					"level": {
+						"name": "level",
+						"help": "Set drama settings"
+					},
+					"channel": {
+						"name": "channel",
+						"help": "Set drama channel"
+					},
+					"set_level": "Drama setting: %s",
+					"bad_channel": "Bot can't access selected channel.",
+					"set_channel": "Drama channel: %s",
+					"view": "Drama settings"
 				}
 			},
 			"module": {
@@ -784,7 +809,7 @@
 							"name": "channel",
 							"help": "Select channel where to log actions"
 						},
-						"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
+						"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select another channel.",
 						"as_log": "This channel is selected as a log channel for %s events.",
 						"done": "Successfully set %s for logging %s!"
 					},
@@ -1513,10 +1538,11 @@
 					},
 					"no_group": "Couldn't find requested server Group.",
 					"not_owned": "This server is not Group's owner (creator).",
-					"empty": "No changes.",
+					"no_options": "No changes were made.",
 					"embed_title": "Group **%s** updated.",
-					"changed_name": "\n> Renamed from ~~%s~~ to __%s__.",
-					"changed_appeal": "\n> Appeal server ID set to `%s`."
+					"changed_name": "> Renamed to `%s`.",
+					"changed_appeal": "> Appeal server ID set to `%s`.",
+					"done_title": "Group `%s` modified."
 				},
 				"manage": {
 					"help": "Set whether the server can perform actions in the Group",
@@ -1573,8 +1599,8 @@
 					"no_group": "Couldn't find requested server Group.",
 					"not_owned": "This server is not Group's owner (creator).",
 					"embed_title": "Group '%s' (#%s)",
-					"embed_full": "Owner: %s (`%s`)\nGroup size: %d server/-s\nAppeal server ID: `%s`",
-					"embed_short": "Owner: %s (`%s`)\nGroup size: %d server/-s",
+					"embed_full": "Owner: %s (`%s`)\nGroup size: **%d** server/-s\nAppeal server ID: `%s`",
+					"embed_short": "Owner: %s (`%s`)\nGroup size: **%d** server/-s",
 					"embed_invite": "Invite code",
 					"embed_guilds": "Server name | size | ID",
 					"embed_groups": "Group name | #ID",
@@ -1661,6 +1687,17 @@
 					"empty": "No blacklist entries\nPage: `%d`",
 					"title": "Group's `%d` blacklist (Page %d of %d)",
 					"value": "Server: `%s`\nModerator: %s\nReason: `%s`"
+				},
+				"search": {
+					"help": "Search blacklist for user",
+					"usage": "search <Group> <User>",
+					"user": {
+						"name": "user",
+						"help": "Select user or enter ID"
+					},
+					"cant_view": "Can't view selected group. (Not group's owner or manager)",
+					"not_found": "**User not found.**\nInput: %s",
+					"value": "User: %s\nServer: `%s`\nModerator: %s\nReason: `%s`"
 				},
 				"remove": {
 					"help": "Remove user from blacklist",
@@ -1816,12 +1853,12 @@
 			"command_info": {
 				"docs": "Docs",
 				"no_command": "The provided command doesn't exist!\nMake sure you typed it correctly.",
-				"title": "Command help: {command}",
-				"value": "Category: **{category}**\nOwner command: {owner}\nCan be used in DMs: {guild}\nModule: **{module}**",
+				"title": "Command help: %s",
+				"value": "Category: **%s**\nRequired access: **%s**\nCan be used in DMs: %s\nModule: **%s**",
 				"help_title": "Description",
 				"usage_title": "Usage options",
-				"usage_value": "```/{usage}```",
-				"usage_child": "```/{base} {usage}```└ {help}",
+				"usage_value": "```/%s```",
+				"usage_child": "```/%s %s```└ %s",
 				"usage_subvalue": "[] ─ Optional\n<> ─ Required\nA | B ─ Selection"
 			},
 			"command_menu": {
@@ -1843,7 +1880,7 @@
 				"description": {
 					"command_value": "To get more info about a specific command run `/help command:[command]`.\nYou can also run `/help category:[category]` to show the commands of a specific category.",
 					"support_title": "*Additional help*",
-					"support_value": "If you need help with the bot, contact the owner `{owner_name}`."
+					"support_value": "If you need help with the bot, contact the owner `%s`."
 				}
 			}
 		},
@@ -1861,7 +1898,7 @@
 						"name": "channel",
 						"help": "Select channel in which to create the panel"
 					},
-					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
+					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select another channel.",
 					"no_role": "Verification role is not set!\nUse `/verifyrole`",
 					"continue": "Continue",
 					"done": "Panel created in {channel}!"
@@ -1997,9 +2034,9 @@
 						"name": "channel",
 						"help": "Select channel in which to create the panel"
 					},
-					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
+					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select another channel.",
 					"empty_roles": "No roles assigned as usable for requesting via tickets.",
-					"done": "Panel created in {channel}!"
+					"done": "Panel created in %s!"
 				},
 				"update": {
 					"help": "Update existing role requests panel",
@@ -2008,10 +2045,10 @@
 						"name": "channel",
 						"help": "Select channel in which panel is located"
 					},
-					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select other channel.",
+					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select another channel.",
 					"not_found": "Existing panel not found in selected channel",
 					"empty_roles": "No roles assigned as usable for requesting via tickets.",
-					"done": "Panel updated in {channel}!"
+					"done": "Panel [message](%s) updated!"
 				},
 				"row": {
 					"help": "Update assignable roles row's text placeholder",
@@ -2024,7 +2061,7 @@
 						"name": "text",
 						"help": "Enter text which will be shown in role selection placeholder"
 					},
-					"done": "Placeholder text for row `{row}` set to `{text}`."
+					"done": "Placeholder text for row `%s` set to `%s`."
 				}
 			},
 			"tcount": {
@@ -2675,6 +2712,7 @@
 					"name": "proof",
 					"help": "Select/Paste image with proofs. Only .png and .jpg/.jpeg are accepted."
 				},
+				"no_reason": "*Not provided*",
 				"not_found": "This channel is not registered.",
 				"not_member": "Selected user is not a member of this server or can't be selected.",
 				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",

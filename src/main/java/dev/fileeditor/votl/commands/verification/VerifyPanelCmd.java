@@ -12,6 +12,7 @@ import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
+import dev.fileeditor.votl.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -32,7 +33,7 @@ public class VerifyPanelCmd extends CommandBase {
 		this.name = "vfpanel";
 		this.path = "bot.verification.vfpanel";
 		this.children = new SlashCommand[]{new Create(), new Preview(), new SetText(), new SetImage()};
-		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS};
+		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND};
 		this.module = CmdModule.VERIFICATION;
 		this.category = CmdCategory.VERIFICATION;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -59,6 +60,16 @@ public class VerifyPanelCmd extends CommandBase {
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (channel == null ) {
 				editError(event, path+".no_channel", "Received: No channel");
+				return;
+			}
+			try {
+				bot.getCheckUtil().hasPermissions(
+					event,
+					new Permission[]{Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS},
+					channel
+				);
+			} catch (CheckException ex) {
+				editMsg(event, ex.getEditData());
 				return;
 			}
 			TextChannel tc = (TextChannel) channel;

@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -305,9 +304,6 @@ public class GuildLogger {
 			// For each group guild (except master) remove if from group DB and send log to log channel
 			List<Long> memberIds = db.group.getGroupMembers(groupId);
 			for (Long memberId : memberIds) {
-				try {
-					db.group.remove(groupId, memberId);
-				} catch (SQLException ignored) {}
 				Guild member = JDA.getGuildById(memberId);
 
 				sendLog(member, type, () -> logUtil.groupMemberDeletedEmbed(member.getLocale(), ownerId, ownerIcon, groupId, name));
@@ -382,9 +378,6 @@ public class GuildLogger {
 			// Send log to each group guild
 			List<Long> memberIds = db.group.getGroupMembers(groupId);
 			for (Long memberId : memberIds) {
-				try {
-					db.group.remove(groupId, memberId);
-				} catch (SQLException ignored) {}
 				Guild member = JDA.getGuildById(memberId);
 
 				sendLog(member, type, () -> logUtil.groupMemberRenamedEmbed(member.getLocale(), ownerId, ownerIcon, groupId, oldName, newName));

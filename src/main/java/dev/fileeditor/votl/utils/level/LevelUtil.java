@@ -36,11 +36,11 @@ public class LevelUtil {
 
 	private static final long hardCap = (long) Integer.MAX_VALUE*4L;
 
-	private static final int maxRandomExperience = 5;
-	private static final int maxGuaranteeMessageExperience = 10;
-	private static final int maxGuaranteeVoiceExperience = 5;
+	private static final int maxRandomExperience = 4;
+	private static final int maxGuaranteeMessageExperience = 4;
+	private static final int maxGuaranteeVoiceExperience = 2;
 
-	private final double A = 12;
+	private final double A = 20;
 	private final int B = 80;
 	private final int C = 0;
 
@@ -123,7 +123,9 @@ public class LevelUtil {
 		int newLevel = getLevelFromExperience(player.getExperience(expType));
 		if (newLevel > level) {
 			// message
-			bot.getLogger().level.onLevelUp(member, newLevel, expType);
+			if (informLevelUp(newLevel)) {
+				bot.getLogger().level.onLevelUp(member, newLevel, expType);
+			}
 			// give role
 			Set<Long> roleIds = bot.getDBUtil().levelRoles.getRoles(member.getGuild().getIdLong(), newLevel, expType);
 			if (roleIds.isEmpty()) return;
@@ -174,4 +176,11 @@ public class LevelUtil {
 	private String asKey(Guild guild, UserSnowflake user) {
 		return guild.getId()+":"+user.getId();
 	}
+
+	private boolean informLevelUp(int level) {
+		if (level <= 10) return true;
+		if (level <= 50) return level % 2 == 0;
+		return level % 5 == 0;
+	}
+
 }

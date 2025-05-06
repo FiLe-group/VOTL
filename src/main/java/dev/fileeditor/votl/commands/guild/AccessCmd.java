@@ -72,12 +72,7 @@ public class AccessCmd extends CommandBase {
 			else for (Long roleId : exemptIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
-					try {
-						bot.getDBUtil().access.removeRole(guildId, roleId);
-					} catch (SQLException ex) {
-						editErrorDatabase(event, ex, "remove role");
-						return;
-					}
+					ignoreExc(() -> bot.getDBUtil().access.removeRole(guildId, roleId));
 					continue;
 				}
 				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
@@ -88,12 +83,7 @@ public class AccessCmd extends CommandBase {
 			else for (Long roleId : helperIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
-					try {
-						bot.getDBUtil().access.removeRole(guildId, roleId);
-					} catch (SQLException ex) {
-						editErrorDatabase(event, ex, "remove role");
-						return;
-					}
+					ignoreExc(() -> bot.getDBUtil().access.removeRole(guildId, roleId));
 					continue;
 				}
 				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
@@ -104,12 +94,7 @@ public class AccessCmd extends CommandBase {
 			else for (Long roleId : modIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
-					try {
-						bot.getDBUtil().access.removeRole(guildId, roleId);
-					} catch (SQLException ex) {
-						editErrorDatabase(event, ex, "remove role");
-						return;
-					}
+					ignoreExc(() -> bot.getDBUtil().access.removeRole(guildId, roleId));
 					continue;
 				}
 				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));

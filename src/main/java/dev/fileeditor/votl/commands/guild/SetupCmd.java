@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -14,7 +15,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager.ModerationInformLevel;
+import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
 import dev.fileeditor.votl.utils.database.managers.LevelManager;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
@@ -23,6 +24,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -38,9 +40,12 @@ public class SetupCmd extends CommandBase {
 	public SetupCmd() {
 		this.name = "setup";
 		this.path = "bot.guild.setup";
-		this.children = new SlashCommand[]{new PanelColor(), new AppealLink(), new ReportChannel(),
-			new VoiceCreate(), new VoiceSelect(), new VoicePanel(), new VoiceName(), new VoiceLimit(),
-			new Strikes(), new InformLevel(), new RoleWhitelist(), new Levels()
+		this.children = new SlashCommand[]{
+			new PanelColor(), new AppealLink(), new ReportChannel(),
+			new VoiceCreate(), new VoiceSelect(), new VoicePanel(),
+			new VoiceName(), new VoiceLimit(),
+			new Strikes(), new InformLevel(), new RoleWhitelist(),
+			new Levels(), new Drama()
 		};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -129,7 +134,7 @@ public class SetupCmd extends CommandBase {
 			this.name = "report";
 			this.path = "bot.guild.setup.report";
 			this.options = List.of(
-				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"))
 					.setChannelTypes(ChannelType.TEXT)
 			);
 		}
@@ -138,23 +143,36 @@ public class SetupCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
-			MessageChannel channel = event.optMessageChannel("channel");
+			if (event.hasOption("channel")) {
+				MessageChannel channel = event.optMessageChannel("channel");
 
-			if (!channel.canTalk()) {
-				editError(event, path+".cant_send");
-				return;
+				if (!channel.canTalk()) {
+					editError(event, path+".cant_send");
+				}
+
+				try {
+					bot.getDBUtil().guildSettings.setReportChannelId(guildId, channel.getIdLong());
+				} catch (SQLException e) {
+					editErrorDatabase(event, e, "setup report channel");
+					return;
+				}
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
+					.build());
+			} else {
+				try {
+					bot.getDBUtil().guildSettings.setReportChannelId(guildId, null);
+				} catch (SQLException e) {
+					editErrorDatabase(event, e, "setup report channel");
+					return;
+				}
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getText(event, path+".done_cleared"))
+					.build());
 			}
 
-			try {
-				bot.getDBUtil().guildSettings.setReportChannelId(guildId, channel.getIdLong());
-			} catch (SQLException ex) {
-				editErrorDatabase(event, ex, "set guild report channel");
-				return;
-			}
-
-			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
-				.build());
 		}
 	}
 
@@ -429,7 +447,7 @@ public class SetupCmd extends CommandBase {
 							.addChoice("Strike", "strike")
 							.addChoice("Delstrike", "delstrike"),
 					new OptionData(OptionType.INTEGER, "level", lu.getText(path+".level.help"), true)
-							.addChoices(ModerationInformLevel.asChoices(lu))
+							.addChoices(GuildSettingsManager.ModerationInformLevel.asChoices(lu))
 			);
 		}
 
@@ -439,7 +457,7 @@ public class SetupCmd extends CommandBase {
 			long guildId = event.getGuild().getIdLong();
 
 			String action = event.optString("action");
-			ModerationInformLevel informLevel = ModerationInformLevel.byLevel(event.optInteger("level"));
+			var informLevel = GuildSettingsManager.ModerationInformLevel.byLevel(event.optInteger("level"));
 			try {
 				switch (action) {
 					case "ban" -> bot.getDBUtil().guildSettings.setInformBanLevel(guildId, informLevel);
@@ -551,6 +569,78 @@ public class SetupCmd extends CommandBase {
 						.build()
 					);
 				}
+			}
+		}
+	}
+
+	private class Drama extends SlashCommand {
+		public Drama() {
+			this.name = "drama";
+			this.path = "bot.guild.setup.drama";
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "level", lu.getText(path+".level.help"))
+					.addChoice("Off", 0)
+					.addChoice("Only failed DMs", 1)
+					.addChoice("On", 2),
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"))
+					.setChannelTypes(ChannelType.TEXT)
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+
+			StringBuilder builder = new StringBuilder();
+			if (event.hasOption("level")) {
+				var level = GuildSettingsManager.DramaLevel.byLevel(event.optInteger("level"));
+
+				try {
+					bot.getDBUtil().guildSettings.setDramaLevel(event.getGuild().getIdLong(), level);
+				} catch (SQLException e) {
+					editErrorDatabase(event, e, "setup drama level");
+					return;
+				}
+
+				builder.append("\n> ")
+					.append(lu.getText(event, path+".set_level").formatted(level.name()));
+			}
+			if (event.hasOption("channel")) {
+				TextChannel channel = (TextChannel) event.optGuildChannel("channel");
+
+				if (!channel.canTalk()) {
+					editError(event, path+".bad_channel");
+					return;
+				}
+
+				try {
+					bot.getDBUtil().guildSettings.setDramaChannelId(event.getGuild().getIdLong(), channel.getIdLong());
+				} catch (SQLException e) {
+					editErrorDatabase(event, e, "setup drama level");
+					return;
+				}
+
+				builder.append("\n> ")
+					.append(lu.getText(event, path+".set_channel").formatted(channel.getAsMention()));
+			}
+
+			if (builder.isEmpty()) {
+				GuildSettingsManager.GuildSettings settings = bot.getDBUtil().getGuildSettings(event.getGuild());
+				builder.append(lu.getText(event, path+".view"))
+					.append("\n> Enabled: ")
+					.append(settings.getDramaLevel())
+					.append("\n> Channel: ")
+					.append(Optional.ofNullable(settings.getDramaChannelId()).map("<#%s>"::formatted).orElse("*-none-*"));
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
+					.setDescription(builder.toString())
+					.build()
+				);
+			} else {
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(builder.toString())
+					.build()
+				);
 			}
 		}
 	}

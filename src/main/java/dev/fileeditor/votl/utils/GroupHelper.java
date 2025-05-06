@@ -1,9 +1,7 @@
 package dev.fileeditor.votl.utils;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -15,6 +13,7 @@ import dev.fileeditor.votl.utils.logs.GuildLogger;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
+import org.jetbrains.annotations.NotNull;
 
 public class GroupHelper {
 
@@ -45,9 +44,7 @@ public class GroupHelper {
 			final Guild guild = JDA.getGuildById(guildId);
 			if (guild == null) continue;
 			// fail-safe check if the target has temporal ban (to prevent auto unban)
-			try {
-				db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
-			} catch (SQLException ignored) {}
+			db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
 
 			completableFutures.add(guild.ban(target, 0, TimeUnit.SECONDS).reason(newReason).submit());
 		}
@@ -80,9 +77,7 @@ public class GroupHelper {
 			final Guild guild = JDA.getGuildById(guildId);
 			if (guild == null) continue;
 			// Remove temporal ban case
-			try {
-				db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
-			} catch (SQLException ignored) {}
+			db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
 
 			completableFutures.add(guild.unban(target).reason(newReason).submit());
 		}
@@ -127,21 +122,21 @@ public class GroupHelper {
 			});
 	}
 
-	public void runBan(int groupId, Guild executedGuild, User user, String reason, String modName) {
+	public void runBan(int groupId, Guild executedGuild, User user, @NotNull String reason, User mod) {
 		CompletableFuture.runAsync(() -> {
-			banUser(groupId, executedGuild, user, Optional.ofNullable(reason).orElse("none"), modName);
+			banUser(groupId, executedGuild, user, reason, mod.getName());
 		});
 	}
 
-	public void runUnban(int groupId, Guild master, User user, String reason, String modName) {
+	public void runUnban(int groupId, Guild master, User user, @NotNull String reason, User mod) {
 		CompletableFuture.runAsync(() -> {
-			unbanUser(groupId, master, user, Optional.ofNullable(reason).orElse("none"), modName);
+			unbanUser(groupId, master, user, reason, mod.getName());
 		});
 	}
 
-	public void runKick(int groupId, Guild master, User user, String reason, String modName) {
+	public void runKick(int groupId, Guild master, User user, @NotNull String reason, User mod) {
 		CompletableFuture.runAsync(() -> {
-			kickUser(groupId, master, user, Optional.ofNullable(reason).orElse("none"), modName);
+			kickUser(groupId, master, user, reason, mod.getName());
 		});
 	}
 }

@@ -107,7 +107,7 @@ public class UserProfileCmd extends CommandBase {
 			.setGlobalExperience(globalExperience);
 
 		// Send
-		final String attachmentName = EncodingUtil.encodeUserBg(guildId, userId);
+		final String attachmentName = EncodingUtil.encodeProfile(guildId, userId);
 
 		EmbedBuilder embed = new EmbedBuilder()
 			.setImage("attachment://" + attachmentName)

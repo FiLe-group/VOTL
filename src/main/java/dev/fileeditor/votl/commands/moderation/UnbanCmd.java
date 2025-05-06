@@ -1,7 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.List;
 
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -56,12 +55,7 @@ public class UnbanCmd extends CommandBase {
 		// Remove active ban log
 		CaseData banData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 		if (banData != null) {
-			try {
-				bot.getDBUtil().cases.setInactive(banData.getRowId());
-			} catch (SQLException ex) {
-				editErrorDatabase(event, ex, "set case inactive");
-				return;
-			}
+			ignoreExc(() -> bot.getDBUtil().cases.setInactive(banData.getRowId()));
 		}
 
 		guild.retrieveBan(tu).queue(ban -> {
@@ -96,7 +90,7 @@ public class UnbanCmd extends CommandBase {
 					unbanData = bot.getDBUtil().cases.add(
 						CaseType.UNBAN, tu.getIdLong(), tu.getName(),
 						mod.getIdLong(), mod.getUser().getName(),
-						guild.getIdLong(), reason, Instant.now(), null
+						guild.getIdLong(), reason, null
 					);
 				} catch (Exception ex) {
 					editErrorDatabase(event, ex, "Failed to create new case.");

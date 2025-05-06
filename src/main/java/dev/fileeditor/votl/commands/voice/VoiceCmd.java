@@ -31,7 +31,8 @@ public class VoiceCmd extends CommandBase {
 	public VoiceCmd() {
 		this.name = "voice";
 		this.path = "bot.voice.voice";
-		this.children = new SlashCommand[]{new Lock(), new Unlock(), new Ghost(), new Unghost(),
+		this.children = new SlashCommand[]{
+			new Lock(), new Unlock(), new Ghost(), new Unghost(),
 			new NameSet(), new NameReset(), new LimitSet(), new LimitReset(),
 			new Claim(), new Permit(), new Reject(), new PermsView(), new PermsReset()
 		};

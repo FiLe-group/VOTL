@@ -5,6 +5,10 @@
 
 Visit https://votl.fileeditor.dev/ to learn more about available commands and to view documentation.
 
+## Contribute
+- [**Help translate!**](https://crowdin.com/project/voice-of-the-lord)
+- [Suggest changes to the documentation](https://github.com/FileEditor97/VOTL-docs)
+
 ## Download or building
  Stable JAR file can be downloaded from latest Release [here](https://github.com/FileEditor97/VOTL/releases/latest).  
  Additional Snapshot builds can be accessed [here](https://github.com/FileEditor97/VOTL/actions/workflows/build.yml).

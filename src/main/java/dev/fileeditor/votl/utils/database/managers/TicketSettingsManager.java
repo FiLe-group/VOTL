@@ -13,7 +13,6 @@ import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class TicketSettingsManager extends LiteBase {
 	
@@ -166,7 +165,7 @@ public class TicketSettingsManager extends LiteBase {
 			return otherRoles;
 		}
 
-		@Nullable
+		@NotNull
 		public String getRowText(int n) {
 			if (n < 1 || n > 3)
 				throw new IndexOutOfBoundsException(n);

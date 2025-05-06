@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.sql.SQLException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -90,7 +89,7 @@ public class BanCmd extends CommandBase {
 			return;
 		}
 
-		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
+		String reason = bot.getModerationUtil().parseReasonMentions(event, this);
 		guild.retrieveBan(tu).queue(ban -> {
 			CaseData oldBanData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 			if (oldBanData != null) {
@@ -110,7 +109,7 @@ public class BanCmd extends CommandBase {
 						newBanData = bot.getDBUtil().cases.add(
 							CaseType.BAN, tu.getIdLong(), tu.getName(),
 							mod.getIdLong(), mod.getUser().getName(),
-							guild.getIdLong(), reason, Instant.now(), duration
+							guild.getIdLong(), reason, duration
 						);
 					} catch (Exception ex) {
 						editErrorDatabase(event, ex, "Failed to create new case.");
@@ -147,7 +146,7 @@ public class BanCmd extends CommandBase {
 					newBanData = bot.getDBUtil().cases.add(
 						CaseType.BAN, tu.getIdLong(), tu.getName(),
 						mod.getIdLong(), mod.getUser().getName(),
-						guild.getIdLong(), reason, Instant.now(), Duration.ZERO
+						guild.getIdLong(), reason, Duration.ZERO
 					);
 				} catch (Exception ex) {
 					editErrorDatabase(event, ex, "Failed to create new case.");
@@ -201,18 +200,17 @@ public class BanCmd extends CommandBase {
 			}
 
 			tu.openPrivateChannel().queue(pm -> {
-				MessageEmbed embed = bot.getModerationUtil().getDmEmbed(CaseType.BAN, guild, reason, duration, mod.getUser(), event.optBoolean("can_appeal", true));
-				if (embed == null) return;
-				pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+				final String text = bot.getModerationUtil().getDmText(CaseType.BAN, guild, reason, duration, mod.getUser(), event.optBoolean("can_appeal", true));
+				if (text == null) return;
+				pm.sendMessage(text).setSuppressEmbeds(true)
+					.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 			});
 
 			guild.ban(tu, (event.optBoolean("delete", true) ? 10 : 0), TimeUnit.HOURS).reason(reason).queueAfter(3, TimeUnit.SECONDS, done -> {
 				// fail-safe check if user has temporal ban (to prevent auto unban)
 				CaseData oldBanData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 				if (oldBanData != null) {
-					try {
-						bot.getDBUtil().cases.setInactive(oldBanData.getRowId());
-					} catch (SQLException ignored) {}
+					ignoreExc(() -> bot.getDBUtil().cases.setInactive(oldBanData.getRowId()));
 				}
 				// add info to db
 				CaseData newBanData;
@@ -220,7 +218,7 @@ public class BanCmd extends CommandBase {
 					newBanData = bot.getDBUtil().cases.add(
 						CaseType.BAN, tu.getIdLong(), tu.getName(),
 						mod.getIdLong(), mod.getUser().getName(),
-						guild.getIdLong(), reason, Instant.now(), duration
+						guild.getIdLong(), reason, duration
 					);
 				} catch (Exception ex) {
 					editErrorDatabase(event, ex, "Failed to create new case.");

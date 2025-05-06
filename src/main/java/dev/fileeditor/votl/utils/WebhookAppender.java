@@ -3,6 +3,9 @@ package dev.fileeditor.votl.utils;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import net.dv8tion.jda.api.exceptions.ContextException;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
@@ -27,22 +30,25 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 	private Encoder<ILoggingEvent> encoder;
 
 	private String url;
-	private final String json = "{\"embeds\": [{\"color\": 16711680, \"description\": {message}}]}";
 
 	private long lastSend = 0L;
-	private final long interval = 10L;
 
 	private final OkHttpClient client = new OkHttpClient();
 
 	@Override
 	protected void append(ILoggingEvent event) {
+		if (url == null) return;
+
 		// Not Error level
 		if (!event.getLevel().isGreaterOrEqual(Level.ERROR)) return;
 
-		if (url == null) return;
+		// Ignore unknown interaction and ContextException, as those have little meaning and importance.
+		var throwable = event.getThrowableProxy();
+		if ((throwable instanceof ErrorResponseException ex && ex.getErrorResponse() == ErrorResponse.UNKNOWN_INTERACTION) ||
+			(throwable instanceof ContextException)) return;
 
 		// Limit send rate
-		if (event.getTimeStamp() < lastSend + interval) return;
+		if (event.getTimeStamp() < lastSend + 50L) return; // wait 50ms
 
 		// Encode message
 		String message = new String(encoder.encode(event));
@@ -54,6 +60,7 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
 	private void send(String message) {
 		// Replace json variables
+		String json = "{\"embeds\": [{\"color\": 16711680, \"description\": {message}}]}";
 		String payload = json.replace("{message}", JSONObject.quote(message));
 
 		// Create HTTP POST request
@@ -75,13 +82,9 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
 			@Override
 			public void onResponse(@NotNull Call call, @NotNull Response response) {
-				// Do nothing
+				// Ignore
 			}
 		});
-	}
-
-	public Encoder<ILoggingEvent> getEncoder() {
-		return encoder;
 	}
 
 	public void setEncoder(Encoder<ILoggingEvent> encoder) {

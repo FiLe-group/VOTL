@@ -4,10 +4,7 @@ import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 import static dev.fileeditor.votl.utils.CastUtil.resolveOrDefault;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import dev.fileeditor.votl.objects.CmdModule;
@@ -17,6 +14,7 @@ import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GuildSettingsManager extends LiteBase {
@@ -25,7 +23,7 @@ public class GuildSettingsManager extends LiteBase {
 		"color", "lastWebhookId", "appealLink", "reportChannelId",
 		"strikeExpire", "strikeCooldown", "modulesOff",
 		"informBan", "informKick", "informMute", "informStrike", "informDelstrike",
-		"roleWhitelist"
+		"roleWhitelist", "drama", "dramaChannel"
 	);
 
 	// Cache
@@ -120,17 +118,28 @@ public class GuildSettingsManager extends LiteBase {
 		execute("INSERT INTO %s(guildId, roleWhitelist) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET roleWhitelist=%<d".formatted(table, guildId, roleWhitelist?1:0));
 	}
 
+	public void setDramaLevel(long guildId, DramaLevel dramaLevel) throws SQLException {
+		invalidateCache(guildId);
+		execute("INSERT INTO %s(guildId, drama) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET drama=%<d".formatted(table, guildId, dramaLevel.level));
+	}
+
+	public void setDramaChannelId(long guildId, @Nullable Long channelId) throws SQLException {
+		invalidateCache(guildId);
+		execute("INSERT INTO %s(guildId, dramaChannel) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET dramaChannel=%<s".formatted(table, guildId, channelId==null ? "NULL" : channelId));
+	}
+
 
 	private void invalidateCache(long guildId) {
 		cache.pull(guildId);
 	}
 
 	public static class GuildSettings {
-		private final Long lastWebhookId, reportChannelId;
+		private final Long lastWebhookId, reportChannelId, dramaChannelId;
 		private final int color, strikeExpire, strikeCooldown, modulesOff;
 		private final String appealLink;
 		private final ModerationInformLevel informBan, informKick, informMute, informStrike, informDelstrike;
 		private final boolean roleWhitelist;
+		private final DramaLevel dramaLevel;
 
 		public GuildSettings() {
 			this.color = Constants.COLOR_DEFAULT;
@@ -146,6 +155,8 @@ public class GuildSettingsManager extends LiteBase {
 			this.informStrike = ModerationInformLevel.DEFAULT;
 			this.informDelstrike = ModerationInformLevel.NONE;
 			this.roleWhitelist = false;
+			this.dramaLevel = DramaLevel.OFF;
+			this.dramaChannelId = null;
 		}
 
 		public GuildSettings(Map<String, Object> data) {
@@ -162,20 +173,25 @@ public class GuildSettingsManager extends LiteBase {
 			this.informStrike = ModerationInformLevel.byLevel(getOrDefault(data.get("informStrike"), 1));
 			this.informDelstrike = ModerationInformLevel.byLevel(getOrDefault(data.get("informDelstrike"), 0));
 			this.roleWhitelist = getOrDefault(data.get("roleWhitelist"), 0) == 1;
+			this.dramaLevel = DramaLevel.byLevel(getOrDefault(data.get("drama"), 0));
+			this.dramaChannelId = getOrDefault(data.get("dramaChannel"), null);
 		}
 
 		public int getColor() {
 			return color;
 		}
 
+		@Nullable
 		public Long getLastWebhookId() {
 			return lastWebhookId;
 		}
 
+		@Nullable
 		public String getAppealLink() {
 			return appealLink;
 		}
 
+		@Nullable
 		public Long getReportChannelId() {
 			return reportChannelId;
 		}
@@ -192,7 +208,8 @@ public class GuildSettingsManager extends LiteBase {
 			return modulesOff;
 		}
 
-		public Set<CmdModule> getDisabledModules() {
+		@NotNull
+		public EnumSet<CmdModule> getDisabledModules() {
 			return CmdModule.decodeModules(modulesOff);
 		}
 
@@ -200,28 +217,43 @@ public class GuildSettingsManager extends LiteBase {
 			return (modulesOff & module.getValue()) == module.getValue();
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformBan() {
 			return informBan;
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformKick() {
 			return informKick;
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformMute() {
 			return informMute;
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformStrike() {
 			return informStrike;
 		}
 
+		@NotNull
 		public ModerationInformLevel getInformDelstrike() {
 			return informDelstrike;
 		}
 
 		public boolean isRoleWhitelistEnabled() {
 			return roleWhitelist;
+		}
+
+		@Nullable
+		public Long getDramaChannelId() {
+			return dramaChannelId;
+		}
+
+		@NotNull
+		public DramaLevel getDramaLevel() {
+			return dramaLevel;
 		}
 	}
 
@@ -261,6 +293,30 @@ public class GuildSettingsManager extends LiteBase {
 
 		public static List<Command.Choice> asChoices(LocaleUtil lu) {
 			return Stream.of(values()).map(informLevel -> new Command.Choice(lu.getText(informLevel.getPath()), informLevel.getLevel())).toList();
+		}
+	}
+
+	public enum DramaLevel {
+		OFF(0),
+		ONLY_BAD_DM(1),
+		ALL(2);
+
+		public final int level;
+
+		private static final Map<Integer, DramaLevel> BY_LEVEL = new HashMap<>();
+
+		static {
+			for (DramaLevel level : DramaLevel.values()) {
+				BY_LEVEL.put(level.level, level);
+			}
+		}
+
+		DramaLevel(int level) {
+			this.level = level;
+		}
+
+		public static DramaLevel byLevel(int value) {
+			return BY_LEVEL.get(value);
 		}
 	}
 

@@ -29,7 +29,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 
 public class TempRoleCmd extends CommandBase {
 
-	private final int MAX_DAYS = 150;
+	public static final int MAX_DAYS = 400;
 	
 	public TempRoleCmd() {
 		this.name = "temprole";

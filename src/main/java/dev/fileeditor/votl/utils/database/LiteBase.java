@@ -28,7 +28,7 @@ public class LiteBase {
 
 	/**
 	 * @param sql SQL statement to execute
-	 * @throws SQLException rethrows error
+	 * @throws SQLException Rethrows error
 	 */
 	protected void execute(final String sql) throws SQLException {
 		util.logger.debug(sql);
@@ -41,7 +41,12 @@ public class LiteBase {
 		}
 	}
 
-	protected int executeWithRow(final String sql) {
+	/**
+	 * @param sql SQL statement to execute
+	 * @return inserted row ID
+	 * @throws SQLException Rethrows error
+	 */
+	protected int executeWithRow(final String sql) throws SQLException {
 		util.logger.debug(sql);
 		try (Connection conn = DriverManager.getConnection(util.getUrlSQLite());
 			 PreparedStatement st = conn.prepareStatement(sql)) {
@@ -49,7 +54,7 @@ public class LiteBase {
 			return st.getGeneratedKeys().getInt(1);
 		} catch (SQLException ex) {
 			util.logger.warn("DB SQLite: Error at statement execution\nRequest: {}", sql, ex);
-			return 0;
+			throw ex;
 		}
 	}
 
@@ -156,6 +161,10 @@ public class LiteBase {
 		return result;
 	}
 
+
+	protected String getUrl() {
+		return util.getUrlSQLite();
+	}
 
 	// UTILS
 	@NotNull

@@ -1,8 +1,7 @@
 package dev.fileeditor.votl.commands.strike;
 
 import java.sql.SQLException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -145,7 +144,7 @@ public class DeleteStrikeCmd extends CommandBase {
 			else
 				try {
 					bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
-						Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
+						LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
 						1, String.join(";", strikesInfo)
 					);
 				} catch (SQLException ex) {
@@ -226,7 +225,7 @@ public class DeleteStrikeCmd extends CommandBase {
 			else
 				try {
 					bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
-						Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
+						LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
 						removeAmount, String.join(";", cases)
 					);
 				} catch (SQLException ex) {
@@ -238,7 +237,7 @@ public class DeleteStrikeCmd extends CommandBase {
 			boolean ignored = Collections.replaceAll(cases, caseRowId+"-"+activeAmount, caseRowId+"-"+(activeAmount-removeAmount));
 			try {
 				bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
-					Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
+					LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
 					removeAmount, String.join(";", cases)
 				);
 			} catch (SQLException ex) {
@@ -271,7 +270,7 @@ public class DeleteStrikeCmd extends CommandBase {
 			options.add(SelectOption.of(
 				"%s | %s".formatted(getSquares(strikeAmount, caseData.getType().getValue()-20), MessageUtil.limitString(caseData.getReason(), 50)),
 				caseRowId+"-"+strikeAmount
-			).withDescription(TimeUtil.timeToString(caseData.getTimeStart())+" | By: "+caseData.getModTag()));
+			).withDescription(TimeUtil.timeToString(caseData.getTimeStart())+" | By: "+(caseData.getModId()>0 ? caseData.getModTag() : "-")));
 		}
 		return options;
 	}

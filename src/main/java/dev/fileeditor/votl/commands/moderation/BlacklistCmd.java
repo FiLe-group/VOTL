@@ -1,10 +1,8 @@
 package dev.fileeditor.votl.commands.moderation;
 
-import static dev.fileeditor.votl.utils.CastUtil.castLong;
-
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -14,10 +12,12 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.database.managers.BlacklistManager;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -27,7 +27,7 @@ public class BlacklistCmd extends CommandBase {
 	public BlacklistCmd() {
 		this.name = "blacklist";
 		this.path = "bot.moderation.blacklist";
-		this.children = new SlashCommand[]{new View(), new Remove()};
+		this.children = new SlashCommand[]{new View(), new Search(), new Remove()};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.OPERATOR;
@@ -59,7 +59,7 @@ public class BlacklistCmd extends CommandBase {
 			}
 
 			Integer page = event.optInteger("page", 1);
-			List<Map<String, Object>> list = bot.getDBUtil().blacklist.getByPage(groupId, page);
+			var list = bot.getDBUtil().blacklist.getByPage(groupId, page);
 			if (list.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty").formatted(page)).build());
 				return;
@@ -68,15 +68,68 @@ public class BlacklistCmd extends CommandBase {
 
 			EmbedBuilder builder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 				.setTitle(lu.getText(event, path+".title").formatted(groupId, page, pages));
-			list.forEach(map -> 
-				builder.addField("ID: %s".formatted(castLong(map.get("userId"))), lu.getText(event, path+".value").formatted(
-					Optional.ofNullable(castLong(map.get("guildId"))).map(event.getJDA()::getGuildById).map(Guild::getName).orElse("-"),
-					Optional.ofNullable(castLong(map.get("modId"))).map("<@%s>"::formatted).orElse("-"),
-					Optional.ofNullable((String) map.get("reason")).map(v -> MessageUtil.limitString(v, 100)).orElse("-")
-				), true)
+			list.forEach(data ->
+				builder.addField(
+					"ID: %s".formatted(data.getUserId()),
+					lu.getText(event, path+".value").formatted(
+						Optional.ofNullable(event.getJDA().getGuildById(data.getGuildId())).map(Guild::getName).orElse("-"),
+						"<@%s>".formatted(data.getModId()),
+						Optional.ofNullable(data.getReason()).map(v -> MessageUtil.limitString(v, 100)).orElse("-")
+					),
+					true
+				)
 			);
 
 			editEmbed(event, builder.build());
+		}
+	}
+
+	private class Search extends SlashCommand {
+		public Search() {
+			this.name = "search";
+			this.path = "bot.moderation.blacklist.search";
+			this.options = List.of(
+				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
+			);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			event.deferReply(true).queue();
+
+			long guildId = event.getGuild().getIdLong();
+			final List<Integer> groupIds = new ArrayList<>();
+			groupIds.addAll(bot.getDBUtil().group.getOwnedGroups(guildId));
+			groupIds.addAll(bot.getDBUtil().group.getGuildGroups(guildId));
+			if (groupIds.isEmpty()) {
+				editError(event, path+".cant_view");
+				return;
+			}
+
+			User user = event.optUser("user");
+
+			List<MessageEmbed> embeds = new ArrayList<>();
+			for (BlacklistManager.BlacklistData data : bot.getDBUtil().blacklist.searchUserId(user.getIdLong())) {
+				embeds.add(bot.getEmbedUtil().getEmbed()
+					.setTitle("Group #`%s`".formatted(data.getGroupId()))
+					.setDescription(lu.getText(event, path+".value")
+						.formatted(
+							"%s `%s`".formatted(user.getAsMention(), user.getId()),
+							Optional.ofNullable(event.getJDA().getGuildById(data.getGuildId())).map(Guild::getName).orElse("-"),
+							"<@%s>".formatted(data.getModId()),
+							Optional.ofNullable(data.getReason()).map(v -> MessageUtil.limitString(v, 100)).orElse("-")
+						)
+					).build()
+				);
+			}
+
+			if (embeds.isEmpty()) {
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
+					.setDescription(lu.getText(event, path+".not_found").formatted(user.getAsMention()))
+					.build());
+			} else {
+				event.getHook().editOriginalEmbeds(embeds).queue();
+			}
 		}
 	}
 

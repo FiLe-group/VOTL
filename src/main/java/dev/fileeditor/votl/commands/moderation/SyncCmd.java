@@ -25,7 +25,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class SyncCmd extends CommandBase {
 
-	private static EventWaiter waiter;
+	private final EventWaiter waiter;
 	
 	public SyncCmd(EventWaiter waiter) {
 		this.name = "sync";
@@ -35,7 +35,7 @@ public class SyncCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.OPERATOR;
-		SyncCmd.waiter = waiter;
+		this.waiter = waiter;
 	}
 
 	@Override
@@ -99,7 +99,7 @@ public class SyncCmd extends CommandBase {
 						.build()
 					).setComponents().queue();
 					// Perform action using Helper bot
-					Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), target, "Manual kick", event.getUser().getName()));
+					Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), target, "Manual kick", event.getUser()));
 				},
 				20,
 				TimeUnit.SECONDS,

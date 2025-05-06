@@ -123,16 +123,15 @@ public class PersistentRoleCmd extends CommandBase {
 			}
 
 			StringBuilder sb = new StringBuilder();
-			for (Long roleId : roleIds) {
+			roleIds.forEach(roleId -> {
 				Role role = event.getGuild().getRoleById(roleId);
 				if (role == null) {
-					try {
-						bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), roleId);
-					} catch (SQLException ignored) {}
-					continue;
+					ignoreExc(() -> bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), roleId));
+					return;
 				}
 				sb.append(role.getAsMention()).append("\n");
-			}
+			});
+
 			if (sb.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setDescription(lu.getText(event, path+".empty"))

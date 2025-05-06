@@ -1,8 +1,8 @@
 package dev.fileeditor.votl.commands.moderation;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import dev.fileeditor.votl.base.command.CooldownScope;
@@ -15,11 +15,13 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
+import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
 import dev.fileeditor.votl.utils.exception.AttachmentParseException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -84,13 +86,40 @@ public class KickCmd extends CommandBase {
 			return;
 		}
 
-		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
+		String reason = bot.getModerationUtil().parseReasonMentions(event, this);
+		// inform user
+		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
 		if (event.optBoolean("dm", true)) {
 			tm.getUser().openPrivateChannel().queue(pm -> {
-				MessageEmbed embed = bot.getModerationUtil().getDmEmbed(CaseType.KICK, guild, reason, null, mod.getUser(), false);
-				if (embed == null) return;
-				pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+				final String text = bot.getModerationUtil().getDmText(CaseType.KICK, guild, reason, null, mod.getUser(), false);
+				if (text == null) return;
+				pm.sendMessage(text).setSuppressEmbeds(true)
+					.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, (failure) -> {
+						if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
+							TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+								.map(event.getJDA()::getTextChannelById)
+								.orElse(null);
+							if (dramaChannel != null) {
+								final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), tm, reason, null);
+								if (dramaEmbed == null) return;
+								dramaChannel.sendMessage("||%s||".formatted(tm.getAsMention()))
+									.addEmbeds(dramaEmbed)
+									.queue();
+							}
+						}
+					}));
 			});
+		}
+		if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ALL)) {
+			TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+				.map(event.getJDA()::getTextChannelById)
+				.orElse(null);
+			if (dramaChannel != null) {
+				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), tm, reason, null);
+				if (dramaEmbed != null) {
+					dramaChannel.sendMessageEmbeds(dramaEmbed).queue();
+				}
+			}
 		}
 
 		tm.kick().reason(reason).queueAfter(2, TimeUnit.SECONDS, done -> {
@@ -100,7 +129,7 @@ public class KickCmd extends CommandBase {
 				kickData = bot.getDBUtil().cases.add(
 					CaseType.KICK, tm.getIdLong(), tm.getUser().getName(),
 					mod.getIdLong(), mod.getUser().getName(),
-					guild.getIdLong(), reason, Instant.now(), null
+					guild.getIdLong(), reason, null
 				);
 			} catch (Exception ex) {
 				editErrorDatabase(event, ex, "Failed to create new case.");

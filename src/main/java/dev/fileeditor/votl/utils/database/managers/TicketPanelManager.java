@@ -22,7 +22,7 @@ public class TicketPanelManager extends LiteBase {
 		super(cu, "ticketPanel");
 	}
 
-	public int createPanel(long guildId, String title, String description, String imageUrl, String footer) {
+	public int createPanel(long guildId, String title, String description, String imageUrl, String footer) throws SQLException {
 		List<String> keys = new ArrayList<>(5);
 		List<String> values = new ArrayList<>(5);
 		keys.add("guildId");

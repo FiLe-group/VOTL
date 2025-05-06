@@ -7,7 +7,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.*;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +74,7 @@ public class ScheduledCheck {
 				GuildMessageChannel channel = bot.JDA.getChannelById(GuildMessageChannel.class, channelId);
 				if (channel == null) {
 					// Should be closed???
-					ignoreExc(() -> bot.getDBUtil().tickets.forceCloseTicket(channelId));
+					bot.getDBUtil().tickets.forceCloseTicket(channelId);
 					return;
 				}
 				int autocloseTime = db.getTicketSettings(channel.getGuild()).getAutocloseTime();
@@ -84,20 +83,20 @@ public class ScheduledCheck {
 				if (TimeUtil.getTimeCreated(channel.getLatestMessageIdLong()).isBefore(OffsetDateTime.now().minusHours(autocloseTime))) {
 					Guild guild = channel.getGuild();
 					UserSnowflake user = User.fromId(db.tickets.getUserId(channelId));
-					Instant closeTime = Instant.now().plus(CLOSE_AFTER_DELAY, ChronoUnit.HOURS);
+					LocalDateTime closeTime = LocalDateTime.now().plusHours(CLOSE_AFTER_DELAY);
 
 					MessageEmbed embed = new EmbedBuilder()
 						.setColor(db.getGuildSettings(guild).getColor())
 						.setDescription(bot.getLocaleUtil().getLocalized(guild.getLocale(), "bot.ticketing.listener.close_auto")
 							.replace("{user}", user.getAsMention())
-							.replace("{time}", TimeFormat.RELATIVE.atInstant(closeTime).toString())
+							.replace("{time}", TimeFormat.RELATIVE.format(closeTime))
 						)
 						.build();
 
 					Button close = Button.primary("ticket:close", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.close"));
 					Button cancel = Button.secondary("ticket:cancel", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.cancel"));
 
-					ignoreExc(() -> db.tickets.setRequestStatus(channelId, closeTime.getEpochSecond()));
+					db.tickets.setRequestStatus(channelId, closeTime.toEpochSecond(ZoneOffset.UTC));
 					channel.sendMessage("||%s||".formatted(user.getAsMention())).addEmbeds(embed).addActionRow(close, cancel).queue();
 				}
 			});
@@ -105,11 +104,11 @@ public class ScheduledCheck {
 			db.tickets.getCloseMarkedTickets().forEach(channelId -> {
 				GuildChannel channel = bot.JDA.getGuildChannelById(channelId);
 				if (channel == null) {
-					ignoreExc(() -> bot.getDBUtil().tickets.forceCloseTicket(channelId));
+					bot.getDBUtil().tickets.forceCloseTicket(channelId);
 					return;
 				}
 				bot.getTicketUtil().closeTicket(channelId, null, "time", failure -> {
-					ignoreExc(() -> db.tickets.setRequestStatus(channelId, -1L));
+					db.tickets.setRequestStatus(channelId, -1L);
 					if (ErrorResponse.UNKNOWN_MESSAGE.test(failure) || ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
 					log.error("Failed to delete ticket channel, either already deleted or unknown error", failure);
 				});
@@ -118,7 +117,7 @@ public class ScheduledCheck {
 			db.tickets.getReplyExpiredTickets().forEach(channelId -> {
 				GuildMessageChannel channel = bot.JDA.getChannelById(GuildMessageChannel.class, channelId);
 				if (channel == null) {
-					ignoreExc(() -> bot.getDBUtil().tickets.forceCloseTicket(channelId));
+					bot.getDBUtil().tickets.forceCloseTicket(channelId);
 					return;
 				}
 				channel.getIterableHistory()
@@ -128,13 +127,13 @@ public class ScheduledCheck {
 						if (msg.getAuthor().isBot()) {
 							// Last message is bot - close ticket
 							bot.getTicketUtil().closeTicket(channelId, null, "activity", failure -> {
-								ignoreExc(() -> db.tickets.setWaitTime(channelId, -1L));
+								db.tickets.setWaitTime(channelId, -1L);
 								if (ErrorResponse.UNKNOWN_MESSAGE.test(failure) || ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
 								log.error("Failed to delete ticket channel, either already deleted or unknown error", failure);
 							});
 						} else {
 							// There is human reply
-							ignoreExc(() -> db.tickets.setWaitTime(channelId, -1L));
+							db.tickets.setWaitTime(channelId, -1L);
 						}
 					});
 			});
@@ -152,7 +151,7 @@ public class ScheduledCheck {
 				long roleId = castLong(data.get("roleId"));
 				Role role = bot.JDA.getRoleById(roleId);
 				if (role == null) {
-					ignoreExc(() -> db.tempRoles.removeRole(roleId));
+					db.tempRoles.removeRole(roleId);
 					return;
 				}
 
@@ -163,7 +162,7 @@ public class ScheduledCheck {
 					} catch (InsufficientPermissionException | HierarchyException ex) {
 						log.warn("Was unable to delete temporary role '{}' during scheduled check.", roleId, ex);
 					}
-					ignoreExc(() -> db.tempRoles.removeRole(roleId));
+					db.tempRoles.removeRole(roleId);
 				} else {
 					role.getGuild().removeRoleFromMember(User.fromId(userId), role).reason("Role expired").queue(null, failure -> {
 						log.warn("Was unable to remove temporary role '{}' from '{}' during scheduled check.", roleId, userId, failure);
@@ -220,7 +219,7 @@ public class ScheduledCheck {
 						}
 						// Remove one strike and reset time
 						db.strikes.removeStrike(guildId, userId,
-							Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires(), ChronoUnit.DAYS),
+							LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
 							1, newData.toString()
 						);
 					} else {
@@ -253,9 +252,7 @@ public class ScheduledCheck {
 				if (channel == null) {
 					long guildId = castLong(data.get("guildId"));
 					log.warn("Channel for modReport @ '{}' not found. Deleting.", guildId);
-					try {
-						db.modReport.removeGuild(guildId);
-					} catch (SQLException ignored) {}
+					ignoreExc(() -> db.modReport.removeGuild(guildId));
 					return;
 				}
 

@@ -1,9 +1,8 @@
 package dev.fileeditor.votl.listeners;
 
-import java.sql.SQLException;
 import java.time.OffsetDateTime;
-import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -32,6 +31,11 @@ import dev.fileeditor.votl.utils.database.DBUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class VoiceListener extends ListenerAdapter {
+
+	private final Set<Permission> ownerPerms = Set.of(
+		Permission.MANAGE_CHANNEL, Permission.VOICE_SET_STATUS, Permission.VOICE_MOVE_OTHERS,
+		Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.MESSAGE_SEND
+	);
 
 	// cache users in voice for exp
 	// userId and start time
@@ -99,9 +103,7 @@ public class VoiceListener extends ListenerAdapter {
 		AudioChannelUnion channelLeft = event.getChannelLeft();
 		if (channelLeft != null && db.voice.existsChannel(channelLeft.getIdLong()) && channelLeft.getMembers().isEmpty()) {
 			channelLeft.delete().reason("Custom channel, empty").queueAfter(500, TimeUnit.MILLISECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
-			try {
-				db.voice.remove(channelLeft.getIdLong());
-			} catch (SQLException ignored) {}
+			db.voice.remove(channelLeft.getIdLong());
 		}
 
 		// start reward counting
@@ -117,12 +119,15 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	private void handleVoiceCreate(Guild guild, Member member) {
-		long userId = member.getIdLong();
-		DiscordLocale guildLocale = guild.getLocale();
+		if (!member.getVoiceState().inAudioChannel()) return;
+		final long userId = member.getIdLong();
+		final DiscordLocale guildLocale = guild.getLocale();
 
 		if (db.voice.existsUser(userId)) {
 			member.getUser().openPrivateChannel()
-				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown")).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
+				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown"))
+					.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
+				);
 			return;
 		}
 		VoiceSettings voiceSettings = db.getVoiceSettings(guild);
@@ -143,13 +148,13 @@ public class VoiceListener extends ListenerAdapter {
 			.reason(member.getUser().getEffectiveName()+" private channel")
 			.setUserlimit(channelLimit)
 			.syncPermissionOverrides()
-			.addPermissionOverride(member, EnumSet.of(Permission.MANAGE_CHANNEL, Permission.VOICE_SET_STATUS, Permission.VOICE_MOVE_OTHERS), null)
+			.addPermissionOverride(member, ownerPerms, null)
 			.queue(
 				channel -> {
+					db.voice.add(userId, channel.getIdLong());
 					try {
-						db.voice.add(userId, channel.getIdLong());
-					} catch (SQLException ignored) {}
-					guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS, null, new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED));
+						guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS, null, new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED));
+					} catch (Throwable ignored) {}
 				},
 				failure -> {
 					member.getUser().openPrivateChannel()
@@ -205,9 +210,7 @@ public class VoiceListener extends ListenerAdapter {
 		if (timeJoined != null) {
 			long duration = Math.round((System.currentTimeMillis()-timeJoined)/1000f); // to seconds
 			if (duration > 0) {
-				try {
-					bot.getDBUtil().levels.addVoiceTime(player, duration);
-				} catch (SQLException ignored) {}
+				bot.getDBUtil().levels.addVoiceTime(player, duration);
 			}
 		}
 		cache.invalidate(player);

@@ -11,6 +11,7 @@ import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.TicketPanelManager.Panel;
@@ -46,6 +47,7 @@ public class TicketCmd extends CommandBase {
 		};
 		this.category = CmdCategory.TICKETING;
 		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.module = CmdModule.TICKETING;
 	}
 
 	@Override
@@ -87,8 +89,10 @@ public class TicketCmd extends CommandBase {
 				return;
 			}
 
-			int panelId = bot.getDBUtil().ticketPanels.createPanel(event.getGuild().getIdLong(), title, description, image, footer);
-			if (panelId == 0) {
+			final int panelId;
+			try {
+				panelId = bot.getDBUtil().ticketPanels.createPanel(event.getGuild().getIdLong(), title, description, image, footer);
+			} catch (SQLException e) {
 				editErrorOther(event, "Panel creation failed.");
 				return;
 			}
@@ -273,7 +277,6 @@ public class TicketCmd extends CommandBase {
 	// Tag tools
 
 	private class CreateTag extends SlashCommand {
-
 		public CreateTag() {
 			this.name = "create";
 			this.path = "bot.ticketing.ticket.tags.create";
@@ -333,8 +336,10 @@ public class TicketCmd extends CommandBase {
 				supportRoleIds = supportRoles.stream().map(Role::getId).collect(Collectors.joining(";"));
 			}
 
-			int tagId = bot.getDBUtil().ticketTags.createTag(guildId, panelId, type, buttonName, emoji, categoryId, message, supportRoleIds, ticketName, buttonStyle.getKey());
-			if (tagId == 0) {
+			final int tagId;
+			try {
+				tagId = bot.getDBUtil().ticketTags.createTag(guildId, panelId, type, buttonName, emoji, categoryId, message, supportRoleIds, ticketName, buttonStyle.getKey());
+			} catch (SQLException e) {
 				editErrorOther(event, "Tag creation failed.");
 				return;
 			}
@@ -344,11 +349,9 @@ public class TicketCmd extends CommandBase {
 				.build()
 			);
 		}
-
 	}
 
 	private class ModifyTag extends SlashCommand {
-
 		public ModifyTag() {
 			this.name = "modify";
 			this.path = "bot.ticketing.ticket.tags.modify";
@@ -433,11 +436,9 @@ public class TicketCmd extends CommandBase {
 				);
 			}
 		}
-
 	}
 
 	private class ViewTag extends SlashCommand {
-
 		public ViewTag() {
 			this.name = "view";
 			this.path = "bot.ticketing.ticket.tags.view";
@@ -468,7 +469,8 @@ public class TicketCmd extends CommandBase {
 
 			String message = Optional.ofNullable(tag.getMessage()).orElse(lu.getText(event, path+".none"));
 			String category = Optional.ofNullable(tag.getLocation()).map(id -> event.getGuild().getCategoryById(id).getAsMention()).orElse(lu.getText(event, path+".none"));
-			String roles = Optional.ofNullable(tag.getSupportRoles())
+			String roles = Optional.of(tag.getSupportRoles())
+				.filter(l -> !l.isEmpty())
 				.map(ids -> ids.stream().map("<@&%s>"::formatted).collect(Collectors.joining(", ")))
 				.orElse(lu.getText(event, path+".none"));
 			
@@ -478,7 +480,6 @@ public class TicketCmd extends CommandBase {
 			
 			event.getHook().editOriginalEmbeds(builder.build()).setActionRow(tag.previewButton()).queue();
 		}
-
 	}
 
 	private class DeleteTag extends SlashCommand {

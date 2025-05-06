@@ -68,10 +68,13 @@ public class LogsCmd extends CommandBase {
 				editError(event, path+".no_channel");
 				return;
 			}
-			
+
 			try {
-				bot.getCheckUtil().hasPermissions(event, event.getGuild(), event.getMember(), true, channel,
-					new Permission[]{Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS});
+				bot.getCheckUtil().hasPermissions(
+					event,
+					new Permission[]{Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS},
+					channel
+				);
 			} catch (CheckException ex) {
 				editMsg(event, ex.getEditData());
 				return;
