@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -15,6 +16,7 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
+import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
 import dev.fileeditor.votl.utils.exception.AttachmentParseException;
 import dev.fileeditor.votl.utils.exception.FormatterException;
 import dev.fileeditor.votl.utils.message.TimeUtil;
@@ -23,6 +25,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -69,11 +72,11 @@ public class MuteCmd extends CommandBase {
 			return;
 		}
 		if (duration.isZero()) {
-			editError(event, path+".abort", "Duration must larger than 1 minute");
+			editError(event, path+".abort", "Duration must larger than 1 minute.");
 			return;
 		}
 		if (duration.toDaysPart() > 28) {
-			editError(event, path+".abort", "Maximum mute duration: 28 days");
+			editError(event, path+".abort", "Maximum mute duration: 28 days.");
 			return;
 		}
 
@@ -87,7 +90,7 @@ public class MuteCmd extends CommandBase {
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
+		String reason = bot.getModerationUtil().parseReasonMentions(event, this);
 		CaseData oldMuteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 
 		if (tm.isTimedOut() && oldMuteData != null) {
@@ -117,23 +120,50 @@ public class MuteCmd extends CommandBase {
 				return;
 			}
 
-			// Set previous mute case inactive, as member is not timeout
-			if (oldMuteData != null) {
-				try {
-					bot.getDBUtil().cases.setInactive(oldMuteData.getRowId());
-				} catch (SQLException ex) {
-					editErrorDatabase(event, ex, "Failed to remove previous timeout case.");
-					return;
-				}
-			}
 			// timeout
 			tm.timeoutFor(duration).reason(reason).queue(done -> {
+				// inform
+				final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
 				tm.getUser().openPrivateChannel().queue(pm -> {
-					MessageEmbed embed = bot.getModerationUtil().getDmEmbed(CaseType.MUTE, guild, reason, duration, mod.getUser(), false);
-					if (embed == null) return;
-					pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+					final String text = bot.getModerationUtil().getDmText(CaseType.MUTE, guild, reason, duration, mod.getUser(), false);
+					if (text == null) return;
+					pm.sendMessage(text).setSuppressEmbeds(true)
+						.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, (failure) -> {
+							if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
+								TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+									.map(event.getJDA()::getTextChannelById)
+									.orElse(null);
+								if (dramaChannel != null) {
+									final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.MUTE, event.getGuild(), tm, reason, duration);
+									if (dramaEmbed == null) return;
+									dramaChannel.sendMessage("||%s||".formatted(tm.getAsMention()))
+										.addEmbeds(dramaEmbed)
+										.queue();
+								}
+							}
+						}));
 				});
+				if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ALL)) {
+					TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+						.map(event.getJDA()::getTextChannelById)
+						.orElse(null);
+					if (dramaChannel != null) {
+						final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.MUTE, event.getGuild(), tm, reason, duration);
+						if (dramaEmbed != null) {
+							dramaChannel.sendMessageEmbeds(dramaEmbed).queue();
+						}
+					}
+				}
 
+				// Set previous mute case inactive, as member is not timed-out
+				if (oldMuteData != null) {
+					try {
+						bot.getDBUtil().cases.setInactive(oldMuteData.getRowId());
+					} catch (SQLException e) {
+						editErrorDatabase(event, e, "Failed to set previous mute case inactive.");
+						return;
+					}
+				}
 				// add info to db
 				CaseData newMuteData;
 				try {

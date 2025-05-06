@@ -46,12 +46,12 @@ public enum CmdAccessLevel {
 		return(this.level > other.getLevel());
 	}
 
-	public boolean isHigherOrEqual(CmdAccessLevel other) {
-		return(this.level >= other.getLevel());
+	public boolean satisfies(CmdAccessLevel other) {
+		return (this.level >= other.getLevel());
 	}
 
 	public boolean isLowerThan(CmdAccessLevel other) {
-		return(this.level < other.getLevel());
+		return (this.level < other.getLevel());
 	}
 
 	public static CmdAccessLevel byLevel(Integer level) {
