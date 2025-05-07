@@ -1,6 +1,6 @@
 package dev.fileeditor.votl.objects.constants;
 
-public class Links {
+public final class Links {
 	private Links() {
 		throw new IllegalStateException("Utility class");
 	}

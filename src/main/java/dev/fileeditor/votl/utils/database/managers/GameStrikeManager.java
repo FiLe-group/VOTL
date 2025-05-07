@@ -38,6 +38,10 @@ public class GameStrikeManager extends LiteBase {
 		return select("SELECT channelId FROM %s WHERE (guildId=%s)".formatted(channels, guildId), "channelId", Long.class);
 	}
 
+	public int countChannels(long guildId) {
+		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%s)".formatted(channels, guildId));
+	}
+
 	// Strikes
 	public void addStrike(long guildId, long channelId, long userId) throws SQLException {
 		execute("INSERT INTO %s(guildId, channelId, userId, count, lastUpdate) VALUES (%s, %s, %s, 1, %s) ON CONFLICT(channelId, userId) DO UPDATE SET count=count+1, lastUpdate=%<s".formatted(

@@ -8,6 +8,7 @@ import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -27,7 +28,11 @@ public class AccessCmd extends CommandBase {
 	public AccessCmd() {
 		this.name = "access";
 		this.path = "bot.guild.access";
-		this.children = new SlashCommand[]{new View(), new AddRole(), new RemoveRole(), new AddOperator(), new RemoveOperator()};
+		this.children = new SlashCommand[]{
+			new View(),
+			new AddRole(), new RemoveRole(),
+			new AddOperator(), new RemoveOperator()
+		};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
 	}
@@ -130,6 +135,11 @@ public class AccessCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
 
+			if (bot.getDBUtil().access.countRoles(event.getGuild().getIdLong()) >= Limits.ACCESS_ROLES) {
+				editErrorLimit(event, "roles", Limits.ACCESS_ROLES);
+				return;
+			}
+
 			Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, "bot.guild.access.add.no_role");
@@ -230,6 +240,11 @@ public class AccessCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
+
+			if (bot.getDBUtil().access.countRoles(event.getGuild().getIdLong()) >= Limits.ACCESS_USERS) {
+				editErrorLimit(event, "operators", Limits.ACCESS_USERS);
+				return;
+			}
 
 			Member member = event.optMember("user");
 			if (member == null) {

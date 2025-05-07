@@ -11,6 +11,7 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -127,8 +128,8 @@ public class RolesManageCmd extends CommandBase {
 				}
 				sendSuccess(event, lu.getText(event, RoleType.ASSIGN.getPath()), role);
 			} else if (type.equals(RoleType.CUSTOM.toString())) {
-				if (bot.getDBUtil().roles.getCustom(guildId).size() >= 25) {
-					editError(event, path+".custom_max");
+				if (bot.getDBUtil().roles.countRoles(guildId, RoleType.CUSTOM) >= Limits.CUSTOM_ROLES) {
+					editErrorLimit(event, "custom roles", Limits.CUSTOM_ROLES);
 					return;
 				}
 				try {

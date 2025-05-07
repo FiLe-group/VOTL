@@ -50,6 +50,10 @@ public class LogExemptionsManager extends LiteBase {
 		return data.isEmpty() ? Set.of() : new HashSet<>(data);
 	}
 
+	public int countExemptions(long guildId) {
+		return getExemptions(guildId).size();
+	}
+
 	private void invalidateCache(long guildId) {
 		cache.invalidate(guildId);
 	}

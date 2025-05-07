@@ -4,6 +4,7 @@ import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.LevelManager;
@@ -54,8 +55,8 @@ public class LevelExemptCmd extends CommandBase {
 			}
 
 			LevelManager.LevelSettings settings = bot.getDBUtil().levels.getSettings(event.getGuild());
-			if (settings.getExemptChannels().size() >= 40) {
-				editError(event, path+".limit");
+			if (settings.getExemptChannels().size() >= Limits.LEVEL_EXEMPTIONS) {
+				editErrorLimit(event, "exemption channels", Limits.LEVEL_EXEMPTIONS);
 				return;
 			}
 			if (settings.isExemptChannel(channel.getIdLong())) {

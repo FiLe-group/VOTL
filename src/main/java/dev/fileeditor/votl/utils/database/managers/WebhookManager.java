@@ -38,4 +38,8 @@ public class WebhookManager extends LiteBase {
 		return select("SELECT webhookId FROM %s WHERE (guildId=%s)".formatted(table, guildId), "webhookId", Long.class);
 	}
 
+	public int countWebhooks(long guildId) {
+		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%s)".formatted(table, guildId));
+	}
+
 }

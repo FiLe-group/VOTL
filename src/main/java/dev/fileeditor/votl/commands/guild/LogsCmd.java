@@ -12,6 +12,7 @@ import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
@@ -37,8 +38,10 @@ public class LogsCmd extends CommandBase {
 	public LogsCmd() {
 		this.name = "logs";
 		this.path = "bot.guild.logs";
-		this.children = new SlashCommand[]{new Enable(), new Disable(), new View(),
-			new AddExemption(), new RemoveExemption(), new ViewExemption()};
+		this.children = new SlashCommand[]{
+			new Enable(), new Disable(), new View(),
+			new AddExemption(), new RemoveExemption(), new ViewExemption()
+		};
 		this.accessLevel = CmdAccessLevel.ADMIN;
 		this.category = CmdCategory.GUILD;
 	}
@@ -225,6 +228,12 @@ public class LogsCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply().queue();
+
+			if (bot.getDBUtil().logExemptions.countExemptions(event.getGuild().getIdLong()) >= Limits.LOG_EXEMPTIONS) {
+				editErrorLimit(event, "exemptions", Limits.LOG_EXEMPTIONS);
+				return;
+			}
+
 			GuildChannelUnion channelUnion = event.optChannel("target");
 			long guildId = event.getGuild().getIdLong();
 			switch (channelUnion.getType()) {

@@ -113,6 +113,10 @@ public class PersistentManager extends LiteBase {
 			.formatted(table_role, table_return, guildId));
 	}
 
+	public int countRoles(long guildId) {
+		return getRoles(guildId).size();
+	}
+
 	private void invalidateRoleCache(long guildId) {
 		roleCache.invalidate(guildId);
 	}

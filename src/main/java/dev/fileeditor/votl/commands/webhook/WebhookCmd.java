@@ -10,6 +10,7 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -32,8 +33,10 @@ public class WebhookCmd extends CommandBase {
 	public WebhookCmd() {
 		this.name = "webhook";
 		this.path = "bot.webhook";
-		this.children = new SlashCommand[]{new ShowList(), new Create(), new Select(),
-			new Remove(), new Move(), new Here()};
+		this.children = new SlashCommand[]{
+			new ShowList(), new Create(), new Select(),
+			new Remove(), new Move(), new Here()
+		};
 		this.botPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		this.category = CmdCategory.WEBHOOK;
 		this.module = CmdModule.WEBHOOK;
@@ -44,7 +47,6 @@ public class WebhookCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event)	{}
 
 	private class ShowList extends SlashCommand {
-
 		public ShowList() {
 			this.name = "list";
 			this.path = "bot.webhook.list";
@@ -100,11 +102,9 @@ public class WebhookCmd extends CommandBase {
 				editEmbed(event, embedBuilder.build());
 			});
 		}
-
 	}
 
 	private class Create extends SlashCommand {
-
 		public Create() {
 			this.name = "create";
 			this.path = "bot.webhook.add.create";
@@ -119,6 +119,11 @@ public class WebhookCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
+
+			if (bot.getDBUtil().webhook.countWebhooks(event.getGuild().getIdLong()) >= Limits.WEBHOOKS) {
+				editErrorLimit(event, "webhooks", Limits.WEBHOOKS);
+				return;
+			}
 
 			String setName = event.optString("name", "Default name").trim();
 			GuildChannel channel = event.optGuildChannel("channel", event.getGuildChannel());
@@ -148,7 +153,6 @@ public class WebhookCmd extends CommandBase {
 				editPermError(event, ex.getPermission(), true);
 			}
 		}
-
 	}
 
 	private class Select extends SlashCommand {
@@ -164,6 +168,12 @@ public class WebhookCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply(true).queue();
+
+			if (bot.getDBUtil().webhook.countWebhooks(event.getGuild().getIdLong()) >= Limits.WEBHOOKS) {
+				editErrorLimit(event, "webhooks", Limits.WEBHOOKS);
+				return;
+			}
+
 			long webhookId = Long.parseLong(event.optString("id"));
 
 			try {

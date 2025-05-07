@@ -12,6 +12,7 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.TicketPanelManager.Panel;
@@ -75,8 +76,8 @@ public class TicketCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply().queue();
-			if (bot.getDBUtil().ticketPanels.countPanels(event.getGuild().getIdLong()) >= 20) {
-				editError(event, path+".max_panels", "Maximum panels by server: %d".formatted(20));
+			if (bot.getDBUtil().ticketPanels.countPanels(event.getGuild().getIdLong()) >= Limits.TICKET_PANELS) {
+				editErrorLimit(event, "panels", Limits.TICKET_PANELS);
 				return;
 			}
 
@@ -315,7 +316,7 @@ public class TicketCmd extends CommandBase {
 			}
 
 			if (bot.getDBUtil().ticketTags.countPanelTags(panelId) >= 5) {
-				editError(event, path+".max_tags", "Maximum tags on 1 panel: %d".formatted(5));
+				editError(event, path+".max_tags", "Maximum 5 tags on 1 panel.");
 				return;
 			}
 

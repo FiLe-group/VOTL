@@ -64,11 +64,15 @@ public class GroupManager extends LiteBase {
 	}
 
 	public Integer getInvite(int groupId) {
-		return selectOne("SELECT invite FROM %s WHERE (groupId=%s)".formatted(table, groupId), "invite", Integer.class);
+		return selectOne("SELECT invite FROM %s WHERE (groupId=%s)".formatted(groups, groupId), "invite", Integer.class);
 	}
 
 	public Integer getGroupByInvite(int invite) {
-		return selectOne("SELECT groupId FROM %s WHERE (invite=%s)".formatted(table, invite), "groupId", Integer.class);
+		return selectOne("SELECT groupId FROM %s WHERE (invite=%s)".formatted(groups, invite), "groupId", Integer.class);
+	}
+
+	public int countOwnedGroups(long guildId) {
+		return count("SELECT COUNT(*) FROM %s WHERE (ownerId=%d)".formatted(groups, guildId));
 	}
 
 	// groupMembers table
@@ -119,6 +123,10 @@ public class GroupManager extends LiteBase {
 
 	public void setManage(int groupId, long guildId, boolean canManage) throws SQLException {
 		execute("UPDATE %s SET canManage=%d WHERE (groupId=%d AND guildId=%d)".formatted(members, canManage ? 1 : 0, groupId, guildId));
+	}
+
+	public int countJoinedGroups(long guildId) {
+		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%d)".formatted(members, guildId));
 	}
 
 }

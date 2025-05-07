@@ -5,6 +5,7 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.ExpType;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.LevelRolesManager;
@@ -63,8 +64,8 @@ public class LevelRolesCmd extends CommandBase {
 				editError(event, path+".incorrect_role", denyReason);
 				return;
 			}
-			if (bot.getDBUtil().levelRoles.getLevelsCount(event.getGuild().getIdLong()) >= 40) {
-				editError(event, path+".limit");
+			if (bot.getDBUtil().levelRoles.countLevels(event.getGuild().getIdLong()) >= Limits.LEVEL_ROLES) {
+				editErrorLimit(event, "level roles", Limits.LEVEL_ROLES);
 				return;
 			}
 

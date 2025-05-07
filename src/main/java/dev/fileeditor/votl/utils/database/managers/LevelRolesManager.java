@@ -59,7 +59,7 @@ public class LevelRolesManager extends LiteBase {
 		return new LevelRoleData(data);
 	}
 
-	public int getLevelsCount(long guildId) {
+	public int countLevels(long guildId) {
 		return getAllLevels(guildId).size();
 	}
 

@@ -115,4 +115,12 @@ public class AccessManager extends LiteBase {
 		return data.stream().collect(Collectors.toMap(k-> castLong(k.get("roleId")), k-> CmdAccessLevel.byLevel((int) k.get("level"))));
 	}
 
+	public int countRoles(long guildId) {
+		return getAllRoles(guildId).size();
+	}
+
+	public int countOperators(long guildId) {
+		return getOperators(guildId).size();
+	}
+
 }

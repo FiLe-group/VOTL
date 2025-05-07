@@ -51,6 +51,10 @@ public class AutopunishManager extends LiteBase {
 			.toList();
 	}
 
+	public int countActions(long guildId) {
+		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%d)".formatted(table, guildId));
+	}
+
 	public static class Autopunish {
 		private final int strike;
 		private final List<PunishAction> actions;

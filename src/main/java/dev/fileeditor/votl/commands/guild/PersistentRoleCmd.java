@@ -5,6 +5,7 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -22,7 +23,9 @@ public class PersistentRoleCmd extends CommandBase {
 	public PersistentRoleCmd() {
 		this.name = "persistent";
 		this.path = "bot.guild.persistent";
-		this.children = new SlashCommand[]{new AddRole(), new RemoveRole(), new View()};
+		this.children = new SlashCommand[]{
+			new AddRole(), new RemoveRole(), new View()
+		};
 		this.category = CmdCategory.GUILD;
 		this.module = CmdModule.ROLES;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -49,6 +52,11 @@ public class PersistentRoleCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply().queue();
 
+			if (bot.getDBUtil().persistent.countRoles(event.getGuild().getIdLong()) >= Limits.PERSISTENT_ROLES) {
+				editErrorLimit(event, "roles", Limits.PERSISTENT_ROLES);
+				return;
+			}
+
 			final Role role = event.optRole("role");
 			// Check roles
 			final Role publicRole = event.getGuild().getPublicRole();
@@ -56,12 +64,6 @@ public class PersistentRoleCmd extends CommandBase {
 			rolePerms.retainAll(managerPerms);
 			if (role.equals(publicRole) || role.isManaged() || !event.getMember().canInteract(role) || !event.getGuild().getSelfMember().canInteract(role) || !rolePerms.isEmpty()) {
 				editError(event, path+".incorrect_role", "Role: "+role.getAsMention());
-				return;
-			}
-
-			final int size = bot.getDBUtil().persistent.getRoles(event.getGuild().getIdLong()).size();
-			if (size >= 3) {
-				editError(event, path+".limit", "Maximum 3 roles.");
 				return;
 			}
 

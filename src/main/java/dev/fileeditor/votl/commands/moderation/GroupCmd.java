@@ -15,6 +15,7 @@ import dev.fileeditor.votl.base.waiter.EventWaiter;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -64,8 +65,9 @@ public class GroupCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
-			if (bot.getDBUtil().group.getOwnedGroups(guildId).size() >= 3) {
-				editError(event, path+".max_amount");
+
+			if (bot.getDBUtil().group.countOwnedGroups(guildId) >= Limits.OWNED_GROUPS) {
+				editErrorLimit(event, "owned groups", Limits.OWNED_GROUPS);
 				return;
 			}
 
@@ -481,7 +483,14 @@ public class GroupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
+			event.deferReply().queue();
+			long guildId = event.getGuild().getIdLong();
+
+			if (bot.getDBUtil().group.countJoinedGroups(guildId) >= Limits.JOINED_GROUPS) {
+				editErrorLimit(event, "joined groups", Limits.JOINED_GROUPS);
+				return;
+			}
+
 			Integer invite = event.optInteger("invite");
 			Integer groupId = bot.getDBUtil().group.getGroupByInvite(invite);
 			if (groupId == null) {
@@ -490,11 +499,11 @@ public class GroupCmd extends CommandBase {
 			}
 
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
-			if (event.getGuild().getIdLong() == ownerId) {
+			if (guildId == ownerId) {
 				editError(event, path+".failed_join", "This server is this Group's owner.\nGroup ID: `%s`".formatted(groupId));
 				return;
 			}
-			if (bot.getDBUtil().group.isMember(groupId, event.getGuild().getIdLong())) {
+			if (bot.getDBUtil().group.isMember(groupId, guildId)) {
 				editError(event, path+".is_member", "Group ID: `%s`".formatted(groupId));
 				return;
 			}
@@ -502,7 +511,7 @@ public class GroupCmd extends CommandBase {
 			String groupName = bot.getDBUtil().group.getName(groupId);
 
 			try {
-				bot.getDBUtil().group.add(groupId, event.getGuild().getIdLong(), false);
+				bot.getDBUtil().group.add(groupId, guildId, false);
 			} catch (SQLException ex) {
 				editErrorDatabase(event, ex, "add group member");
 				return;

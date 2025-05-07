@@ -8,6 +8,7 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import net.dv8tion.jda.api.entities.User;
@@ -21,7 +22,9 @@ public class GameCmd extends CommandBase {
 	public GameCmd() {
 		this.name = "game";
 		this.path = "bot.games.game";
-		this.children = new SlashCommand[]{new Add(), new Remove(), new ViewChannels(), new Clear()};
+		this.children = new SlashCommand[]{
+			new Add(), new Remove(), new ViewChannels(), new Clear()
+		};
 		this.category = CmdCategory.GAMES;
 		this.module = CmdModule.GAMES;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -46,6 +49,10 @@ public class GameCmd extends CommandBase {
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
+			if (bot.getDBUtil().games.countChannels(event.getGuild().getIdLong()) >= Limits.GAME_CHANNELS) {
+				editErrorLimit(event, "game channels", Limits.GAME_CHANNELS);
+				return;
+			}
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) != null) {
 				editError(event, path+".already", "Channel: %s".formatted(channel.getAsMention()));
 				return;

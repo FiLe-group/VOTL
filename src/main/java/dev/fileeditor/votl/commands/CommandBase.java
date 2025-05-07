@@ -70,6 +70,10 @@ public abstract class CommandBase extends SlashCommand {
 		}
 	}
 
+	public final void editErrorLimit(IReplyCallback event, String name, int maximum) {
+		editError(event, bot.getEmbedUtil().getError(event, "errors.db_limit", "> Maximum *%s*: %d".formatted(name, maximum)));
+	}
+
 	// PermError
 	public final void editPermError(IReplyCallback event, Permission perm, boolean self) {
 		editError(event, MessageEditData.fromCreateData(bot.getEmbedUtil().createPermError(event, perm, self)));

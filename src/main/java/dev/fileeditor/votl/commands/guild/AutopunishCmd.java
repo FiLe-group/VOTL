@@ -11,6 +11,7 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.PunishAction;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -27,7 +28,9 @@ public class AutopunishCmd extends CommandBase {
 	public AutopunishCmd() {
 		this.name = "autopunish";
 		this.path = "bot.guild.autopunish";
-		this.children = new SlashCommand[]{new Add(), new Remove(), new View()};
+		this.children = new SlashCommand[]{
+			new Add(), new Remove(), new View()
+		};
 		this.category = CmdCategory.GUILD;
 		this.module = CmdModule.STRIKES;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -56,6 +59,12 @@ public class AutopunishCmd extends CommandBase {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			event.deferReply().queue();
+
+			if (bot.getDBUtil().autopunish.countActions(event.getGuild().getIdLong()) >= Limits.AUTOPUNISHMENTS) {
+				editErrorLimit(event, "autopunish actions", Limits.AUTOPUNISHMENTS);
+				return;
+			}
+
 			final int strikeCount = event.optInteger("strike-count");
 			
 			if ((event.hasOption("kick") ? 1 : 0) + (event.hasOption("mute") ? 1 : 0) + (event.hasOption("ban") ? 1 : 0) >= 2) {

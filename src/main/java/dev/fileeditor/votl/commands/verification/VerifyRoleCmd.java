@@ -24,7 +24,10 @@ public class VerifyRoleCmd extends CommandBase {
 	public VerifyRoleCmd() {
 		this.name = "verifyrole";
 		this.path = "bot.verification.verifyrole";
-		this.children = new SlashCommand[]{new Verify(), new SetAdditional(), new ClearAdditional(), new ViewAdditional()};
+		this.children = new SlashCommand[]{
+			new Verify(),
+			new SetAdditional(), new ClearAdditional(), new ViewAdditional()
+		};
 		this.module = CmdModule.VERIFICATION;
 		this.category = CmdCategory.VERIFICATION;
 		this.accessLevel = CmdAccessLevel.ADMIN;

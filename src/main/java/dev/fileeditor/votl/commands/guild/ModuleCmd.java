@@ -29,7 +29,9 @@ public class ModuleCmd extends CommandBase {
 	public ModuleCmd(EventWaiter waiter) {
 		this.name = "module";
 		this.path = "bot.guild.module";
-		this.children = new SlashCommand[]{new Show(), new Disable(), new Enable()};
+		this.children = new SlashCommand[]{
+			new Show(), new Disable(), new Enable()
+		};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.OWNER;
 		this.waiter = waiter;
