@@ -5,16 +5,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
 public class LogExemptionsManager extends LiteBase {
 
 	// Cache
-	private final FixedCache<Long, Set<Long>> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
-	
+	private final Cache<Long, Set<Long>> cache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
+
 	public LogExemptionsManager(ConnectionUtil cu) {
 		super(cu, "logExceptions");
 	}
@@ -39,16 +42,16 @@ public class LogExemptionsManager extends LiteBase {
 	}
 
 	public Set<Long> getExemptions(long guildId) {
-		if (cache.contains(guildId))
-			return cache.get(guildId);
+		return cache.get(guildId, this::getData);
+	}
+
+	public Set<Long> getData(long guildId) {
 		List<Long> data = select("SELECT * FROM %s WHERE (guildId=%d)".formatted(table, guildId), "targetId", Long.class);
-		Set<Long> dataSet = data.isEmpty() ? Set.of() : new HashSet<>(data);
-		cache.put(guildId, dataSet);
-		return dataSet;
+		return data.isEmpty() ? Set.of() : new HashSet<>(data);
 	}
 
 	private void invalidateCache(long guildId) {
-		cache.pull(guildId);
+		cache.invalidate(guildId);
 	}
 
 }

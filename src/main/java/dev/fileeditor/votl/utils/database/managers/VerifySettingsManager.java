@@ -9,8 +9,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +21,9 @@ public class VerifySettingsManager extends LiteBase {
 	private final Set<String> columns = Set.of("roleId", "panelText", "panelImage", "additionalRoles");
 
 	// Cache
-	private final FixedCache<Long, VerifySettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+	private final Cache<Long, VerifySettings> cache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
 	private final VerifySettings blankSettings = new VerifySettings();
 
 	public VerifySettingsManager(ConnectionUtil cu) {
@@ -28,13 +31,7 @@ public class VerifySettingsManager extends LiteBase {
 	}
 
 	public VerifySettings getSettings(long guildId) {
-		if (cache.contains(guildId))
-			return cache.get(guildId);
-		VerifySettings settings = applyNonNull(getData(guildId), VerifySettings::new);
-		if (settings == null)
-			settings = blankSettings;
-		cache.put(guildId, settings);
-		return settings;
+		return cache.get(guildId, id -> applyOrDefault(getData(id), VerifySettings::new, blankSettings));
 	}
 
 	private Map<String, Object> getData(long guildId) {
@@ -68,7 +65,7 @@ public class VerifySettingsManager extends LiteBase {
 	}
 
 	private void invalidateCache(long guildId) {
-		cache.pull(guildId);
+		cache.invalidate(guildId);
 	}
 
 	public static class VerifySettings {

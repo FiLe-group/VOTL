@@ -84,7 +84,7 @@ public class LogsCmd extends CommandBase {
 			String text = lu.getText(event, type.getNamePath());
 
 			try {
-				WebhookData oldData = bot.getDBUtil().logs.getLogWebhook(type, event.getGuild().getIdLong());
+				WebhookData oldData = bot.getDBUtil().logs.getLogWebhook(event.getGuild().getIdLong(), type);
 				if (oldData != null) {
 					event.getJDA().retrieveWebhookById(oldData.getWebhookId())
 						.queue(webhook -> webhook.delete(oldData.getToken()).reason("Log disabled").queue());
@@ -159,7 +159,7 @@ public class LogsCmd extends CommandBase {
 				);
 			} else {
 				LogType type = LogType.of(input);
-				WebhookData data = bot.getDBUtil().logs.getLogWebhook(type, guildId);
+				WebhookData data = bot.getDBUtil().logs.getLogWebhook(guildId, type);
 				if (data != null) {
 					event.getJDA().retrieveWebhookById(data.getWebhookId())
 						.queue(webhook -> webhook.delete(data.getToken()).reason("Log disabled").queue());

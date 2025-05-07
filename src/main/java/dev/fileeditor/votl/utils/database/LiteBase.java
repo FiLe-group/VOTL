@@ -177,8 +177,9 @@ public class LiteBase {
 		return String.format("'%s'", String.valueOf(value).replaceAll("'", "''"));
 	}
 
-	protected <T, V> T applyNonNull(V obj, @NotNull Function<V, T> function) {
-		return (obj != null) ? function.apply(obj) : null;
+	@Nullable
+	protected <T, V> T applyOrDefault(V obj, @NotNull Function<V, T> function, @Nullable T defaultValue) {
+		return (obj != null) ? function.apply(obj) : defaultValue;
 	}
 
 }

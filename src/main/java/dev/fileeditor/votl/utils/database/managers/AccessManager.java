@@ -6,13 +6,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.CastUtil;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.NotNull;
+
+import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
 @SuppressWarnings("unused")
 public class AccessManager extends LiteBase {
@@ -21,8 +23,12 @@ public class AccessManager extends LiteBase {
 	private final String table_user = "accessUser";
 
 	// Cache
-	private final FixedCache<Long, Map<Long, CmdAccessLevel>> roleCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
-	private final FixedCache<Long, List<Long>> operatorCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+	private final Cache<Long, Map<Long, CmdAccessLevel>> roleCache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
+	private final Cache<Long, List<Long>> operatorCache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
 	
 	public AccessManager(ConnectionUtil cu) {
 		super(cu, null);
@@ -68,13 +74,7 @@ public class AccessManager extends LiteBase {
 
 	@NotNull
 	public Map<Long, CmdAccessLevel> getAllRoles(long guildId) {
-		if (roleCache.contains(guildId))
-			return roleCache.get(guildId);
-		Map<Long, CmdAccessLevel> data = applyNonNull(getRoleData(guildId), this::parseRoleData);
-		if (data.isEmpty())
-			data = Map.of();
-		roleCache.put(guildId, data);
-		return data;
+		return roleCache.get(guildId, id -> applyOrDefault(getRoleData(id), this::parseRoleData, Map.of()));
 	}
 
 	public List<Long> getRoles(long guildId, CmdAccessLevel level) {
@@ -82,13 +82,7 @@ public class AccessManager extends LiteBase {
 	}
 
 	public List<Long> getOperators(long guildId) {
-		if (operatorCache.contains(guildId))
-			return operatorCache.get(guildId);
-		List<Long> data = getOperatorsData(guildId);
-		if (data.isEmpty())
-			data = List.of();
-		operatorCache.put(guildId, data);
-		return data;
+		return operatorCache.get(guildId, this::getOperatorsData);
 	}
 
 	public boolean isRole(long roleId) {
@@ -109,16 +103,16 @@ public class AccessManager extends LiteBase {
 	}
 
 	private void invalidateRoleCache(long guildId) {
-		roleCache.pull(guildId);
+		roleCache.invalidate(guildId);
 	}
 
 	private void invalidateOperatorCache(long guildId) {
-		operatorCache.pull(guildId);
+		operatorCache.invalidate(guildId);
 	}
 
 	public Map<Long, CmdAccessLevel> parseRoleData(List<Map<String, Object>> data) {
 		if (data == null || data.isEmpty()) return Map.of();
-		return data.stream().collect(Collectors.toMap(k-> CastUtil.castLong(k.get("roleId")), k-> CmdAccessLevel.byLevel((int) k.get("level"))));
+		return data.stream().collect(Collectors.toMap(k-> castLong(k.get("roleId")), k-> CmdAccessLevel.byLevel((int) k.get("level"))));
 	}
 
 }

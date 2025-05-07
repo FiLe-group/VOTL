@@ -1,8 +1,9 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +20,9 @@ import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
 
 public class LevelRolesManager extends LiteBase {
 	// cache
-	private final FixedCache<Long, LevelRoleData> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+	private final Cache<Long, LevelRoleData> cache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
 
 	public LevelRolesManager(ConnectionUtil cu) {
 		super(cu, "levelRoles");
@@ -47,11 +50,7 @@ public class LevelRolesManager extends LiteBase {
 
 	@Nullable
 	public LevelRoleData getAllLevels(long guildId) {
-		if (cache.contains(guildId))
-			return cache.get(guildId);
-		LevelRoleData data = getData(guildId);
-		cache.put(guildId, data);
-		return data;
+		return cache.get(guildId, this::getData);
 	}
 
 	private LevelRoleData getData(long guildId) {
@@ -65,7 +64,7 @@ public class LevelRolesManager extends LiteBase {
 	}
 
 	private void invalidateCache(long guildId) {
-		cache.pull(guildId);
+		cache.invalidate(guildId);
 	}
 
 	public class LevelRoleData {

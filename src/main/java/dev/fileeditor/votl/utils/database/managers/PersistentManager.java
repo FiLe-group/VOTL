@@ -1,8 +1,9 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.CastUtil;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
@@ -22,8 +23,12 @@ public class PersistentManager extends LiteBase {
 	private final String table_return = "returnRole";
 
 	// Cache
-	private final FixedCache<Long, List<Long>> roleCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE); // GuildId - Role Ids
-	private final FixedCache<Long, Map<Long, List<Long>>> returnCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE); // GuildId - UserId and Role Ids //
+	private final Cache<Long, List<Long>> roleCache = Caffeine.newBuilder() // Guild - Roles
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
+	private final Cache<Long, Map<Long, List<Long>>> returnCache = Caffeine.newBuilder() // Guild - User and Roles
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
 
 	public PersistentManager(ConnectionUtil cu) {
 		super(cu, null);
@@ -40,13 +45,7 @@ public class PersistentManager extends LiteBase {
 	}
 
 	public List<Long> getRoles(long guildId) {
-		if (roleCache.contains(guildId))
-			return roleCache.get(guildId);
-		List<Long> data = getRolesData(guildId);
-		if (data.isEmpty())
-			data = List.of();
-		roleCache.put(guildId, data);
-		return data;
+		return roleCache.get(guildId, this::getRolesData);
 	}
 
 	private List<Long> getRolesData(long guildId) {
@@ -95,11 +94,7 @@ public class PersistentManager extends LiteBase {
 	}
 
 	private Map<Long, List<Long>> getUsers(long guildId) {
-		if (returnCache.contains(guildId))
-			return returnCache.get(guildId);
-		Map<Long, List<Long>> data = new HashMap<>(getUsersData(guildId));
-		returnCache.put(guildId, data);
-		return data;
+		return returnCache.get(guildId, id -> new HashMap<>(getUsersData(id)));
 	}
 
 	private Map<Long, List<Long>> getUsersData(long guildId) {
@@ -119,11 +114,11 @@ public class PersistentManager extends LiteBase {
 	}
 
 	private void invalidateRoleCache(long guildId) {
-		roleCache.pull(guildId);
+		roleCache.invalidate(guildId);
 	}
 
 	private void invalidateReturnCache(long guildId) {
-		returnCache.pull(guildId);
+		returnCache.invalidate(guildId);
 	}
 
 }

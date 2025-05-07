@@ -5,11 +5,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogType;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +19,10 @@ import org.jetbrains.annotations.NotNull;
 public class GuildLogsManager extends LiteBase {
 
 	// Cache
-	private final FixedCache<Long, LogSettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+	private final Cache<Long, LogSettings> cache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.expireAfterAccess(1, TimeUnit.HOURS)
+		.build();
 	private final LogSettings blankSettings = new LogSettings();
 
 	private final Set<String> logColumns = LogType.getAllNames();
@@ -42,24 +47,12 @@ public class GuildLogsManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 
-	public WebhookData getLogWebhook(LogType type, long guildId) {
-		if (cache.contains(guildId))
-			return cache.get(guildId).getWebhookData(type);
-		LogSettings settings = applyNonNull(getData(guildId), LogSettings::new);
-		if (settings == null)
-			settings = blankSettings;
-		cache.put(guildId, settings);
-		return settings.getWebhookData(type);
+	public WebhookData getLogWebhook(long guildId, LogType type) {
+		return getSettings(guildId).getWebhookData(type);
 	}
 
 	public LogSettings getSettings(long guildId) {
-		if (cache.contains(guildId))
-			return cache.get(guildId);
-		LogSettings settings = applyNonNull(getData(guildId), LogSettings::new);
-		if (settings == null)
-			settings = blankSettings;
-		cache.put(guildId, settings);
-		return settings;
+		return cache.get(guildId, id -> applyOrDefault(getData(id), LogSettings::new, blankSettings));
 	}
 
 	private Map<String, Object> getData(long guildId) {
@@ -67,7 +60,7 @@ public class GuildLogsManager extends LiteBase {
 	}
 
 	private void invalidateCache(long guildId) {
-		cache.pull(guildId);
+		cache.invalidate(guildId);
 	}
 
 	public static class LogSettings {

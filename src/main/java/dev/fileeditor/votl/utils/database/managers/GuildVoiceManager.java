@@ -1,7 +1,8 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
@@ -17,7 +18,9 @@ public class GuildVoiceManager extends LiteBase {
 		"categoryId", "channelId", "defaultName", "defaultLimit"
 	);
 	// Cache
-	private final FixedCache<Long, VoiceSettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+	private final Cache<Long, VoiceSettings> cache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
 	private final VoiceSettings blankSettings = new VoiceSettings();
 
 	public GuildVoiceManager(ConnectionUtil cu) {
@@ -48,13 +51,7 @@ public class GuildVoiceManager extends LiteBase {
 	}
 
 	public VoiceSettings getSettings(long guildId) {
-		if (cache.contains(guildId))
-			return cache.get(guildId);
-		VoiceSettings settings = applyNonNull(getData(guildId), VoiceSettings::new);
-		if (settings == null)
-			settings = blankSettings;
-		cache.put(guildId, settings);
-		return settings;
+		return cache.get(guildId, id -> applyOrDefault(getData(id), VoiceSettings::new, blankSettings));
 	}
 
 	private Map<String, Object> getData(long guildId) {
@@ -62,7 +59,7 @@ public class GuildVoiceManager extends LiteBase {
 	}
 
 	private void invalidateCache(long guildId) {
-		cache.pull(guildId);
+		cache.invalidate(guildId);
 	}
 
 	public static class VoiceSettings {

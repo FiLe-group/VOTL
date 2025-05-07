@@ -8,9 +8,10 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.Stream;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
@@ -28,7 +29,9 @@ public class GuildSettingsManager extends LiteBase {
 	);
 
 	// Cache
-	private final FixedCache<Long, GuildSettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+	private final Cache<Long, GuildSettings> cache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
 	private final GuildSettings blankSettings = new GuildSettings();
 	
 	public GuildSettingsManager(ConnectionUtil cu) {
@@ -36,13 +39,7 @@ public class GuildSettingsManager extends LiteBase {
 	}
 
 	public GuildSettings getSettings(long guildId) {
-		if (cache.contains(guildId))
-			return cache.get(guildId);
-		GuildSettings settings = applyNonNull(getData(guildId), GuildSettings::new);
-		if (settings == null)
-			settings = blankSettings;
-		cache.put(guildId, settings);
-		return settings;
+		return cache.get(guildId, id -> applyOrDefault(getData(id), GuildSettings::new, blankSettings));
 	}
 
 	private Map<String, Object> getData(long guildId) {
@@ -131,7 +128,7 @@ public class GuildSettingsManager extends LiteBase {
 
 
 	private void invalidateCache(long guildId) {
-		cache.pull(guildId);
+		cache.invalidate(guildId);
 	}
 
 	public static class GuildSettings {

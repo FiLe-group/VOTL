@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import dev.fileeditor.votl.utils.level.LevelUtil;
@@ -31,7 +30,9 @@ public class LevelManager extends LiteBase {
 	private final Cache<String, PlayerData> playersCache = Caffeine.newBuilder()
 		.expireAfterAccess(5, TimeUnit.MINUTES)
 		.build();
-	private final FixedCache<Long, LevelSettings> settingsCache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+	private final Cache<Long, LevelSettings> settingsCache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
 	private final LevelSettings blankSettings = new LevelSettings();
 
 	public LevelManager(ConnectionUtil cu) {
@@ -45,13 +46,7 @@ public class LevelManager extends LiteBase {
 
 	@NotNull
 	public LevelSettings getSettings(long guildId) {
-		if (settingsCache.contains(guildId))
-			return settingsCache.get(guildId);
-		LevelSettings settings = applyNonNull(getSettingsData(guildId), LevelSettings::new);
-		if (settings == null)
-			settings = blankSettings;
-		settingsCache.put(guildId, settings);
-		return settings;
+		return settingsCache.get(guildId, id -> applyOrDefault(getSettingsData(id), LevelSettings::new, blankSettings));
 	}
 
 	private Map<String, Object> getSettingsData(long guildId) {
@@ -79,7 +74,7 @@ public class LevelManager extends LiteBase {
 	}
 
 	public void invalidateSettings(long guildId) {
-		settingsCache.pull(guildId);
+		settingsCache.invalidate(guildId);
 	}
 
 	// Guild levels

@@ -9,8 +9,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.FixedCache;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,9 @@ public class TicketSettingsManager extends LiteBase {
 	);
 
 	// Cache
-	private final FixedCache<Long, TicketSettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+	private final Cache<Long, TicketSettings> cache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.build();
 	private final TicketSettings defaultSettings = new TicketSettings();
 
 	public TicketSettingsManager(ConnectionUtil cu) {
@@ -33,13 +36,7 @@ public class TicketSettingsManager extends LiteBase {
 	}
 
 	public TicketSettings getSettings(long guildId) {
-		if (cache.contains(guildId))
-			return cache.get(guildId);
-		TicketSettings settings = applyNonNull(getData(guildId), TicketSettings::new);
-		if (settings == null)
-			settings = defaultSettings;
-		cache.put(guildId, settings);
-		return settings;
+		return cache.get(guildId, id -> applyOrDefault(getData(id), TicketSettings::new, defaultSettings));
 	}
 
 	private Map<String, Object> getData(long guildId) {
@@ -101,7 +98,7 @@ public class TicketSettingsManager extends LiteBase {
 
 
 	private void invalidateCache(long guildId) {
-		cache.pull(guildId);
+		cache.invalidate(guildId);
 	}
 
 	public static class TicketSettings {
