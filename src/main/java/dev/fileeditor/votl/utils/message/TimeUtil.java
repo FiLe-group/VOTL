@@ -1,10 +1,9 @@
 package dev.fileeditor.votl.utils.message;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
+import java.time.temporal.Temporal;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -221,7 +220,7 @@ public class TimeUtil {
 		return builder.toString();
 	}
 
-	public static String formatTime(TemporalAccessor time, boolean full) {
+	public static String formatTime(Temporal time, boolean full) {
 		if (time == null) return "";
 		if (full) {
 			return String.format(
@@ -239,12 +238,13 @@ public class TimeUtil {
 
 	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 		.withZone(ZoneOffset.UTC);
-	public static String timeToString(TemporalAccessor time) {
+
+	public static String timeToString(Temporal time) {
 		if (time == null) return "indefinitely";
 		return formatter.format(time);
 	}
 
-	public static String formatDuration(LocaleUtil lu, DiscordLocale locale, LocalDateTime startTime, Duration duration) {
+	public static String formatDuration(LocaleUtil lu, DiscordLocale locale, Temporal startTime, Duration duration) {
 		return duration.isZero() ?
 			lu.getLocalized(locale, "misc.permanently")
 			:

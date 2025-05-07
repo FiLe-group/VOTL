@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -77,13 +78,13 @@ public class ScheduledCheck {
 					bot.getDBUtil().tickets.forceCloseTicket(channelId);
 					return;
 				}
-				int autocloseTime = db.getTicketSettings(channel.getGuild()).getAutocloseTime();
-				if (autocloseTime == 0) return;
+				Duration autocloseTime = db.getTicketSettings(channel.getGuild()).getAutocloseTime();
+				if (autocloseTime.isZero()) return;
 
-				if (TimeUtil.getTimeCreated(channel.getLatestMessageIdLong()).isBefore(OffsetDateTime.now().minusHours(autocloseTime))) {
+				if (TimeUtil.getTimeCreated(channel.getLatestMessageIdLong()).isBefore(Instant.now().minus(autocloseTime).atOffset(ZoneOffset.UTC))) {
 					Guild guild = channel.getGuild();
 					UserSnowflake user = User.fromId(db.tickets.getUserId(channelId));
-					LocalDateTime closeTime = LocalDateTime.now().plusHours(CLOSE_AFTER_DELAY);
+					Instant closeTime = Instant.now().plus(CLOSE_AFTER_DELAY, ChronoUnit.HOURS);
 
 					MessageEmbed embed = new EmbedBuilder()
 						.setColor(db.getGuildSettings(guild).getColor())
@@ -96,7 +97,7 @@ public class ScheduledCheck {
 					Button close = Button.primary("ticket:close", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.close"));
 					Button cancel = Button.secondary("ticket:cancel", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.cancel"));
 
-					db.tickets.setRequestStatus(channelId, closeTime.toEpochSecond(ZoneOffset.UTC));
+					db.tickets.setRequestStatus(channelId, closeTime.getEpochSecond());
 					channel.sendMessage("||%s||".formatted(user.getAsMention())).addEmbeds(embed).addActionRow(close, cancel).queue();
 				}
 			});
@@ -219,7 +220,7 @@ public class ScheduledCheck {
 						}
 						// Remove one strike and reset time
 						db.strikes.removeStrike(guildId, userId,
-							LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
+							Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
 							1, newData.toString()
 						);
 					} else {
@@ -243,7 +244,7 @@ public class ScheduledCheck {
 
 	private void generateReport() {
 		try {
-			List<Map<String, Object>> expired = db.modReport.getExpired(LocalDateTime.now());
+			List<Map<String, Object>> expired = db.modReport.getExpired(Instant.now());
 			if (expired.isEmpty()) return;
 
 			expired.forEach(data -> {
@@ -269,9 +270,9 @@ public class ScheduledCheck {
 					return;
 				}
 
-				int interval = (Integer) data.get("interval");
-				LocalDateTime nextReport = LocalDateTime.ofEpochSecond(castLong(data.get("nextReport")), 0, ZoneOffset.UTC);
-				nextReport = interval==30 ? nextReport.plusMonths(1) : nextReport.plusDays(interval);
+				Duration interval = Duration.ofDays((Integer) data.get("interval"));
+				Instant nextReport = Instant.ofEpochSecond(castLong(data.get("nextReport")));
+				nextReport = interval.toDaysPart()==30 ? nextReport.plus(1, ChronoUnit.MONTHS) : nextReport.plus(interval);
 				// Update next report date
 				// If fails - remove guild
 				try {
@@ -283,10 +284,10 @@ public class ScheduledCheck {
 				// Search for members with any of required roles (Mod, Admin, ...)
 				guild.findMembers(m -> !Collections.disjoint(m.getRoles(), roles)).setTimeout(10, TimeUnit.SECONDS).onSuccess(members -> {
 					if (members.isEmpty() || members.size() > 20) return; // TODO normal reply - too much users
-					LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-					LocalDateTime previous = (interval==30 ?
-						now.minusMonths(1) :
-						now.minusDays(interval)
+					Instant now = Instant.now();
+					Instant previous = (interval.toDaysPart()==30 ?
+						now.minus(1, ChronoUnit.MONTHS) :
+						now.minus(interval)
 					);
 
 					List<ReportData> reportDataList = new ArrayList<>(members.size());
@@ -303,7 +304,7 @@ public class ScheduledCheck {
 					ModReportRender render = new ModReportRender(guild.getLocale(), bot.getLocaleUtil(),
 						previous, now, reportDataList);
 
-					final String attachmentName = EncodingUtil.encodeModreport(guild.getIdLong(), now.toEpochSecond(ZoneOffset.UTC));
+					final String attachmentName = EncodingUtil.encodeModreport(guild.getIdLong(), now.getEpochSecond());
 
 					try {
 						channel.sendFiles(FileUpload.fromData(

@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.utils;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -141,7 +141,7 @@ public class ModerationUtil {
 		return new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 			.setAuthor(target.getEffectiveName(), target.getEffectiveAvatarUrl())
 			.setDescription(formatText(text, guild, level >= 2 ? reason : null, level >= 2 ? duration : null, null))
-			.setTimestamp(LocalDateTime.now())
+			.setTimestamp(Instant.now())
 			.build();
 	}
 
@@ -156,7 +156,7 @@ public class ModerationUtil {
 	}
 
 	@NotNull
-	public MessageEmbed getReasonUpdateEmbed(DiscordLocale locale, Guild guild, LocalDateTime timestamp, CaseType caseType, String oldReason, String newReason) {
+	public MessageEmbed getReasonUpdateEmbed(DiscordLocale locale, Guild guild, Instant timestamp, CaseType caseType, String oldReason, String newReason) {
 		if (oldReason == null) oldReason = "-";
 		if (caseType.equals(CaseType.MUTE)) {
 			// if is mute
@@ -196,7 +196,7 @@ public class ModerationUtil {
 	public MessageEmbed actionEmbed(DiscordLocale locale, int localCaseId, String actionPath, User target, User mod, String reason, Duration duration, String logUrl) {
 		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
 			.setDescription(lu.getLocalized(locale, actionPath)
-				.formatted(TimeUtil.formatDuration(lu, locale, LocalDateTime.now(), duration)))
+				.formatted(TimeUtil.formatDuration(lu, locale, Instant.now(), duration)))
 			.addLink(logUrl)
 			.build();
 	}
@@ -218,7 +218,7 @@ public class ModerationUtil {
 				.addField(lu.getLocalized(locale, "logger.user"), "%s (%s)".formatted(target.getName(), target.getAsMention()), true)
 				.addField(lu.getLocalized(locale, "logger.reason"), reason, true)
 				.addField(lu.getLocalized(locale, "logger.moderation.mod"), "%s (%s)".formatted(mod.getName(), mod.getAsMention()), false)
-				.setTimestamp(LocalDateTime.now())
+				.setTimestamp(Instant.now())
 				.setFooter("#"+caseLocalId);
 			this.locale = locale;
 		}

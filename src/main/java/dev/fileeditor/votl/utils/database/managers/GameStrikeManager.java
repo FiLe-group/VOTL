@@ -2,6 +2,7 @@ package dev.fileeditor.votl.utils.database.managers;
 
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.time.Instant;
@@ -44,6 +45,7 @@ public class GameStrikeManager extends LiteBase {
 		));
 	}
 
+	@Nullable
 	public Instant getLastUpdate(long channelId, long userId) {
 		Long data = selectOne("SELECT lastUpdate FROM %s WHERE (channelId=%s AND userId=%s)".formatted(strikes, channelId, userId), "lastUpdate", Long.class);
 		return data==null ? null : Instant.ofEpochSecond(data);

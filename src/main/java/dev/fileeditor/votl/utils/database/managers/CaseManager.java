@@ -9,8 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,14 +36,14 @@ public class CaseManager extends LiteBase {
 	// add new case
 	@NotNull
 	public CaseData add(CaseType type, long userId, String userName, long modId, String modName, long guildId, String reason, Duration duration) throws SQLException {
-		LocalDateTime now = LocalDateTime.now();
+		Instant now = Instant.now();
 		final String sql = """
 			INSERT INTO %s(type, targetId, targetTag, modId, modTag, guildId, reason, timeStart, duration, active, localId)
 			VALUES (%d, %d, %s, %d, %s, %d, %s, %d, %d, %d, COALESCE((SELECT MAX(localId) + 1 FROM cases WHERE guildId=%d), 1))
 			RETURNING rowId, localId;
 			""".formatted(
 				table, type.getValue(), userId, quote(userName), modId, quote(modName), guildId, quote(reason),
-			now.toEpochSecond(ZoneOffset.UTC), duration == null ? -1 : duration.getSeconds(),
+			now.getEpochSecond(), duration == null ? -1 : duration.getSeconds(),
 				type.isActiveInt(), guildId
 			);
 
@@ -155,9 +153,9 @@ public class CaseManager extends LiteBase {
 	}
 
 	// count cases by moderator after certain date
-	public Map<Integer, Integer> countCasesByMod(long guildId, long modId, LocalDateTime afterTime) {
+	public Map<Integer, Integer> countCasesByMod(long guildId, long modId, Instant afterTime) {
 		List<Map<String, Object>> data = select("SELECT type, COUNT(*) AS cc FROM %s WHERE (guildId=%d AND modId=%d AND timeStart>%d) GROUP BY type"
-			.formatted(table, guildId, modId, afterTime.toEpochSecond(ZoneOffset.UTC)), Set.of("type", "cc"));
+			.formatted(table, guildId, modId, afterTime.getEpochSecond()), Set.of("type", "cc"));
 		if (data.isEmpty()) return Collections.emptyMap();
 		return data.stream().collect(Collectors.toMap(s -> (Integer) s.get("type"), s -> (Integer) s.get("cc")));
 	}
@@ -171,9 +169,9 @@ public class CaseManager extends LiteBase {
 	}
 
 	// count cases by moderator after and before certain dates
-	public Map<Integer, Integer> countCasesByMod(long guildId, long modId, LocalDateTime afterTime, LocalDateTime beforeTime) {
+	public Map<Integer, Integer> countCasesByMod(long guildId, long modId, Instant afterTime, Instant beforeTime) {
 		List<Map<String, Object>> data = select("SELECT type, COUNT(*) AS cc FROM %s WHERE (guildId=%d AND modId=%d AND timeStart>%d AND timeStart<%d) GROUP BY type"
-			.formatted(table, guildId, modId, afterTime.toEpochSecond(ZoneOffset.UTC), beforeTime.toEpochSecond(ZoneOffset.UTC)), Set.of("type", "cc"));
+			.formatted(table, guildId, modId, afterTime.getEpochSecond(), beforeTime.getEpochSecond()), Set.of("type", "cc"));
 		if (data.isEmpty()) return Collections.emptyMap();
 		return data.stream().collect(Collectors.toMap(s -> (Integer) s.get("type"), s -> (Integer) s.get("cc")));
 	}
@@ -195,7 +193,7 @@ public class CaseManager extends LiteBase {
 		private final long guildId, targetId, modId;
 		private final String targetTag, modTag, reason, logUrl;
 		@NotNull
-		private final LocalDateTime timeStart;
+		private final Instant timeStart;
 		@NotNull
 		private final Duration duration;
 		private final boolean active;
@@ -206,7 +204,7 @@ public class CaseManager extends LiteBase {
 			long targetId, String targetTag,
 			long modId, String modTag,
 			@Nullable String reason,
-			@NotNull LocalDateTime timeStart, Duration duration,
+			@NotNull Instant timeStart, Duration duration,
 			boolean active, String logUrl
 		) {
 			this.rowId = rowId;
@@ -234,7 +232,7 @@ public class CaseManager extends LiteBase {
 			this.modId = getOrDefault(map.get("modId"), 0L);
 			this.modTag = getOrDefault(map.get("modTag"), null);
 			this.reason = getOrDefault(map.get("reason"), null);
-			this.timeStart = LocalDateTime.ofEpochSecond(getOrDefault(map.get("timeStart"), 0L), 0, ZoneOffset.UTC);
+			this.timeStart = Instant.ofEpochSecond(getOrDefault(map.get("timeStart"), 0L));
 			this.duration = Duration.ofSeconds(getOrDefault(map.get("duration"), -1L));
 			this.active = ((Integer) requireNonNull(map.get("active"))) == 1;
 			this.logUrl = getOrDefault(map.get("logUrl"), null);
@@ -284,12 +282,12 @@ public class CaseManager extends LiteBase {
 		}
 
 		@NotNull
-		public LocalDateTime getTimeStart() {
+		public Instant getTimeStart() {
 			return timeStart;
 		}
 
 		@Nullable
-		public LocalDateTime getTimeEnd() {
+		public Instant getTimeEnd() {
 			return duration.isZero() ? null : timeStart.plus(duration);
 		}
 

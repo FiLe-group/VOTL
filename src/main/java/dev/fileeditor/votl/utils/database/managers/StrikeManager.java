@@ -1,8 +1,7 @@
 package dev.fileeditor.votl.utils.database.managers;
 
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,6 +10,7 @@ import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
 import net.dv8tion.jda.internal.utils.tuple.Pair;
+import org.jetbrains.annotations.Nullable;
 
 public class StrikeManager extends LiteBase {
 
@@ -18,9 +18,9 @@ public class StrikeManager extends LiteBase {
 		super(cu, "strikeExpire");
 	}
 
-	public void addStrikes(long guildId, long userId, LocalDateTime expiresAt, int count, String caseInfo) throws SQLException {
+	public void addStrikes(long guildId, long userId, Instant expiresAt, int count, String caseInfo) throws SQLException {
 		execute("INSERT INTO %s(guildId, userId, expiresAt, count, data, lastAddition) VALUES (%d, %d, %d, %d, %s, %s) ON CONFLICT(guildId, userId) DO UPDATE SET count=count+%5$d, data=data || ';' || %6$s, lastAddition=%7$s"
-			.formatted(table, guildId, userId, expiresAt.toEpochSecond(ZoneOffset.UTC), count, quote(caseInfo), LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)));
+			.formatted(table, guildId, userId, expiresAt.getEpochSecond(), count, quote(caseInfo), Instant.now().getEpochSecond()));
 	}
 
 	public Integer getStrikeCount(long guildId, long userId) {
@@ -28,7 +28,7 @@ public class StrikeManager extends LiteBase {
 	}
 
 	public List<Map<String, Object>> getExpired() {
-		return select("SELECT * FROM %s WHERE (expiresAt<%d)".formatted(table, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)), Set.of("guildId", "userId", "count", "data"));
+		return select("SELECT * FROM %s WHERE (expiresAt<%d)".formatted(table, Instant.now().getEpochSecond()), Set.of("guildId", "userId", "count", "data"));
 	}
 
 	public Pair<Integer, String> getData(long guildId, long userId) {
@@ -43,8 +43,8 @@ public class StrikeManager extends LiteBase {
 		return Pair.of((Integer) data.get("count"), (Integer) data.get("expiresAt"));
 	}
 
-	public void removeStrike(long guildId, long userId, LocalDateTime expiresAt, int amount, String newData) throws SQLException {
-		execute("UPDATE %s SET expiresAt=%d, count=count-%d, data=%s WHERE (guildId=%d AND userId=%d)".formatted(table, expiresAt.toEpochSecond(ZoneOffset.UTC), amount, quote(newData), guildId, userId));
+	public void removeStrike(long guildId, long userId, Instant expiresAt, int amount, String newData) throws SQLException {
+		execute("UPDATE %s SET expiresAt=%d, count=count-%d, data=%s WHERE (guildId=%d AND userId=%d)".formatted(table, expiresAt.getEpochSecond(), amount, quote(newData), guildId, userId));
 	}
 
 	public void removeGuildUser(long guildId, long userId) throws SQLException {
@@ -54,9 +54,10 @@ public class StrikeManager extends LiteBase {
 	public void removeGuild(long guildId) throws SQLException {
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
-	
-	public LocalDateTime getLastAddition(long guildId, long userId) {
+
+	@Nullable
+	public Instant getLastAddition(long guildId, long userId) {
 		Long data = selectOne("SELECT lastAddition FROM %s WHERE (guildId=%d AND userId=%d)".formatted(table, guildId, userId), "lastAddition", Long.class);
-		return data==null ? null : LocalDateTime.ofEpochSecond(data, 0, ZoneOffset.UTC);
+		return data==null ? null : Instant.ofEpochSecond(data);
 	}
 }

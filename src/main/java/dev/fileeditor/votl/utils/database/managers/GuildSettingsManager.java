@@ -4,6 +4,7 @@ import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 import static dev.fileeditor.votl.utils.CastUtil.resolveOrDefault;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -196,12 +197,13 @@ public class GuildSettingsManager extends LiteBase {
 			return reportChannelId;
 		}
 
-		public int getStrikeExpires() {
-			return strikeExpire;
+		public Duration getStrikeExpires() {
+			return Duration.ofDays(strikeExpire);
 		}
 
-		public int getStrikeCooldown() {
-			return strikeCooldown;
+		@NotNull
+		public Duration getStrikeCooldown() {
+			return Duration.ofSeconds(strikeCooldown);
 		}
 		
 		public int getModulesOff() {

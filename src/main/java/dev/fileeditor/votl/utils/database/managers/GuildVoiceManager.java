@@ -69,30 +69,37 @@ public class GuildVoiceManager extends LiteBase {
 		private final Long categoryId, channelId;
 		private final String defaultName;
 		private final Integer defaultLimit;
+
 		public VoiceSettings() {
 			this.categoryId = null;
 			this.channelId = null;
 			this.defaultName = null;
 			this.defaultLimit = null;
 		}
+
 		public VoiceSettings(Map<String, Object> data) {
 			this.categoryId = getOrDefault(data.get("categoryId"), null);
 			this.channelId = getOrDefault(data.get("channelId"), null);
 			this.defaultName = getOrDefault(data.get("defaultName"), null);
 			this.defaultLimit = getOrDefault(data.get("defaultLimit"), null);
 		}
+
 		public Long getChannelId() {
 			return channelId;
 		}
+
 		public Long getCategoryId() {
 			return categoryId;
 		}
+
 		public String getDefaultName() {
 			return defaultName;
 		}
+
 		public Integer getDefaultLimit() {
 			return defaultLimit;
 		}
+
 	}
 
 }

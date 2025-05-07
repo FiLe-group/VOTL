@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.commands.strike;
 
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -144,7 +144,7 @@ public class DeleteStrikeCmd extends CommandBase {
 			else
 				try {
 					bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
-						LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
+						Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
 						1, String.join(";", strikesInfo)
 					);
 				} catch (SQLException ex) {
@@ -225,7 +225,7 @@ public class DeleteStrikeCmd extends CommandBase {
 			else
 				try {
 					bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
-						LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
+						Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
 						removeAmount, String.join(";", cases)
 					);
 				} catch (SQLException ex) {
@@ -237,7 +237,7 @@ public class DeleteStrikeCmd extends CommandBase {
 			boolean ignored = Collections.replaceAll(cases, caseRowId+"-"+activeAmount, caseRowId+"-"+(activeAmount-removeAmount));
 			try {
 				bot.getDBUtil().strikes.removeStrike(guildId, tu.getIdLong(),
-					LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
+					Instant.now().plus(bot.getDBUtil().getGuildSettings(guildId).getStrikeExpires()),
 					removeAmount, String.join(";", cases)
 				);
 			} catch (SQLException ex) {

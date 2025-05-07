@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 
 import java.sql.SQLException;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -83,11 +84,11 @@ public class ModReportCmd extends CommandBase {
 
 			int interval = event.optInteger("interval", 7);
 
-			LocalDateTime firstReport;
+			Instant firstReport;
 			if (event.hasOption("first_report")) {
 				String input = event.optString("first_report");
 				try {
-					firstReport = LocalDateTime.parse(input, DATE_TIME_FORMAT);
+					firstReport = LocalDateTime.parse(input, DATE_TIME_FORMAT).toInstant(ZoneOffset.UTC);
 				} catch (DateTimeParseException ex) {
 					editError(event, path+".failed_parse", ex.getMessage());
 					return;
@@ -95,11 +96,11 @@ public class ModReportCmd extends CommandBase {
 			} else {
 				// Next monday OR first month day at 3:00 (server time)
 				if (interval == 30)
-					firstReport = LocalDateTime.now().with(TemporalAdjusters.firstDayOfNextMonth()).withHour(3);
+					firstReport = Instant.now().with(TemporalAdjusters.firstDayOfNextMonth()).with(ChronoField.HOUR_OF_DAY, 3);
 				else
-					firstReport = LocalDateTime.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).withHour(3);
+					firstReport = Instant.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).with(ChronoField.HOUR_OF_DAY, 3);
 			}
-			if (firstReport.isBefore(LocalDateTime.now())) {
+			if (firstReport.isBefore(Instant.now())) {
 				editError(event, path+".wrong_date");
 				return;
 			}

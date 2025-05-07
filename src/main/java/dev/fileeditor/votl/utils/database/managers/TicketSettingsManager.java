@@ -4,6 +4,7 @@ import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 import static dev.fileeditor.votl.utils.CastUtil.resolveOrDefault;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -149,16 +150,16 @@ public class TicketSettingsManager extends LiteBase {
 			this.transcriptsMode = TranscriptsMode.valueOf(getOrDefault(data.get("transcripts"), TranscriptsMode.EXCEPT_ROLES.value));
 		}
 
-		public int getAutocloseTime() {
-			return autocloseTime;
+		public Duration getAutocloseTime() {
+			return Duration.ofHours(autocloseTime);
 		}
 
 		public boolean autocloseLeftEnabled() {
 			return autocloseLeft;
 		}
 
-		public int getTimeToReply() {
-			return timeToReply;
+		public Duration getTimeToReply() {
+			return Duration.ofHours(timeToReply);
 		}
 
 		public boolean otherRoleEnabled() {

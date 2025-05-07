@@ -5,7 +5,6 @@ import static dev.fileeditor.votl.utils.CastUtil.castLong;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -287,7 +286,7 @@ public class InteractionListener extends ListenerAdapter {
 				).setEphemeral(true).queue();
 				return;
 			}
-			ignoreExc(() -> db.tickets.closeTicket(LocalDateTime.now(), channelId, "BOT: Channel deleted (not found)"));
+			ignoreExc(() -> db.tickets.closeTicket(Instant.now(), channelId, "BOT: Channel deleted (not found)"));
 		}
 
 		List<ActionRow> actionRows = new ArrayList<>();
@@ -460,8 +459,10 @@ public class InteractionListener extends ListenerAdapter {
 		int ticketId = 1 + db.tickets.lastIdByTag(guildId, 0);
 		event.getChannel().asTextChannel().createThreadChannel(lu.getLocalized(event.getGuildLocale(), "ticket.role")+"-"+ticketId, true).setInvitable(false).queue(
 			channel -> {
-				int time = bot.getDBUtil().getTicketSettings(guild).getTimeToReply();
-				db.tickets.addRoleTicket(ticketId, event.getMember().getIdLong(), guildId, channel.getIdLong(), String.join(";", finalRoleIds), time);
+				db.tickets.addRoleTicket(
+					ticketId, event.getMember().getIdLong(), guildId, channel.getIdLong(),
+					String.join(";", finalRoleIds), bot.getDBUtil().getTicketSettings(guild).getTimeToReply()
+				);
 				
 				StringBuffer mentions = new StringBuffer(event.getMember().getAsMention());
 				// Get either support roles or use mod roles
@@ -758,7 +759,7 @@ public class InteractionListener extends ListenerAdapter {
 				).setEphemeral(true).queue();
 				return;
 			}
-			ignoreExc(() -> db.tickets.closeTicket(LocalDateTime.now(), channelId, "BOT: Channel deleted (not found)"));
+			ignoreExc(() -> db.tickets.closeTicket(Instant.now(), channelId, "BOT: Channel deleted (not found)"));
 		}
 
 		Tag tag = db.ticketTags.getTagInfo(tagId);
@@ -786,8 +787,10 @@ public class InteractionListener extends ListenerAdapter {
 		if (tag.getTagType() == 1) {
 			// Thread ticket
 			event.getChannel().asTextChannel().createThreadChannel(ticketName, true).setInvitable(false).queue(channel -> {
-				int time = bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply();
-				db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time);
+				db.tickets.addTicket(
+					ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId,
+					bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply()
+				);
 
 				bot.getTicketUtil().createTicket(event, channel, mentions.toString(), message);
 			},
@@ -805,8 +808,10 @@ public class InteractionListener extends ListenerAdapter {
 			action.addPermissionOverride(event.getGuild().getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
 				.addMemberPermissionOverride(user.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), null)
 				.queue(channel -> {
-					int time = bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply();
-					db.tickets.addTicket(ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId, time);
+					db.tickets.addTicket(
+						ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId,
+						bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply()
+					);
 
 					bot.getTicketUtil().createTicket(event, channel, mentions.toString(), message);
 			},

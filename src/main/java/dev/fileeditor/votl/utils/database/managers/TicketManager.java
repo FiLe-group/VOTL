@@ -1,8 +1,8 @@
 package dev.fileeditor.votl.utils.database.managers;
 
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -22,17 +22,17 @@ public class TicketManager extends LiteBase {
 	 */
 
 	// add new ticket
-	public void addRoleTicket(int ticketId, long userId, long guildId, long channelId, String roleIds, int replyTime) {
+	public void addRoleTicket(int ticketId, long userId, long guildId, long channelId, String roleIds, Duration replyTime) {
 		try {
 			execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, roleIds, replyWait) VALUES (%d, %s, %s, %s, 0, %s, %d)"
-				.formatted(table, ticketId, userId, guildId, channelId, quote(roleIds), replyTime>0 ? LocalDateTime.now().plusHours(replyTime).toEpochSecond(ZoneOffset.UTC) : 0));
+				.formatted(table, ticketId, userId, guildId, channelId, quote(roleIds), replyTime.isPositive() ? Instant.now().plus(replyTime).getEpochSecond() : 0));
 		} catch (SQLException ignored) {}
 	}
 
-	public void addTicket(int ticketId, long userId, long guildId, long channelId, int tagId, int replyTime) {
+	public void addTicket(int ticketId, long userId, long guildId, long channelId, int tagId, Duration replyTime) {
 		try {
 			execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, replyWait) VALUES (%d, %s, %s, %s, %d, %d)"
-				.formatted(table, ticketId, userId, guildId, channelId, tagId, replyTime>0 ? LocalDateTime.now().plusHours(replyTime).toEpochSecond(ZoneOffset.UTC) : 0));
+				.formatted(table, ticketId, userId, guildId, channelId, tagId, replyTime.isPositive() ? Instant.now().plus(replyTime).getEpochSecond() : 0));
 		} catch (SQLException ignored) {}
 	}
 
@@ -61,8 +61,8 @@ public class TicketManager extends LiteBase {
 	}
 
 	// set status
-	public void closeTicket(LocalDateTime timeClosed, long channelId, String reason) throws SQLException {
-		execute("UPDATE %s SET closed=1, timeClosed=%d, reasonClosed=%s WHERE (channelId=%s)".formatted(table, timeClosed.toEpochSecond(ZoneOffset.UTC), quote(reason), channelId));
+	public void closeTicket(Instant timeClosed, long channelId, String reason) throws SQLException {
+		execute("UPDATE %s SET closed=1, timeClosed=%d, reasonClosed=%s WHERE (channelId=%s)".formatted(table, timeClosed.getEpochSecond(), quote(reason), channelId));
 	}
 
 	public void forceCloseTicket(long channelId) {
@@ -92,12 +92,12 @@ public class TicketManager extends LiteBase {
 	}
 
 	public List<Long> getCloseMarkedTickets() {
-		return select("SELECT channelId FROM %s WHERE (closed=0 AND closeRequested>0 AND closeRequested<=%d)".formatted(table, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)),
+		return select("SELECT channelId FROM %s WHERE (closed=0 AND closeRequested>0 AND closeRequested<=%d)".formatted(table, Instant.now().getEpochSecond()),
 			"channelId", Long.class);
 	}
 
 	public List<Long> getReplyExpiredTickets() {
-		return select("SELECT channelId FROM %s WHERE (closed=0 AND replyWait>0 AND replyWait<=%d)".formatted(table, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)),
+		return select("SELECT channelId FROM %s WHERE (closed=0 AND replyWait>0 AND replyWait<=%d)".formatted(table, Instant.now().getEpochSecond()),
 			"channelId", Long.class);
 	}
 
@@ -124,16 +124,16 @@ public class TicketManager extends LiteBase {
 		return selectOne("SELECT tagId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "tagId", Integer.class);
 	}
 
-	public int countTicketsByMod(long guildId, long modId, LocalDateTime afterTime, LocalDateTime beforeTime, boolean roleTag) {
+	public int countTicketsByMod(long guildId, long modId, Instant afterTime, Instant beforeTime, boolean roleTag) {
 		String tagType = roleTag ? "tagId=0" : "tagId>=1";
 		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%s AND modId=%s AND timeClosed>=%d AND timeClosed<=%d AND %s)"
-			.formatted(table, guildId, modId, afterTime.toEpochSecond(ZoneOffset.UTC), beforeTime.toEpochSecond(ZoneOffset.UTC), tagType));
+			.formatted(table, guildId, modId, afterTime.getEpochSecond(), beforeTime.getEpochSecond(), tagType));
 	}
 
-	public int countTicketsByMod(long guildId, long modId, LocalDateTime afterTime, boolean roleTag) {
+	public int countTicketsByMod(long guildId, long modId, Instant afterTime, boolean roleTag) {
 		String tagType = roleTag ? "tagId=0" : "tagId>=1";
 		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%s AND modId=%s AND timeClosed>=%d AND %s)"
-			.formatted(table, guildId, modId, afterTime.toEpochSecond(ZoneOffset.UTC), tagType));
+			.formatted(table, guildId, modId, afterTime.getEpochSecond(), tagType));
 	}
 
 	public int countTicketsByMod(long guildId, long modId, boolean roleTag) {

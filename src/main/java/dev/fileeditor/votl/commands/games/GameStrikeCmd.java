@@ -1,8 +1,8 @@
 package dev.fileeditor.votl.commands.games;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,13 +72,13 @@ public class GameStrikeCmd extends CommandBase {
 
 		// Check strike cooldown
 		long channelId = channel.getIdLong();
-		int strikeCooldown = bot.getDBUtil().getGuildSettings(event.getGuild()).getStrikeCooldown();
-		if (strikeCooldown > 0) {
+		Duration strikeCooldown = bot.getDBUtil().getGuildSettings(event.getGuild()).getStrikeCooldown();
+		if (strikeCooldown.isPositive()) {
 			Instant lastUpdate = bot.getDBUtil().games.getLastUpdate(channelId, tm.getIdLong());
-			if (lastUpdate != null && lastUpdate.isAfter(Instant.now().minus(strikeCooldown, ChronoUnit.MINUTES))) {
+			if (lastUpdate != null && lastUpdate.plus(strikeCooldown).isAfter(Instant.now())) {
 				// Cooldown between strikes
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
-					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.format(lastUpdate.plus(strikeCooldown, ChronoUnit.MINUTES))))
+					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.after(strikeCooldown).toString()))
 					.build()
 				);
 				return;

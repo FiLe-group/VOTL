@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.strike;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -79,13 +78,13 @@ public class StrikeCmd extends CommandBase {
 
 		// Check if target has strike cooldown
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		int strikeCooldown = bot.getDBUtil().getGuildSettings(guild).getStrikeCooldown();
-		if (strikeCooldown > 0) {
-			LocalDateTime lastAddition = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), tm.getIdLong());
-			if (lastAddition != null && lastAddition.isAfter(LocalDateTime.now().minusMinutes(strikeCooldown))) {
-				// Cooldown active
+		Duration strikeCooldown = bot.getDBUtil().getGuildSettings(event.getGuild()).getStrikeCooldown();
+		if (strikeCooldown.isPositive()) {
+			Instant lastUpdate = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), tm.getIdLong());
+			if (lastUpdate != null && lastUpdate.plus(strikeCooldown).isAfter(Instant.now())) {
+				// Cooldown between strikes
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
-					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.format(lastAddition.plusMinutes(strikeCooldown))))
+					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.after(strikeCooldown).toString()))
 					.build()
 				);
 				return;
@@ -178,7 +177,7 @@ public class StrikeCmd extends CommandBase {
 		// Add strike(-s) to DB
 		try {
 			bot.getDBUtil().strikes.addStrikes(guild.getIdLong(), target.getIdLong(),
-				LocalDateTime.now().plusDays(bot.getDBUtil().getGuildSettings(guild).getStrikeExpires()),
+				Instant.now().plus(bot.getDBUtil().getGuildSettings(guild).getStrikeExpires()),
 				addAmount, caseRowId+"-"+addAmount);
 		} catch (SQLException ex) {
 			throw new Exception("Case was created, but strike information was not added to the database (internal error)!");

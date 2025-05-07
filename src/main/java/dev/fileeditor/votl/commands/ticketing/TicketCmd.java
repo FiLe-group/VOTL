@@ -19,6 +19,7 @@ import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager;
 import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
 
 import dev.fileeditor.votl.utils.message.MessageUtil;
+import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Mentions;
@@ -609,17 +610,25 @@ public class TicketCmd extends CommandBase {
 				// Return overview
 				TicketSettingsManager.TicketSettings settings = bot.getDBUtil().getTicketSettings(event.getGuild());
 
-				response.append("\n> Autoclose time: **").append(settings.getAutocloseTime()).append("** hours")
-					.append("\n> Autoclose on left: ").append(settings.autocloseLeftEnabled()?Constants.SUCCESS:Constants.FAILURE)
-					.append("\n> Time to reply: **").append(settings.getTimeToReply()).append("** hours")
-					.append("\n\n> Allow other roles: ").append(settings.otherRoleEnabled()?Constants.SUCCESS:Constants.FAILURE)
-					.append("\n\n> Support roles: ").append(settings.getRoleSupportIds()
+				response.append("\n> Autoclose time: **")
+					.append(TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), settings.getAutocloseTime()))
+					.append("**\n> Autoclose on left: ")
+					.append(settings.autocloseLeftEnabled()?Constants.SUCCESS:Constants.FAILURE)
+					.append("\n> Time to reply: **")
+					.append(TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), settings.getTimeToReply()))
+					.append("**\n\n> Allow other roles: ")
+					.append(settings.otherRoleEnabled()?Constants.SUCCESS:Constants.FAILURE)
+					.append("\n\n> Support roles: ")
+					.append(settings.getRoleSupportIds()
 						.stream()
 						.map(String::valueOf)
 						.collect(Collectors.joining("`, `", "`", "`")))
-					.append("\n\n> Delete pings: ").append(settings.deletePingsEnabled()?Constants.SUCCESS:Constants.FAILURE)
-					.append("\n> Allow close: **").append(MessageUtil.capitalize(settings.getAllowClose().name()))
-					.append("**\n> Transcripts saved: **").append(MessageUtil.capitalize(settings.getTranscriptsMode().name()).replace("_", " "))
+					.append("\n\n> Delete pings: ")
+					.append(settings.deletePingsEnabled()?Constants.SUCCESS:Constants.FAILURE)
+					.append("\n> Allow close: **")
+					.append(MessageUtil.capitalize(settings.getAllowClose().name()))
+					.append("**\n> Transcripts saved: **")
+					.append(MessageUtil.capitalize(settings.getTranscriptsMode().name()).replace("_", " "))
 					.append("**");
 
 				editEmbed(event, bot.getEmbedUtil().getEmbed()

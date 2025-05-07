@@ -73,11 +73,18 @@ public class ModLogsCmd extends CommandBase {
 		cases.forEach(c -> {
 			final String temp = c.getLogUrl()==null ? "" : " - [Link](%s)".formatted(c.getLogUrl());
 			StringBuilder stringBuilder = new StringBuilder()
-				.append("> ").append(TimeFormat.DATE_TIME_SHORT.format(c.getTimeStart())).append(temp).append("\n")
+				.append("> ")
+				.append(TimeFormat.DATE_TIME_SHORT.format(c.getTimeStart()))
+				.append(temp)
+				.append("\n")
 				.append(lu.getLocalized(locale, "bot.moderation.modlogs.mod").formatted(c.getModId()>0 ? c.getModTag() : "-"));
+
 			if (!c.getDuration().isNegative())
-				stringBuilder.append(lu.getLocalized(locale, "bot.moderation.modlogs.duration").formatted(TimeUtil.formatDuration(lu, locale, c.getTimeStart(), c.getDuration())));
-			stringBuilder.append(lu.getLocalized(locale, "bot.moderation.modlogs.reason").formatted(c.getReason()));
+				stringBuilder.append(lu.getLocalized(locale, "bot.moderation.modlogs.duration")
+					.formatted(TimeUtil.formatDuration(lu, locale, c.getTimeStart(), c.getDuration())));
+
+			stringBuilder.append(lu.getLocalized(locale, "bot.moderation.modlogs.reason")
+				.formatted(c.getReason()));
 
 			builder.addField("%s  #`%s`| %s"
 				.formatted(c.isActive() ? "🟥" : "⬛", c.getLocalId(), lu.getLocalized(locale, c.getType().getPath())),

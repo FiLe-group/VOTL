@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.utils;
 
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -75,7 +75,7 @@ public class TicketUtil {
 	}
 
 	private void closeTicketRole(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable FileUpload file) {
-		final LocalDateTime now = LocalDateTime.now();
+		final Instant now = Instant.now();
 
 		channel.delete().reason(reasonClosed).queueAfter(4, TimeUnit.SECONDS, done -> {
 			try{
@@ -89,7 +89,7 @@ public class TicketUtil {
 	}
 
 	private void closeTicketStandard(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable FileUpload file) {
-		final LocalDateTime now = LocalDateTime.now();
+		final Instant now = Instant.now();
 		final Guild guild = channel.getGuild();
 		final String finalReason = reasonClosed==null ? "-" : (
 			reasonClosed.equals("activity") || reasonClosed.equals("time")
