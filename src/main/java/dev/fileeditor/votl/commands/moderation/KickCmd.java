@@ -6,8 +6,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -29,7 +29,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
-public class KickCmd extends CommandBase {
+public class KickCmd extends SlashCommand {
 
 	public KickCmd () {
 		this.name = "kick";

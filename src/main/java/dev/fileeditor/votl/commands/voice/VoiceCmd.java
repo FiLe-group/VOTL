@@ -5,7 +5,6 @@ import java.util.*;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -28,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static dev.fileeditor.votl.listeners.VoiceListener.ownerPerms;
 
-public class VoiceCmd extends CommandBase {
+public class VoiceCmd extends SlashCommand {
 	
 	public VoiceCmd() {
 		this.name = "voice";

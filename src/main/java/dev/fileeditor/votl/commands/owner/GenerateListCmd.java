@@ -14,7 +14,6 @@ import java.util.Map;
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -24,7 +23,7 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class GenerateListCmd extends CommandBase {
+public class GenerateListCmd extends SlashCommand {
 	
 	public GenerateListCmd() {
 		this.name = "generate";

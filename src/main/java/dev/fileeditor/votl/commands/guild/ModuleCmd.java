@@ -4,10 +4,10 @@ import java.sql.SQLException;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emote;
@@ -22,11 +22,11 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import org.jetbrains.annotations.NotNull;
 
-public class ModuleCmd extends CommandBase {
+public class ModuleCmd extends SlashCommand {
 	
 	private final EventWaiter waiter;
 	
-	public ModuleCmd(EventWaiter waiter) {
+	public ModuleCmd() {
 		this.name = "module";
 		this.path = "bot.guild.module";
 		this.children = new SlashCommand[]{
@@ -34,7 +34,7 @@ public class ModuleCmd extends CommandBase {
 		};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.OWNER;
-		this.waiter = waiter;
+		this.waiter = App.getInstance().getEventWaiter();
 	}
 
 	@Override

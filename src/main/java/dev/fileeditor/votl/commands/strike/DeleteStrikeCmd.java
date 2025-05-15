@@ -7,10 +7,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -35,11 +36,11 @@ import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
-public class DeleteStrikeCmd extends CommandBase {
+public class DeleteStrikeCmd extends SlashCommand {
 
 	private final EventWaiter waiter;
-	
-	public DeleteStrikeCmd(EventWaiter waiter) {
+
+	public DeleteStrikeCmd() {
 		this.name = "delstrike";
 		this.path = "bot.moderation.delstrike";
 		this.options = List.of(
@@ -50,7 +51,7 @@ public class DeleteStrikeCmd extends CommandBase {
 		this.accessLevel = CmdAccessLevel.MOD;
 		this.cooldown = 10;
 		this.cooldownScope = CooldownScope.GUILD;
-		this.waiter = waiter;
+		this.waiter = App.getInstance().getEventWaiter();
 	}
 
 	@Override

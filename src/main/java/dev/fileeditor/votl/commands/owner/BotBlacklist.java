@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.commands.owner;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.sql.SQLException;
 import java.util.List;
 
-public class BotBlacklist extends CommandBase {
+public class BotBlacklist extends SlashCommand {
 	public BotBlacklist() {
 		this.name = "bot_blacklist";
 		this.path = "bot.owner.bot_blacklist";

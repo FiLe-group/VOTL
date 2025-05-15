@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.guild;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -18,7 +17,7 @@ import java.sql.SQLException;
 import java.util.EnumSet;
 import java.util.List;
 
-public class PersistentRoleCmd extends CommandBase {
+public class PersistentRoleCmd extends SlashCommand {
 
 	public PersistentRoleCmd() {
 		this.name = "persistent";

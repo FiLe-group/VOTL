@@ -9,8 +9,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -40,7 +40,7 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
-public class StrikeCmd extends CommandBase {
+public class StrikeCmd extends SlashCommand {
 	
 	public StrikeCmd() {
 		this.name = "strike";

@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.level;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -20,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class LevelExemptCmd extends CommandBase {
+public class LevelExemptCmd extends SlashCommand {
 	public LevelExemptCmd() {
 		this.name = "level_exempt";
 		this.path = "bot.level.level_exempt";

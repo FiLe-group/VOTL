@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -23,11 +23,11 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
-public class SyncCmd extends CommandBase {
+public class SyncCmd extends SlashCommand {
 
 	private final EventWaiter waiter;
 	
-	public SyncCmd(EventWaiter waiter) {
+	public SyncCmd() {
 		this.name = "sync";
 		this.path = "bot.moderation.sync";
 		this.children = new SlashCommand[]{new Kick()};
@@ -35,7 +35,7 @@ public class SyncCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.OPERATOR;
-		this.waiter = waiter;
+		this.waiter = App.getInstance().getEventWaiter();
 	}
 
 	@Override

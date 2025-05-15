@@ -3,8 +3,8 @@ package dev.fileeditor.votl.commands.moderation;
 import java.sql.SQLException;
 import java.util.List;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -21,7 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
-public class UnbanCmd extends CommandBase {
+public class UnbanCmd extends SlashCommand {
 	
 	public UnbanCmd() {
 		this.name = "unban";

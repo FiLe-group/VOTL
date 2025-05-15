@@ -1,8 +1,8 @@
 package dev.fileeditor.votl.commands.level;
 
 import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -21,7 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 
-public class UserProfileCmd extends CommandBase {
+public class UserProfileCmd extends SlashCommand {
 	public UserProfileCmd() {
 		this.name = "profile";
 		this.path = "bot.level.profile";

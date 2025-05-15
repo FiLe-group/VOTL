@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -29,7 +28,7 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 @SuppressWarnings("Duplicates")
-public class RoleCmd extends CommandBase {
+public class RoleCmd extends SlashCommand {
 	
 	public RoleCmd() {
 		this.name = "role";

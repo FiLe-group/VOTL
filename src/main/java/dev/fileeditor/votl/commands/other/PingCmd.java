@@ -1,10 +1,10 @@
 package dev.fileeditor.votl.commands.other;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
-public class PingCmd extends CommandBase {
+public class PingCmd extends SlashCommand {
 	
 	public PingCmd() {
 		this.name = "ping";

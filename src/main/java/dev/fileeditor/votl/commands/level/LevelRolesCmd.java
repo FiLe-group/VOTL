@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.level;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -19,7 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class LevelRolesCmd extends CommandBase {
+public class LevelRolesCmd extends SlashCommand {
 	public LevelRolesCmd() {
 		this.name = "level_roles";
 		this.path = "bot.level.level_roles";

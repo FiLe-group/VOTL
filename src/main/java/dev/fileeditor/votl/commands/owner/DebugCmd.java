@@ -1,17 +1,17 @@
 package dev.fileeditor.votl.commands.owner;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.FileUpload;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-public class DebugCmd extends CommandBase {
+public class DebugCmd extends SlashCommand {
 
 	public DebugCmd() {
 		this.name = "debug";

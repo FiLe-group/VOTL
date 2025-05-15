@@ -15,11 +15,16 @@
  */
 package dev.fileeditor.votl.base.command;
 
+import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+import dev.fileeditor.votl.contracts.reflection.Reflectional;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -28,11 +33,14 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -70,8 +78,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Olivia (Chew)
  */
-public abstract class SlashCommand extends Interaction
-{
+public abstract class SlashCommand extends Interaction implements Reflectional {
+
 	/**
 	 * The name of the command, allows the command to be called the formats: <br>
 	 * Slash Command: {@code /<command name>}
@@ -558,4 +566,82 @@ public abstract class SlashCommand extends Interaction
 	public boolean isGuildOnly() {
 		return guildOnly;
 	}
+
+	// Edit Message(String or MED) and Embed
+	protected void editMsg(IReplyCallback event, @NotNull String msg) {
+		event.getHook().editOriginal(msg).queue();
+	}
+
+	protected void editMsg(IReplyCallback event, @NotNull MessageEditData data) {
+		event.getHook().editOriginal(data).queue();
+	}
+
+	protected void editEmbed(IReplyCallback event, @NotNull MessageEmbed... embeds) {
+		event.getHook().editOriginalEmbeds(embeds).queue();
+	}
+
+	// Edit Error
+	protected void editError(IReplyCallback event, @NotNull MessageEditData data) {
+		event.getHook().editOriginal(data)
+			.setComponents()
+			.queue(msg -> {
+				if (!msg.isEphemeral())
+					msg.delete().queueAfter(20, TimeUnit.SECONDS, null, ignoreRest);
+			});
+	}
+
+	protected void editError(IReplyCallback event, @NotNull MessageEmbed embed) {
+		editError(event, new MessageEditBuilder()
+			.setContent(lu.getText(event, "misc.temp_msg"))
+			.setEmbeds(embed)
+			.build()
+		);
+	}
+
+	protected void editError(IReplyCallback event, @NotNull String path) {
+		editError(event, path, null);
+	}
+
+	protected void editError(IReplyCallback event, @NotNull String path, String reason) {
+		editError(event, bot.getEmbedUtil().getError(event, path, reason));
+	}
+
+	protected void editErrorOther(IReplyCallback event, String details) {
+		editError(event, bot.getEmbedUtil().getError(event, "errors.error", details));
+	}
+
+	protected void editErrorUnknown(IReplyCallback event, String details) {
+		editError(event, bot.getEmbedUtil().getError(event, "errors.unknown", details));
+	}
+
+	protected void editErrorDatabase(IReplyCallback event, Exception exception, String details) {
+		if (exception instanceof SQLException ex) {
+			editError(event, bot.getEmbedUtil().getError(event, "errors.database", "%s: %s".formatted(ex.getErrorCode(), details)));
+		} else {
+			editError(event, bot.getEmbedUtil().getError(event, "errors.database", "%s\n> %s".formatted(details, exception.getMessage())));
+		}
+	}
+
+	protected void editErrorLimit(IReplyCallback event, String name, int maximum) {
+		editError(event, bot.getEmbedUtil().getError(event, "errors.db_limit", "> Maximum *%s*: %d".formatted(name, maximum)));
+	}
+
+	// PermError
+	protected void editPermError(IReplyCallback event, Permission perm, boolean self) {
+		editError(event, MessageEditData.fromCreateData(bot.getEmbedUtil().createPermError(event, perm, self)));
+	}
+
+
+	protected void ignoreExc(RunnableExc runnable) {
+		try {
+			runnable.run();
+		} catch (SQLException ignored) {}
+	}
+
+	@FunctionalInterface protected interface RunnableExc { void run() throws SQLException; }
+
+	protected static final Consumer<Throwable> ignoreRest = ignored -> {
+		// Nothing to see here
+		// Ignore everything
+	};
 }

@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.owner;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -7,14 +8,13 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class SetStatusCmd extends CommandBase {
+public class SetStatusCmd extends SlashCommand {
 	public SetStatusCmd() {
 		this.name = "setstatus";
 		this.path = "bot.owner.setstatus";

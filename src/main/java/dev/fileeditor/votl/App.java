@@ -5,23 +5,8 @@ import java.util.Set;
 
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandClientBuilder;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.commands.games.GameCmd;
-import dev.fileeditor.votl.commands.games.GameStrikeCmd;
-import dev.fileeditor.votl.commands.guild.*;
-import dev.fileeditor.votl.commands.level.LeaderboardCmd;
-import dev.fileeditor.votl.commands.level.LevelExemptCmd;
-import dev.fileeditor.votl.commands.level.LevelRolesCmd;
-import dev.fileeditor.votl.commands.level.UserProfileCmd;
-import dev.fileeditor.votl.commands.moderation.*;
-import dev.fileeditor.votl.commands.other.*;
-import dev.fileeditor.votl.commands.owner.*;
-import dev.fileeditor.votl.commands.role.*;
-import dev.fileeditor.votl.commands.strike.*;
-import dev.fileeditor.votl.commands.ticketing.*;
-import dev.fileeditor.votl.commands.verification.*;
-import dev.fileeditor.votl.commands.voice.VoiceCmd;
-import dev.fileeditor.votl.commands.webhook.WebhookCmd;
 import dev.fileeditor.votl.contracts.scheduler.Job;
 import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.menus.ActiveModlogsMenu;
@@ -69,6 +54,7 @@ public class App {
 
 	public final JDA JDA;
 	private final CommandClient commandClient;
+	private final EventWaiter eventWaiter;
 
 	private final FileManager fileManager = new FileManager();
 
@@ -114,10 +100,10 @@ public class App {
 		guildLogger		= new GuildLogger(this, logEmbedUtil);
 		groupHelper		= new GroupHelper(this);
 
-		EventWaiter WAITER = new EventWaiter();
+		eventWaiter = new EventWaiter();
 
 		CommandListener commandListener = new CommandListener(localeUtil);
-		InteractionListener interactionListener = new InteractionListener(this, WAITER);
+		InteractionListener interactionListener = new InteractionListener(this, eventWaiter);
 
 		GuildListener guildListener = new GuildListener(this);
 		VoiceListener voiceListener = new VoiceListener(this);
@@ -128,92 +114,22 @@ public class App {
 		EventListener eventListener = new EventListener(dbUtil);
 
 		// Define a command client
-		commandClient = new CommandClientBuilder()
+		CommandClientBuilder commandClientBuilder = new CommandClientBuilder()
 			.setOwnerId(ownerId)
 			.setStatus(OnlineStatus.ONLINE)
 			.setActivity(Activity.customStatus("/help"))
-			.addSlashCommands(
-				// guild
-				new AccessCmd(),
-				new AutopunishCmd(),
-				new LogsCmd(),
-				new ModuleCmd(WAITER),
-				new SetupCmd(),
-				new PersistentRoleCmd(),
-				// moderation
-				new BanCmd(),
-				new BlacklistCmd(),
-				new CaseCmd(),
-				new DurationCmd(),
-				new GroupCmd(WAITER),
-				new KickCmd(),
-				new MuteCmd(),
-				new ModLogsCmd(),
-				new ModStatsCmd(),
-				new ReasonCmd(),
-				new SyncCmd(WAITER),
-				new UnbanCmd(),
-				new UnmuteCmd(),
-				new PurgeCmd(),
-				new ModReportCmd(),
-				// other
-				new AboutCmd(),
-				new HelpCmd(),
-				new PingCmd(),
-				new StatusCmd(),
-				// owner
-				new EvalCmd(),
-				new ForceAccessCmd(),
-				new GenerateListCmd(),
-				new ShutdownCmd(),
-				new DebugCmd(),
-				new MessageCmd(),
-				new SetStatusCmd(),
-				new CheckAccessCmd(),
-				new BotBlacklist(),
-				new ExperienceCmd(),
-				// role
-				new RoleCmd(),
-				new TempRoleCmd(),
-				// strike
-				new ClearStrikesCmd(),
-				new DeleteStrikeCmd(WAITER),
-				new StrikeCmd(),
-				new StrikesCmd(),
-				// ticketing
-				new AddUserCmd(),
-				new CloseCmd(),
-				new RcloseCmd(),
-				new RemoveUserCmd(),
-				new RolesManageCmd(),
-				new RolesPanelCmd(),
-				new TicketCountCmd(),
-				new TicketCmd(),
-				// verification
-				new VerifyPanelCmd(),
-				new VerifyRoleCmd(),
-				// voice
-				new VoiceCmd(),
-				// webhook
-				new WebhookCmd(),
-				// game
-				new GameCmd(),
-				new GameStrikeCmd(),
-				// level
-				new UserProfileCmd(),
-				new LeaderboardCmd(),
-				new LevelRolesCmd(),
-				new LevelExemptCmd()
-			)
 			.addContextMenus(
 				new ReportMenu(),
 				new ModlogsMenu(),
 				new ActiveModlogsMenu()
 			)
 			.setListener(commandListener)
-			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
-			.build();
+			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]));
 
+		LOG.info("Registering commands...");
+		AutoloaderUtil.load(Names.PACKAGE_COMMAND_PATH, command -> commandClientBuilder.addSlashCommands((SlashCommand) command), false);
+
+		commandClient = commandClientBuilder.build();
 		// Build
 		AutoCompleteListener acListener = new AutoCompleteListener(commandClient, dbUtil);
 
@@ -248,7 +164,7 @@ public class App {
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
 			.addEventListeners(
-				commandClient, WAITER, acListener, interactionListener,
+				commandClient, eventWaiter, acListener, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,
 				auditListener, memberListener, eventListener
 			);
@@ -352,6 +268,10 @@ public class App {
 
 	public LevelUtil getLevelUtil() {
 		return levelUtil;
+	}
+
+	public EventWaiter getEventWaiter() {
+		return eventWaiter;
 	}
 
 	public void shutdownUtils() {

@@ -1,7 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -27,7 +26,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ModReportCmd extends CommandBase {
+public class ModReportCmd extends SlashCommand {
 	public ModReportCmd() {
 		this.name = "modreport";
 		this.path = "bot.moderation.modreport";

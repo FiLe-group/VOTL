@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.commands.owner;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.entities.Guild;
@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.List;
 
-public class CheckAccessCmd extends CommandBase {
+public class CheckAccessCmd extends SlashCommand {
 	public CheckAccessCmd() {
 		this.name = "checkaccess";
 		this.path = "bot.owner.checkaccess";
