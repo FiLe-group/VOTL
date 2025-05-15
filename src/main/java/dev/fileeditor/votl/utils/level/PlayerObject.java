@@ -33,6 +33,11 @@ public class PlayerObject {
 	}
 
 	@Override
+	public String toString() {
+		return "PlayerObject("+ guildId + ", " + userId + ")";
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (o == null || getClass() != o.getClass()) return false;
 		PlayerObject that = (PlayerObject) o;

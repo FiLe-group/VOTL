@@ -6,10 +6,9 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.utils.RandomUtil;
 import dev.fileeditor.votl.utils.database.managers.LevelManager;
-import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -17,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -28,8 +28,13 @@ public class LevelUtil {
 	}
 
 	// Cache
-	public static final Cache<String, Boolean> cache = Caffeine.newBuilder()
+	// player - boolean(filler)
+	public static final Cache<PlayerObject, Boolean> messageCache = Caffeine.newBuilder()
 		.expireAfterWrite(60, TimeUnit.SECONDS)
+		.build();
+	// Voice exp: player - start time
+	private final Cache<PlayerObject, Long> voiceCache = Caffeine.newBuilder()
+		.expireAfterAccess(10, TimeUnit.MINUTES)
 		.build();
 
 	private static final HashSet<PlayerObject> updateQueue = new LinkedHashSet<>();
@@ -84,10 +89,11 @@ public class LevelUtil {
 		}
 
 		// If in cache - skip, else give exp and add to it
-		boolean ignored = cache.get(asKey(event), (k)->{
+		PlayerObject player = new PlayerObject(event.getMember());
+		if (messageCache.getIfPresent(player) == null) {
 			giveExperience(event.getMember(), RandomUtil.getInteger(maxRandomExperience)+maxGuaranteeMessageExperience, ExpType.TEXT);
-			return true;
-		});
+			messageCache.put(player, true);
+		}
 	}
 
 	public void rewardVoicePlayer(@NotNull Member member, @NotNull AudioChannelUnion channel) {
@@ -169,18 +175,62 @@ public class LevelUtil {
 		return updateQueue;
 	}
 
-	private String asKey(MessageReceivedEvent event) {
-		return asKey(event.getGuild(), event.getAuthor());
-	}
-
-	private String asKey(Guild guild, UserSnowflake user) {
-		return guild.getId()+":"+user.getId();
-	}
-
 	private boolean informLevelUp(int level) {
 		if (level <= 10) return true;
 		if (level <= 50) return level % 2 == 0;
 		return level % 5 == 0;
+	}
+
+
+	public void putVoiceCache(Member member) {
+		voiceCache.put(new PlayerObject(member), System.currentTimeMillis());
+	}
+
+	private Long removeVoiceCache(PlayerObject player) {
+		Long time = voiceCache.getIfPresent(player);
+		if (time != null) {
+			voiceCache.invalidate(player);
+		}
+		return time;
+	}
+
+	public void processVoiceCache() {
+		voiceCache.asMap().forEach((player, joinTime) -> {
+			Member member = Optional.ofNullable(bot.JDA.getGuildById(player.guildId))
+				.map(g -> g.getMemberById(player.userId))
+				.orElse(null);
+
+			if (member == null) {
+				handleVoiceLeft(player);
+				return;
+			}
+
+			GuildVoiceState state = member.getVoiceState();
+			if (state != null && state.inAudioChannel()) {
+				// In voice - check if not muted/deafened/AFK
+				if (!state.isMuted() && !state.isDeafened() && !state.isSuppressed()) {
+					bot.getLevelUtil().rewardVoicePlayer(member, state.getChannel());
+				}
+			} else {
+				// Not in voice
+				handleVoiceLeft(player);
+			}
+		});
+	}
+
+	public void handleVoiceLeft(Member member) {
+		handleVoiceLeft(new PlayerObject(member));
+	}
+
+	public void handleVoiceLeft(PlayerObject player) {
+		Long timeJoined = removeVoiceCache(player);
+
+		if (timeJoined != null) {
+			long duration = Math.round((System.currentTimeMillis()-timeJoined)/1000f); // to seconds
+			if (duration > 10) {
+				bot.getDBUtil().levels.addVoiceTime(player, duration);
+			}
+		}
 	}
 
 }

@@ -81,7 +81,7 @@ public class LevelManager extends LiteBase {
 	@NotNull
 	public PlayerData getPlayer(long guildId, long userId) {
 		String key = PlayerObject.asKey(guildId, userId);
-		return playersCache.get(key, (k)->new PlayerData(getPlayerData(guildId, userId)));
+		return playersCache.get(key, (k) -> new PlayerData(getPlayerData(guildId, userId)));
 	}
 
 	@Nullable

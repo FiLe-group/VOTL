@@ -2,9 +2,6 @@ package dev.fileeditor.votl;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandClientBuilder;
@@ -25,13 +22,14 @@ import dev.fileeditor.votl.commands.ticketing.*;
 import dev.fileeditor.votl.commands.verification.*;
 import dev.fileeditor.votl.commands.voice.VoiceCmd;
 import dev.fileeditor.votl.commands.webhook.WebhookCmd;
+import dev.fileeditor.votl.contracts.scheduler.Job;
 import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.services.CountingThreadFactory;
-import dev.fileeditor.votl.services.ScheduledCheck;
+import dev.fileeditor.votl.objects.constants.Names;
+import dev.fileeditor.votl.scheduler.ScheduleHandler;
 import dev.fileeditor.votl.utils.*;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
@@ -65,7 +63,7 @@ import static java.lang.Long.parseLong;
 public class App {
 	protected static App instance;
 	
-	private final Logger log = (Logger) LoggerFactory.getLogger(App.class);
+	private final Logger LOG = (Logger) LoggerFactory.getLogger(App.class);
 
 	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
 
@@ -121,23 +119,16 @@ public class App {
 		CommandListener commandListener = new CommandListener(localeUtil);
 		InteractionListener interactionListener = new InteractionListener(this, WAITER);
 
-		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
-
 		GuildListener guildListener = new GuildListener(this);
-		VoiceListener voiceListener = new VoiceListener(this, scheduledExecutor);
+		VoiceListener voiceListener = new VoiceListener(this);
 		ModerationListener moderationListener = new ModerationListener(this);
 		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
 		MemberListener memberListener = new MemberListener(this);
 		MessageListener messageListener = new MessageListener(this);
 
-		ScheduledCheck scheduledCheck = new ScheduledCheck(this);
-		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 3, TimeUnit.MINUTES);
-		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 10, TimeUnit.MINUTES);
-
 		// Define a command client
 		commandClient = new CommandClientBuilder()
 			.setOwnerId(ownerId)
-			.setScheduleExecutor(scheduledExecutor)
 			.setStatus(OnlineStatus.ONLINE)
 			.setActivity(Activity.customStatus("/help"))
 			.addSlashCommands(
@@ -271,20 +262,20 @@ public class App {
 				tempJda = mainBuilder.build();
 				break;
 			} catch (IllegalArgumentException | InvalidTokenException ex) {
-				log.error("Login failed due to Token", ex);
+				LOG.error("Login failed due to Token", ex);
 				System.exit(0);
 			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits
 				if (retries > 0) {
 					retries--;
-					log.info("Retrying connecting in {} seconds... {} more attempts", cooldown, retries);
+					LOG.info("Retrying connecting in {} seconds... {} more attempts", cooldown, retries);
 					try {
 						Thread.sleep(cooldown*1000L);
 					} catch (InterruptedException e) {
-						log.error("Thread sleep interrupted", e);
+						LOG.error("Thread sleep interrupted", e);
 					}
 					cooldown*=2;
 				} else {
-					log.error("No network connection or couldn't connect to DNS", ex);
+					LOG.error("No network connection or couldn't connect to DNS", ex);
 					System.exit(0);
 				}
 			}
@@ -292,16 +283,18 @@ public class App {
 
 		this.JDA = tempJda;
 
+		// logger
 		createWebhookAppender();
 
-		log.info("Creating user backgrounds...");
-		try {
-			UserBackgroundHandler.getInstance().start();
-		} catch (Throwable ex) {
-			log.error("Error starting background handler", ex);
-		}
 
-		log.info("Success start");
+		LOG.info("Registering jobs...");
+		AutoloaderUtil.load(Names.PACKAGE_JOB_PATH, job -> ScheduleHandler.registerJob((Job) job));
+		LOG.info("Registered {} jobs successfully!", ScheduleHandler.entrySet().size());
+
+		LOG.info("Creating user backgrounds");
+		UserBackgroundHandler.getInstance().start();
+
+		LOG.info("Success start");
 	}
 
 	public static App getInstance() {
@@ -313,7 +306,7 @@ public class App {
 	}
 
 	public Logger getAppLogger() {
-		return log;
+		return LOG;
 	}
 
 	public FileManager getFileManager() {

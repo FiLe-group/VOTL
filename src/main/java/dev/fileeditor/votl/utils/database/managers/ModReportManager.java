@@ -29,9 +29,9 @@ public class ModReportManager extends LiteBase {
 			.formatted(table, nextReport.getEpochSecond(), channelId));
 	}
 
-	public List<Map<String, Object>> getExpired(Instant now) {
+	public List<Map<String, Object>> getExpired() {
 		List<Map<String, Object>> list = select("SELECT * FROM %s WHERE (nextReport<=%d)"
-				.formatted(table, now.getEpochSecond()),
+				.formatted(table, Instant.now().getEpochSecond()),
 			Set.of("guildId", "channelId", "roleIds", "nextReport", "interval")
 		);
 		if (list.isEmpty()) return List.of();

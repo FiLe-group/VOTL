@@ -76,15 +76,21 @@ public class TicketUtil {
 
 	private void closeTicketRole(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable FileUpload file) {
 		final Instant now = Instant.now();
+		final Guild guild = channel.getGuild();
+		final String finalReason = reasonClosed==null ? "-" : (
+			reasonClosed.equals("activity") || reasonClosed.equals("time")
+				? bot.getLocaleUtil().getLocalized(guild.getLocale(), "logger.ticket.autoclosed")
+				: reasonClosed
+		);
 
-		channel.delete().reason(reasonClosed).queueAfter(4, TimeUnit.SECONDS, done -> {
+		channel.delete().reason(finalReason).queueAfter(4, TimeUnit.SECONDS, done -> {
 			try{
-				db.tickets.closeTicket(now, channel.getIdLong(), reasonClosed);
+				db.tickets.closeTicket(now, channel.getIdLong(), finalReason);
 			} catch (SQLException ignored) {}
 
 			long authorId = db.tickets.getUserId(channel.getIdLong());
 
-			bot.getLogger().ticket.onClose(channel.getGuild(), channel, userClosed, authorId, file);
+			bot.getLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
 		}, failureHandler);
 	}
 
