@@ -55,7 +55,6 @@ public class Checks {
 
 	public static CmdModule getModule(Context ctx) {
 		String moduleName = ctx.pathParamAsClass("module", String.class)
-			.check(CmdModule::exists, "Incorrect module name provided.")
 			.getOrThrow(e -> new BadRequestResponse("Incorrect module name provided."));
 
 		return Arrays.stream(CmdModule.values())

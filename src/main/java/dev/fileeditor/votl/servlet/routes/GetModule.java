@@ -17,26 +17,19 @@ public class GetModule implements Handler {
 
 		final boolean enabled = !App.getInstance().getDBUtil().getGuildSettings(guild).isDisabled(module);
 
+		ObjectNode moduleNode = new ObjectMapper().createObjectNode();
+		moduleNode.put("enabled", enabled);
 		// TODO add other modules
 		switch (module) {
 			case REPORT -> {
-				ObjectNode moduleNode = new ObjectMapper().createObjectNode();
-
 				moduleNode.put("channel", "");
 				moduleNode.put("message", "");
 				moduleNode.put("temp", true);
 				moduleNode.put("enabled", enabled);
-
-				// Send response
-				ctx.json(moduleNode);
 			}
-			default ->  {
-				ObjectNode moduleNode = new ObjectMapper().createObjectNode();
-
-				moduleNode.put("enabled", enabled);
-
-				ctx.json(moduleNode);
-			}
+			default ->  {}
 		}
+		// Send response
+		ctx.json(moduleNode);
 	}
 }
