@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.utils.database.managers.GuildVoiceManager.VoiceSettings;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.ActionType;
@@ -23,21 +25,27 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import net.dv8tion.jda.api.utils.TimeFormat;
 import org.jetbrains.annotations.NotNull;
 
 public class VoiceListener extends ListenerAdapter {
 
-	private final Set<Permission> ownerPerms = Set.of(
+	public static final Set<Permission> ownerPerms = Set.of(
 		Permission.MANAGE_CHANNEL, Permission.VOICE_SET_STATUS, Permission.VOICE_MOVE_OTHERS,
 		Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.MESSAGE_SEND
 	);
 
-	private final DBUtil db;
+	private final int CHANNEL_LIMIT_SECONDS = 60;
+	private final Cache<Long, Long> channelCreationLimit = Caffeine.newBuilder()
+		.expireAfterWrite(CHANNEL_LIMIT_SECONDS, TimeUnit.SECONDS)
+		.build();
+
 	private final App bot;
+	private final DBUtil db;
 
 	public VoiceListener(App bot) {
-		this.db = bot.getDBUtil();
 		this.bot = bot;
+		this.db = bot.getDBUtil();
 	}
 
 	@Override
@@ -111,6 +119,7 @@ public class VoiceListener extends ListenerAdapter {
 		final long userId = member.getIdLong();
 		final DiscordLocale guildLocale = guild.getLocale();
 
+		// Check for existing channel
 		if (db.voice.existsUser(userId)) {
 			member.getUser().openPrivateChannel()
 				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown"))
@@ -118,6 +127,20 @@ public class VoiceListener extends ListenerAdapter {
 				);
 			return;
 		}
+		// Rate limit
+		Long lastChannelCreationTime = channelCreationLimit.getIfPresent(userId);
+		if (lastChannelCreationTime == null) {
+			channelCreationLimit.put(userId, System.currentTimeMillis());
+		} else {
+			long allowAfter = (CHANNEL_LIMIT_SECONDS*1000) - (System.currentTimeMillis() - lastChannelCreationTime);
+			member.getUser().openPrivateChannel()
+				.queue(channel -> channel.sendMessage(
+					bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown")
+						+ "\n> Try again " + TimeFormat.RELATIVE.after(allowAfter)
+				).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
+			return;
+		}
+
 		VoiceSettings voiceSettings = db.getVoiceSettings(guild);
 		Long categoryId = voiceSettings.getCategoryId();
 		if (categoryId == null) return;
@@ -146,9 +169,12 @@ public class VoiceListener extends ListenerAdapter {
 				},
 				failure -> {
 					member.getUser().openPrivateChannel()
-						.queue(channel ->
-							channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.failed").formatted(failure.getMessage()))
-								.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
+						.flatMap(channel ->
+							channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.failed")
+								.formatted(failure.getMessage())
+							)
+						)
+						.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 				}
 			);
 	}

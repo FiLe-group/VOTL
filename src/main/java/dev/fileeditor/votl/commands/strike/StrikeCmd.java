@@ -263,7 +263,7 @@ public class StrikeCmd extends CommandBase {
 							.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 					});
 
-					guild.ban(target, 0, TimeUnit.SECONDS).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
+					guild.ban(target, 0, TimeUnit.SECONDS).reason(reason).queue(done -> {
 						// add case to DB
 						try {
 							CaseData caseData = bot.getDBUtil().cases.add(
@@ -365,7 +365,7 @@ public class StrikeCmd extends CommandBase {
 							.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 					});
 
-					guild.timeoutFor(target, duration).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
+					guild.timeoutFor(target, duration).reason(reason).queue(done -> {
 						try {
 							// add case to DB
 							CaseData caseData = bot.getDBUtil().cases.add(

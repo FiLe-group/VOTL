@@ -14,7 +14,7 @@ public class RegularJobs extends Job {
 	private final RemoveExpiredCases removeExpiredCases = new RemoveExpiredCases();
 
 	public RegularJobs(App bot) {
-		super(bot, 0, 2, TimeUnit.MINUTES);
+		super(bot, 0, 1, TimeUnit.MINUTES);
 	}
 
 	@Override

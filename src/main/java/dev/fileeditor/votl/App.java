@@ -125,6 +125,7 @@ public class App {
 		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
 		MemberListener memberListener = new MemberListener(this);
 		MessageListener messageListener = new MessageListener(this);
+		EventListener eventListener = new EventListener(dbUtil);
 
 		// Define a command client
 		commandClient = new CommandClientBuilder()
@@ -249,7 +250,7 @@ public class App {
 			.addEventListeners(
 				commandClient, WAITER, acListener, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,
-				auditListener, memberListener
+				auditListener, memberListener, eventListener
 			);
 			
 		JDA tempJda;
