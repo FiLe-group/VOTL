@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.JDA;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * A Bot Client interface implemented on objects used to hold bot data.
@@ -242,13 +241,6 @@ public interface CommandClient
 	 * @return The {@code long} ID of the owner of the bot
 	 */
 	long getOwnerIdLong();
-
-	/**
-	 * Gets the {@link java.util.concurrent.ScheduledExecutorService ScheduledExecutorService} held by this client.
-	 *
-	 * @return The ScheduledExecutorService held by this client.
-	 */
-	ScheduledExecutorService getScheduleExecutor();
 
 	/**
 	 * Shuts down internals of the Command Client, such as the threadpool and guild settings manager

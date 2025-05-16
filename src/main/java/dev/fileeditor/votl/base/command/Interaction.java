@@ -23,6 +23,9 @@ import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 import net.dv8tion.jda.api.Permission;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A class that represents an interaction with a user.
  * <p>
@@ -30,8 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * Any content here is safely functionality equivalent regardless of the source of the interaction.
  */
-public abstract class Interaction
-{
+public abstract class Interaction {
 	/**
 	 * {@code true} if the command may only be used in a {@link net.dv8tion.jda.api.entities.Guild Guild},
 	 * {@code false} if it may be used in both a Guild and a DM.
@@ -79,12 +81,16 @@ public abstract class Interaction
 	protected CooldownScope cooldownScope = CooldownScope.USER;
 
 	/**
+	 * An {@code int} number of times users can use this command per cooldown.
+	 */
+	protected int maxAttempts = 1;
+
+	/**
 	 * Gets the {@link Interaction#cooldown cooldown} for the Interaction.
 	 *
 	 * @return The cooldown for the Interaction
 	 */
-	public int getCooldown()
-	{
+	public int getCooldown() {
 		return cooldown;
 	}
 
@@ -93,9 +99,17 @@ public abstract class Interaction
 	 *
 	 * @return The cooldown for the Interaction
 	 */
-	public CooldownScope getCooldownScope()
-	{
+	public CooldownScope getCooldownScope() {
 		return cooldownScope;
+	}
+
+	/**
+	 * Gets the {@link Interaction#maxAttempts max attempts} for the Interaction.
+	 *
+	 * @return The mex attempts per cooldown for the Interaction
+	 */
+	public int getMaxAttempts() {
+		return maxAttempts;
 	}
 
 	/**
@@ -104,8 +118,7 @@ public abstract class Interaction
 	 * @return The userPermissions for the Interaction
 	 */
 	@NotNull
-	public Permission[] getUserPermissions()
-	{
+	public Permission[] getUserPermissions() {
 		return userPermissions;
 	}
 
@@ -115,8 +128,7 @@ public abstract class Interaction
 	 * @return The botPermissions for the Interaction
 	 */
 	@NotNull
-	public Permission[] getBotPermissions()
-	{
+	public Permission[] getBotPermissions() {
 		return botPermissions;
 	}
 
@@ -125,8 +137,7 @@ public abstract class Interaction
 	 *
 	 * @return {@code true} if the command is an owner interaction, otherwise {@code false} if it is not
 	 */
-	public boolean isOwnerCommand()
-	{
+	public boolean isOwnerCommand() {
 		return ownerCommand;
 	}
 	
@@ -136,8 +147,7 @@ public abstract class Interaction
 	 * @return The path for command's help string in locale file.
 	 */
 	@NotNull
-	public String getHelpPath()
-	{
+	public String getHelpPath() {
 		return path+".help";
 	}
 
@@ -147,8 +157,7 @@ public abstract class Interaction
 	 * @return The path for command's usage description string in locale file.
 	 */
 	@NotNull
-	public String getUsagePath()
-	{
+	public String getUsagePath() {
 		return path+".usage";
 	}
 
@@ -164,9 +173,14 @@ public abstract class Interaction
 	 * @return The path for command's string in locale file.
 	 */
 	@NotNull
-	public String getPath()
-	{
+	public String getPath() {
 		return path;
+	}
+
+	protected List<String> middlewares = new ArrayList<>();
+
+	public List<String> getMiddleware() {
+		return middlewares;
 	}
 
 	protected final App bot = App.getInstance();
@@ -184,5 +198,10 @@ public abstract class Interaction
 	public CmdModule getModule() {
 		return module;
 	}
+
+	/**
+	 * @return If deferred reply will be ephemeral.
+	 */
+	public abstract boolean isEphemeralReply();
 	
 }

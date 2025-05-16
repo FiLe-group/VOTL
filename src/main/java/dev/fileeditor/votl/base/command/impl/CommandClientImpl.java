@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandListener;
@@ -34,6 +34,7 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
 
+import dev.fileeditor.votl.middleware.MiddlewareStack;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -78,7 +79,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	private final boolean manualUpsert;
 	private final HashMap<String,OffsetDateTime> cooldowns;
 	private final boolean shutdownAutomatically;
-	private final ScheduledExecutorService executor;
+	private final ExecutorService commandService;
 
 	private CommandListener listener = null;
 
@@ -86,7 +87,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		long ownerId, Activity activity, OnlineStatus status,
 		ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus,
 		String forcedGuildId, String[] devGuildIds, boolean manualUpsert,
-		boolean shutdownAutomatically, ScheduledExecutorService executor
+		boolean shutdownAutomatically, ExecutorService executor
 	) {
 		Checks.check(ownerId > 0L, "Provided owner ID is incorrect (<0).");
 
@@ -105,7 +106,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		this.manualUpsert = manualUpsert;
 		this.cooldowns = new HashMap<>();
 		this.shutdownAutomatically = shutdownAutomatically;
-		this.executor = executor==null ? Executors.newSingleThreadScheduledExecutor() : executor;
+		this.commandService = executor!=null ? executor : Executors.newVirtualThreadPerTaskExecutor();
 
 		// Load slash commands
 		for (SlashCommand command : slashCommands) {
@@ -248,13 +249,8 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public ScheduledExecutorService getScheduleExecutor() {
-		return executor;
-	}
-
-	@Override
 	public void shutdown() {
-		executor.shutdown();
+		commandService.shutdown();
 	}
 
 	@Override
@@ -273,8 +269,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 				if (shutdownAutomatically)
 					shutdown();
 			}
-			default -> {
-			}
+			default -> {}
 		}
 	}
 
@@ -395,9 +390,15 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		if (command != null) {
 			if (listener != null)
 				listener.onSlashCommand(commandEvent, command);
-			command.run(commandEvent);
+			// Start middleware stack
+			invokeMiddlewareStack(new MiddlewareStack(command, commandEvent));
+			//command.run(commandEvent);
 			// Command is done
 		}
+	}
+
+	private void invokeMiddlewareStack(MiddlewareStack stack) {
+		commandService.submit(stack::next);
 	}
 
 	private void onCommandAutoComplete(CommandAutoCompleteInteractionEvent event) {

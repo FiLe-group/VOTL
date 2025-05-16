@@ -22,9 +22,14 @@
 			"nsfw": "This command may only be used in NSFW text channels!",
 			"guild_only": "This command cannot be used in private messages! Use this command in server, where I am."
 		},
+		"throttle": {
+			"command": "Too many commands run! Please try again %s.",
+			"pm_user": "Looks like you are using commands a bit too fast, I've banned you from using any commands until you cool down a bit.\nYour ban expires %s, keep in mind repeating this behaviour will get you banned for longer periods of time.",
+			"pm_guild": "Looks like people on the server are using commands a bit too fast, I've banned the server from using any commands until everyone clams down a bit.\nThis ban expires %s, keep in mind repeating this behaviour will get the server banned for longer periods of time."
+		},
 		"cooldown": {
-			"cooldown_command": "That command is on cooldown for {time} more seconds",
-			"cooldown_button": "This button is on cooldown for {time} more seconds",
+			"cooldown_command": "Command is on cooldown%s! Please try again %s.",
+			"cooldown_button": "This button is on cooldown for **{time}** seconds",
 			"channel": "in this channel",
 			"guild": "in this server",
 			"shard": "on this shard",
@@ -94,7 +99,7 @@
 		"strikes": "Strike punishments",
 		"games": "Games",
 		"levels": "Leveling",
-		"module_disabled": "This command(module) is disabled."
+		"module_disabled": "This command/module is disabled."
 	},
 	"role_type": {
 		"assign": "Assignable",

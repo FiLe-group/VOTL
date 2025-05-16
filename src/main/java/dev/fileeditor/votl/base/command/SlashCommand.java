@@ -20,7 +20,10 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import dev.fileeditor.votl.contracts.middleware.Middleware;
 import dev.fileeditor.votl.contracts.reflection.Reflectional;
+import dev.fileeditor.votl.middleware.MiddlewareHandler;
+import dev.fileeditor.votl.middleware.ThrottleMiddleware;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
@@ -107,6 +110,13 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 	 * <br>Default: {@code false}
 	 */
 	protected boolean nsfwOnly = false;
+
+	/**
+	 * {@code true} if the command should reply with deferred ephemeral reply.
+	 * {@code false} if it should send normal deferred reply.
+	 * <br>Default: {@code false}
+	 */
+	protected boolean ephemeralReply = false;
 
 	/**
 	 * Localization of slash command name. Allows discord to change the language of the name of slash commands in the client.<br>
@@ -199,7 +209,7 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 	 * @param  event
 	 *         The SlashCommandEvent that triggered this Command
 	 */
-	public final void run(SlashCommandEvent event) {
+	public final boolean run(SlashCommandEvent event) {
 		// start time
 		final long timeStart = System.nanoTime();
 		// client 
@@ -207,14 +217,12 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 
 		// check blacklist
 		if (bot.getCheckUtil().isBlacklisted(event.getUser())) {
-			terminate(event, client);
-			return;
+			return terminate(event, client);
 		}
 
 		// check owner command
 		if (ownerCommand && !isOwner(event, client)) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
-			return;
+			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
 		}
 
 		// cooldown check, ignoring owner
@@ -222,8 +230,7 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 			String key = getCooldownKey(event);
 			int remaining = client.getRemainingCooldown(key);
 			if (remaining > 0) {
-				terminate(event, getCooldownErrorEmbed(event, remaining), client);
-				return;
+				return terminate(event, getCooldownErrorEmbed(event, remaining), client);
 			} else {
 				client.applyCooldown(key, cooldown);
 			}
@@ -242,8 +249,7 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 				// check bots perms
 					.hasPermissions(event, getBotPermissions());
 			} catch (CheckException ex) {
-				terminate(event, ex.getCreateData(), client);
-				return;
+				return terminate(event, ex.getCreateData(), client);
 			}
 		}
 
@@ -255,7 +261,7 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 		} catch (Throwable t) {
 			if (client.getListener() != null) {
 				client.getListener().onSlashCommandException(event, this, t);
-				return;
+				return false;
 			}
 			// otherwise we rethrow
 			throw t;
@@ -263,6 +269,8 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 
 		if (client.getListener() != null)
 			client.getListener().onCompletedSlashCommand(event, this);
+
+		return true;
 	}
 
 	/**
@@ -319,6 +327,14 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 	}
 
 	/**
+	 *
+	 * @return If deferred reply will be ephemeral.
+	 */
+	public boolean isEphemeralReply() {
+		return ephemeralReply;
+	}
+
+	/**
 	 * Gets the subcommand data associated with this subcommand.
 	 *
 	 * @return subcommand data
@@ -348,6 +364,9 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 		// Set attributes
 		this.help = lu.getText(getHelpPath());
 		this.descriptionLocalization = lu.getFullLocaleMap(getHelpPath(), getHelp());
+
+		// Register middlewares
+		registerThrottleMiddleware();
 
 		// Make the command data
 		SlashCommandData data = Commands.slash(getName(), getHelp());
@@ -462,20 +481,24 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 		return children;
 	}
 
-	private void terminate(SlashCommandEvent event, @NotNull MessageEmbed embed, CommandClient client) {
-		terminate(event, MessageCreateData.fromEmbeds(embed), client);
+	private boolean terminate(SlashCommandEvent event, @NotNull MessageEmbed embed, CommandClient client) {
+		return terminate(event, MessageCreateData.fromEmbeds(embed), client);
 	}
 
-	private void terminate(SlashCommandEvent event, MessageCreateData message, CommandClient client) {
+	private boolean terminate(SlashCommandEvent event, MessageCreateData message, CommandClient client) {
 		if (message != null)
-			event.reply(message).setEphemeral(true).queue(null, failure -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
+			event.reply(message)
+				.setEphemeral(true)
+				.queue(null, failure -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
 		if (client.getListener() != null)
 			client.getListener().onTerminatedSlashCommand(event, this);
+		return false;
 	}
 
-	private void terminate(SlashCommandEvent event, CommandClient client) {
+	private boolean terminate(SlashCommandEvent event, CommandClient client) {
 		if (client.getListener() != null)
 			client.getListener().onTerminatedSlashCommand(event, this);
+		return false;
 	}
 
 	/**
@@ -537,6 +560,57 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 			front.append(" ").append(lu.getText(event, cooldownScope.getErrorPath()));
 
 		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
+	}
+
+	private static final String DEFAULT_GUILD_LIMIT = "throttle:guild,20,15";
+	private static final String DEFAULT_USER_LIMIT = "throttle:user,2,3";
+
+	private void registerThrottleMiddleware() {
+		if (!hasMiddleware(ThrottleMiddleware.class)) {
+			middlewares.add(DEFAULT_GUILD_LIMIT);
+			middlewares.add(DEFAULT_USER_LIMIT);
+			return;
+		}
+
+		boolean addUser = true;
+		boolean addGuild = true;
+
+		for (String middlewareName : middlewares) {
+			String[] parts = middlewareName.split(":");
+
+			Middleware middleware = MiddlewareHandler.getMiddleware(parts[0]);
+			if (!(middleware instanceof ThrottleMiddleware)) {
+				continue;
+			}
+
+			var type = ThrottleMiddleware.ThrottleType.fromName(parts[1].split(",")[0]);
+
+			switch (type) {
+				case USER -> addUser = false;
+				case GUILD, CHANNEL -> addGuild = false;
+			}
+
+			if (addUser) {
+				middlewares.add(DEFAULT_USER_LIMIT);
+			}
+			if (addGuild) {
+				middlewares.add(DEFAULT_GUILD_LIMIT);
+			}
+		}
+	}
+
+	private boolean hasMiddleware(@NotNull Class<? extends Middleware> clazz) {
+		String key = MiddlewareHandler.getName(clazz);
+		if (key == null) {
+			return false;
+		}
+
+		for (String middleware : middlewares) {
+			if (middleware.toLowerCase().startsWith(key)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

@@ -15,6 +15,7 @@
  */
 package dev.fileeditor.votl.base.command;
 
+import dev.fileeditor.votl.contracts.reflection.Reflectional;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
@@ -67,7 +68,7 @@ import java.util.Set;
  *
  * @author Olivia (Chew)
  */
-public abstract class UserContextMenu extends ContextMenu {
+public abstract class UserContextMenu extends ContextMenu implements Reflectional {
 	/**
 	 * Runs checks for the {@link UserContextMenu} with the given {@link MessageContextMenuEvent} that called it.
 	 * <br>Will terminate, and possibly respond with a failure message, if any checks fail.
@@ -75,20 +76,18 @@ public abstract class UserContextMenu extends ContextMenu {
 	 * @param  event
 	 *         The UserContextMenuEvent that triggered this Context Menu
 	 */
-	public final void run(UserContextMenuEvent event) {
+	public final boolean run(UserContextMenuEvent event) {
 		// client 
 		final CommandClient client = event.getClient();
 
 		// check blacklist
 		if (bot.getCheckUtil().isBlacklisted(event.getUser())) {
-			terminate(event, client);
-			return;
+			return terminate(event, client);
 		}
 
 		// owner check
 		if (ownerCommand && !(event.isOwner())) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
-			return;
+			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
 		}
 
 		// cooldown check, ignoring owner
@@ -96,8 +95,7 @@ public abstract class UserContextMenu extends ContextMenu {
 			String key = getCooldownKey(event);
 			int remaining = client.getRemainingCooldown(key);
 			if (remaining>0) {
-				terminate(event, getCooldownError(event, event.getGuild(), remaining), client);
-				return;
+				return terminate(event, getCooldownError(event, event.getGuild(), remaining), client);
 			}
 			else client.applyCooldown(key, cooldown);
 		}
@@ -117,12 +115,10 @@ public abstract class UserContextMenu extends ContextMenu {
 				// check bots perms
 					.hasPermissions(event, getBotPermissions());
 			} catch (CheckException ex) {
-				terminate(event, ex.getCreateData(), client);
-				return;
+				return terminate(event, ex.getCreateData(), client);
 			}
 		} else if (guildOnly) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.guild_only"), client);
-			return;
+			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.guild_only"), client);
 		}
 
 		// run
@@ -131,7 +127,7 @@ public abstract class UserContextMenu extends ContextMenu {
 		} catch (Throwable t) {
 			if (client.getListener() != null) {
 				client.getListener().onUserContextMenuException(event, this, t);
-				return;
+				return false;
 			}
 			// otherwise we rethrow
 			throw t;
@@ -139,6 +135,8 @@ public abstract class UserContextMenu extends ContextMenu {
 
 		if (client.getListener() != null)
 			client.getListener().onCompletedUserContextMenu(event, this);
+
+		return true;
 	}
 
 	/**
@@ -151,20 +149,22 @@ public abstract class UserContextMenu extends ContextMenu {
 	 */
 	protected abstract void execute(UserContextMenuEvent event);
 
-	private void terminate(UserContextMenuEvent event, @NotNull MessageEmbed embed, CommandClient client) {
-		terminate(event, MessageCreateData.fromEmbeds(embed), client);
+	private boolean terminate(UserContextMenuEvent event, @NotNull MessageEmbed embed, CommandClient client) {
+		return terminate(event, MessageCreateData.fromEmbeds(embed), client);
 	}
 
-	private void terminate(UserContextMenuEvent event, MessageCreateData message, CommandClient client) {
+	private boolean terminate(UserContextMenuEvent event, MessageCreateData message, CommandClient client) {
 		if (message!=null)
 			event.reply(message).setEphemeral(true).queue();
 		if (client.getListener()!=null)
 			client.getListener().onTerminatedUserContextMenu(event, this);
+		return false;
 	}
 
-	private void terminate(UserContextMenuEvent event, CommandClient client) {
+	private boolean terminate(UserContextMenuEvent event, CommandClient client) {
 		if (client.getListener()!=null)
 			client.getListener().onTerminatedUserContextMenu(event, this);
+		return false;
 	}
 
 	@Override
@@ -189,5 +189,10 @@ public abstract class UserContextMenu extends ContextMenu {
 		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
 		return data;
+	}
+
+	@Override
+	public boolean isEphemeralReply() {
+		return false;
 	}
 }

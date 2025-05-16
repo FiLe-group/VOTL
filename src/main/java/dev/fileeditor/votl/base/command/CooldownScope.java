@@ -53,8 +53,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @see    dev.fileeditor.votl.base.command.Interaction#cooldownScope Interaction.cooldownScope
  */
-public enum CooldownScope
-{
+public enum CooldownScope {
 	/**
 	 * Applies the cooldown to the calling {@link net.dv8tion.jda.api.entities.User User} across all
 	 * locations on this instance (IE: TextChannels, PrivateChannels, etc.).
@@ -166,8 +165,7 @@ public enum CooldownScope
 		this.errorPath = errorPath;
 	}
 
-	CooldownScope(String format)
-	{
+	CooldownScope(String format) {
 		this.format = format;
 		this.errorPath = null;
 	}

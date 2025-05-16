@@ -7,11 +7,13 @@ import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandClientBuilder;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
+import dev.fileeditor.votl.blacklist.Blacklist;
 import dev.fileeditor.votl.contracts.scheduler.Job;
 import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
+import dev.fileeditor.votl.middleware.MiddlewareHandler;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Names;
 import dev.fileeditor.votl.scheduler.ScheduleHandler;
@@ -70,6 +72,8 @@ public class App {
 	private final ModerationUtil moderationUtil;
 	private final LevelUtil levelUtil;
 
+	private final Blacklist blacklist;
+
 	@SuppressWarnings("BusyWait")
 	public App() {
 		App.instance = this;
@@ -125,6 +129,9 @@ public class App {
 			)
 			.setListener(commandListener)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]));
+
+		LOG.info("Registering default middlewares");
+		MiddlewareHandler.initialize(this);
 
 		LOG.info("Registering commands...");
 		AutoloaderUtil.load(Names.PACKAGE_COMMAND_PATH, command -> commandClientBuilder.addSlashCommands((SlashCommand) command), false);
@@ -208,6 +215,9 @@ public class App {
 		AutoloaderUtil.load(Names.PACKAGE_JOB_PATH, job -> ScheduleHandler.registerJob((Job) job));
 		LOG.info("Registered {} jobs successfully!", ScheduleHandler.entrySet().size());
 
+		LOG.info("Preparing blacklist");
+		blacklist = new Blacklist(this);
+
 		LOG.info("Creating user backgrounds");
 		UserBackgroundHandler.getInstance().start();
 
@@ -270,12 +280,18 @@ public class App {
 		return levelUtil;
 	}
 
+	public Blacklist getBlacklist() {
+		return blacklist;
+	}
+
 	public EventWaiter getEventWaiter() {
 		return eventWaiter;
 	}
 
 	public void shutdownUtils() {
-		// ignore
+		for (var future : ScheduleHandler.entrySet()) {
+			future.cancel(false);
+		}
 	}
 
 	private void createWebhookAppender() {
