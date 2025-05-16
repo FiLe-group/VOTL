@@ -19,7 +19,6 @@ import dev.fileeditor.votl.contracts.reflection.Reflectional;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
@@ -90,24 +89,11 @@ public abstract class UserContextMenu extends ContextMenu implements Reflectiona
 			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
 		}
 
-		// cooldown check, ignoring owner
-		if (cooldown>0 && !(event.isOwner())) {
-			String key = getCooldownKey(event);
-			int remaining = client.getRemainingCooldown(key);
-			if (remaining>0) {
-				return terminate(event, getCooldownError(event, event.getGuild(), remaining), client);
-			}
-			else client.applyCooldown(key, cooldown);
-		}
-
 		// checks
 		if (event.isFromGuild()) {
-			Guild guild = event.getGuild();
 			Member author = event.getMember();
 			try {
 				bot.getCheckUtil()
-				// check module enabled
-					.moduleEnabled(event, guild, getModule())
 				// check access
 					.hasAccess(event, author, getAccessLevel())
 				// check user perms
@@ -171,6 +157,12 @@ public abstract class UserContextMenu extends ContextMenu implements Reflectiona
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.nameLocalization = lu.getFullLocaleMap(getPath()+".name", lu.getText(getPath()+".name"));
+
+		// Register middlewares
+		registerThrottleMiddleware();
+		if (cooldown > 0) {
+			middlewares.add("cooldown");
+		}
 
 		// Make the command data
 		CommandData data = Commands.user(getName());

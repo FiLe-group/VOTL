@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -29,7 +30,7 @@ public abstract class Middleware {
 	public abstract boolean handle(@NotNull GenericCommandInteractionEvent event, @NotNull MiddlewareStack stack, String... args);
 
 	protected boolean runErrorCheck(@NotNull GenericCommandInteractionEvent event, @NotNull Supplier<Boolean> callback) {
-		return errorCache.get(event.getUser().getIdLong(), id -> callback.get());
+		return errorCache.get(event.getUser().getIdLong(), id -> Objects.requireNonNullElse(callback.get(), false));
 	}
 
 	// Send Error

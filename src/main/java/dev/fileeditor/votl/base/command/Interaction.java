@@ -16,6 +16,9 @@
 package dev.fileeditor.votl.base.command;
 
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.contracts.middleware.Middleware;
+import dev.fileeditor.votl.middleware.MiddlewareHandler;
+import dev.fileeditor.votl.middleware.ThrottleMiddleware;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
@@ -181,6 +184,57 @@ public abstract class Interaction {
 
 	public List<String> getMiddleware() {
 		return middlewares;
+	}
+
+	protected boolean hasMiddleware(@NotNull Class<? extends Middleware> clazz) {
+		String key = MiddlewareHandler.getName(clazz);
+		if (key == null) {
+			return false;
+		}
+
+		for (String middleware : middlewares) {
+			if (middleware.toLowerCase().startsWith(key)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static final String DEFAULT_GUILD_LIMIT = "throttle:guild,20,15";
+	private static final String DEFAULT_USER_LIMIT = "throttle:user,2,3";
+
+	protected void registerThrottleMiddleware() {
+		if (!hasMiddleware(ThrottleMiddleware.class)) {
+			middlewares.add(DEFAULT_GUILD_LIMIT);
+			middlewares.add(DEFAULT_USER_LIMIT);
+			return;
+		}
+
+		boolean addUser = true;
+		boolean addGuild = true;
+
+		for (String middlewareName : middlewares) {
+			String[] parts = middlewareName.split(":");
+
+			Middleware middleware = MiddlewareHandler.getMiddleware(parts[0]);
+			if (!(middleware instanceof ThrottleMiddleware)) {
+				continue;
+			}
+
+			var type = ThrottleMiddleware.ThrottleType.fromName(parts[1].split(",")[0]);
+
+			switch (type) {
+				case USER -> addUser = false;
+				case GUILD, CHANNEL -> addGuild = false;
+			}
+
+			if (addUser) {
+				middlewares.add(DEFAULT_USER_LIMIT);
+			}
+			if (addGuild) {
+				middlewares.add(DEFAULT_GUILD_LIMIT);
+			}
+		}
 	}
 
 	protected final App bot = App.getInstance();

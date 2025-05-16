@@ -13,7 +13,9 @@ import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
+import dev.fileeditor.votl.middleware.CooldownMiddleware;
 import dev.fileeditor.votl.middleware.MiddlewareHandler;
+import dev.fileeditor.votl.middleware.ThrottleMiddleware;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Names;
 import dev.fileeditor.votl.scheduler.ScheduleHandler;
@@ -132,6 +134,8 @@ public class App {
 
 		LOG.info("Registering default middlewares");
 		MiddlewareHandler.initialize(this);
+		MiddlewareHandler.register("throttle", new ThrottleMiddleware(this));
+		MiddlewareHandler.register("cooldown", new CooldownMiddleware(this));
 
 		LOG.info("Registering commands...");
 		AutoloaderUtil.load(Names.PACKAGE_COMMAND_PATH, command -> commandClientBuilder.addSlashCommands((SlashCommand) command), false);

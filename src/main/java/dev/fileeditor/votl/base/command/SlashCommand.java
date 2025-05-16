@@ -20,15 +20,11 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import dev.fileeditor.votl.contracts.middleware.Middleware;
 import dev.fileeditor.votl.contracts.reflection.Reflectional;
-import dev.fileeditor.votl.middleware.MiddlewareHandler;
-import dev.fileeditor.votl.middleware.ThrottleMiddleware;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -225,25 +221,11 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
 		}
 
-		// cooldown check, ignoring owner
-		if (cooldown > 0 && !isOwner(event, client)) {
-			String key = getCooldownKey(event);
-			int remaining = client.getRemainingCooldown(key);
-			if (remaining > 0) {
-				return terminate(event, getCooldownErrorEmbed(event, remaining), client);
-			} else {
-				client.applyCooldown(key, cooldown);
-			}
-		}
-
 		// check db and permissions
 		if (event.isFromGuild() && !ownerCommand) {
-			Guild guild = event.getGuild();
 			Member author = event.getMember();
 			try {
 				bot.getCheckUtil()
-				// check module enabled
-					.moduleEnabled(event, guild, getModule())
 				// check access
 					.hasAccess(event, author, getAccessLevel())
 				// check bots perms
@@ -367,6 +349,9 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 
 		// Register middlewares
 		registerThrottleMiddleware();
+		if (cooldown > 0) {
+			middlewares.add("cooldown");
+		}
 
 		// Make the command data
 		SlashCommandData data = Commands.slash(getName(), getHelp());
@@ -498,118 +483,6 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 	private boolean terminate(SlashCommandEvent event, CommandClient client) {
 		if (client.getListener() != null)
 			client.getListener().onTerminatedSlashCommand(event, this);
-		return false;
-	}
-
-	/**
-	 * Gets the proper cooldown key for this Command under the provided
-	 * {@link SlashCommandEvent SlashCommandEvent}.
-	 *
-	 * @param  event
-	 *         The CommandEvent to generate the cooldown for.
-	 *
-	 * @return A String key to use when applying a cooldown.
-	 */
-	public String getCooldownKey(SlashCommandEvent event) {
-		return switch (cooldownScope) {
-			case USER -> cooldownScope.genKey(name, event.getUser().getIdLong());
-			case USER_GUILD ->
-				Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name, event.getUser().getIdLong(), g.getIdLong()))
-					.orElse(CooldownScope.USER_CHANNEL.genKey(name, event.getUser().getIdLong(), event.getChannel().getIdLong()));
-			case USER_CHANNEL ->
-				cooldownScope.genKey(name, event.getUser().getIdLong(), event.getChannel().getIdLong());
-			case GUILD -> Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name, g.getIdLong()))
-				.orElse(CooldownScope.CHANNEL.genKey(name, event.getChannel().getIdLong()));
-			case CHANNEL -> cooldownScope.genKey(name, event.getChannel().getIdLong());
-			case SHARD -> {
-				event.getJDA().getShardInfo();
-				yield cooldownScope.genKey(name, event.getJDA().getShardInfo().getShardId());
-			}
-			case USER_SHARD -> {
-				event.getJDA().getShardInfo();
-				yield cooldownScope.genKey(name, event.getUser().getIdLong(), event.getJDA().getShardInfo().getShardId());
-			}
-			case GLOBAL -> cooldownScope.genKey(name, 0);
-		};
-	}
-
-	/**
-	 * Gets an error message for this Command under the provided
-	 * {@link SlashCommandEvent SlashCommandEvent}.
-	 *
-	 * @param  event
-	 *         The CommandEvent to generate the error message for.
-	 * @param  remaining
-	 *         The remaining number of seconds a command is on cooldown for.
-	 *
-	 * @return A String error message for this command if {@code remaining > 0},
-	 *         else {@code null}.
-	 */
-	private MessageCreateData getCooldownErrorEmbed(SlashCommandEvent event, int remaining) {
-		if (remaining <= 0)
-			return null;
-		
-		StringBuilder front = new StringBuilder(lu.getText(event,"errors.cooldown.cooldown_command")
-			.replace("{time}", Integer.toString(remaining))
-		);
-		if (cooldownScope.equals(CooldownScope.USER_GUILD) && event.getGuild()==null)
-			front.append(" ").append(lu.getText(event, CooldownScope.USER_CHANNEL.getErrorPath()));
-		else if (cooldownScope.equals(CooldownScope.GUILD) && event.getGuild()==null)
-			front.append(" ").append(lu.getText(event, CooldownScope.CHANNEL.getErrorPath()));
-		else if (!cooldownScope.equals(CooldownScope.USER))
-			front.append(" ").append(lu.getText(event, cooldownScope.getErrorPath()));
-
-		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
-	}
-
-	private static final String DEFAULT_GUILD_LIMIT = "throttle:guild,20,15";
-	private static final String DEFAULT_USER_LIMIT = "throttle:user,2,3";
-
-	private void registerThrottleMiddleware() {
-		if (!hasMiddleware(ThrottleMiddleware.class)) {
-			middlewares.add(DEFAULT_GUILD_LIMIT);
-			middlewares.add(DEFAULT_USER_LIMIT);
-			return;
-		}
-
-		boolean addUser = true;
-		boolean addGuild = true;
-
-		for (String middlewareName : middlewares) {
-			String[] parts = middlewareName.split(":");
-
-			Middleware middleware = MiddlewareHandler.getMiddleware(parts[0]);
-			if (!(middleware instanceof ThrottleMiddleware)) {
-				continue;
-			}
-
-			var type = ThrottleMiddleware.ThrottleType.fromName(parts[1].split(",")[0]);
-
-			switch (type) {
-				case USER -> addUser = false;
-				case GUILD, CHANNEL -> addGuild = false;
-			}
-
-			if (addUser) {
-				middlewares.add(DEFAULT_USER_LIMIT);
-			}
-			if (addGuild) {
-				middlewares.add(DEFAULT_GUILD_LIMIT);
-			}
-		}
-	}
-
-	private boolean hasMiddleware(@NotNull Class<? extends Middleware> clazz) {
-		String key = MiddlewareHandler.getName(clazz);
-		if (key == null) {
-			return false;
-		}
-
-		for (String middleware : middlewares) {
-			if (middleware.toLowerCase().startsWith(key)) {
-				return true;
-			}
-		}
 		return false;
 	}
 

@@ -25,9 +25,9 @@ import org.jetbrains.annotations.NotNull;
  * for cooldown scopes, allowing a command to remain on cooldown for more than just the user
  * calling it, with no unnecessary abstraction or developer input.
  * <p>
- * Cooldown keys are generated via {@link dev.fileeditor.votl.base.command.SlashCommand#getCooldownKey(SlashCommandEvent)
- * SlashCommand#getCooldownKey(SlashCommandEvent)} using 1-2 Snowflake ID's corresponding to the name
- * (IE: {@code USER_CHANNEL} uses the ID's of the User and the Channel from the CommandEvent).
+ * Cooldown keys are generated via cooldown middleware using 1-2 Snowflake ID's corresponding
+ * to the name (IE: {@code USER_CHANNEL} uses the ID's of the User and the Channel from the
+ * CommandEvent).
  *
  * <p>However, the issue with generalizing and generating like this is that the command may
  * be called in a non-guild environment, causing errors internally.
@@ -54,6 +54,7 @@ import org.jetbrains.annotations.NotNull;
  * @see    dev.fileeditor.votl.base.command.Interaction#cooldownScope Interaction.cooldownScope
  */
 public enum CooldownScope {
+
 	/**
 	 * Applies the cooldown to the calling {@link net.dv8tion.jda.api.entities.User User} across all
 	 * locations on this instance (IE: TextChannels, PrivateChannels, etc.).
@@ -183,4 +184,5 @@ public enum CooldownScope {
 	public String getErrorPath() {
 		return errorPath;
 	}
+
 }
