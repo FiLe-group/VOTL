@@ -113,6 +113,15 @@ public abstract class ContextMenu extends Interaction
 
 		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
+		// Register middlewares
+		registerThrottleMiddleware();
+		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
+			middlewares.add("hasAccess");
+		}
+		if (botPermissions.length > 0 || userPermissions.length > 0) {
+			this.middlewares.add("permissions");
+		}
+
 		return data;
 	}
 }

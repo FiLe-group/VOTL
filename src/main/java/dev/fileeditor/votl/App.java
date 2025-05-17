@@ -14,8 +14,9 @@ import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
 import dev.fileeditor.votl.middleware.MiddlewareHandler;
+import dev.fileeditor.votl.middleware.PermissionsCheck;
 import dev.fileeditor.votl.middleware.ThrottleMiddleware;
-import dev.fileeditor.votl.middleware.global.HasAccess;
+import dev.fileeditor.votl.middleware.HasAccess;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Names;
 import dev.fileeditor.votl.scheduler.ScheduleHandler;
@@ -136,6 +137,7 @@ public class App {
 		MiddlewareHandler.initialize(this);
 		MiddlewareHandler.register("throttle", new ThrottleMiddleware(this));
 		MiddlewareHandler.register("hasAccess", new HasAccess(this));
+		MiddlewareHandler.register("permissions", new PermissionsCheck(this));
 
 		LOG.info("Registering commands...");
 		AutoloaderUtil.load(Names.PACKAGE_COMMAND_PATH, command -> commandClientBuilder.addSlashCommands((SlashCommand) command), false);

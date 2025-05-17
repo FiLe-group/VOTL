@@ -1,14 +1,14 @@
-package dev.fileeditor.votl.middleware.global;
+package dev.fileeditor.votl.middleware;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.contracts.middleware.Middleware;
-import dev.fileeditor.votl.middleware.MiddlewareStack;
+import dev.fileeditor.votl.utils.exception.CheckException;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class IsModuleEnabled extends Middleware {
+public class PermissionsCheck extends Middleware {
 
-	public IsModuleEnabled(App bot) {
+	public PermissionsCheck(App bot) {
 		super(bot);
 	}
 
@@ -18,14 +18,13 @@ public class IsModuleEnabled extends Middleware {
 			return stack.next();
 		}
 
-		if (stack.getInteraction().getModule() == null) {
-			return stack.next();
-		}
-
-		if (bot.getDBUtil().getGuildSettings(event.getGuild()).isDisabled(stack.getInteraction().getModule())) {
+		try {
+			bot.getCheckUtil()
+				.hasPermissions(event, stack.getInteraction().getBotPermissions())
+				.hasPermissions(event, stack.getInteraction().getUserPermissions(), event.getMember());
+		} catch (CheckException e) {
 			return runErrorCheck(event, () -> {
-				sendError(event, "modules.module_disabled");
-
+				sendError(event, e.getEditData());
 				return false;
 			});
 		}

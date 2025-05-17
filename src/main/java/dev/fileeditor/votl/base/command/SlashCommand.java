@@ -21,21 +21,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.utils.exception.CheckException;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
-import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
-import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import org.jetbrains.annotations.NotNull;
@@ -197,24 +193,9 @@ public abstract class SlashCommand extends Interaction {
 	 *         The SlashCommandEvent that triggered this Command
 	 */
 	public final boolean run(SlashCommandEvent event) {
-		// start time
-		final long timeStart = System.nanoTime();
 		// client 
 		final CommandClient client = event.getClient();
 
-		// check db and permissions
-		if (event.isFromGuild()) {
-			try {
-				bot.getCheckUtil()
-				// check bots perms
-					.hasPermissions(event, getBotPermissions());
-			} catch (CheckException ex) {
-				return terminate(event, ex.getCreateData(), client);
-			}
-		}
-
-		// Record time
-		bot.getAppLogger().debug("SlashCommand check duration: {}ns @ {} ", System.nanoTime()-timeStart, event.getResponseNumber());
 		// execute
 		try {
 			execute(event);
@@ -422,6 +403,9 @@ public abstract class SlashCommand extends Interaction {
 		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
 			this.middlewares.add("hasAccess");
 		}
+		if (botPermissions.length > 0 || userPermissions.length > 0) {
+			this.middlewares.add("permissions");
+		}
 
 		return data;
 	}
@@ -433,16 +417,6 @@ public abstract class SlashCommand extends Interaction {
 	 */
 	public SlashCommand[] getChildren() {
 		return children;
-	}
-
-	private boolean terminate(SlashCommandEvent event, MessageCreateData message, CommandClient client) {
-		if (message != null)
-			event.reply(message)
-				.setEphemeral(true)
-				.queue(null, failure -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
-		if (client.getListener() != null)
-			client.getListener().onTerminatedSlashCommand(event, this);
-		return false;
 	}
 
 	/**

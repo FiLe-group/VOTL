@@ -50,8 +50,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @since  1.3
  * @author Kaidan Gustave
- *
- * @see    dev.fileeditor.votl.base.command.Interaction#cooldownScope Interaction.cooldownScope
  */
 public enum CooldownScope {
 

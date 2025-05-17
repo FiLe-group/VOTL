@@ -17,16 +17,11 @@ package dev.fileeditor.votl.base.command;
 
 import dev.fileeditor.votl.contracts.reflection.Reflectional;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.utils.exception.CheckException;
 
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -79,22 +74,6 @@ public abstract class UserContextMenu extends ContextMenu implements Reflectiona
 		// client 
 		final CommandClient client = event.getClient();
 
-		// checks
-		if (event.isFromGuild()) {
-			Member author = event.getMember();
-			try {
-				bot.getCheckUtil()
-				// check user perms
-					.hasPermissions(event, getUserPermissions(), author)
-				// check bots perms
-					.hasPermissions(event, getBotPermissions());
-			} catch (CheckException ex) {
-				return terminate(event, ex.getCreateData(), client);
-			}
-		} else if (guildOnly) {
-			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.guild_only"), client);
-		}
-
 		// run
 		try {
 			execute(event);
@@ -123,18 +102,6 @@ public abstract class UserContextMenu extends ContextMenu implements Reflectiona
 	 */
 	protected abstract void execute(UserContextMenuEvent event);
 
-	private boolean terminate(UserContextMenuEvent event, @NotNull MessageEmbed embed, CommandClient client) {
-		return terminate(event, MessageCreateData.fromEmbeds(embed), client);
-	}
-
-	private boolean terminate(UserContextMenuEvent event, MessageCreateData message, CommandClient client) {
-		if (message!=null)
-			event.reply(message).setEphemeral(true).queue();
-		if (client.getListener()!=null)
-			client.getListener().onTerminatedUserContextMenu(event, this);
-		return false;
-	}
-
 	@Override
 	public CommandData buildCommandData() {
 		// Set attributes
@@ -162,6 +129,9 @@ public abstract class UserContextMenu extends ContextMenu implements Reflectiona
 		registerThrottleMiddleware();
 		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
 			middlewares.add("hasAccess");
+		}
+		if (botPermissions.length > 0 || userPermissions.length > 0) {
+			this.middlewares.add("permissions");
 		}
 
 		return data;
