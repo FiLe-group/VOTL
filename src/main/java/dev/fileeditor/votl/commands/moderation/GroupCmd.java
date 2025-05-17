@@ -8,11 +8,10 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -29,11 +28,11 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
-public class GroupCmd extends CommandBase {
+public class GroupCmd extends SlashCommand {
 	
 	private final EventWaiter waiter;
 
-	public GroupCmd(EventWaiter waiter) {
+	public GroupCmd() {
 		this.name = "group";
 		this.path = "bot.moderation.group";
 		this.children = new SlashCommand[]{
@@ -43,7 +42,7 @@ public class GroupCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.OPERATOR;
-		this.waiter = waiter;
+		this.waiter = App.getInstance().getEventWaiter();
 	}
 
 	@Override
@@ -57,13 +56,13 @@ public class GroupCmd extends CommandBase {
 				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true).setMaxLength(120),
 				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help")).setRequiredLength(12, 20)
 			);
-			this.cooldown = 30;
-			this.cooldownScope = CooldownScope.GUILD;
+			addMiddlewares(
+				"throttle:guild,1,30"
+			);
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 
 			if (bot.getDBUtil().group.countOwnedGroups(guildId) >= Limits.OWNED_GROUPS) {
@@ -110,13 +109,13 @@ public class GroupCmd extends CommandBase {
 			this.options = List.of(
 				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(1)
 			);
-			this.cooldown = 30;
-			this.cooldownScope = CooldownScope.GUILD;
+			addMiddlewares(
+				"throttle:guild,1,30"
+			);
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 			if (ownerId == null) {
@@ -157,7 +156,6 @@ public class GroupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 			if (ownerId == null) {
@@ -253,7 +251,6 @@ public class GroupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 			if (ownerId == null) {
@@ -298,7 +295,6 @@ public class GroupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			int groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 			if (ownerId == null) {
@@ -381,7 +377,6 @@ public class GroupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 			if (ownerId == null) {
@@ -438,7 +433,7 @@ public class GroupCmd extends CommandBase {
 			}
 			event.getHook().editOriginalEmbeds(embed).setComponents(rows).queue(msg -> waiter.waitForEvent(
 				StringSelectInteractionEvent.class,
-				e -> e.getMessageId().equals(msg.getId()),
+				e -> e.getMessageId().equals(msg.getId()) && e.getUser().getIdLong() == event.getUser().getIdLong(),
 				actionMenu -> {
 					long targetId = Long.parseLong(actionMenu.getSelectedOptions().getFirst().getValue());
 					Guild targetGuild = event.getJDA().getGuildById(targetId);
@@ -477,13 +472,13 @@ public class GroupCmd extends CommandBase {
 			this.options = List.of(
 				new OptionData(OptionType.INTEGER, "invite", lu.getText(path+".invite.help"), true)
 			);
-			this.cooldownScope = CooldownScope.GUILD;
-			this.cooldown = 30;
+			addMiddlewares(
+				"throttle:guild,1,30"
+			);
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 
 			if (bot.getDBUtil().group.countJoinedGroups(guildId) >= Limits.JOINED_GROUPS) {
@@ -536,7 +531,6 @@ public class GroupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer groupId = event.optInteger("group_joined");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 			if (ownerId == null || !bot.getDBUtil().group.isMember(groupId, event.getGuild().getIdLong())) {
@@ -569,11 +563,11 @@ public class GroupCmd extends CommandBase {
 				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), false, true).setMinValue(0),
 				new OptionData(OptionType.INTEGER, "group_joined", lu.getText(path+".group_joined.help"), false, true).setMinValue(0)
 			);
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			long guildId = event.getGuild().getIdLong();
 			if (event.hasOption("group_owned")) {
 				// View owned Group information - name, every guild info (name, ID, member count)

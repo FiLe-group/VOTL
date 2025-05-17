@@ -8,7 +8,6 @@ import java.util.Optional;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -23,7 +22,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class AutopunishCmd extends CommandBase {
+public class AutopunishCmd extends SlashCommand {
 
 	public AutopunishCmd() {
 		this.name = "autopunish";
@@ -40,7 +39,6 @@ public class AutopunishCmd extends CommandBase {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Add extends SlashCommand {
-
 		public Add() {
 			this.name = "add";
 			this.path = "bot.guild.autopunish.add";
@@ -58,8 +56,6 @@ public class AutopunishCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			if (bot.getDBUtil().autopunish.countActions(event.getGuild().getIdLong()) >= Limits.AUTOPUNISHMENTS) {
 				editErrorLimit(event, "autopunish actions", Limits.AUTOPUNISHMENTS);
 				return;
@@ -184,11 +180,9 @@ public class AutopunishCmd extends CommandBase {
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_SUCCESS).setDescription(builder.toString()).build());
 		}
-
 	}
 
 	private class Remove extends SlashCommand {
-
 		public Remove() {
 			this.name = "remove";
 			this.path = "bot.guild.autopunish.remove";
@@ -199,7 +193,6 @@ public class AutopunishCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer strikeCount = event.optInteger("strike-count");
 
 			if (bot.getDBUtil().autopunish.getAction(event.getGuild().getIdLong(), strikeCount) == null) {
@@ -218,7 +211,6 @@ public class AutopunishCmd extends CommandBase {
 				.setDescription(lu.getText(event, path+".done").formatted(strikeCount))
 				.build());
 		}
-		
 	}
 
 	private class View extends SlashCommand {
@@ -226,12 +218,11 @@ public class AutopunishCmd extends CommandBase {
 		public View() {
 			this.name = "view";
 			this.path = "bot.guild.autopunish.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			List<AutopunishManager.Autopunish> list = bot.getDBUtil().autopunish.getAllActions(event.getGuild().getIdLong());
 			if (list.isEmpty()) {
 				editError(event, path+".empty");
@@ -304,7 +295,6 @@ public class AutopunishCmd extends CommandBase {
 				.setDescription(builder.toString())
 				.build());
 		}
-		
 	}
 	
 }

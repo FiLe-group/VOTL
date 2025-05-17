@@ -5,8 +5,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Stream;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -18,7 +18,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
-public class RcloseCmd extends CommandBase {
+public class RcloseCmd extends SlashCommand {
 	
 	public RcloseCmd() {
 		this.name = "rclose";
@@ -36,8 +36,6 @@ public class RcloseCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 

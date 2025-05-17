@@ -2,36 +2,24 @@ package dev.fileeditor.votl;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandClientBuilder;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.commands.games.GameCmd;
-import dev.fileeditor.votl.commands.games.GameStrikeCmd;
-import dev.fileeditor.votl.commands.guild.*;
-import dev.fileeditor.votl.commands.level.LeaderboardCmd;
-import dev.fileeditor.votl.commands.level.LevelExemptCmd;
-import dev.fileeditor.votl.commands.level.LevelRolesCmd;
-import dev.fileeditor.votl.commands.level.UserProfileCmd;
-import dev.fileeditor.votl.commands.moderation.*;
-import dev.fileeditor.votl.commands.other.*;
-import dev.fileeditor.votl.commands.owner.*;
-import dev.fileeditor.votl.commands.role.*;
-import dev.fileeditor.votl.commands.strike.*;
-import dev.fileeditor.votl.commands.ticketing.*;
-import dev.fileeditor.votl.commands.verification.*;
-import dev.fileeditor.votl.commands.voice.VoiceCmd;
-import dev.fileeditor.votl.commands.webhook.WebhookCmd;
+import dev.fileeditor.votl.blacklist.Blacklist;
+import dev.fileeditor.votl.contracts.scheduler.Job;
 import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
+import dev.fileeditor.votl.middleware.MiddlewareHandler;
+import dev.fileeditor.votl.middleware.PermissionsCheck;
+import dev.fileeditor.votl.middleware.ThrottleMiddleware;
+import dev.fileeditor.votl.middleware.HasAccess;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.services.CountingThreadFactory;
-import dev.fileeditor.votl.services.ScheduledCheck;
+import dev.fileeditor.votl.objects.constants.Names;
+import dev.fileeditor.votl.scheduler.ScheduleHandler;
 import dev.fileeditor.votl.utils.*;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
@@ -65,12 +53,13 @@ import static java.lang.Long.parseLong;
 public class App {
 	protected static App instance;
 	
-	private final Logger log = (Logger) LoggerFactory.getLogger(App.class);
+	private final Logger LOG = (Logger) LoggerFactory.getLogger(App.class);
 
 	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
 
 	public final JDA JDA;
 	private final CommandClient commandClient;
+	private final EventWaiter eventWaiter;
 
 	private final FileManager fileManager = new FileManager();
 
@@ -85,6 +74,8 @@ public class App {
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
 	private final LevelUtil levelUtil;
+
+	private final Blacklist blacklist;
 
 	@SuppressWarnings("BusyWait")
 	public App() {
@@ -116,112 +107,47 @@ public class App {
 		guildLogger		= new GuildLogger(this, logEmbedUtil);
 		groupHelper		= new GroupHelper(this);
 
-		EventWaiter WAITER = new EventWaiter();
+		eventWaiter = new EventWaiter();
 
 		CommandListener commandListener = new CommandListener(localeUtil);
-		InteractionListener interactionListener = new InteractionListener(this, WAITER);
-
-		ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3, new CountingThreadFactory("VOTL", "Scheduler", false));
+		InteractionListener interactionListener = new InteractionListener(this, eventWaiter);
 
 		GuildListener guildListener = new GuildListener(this);
-		VoiceListener voiceListener = new VoiceListener(this, scheduledExecutor);
+		VoiceListener voiceListener = new VoiceListener(this);
 		ModerationListener moderationListener = new ModerationListener(this);
 		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
 		MemberListener memberListener = new MemberListener(this);
 		MessageListener messageListener = new MessageListener(this);
+		EventListener eventListener = new EventListener(dbUtil);
 
-		ScheduledCheck scheduledCheck = new ScheduledCheck(this);
-		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::regularChecks, 2, 3, TimeUnit.MINUTES);
-		scheduledExecutor.scheduleWithFixedDelay(scheduledCheck::irregularChecks, 3, 10, TimeUnit.MINUTES);
+		LOG.info("Preparing blacklist");
+		blacklist = new Blacklist(this);
+		blacklist.syncBlacklistWithDatabase();
 
 		// Define a command client
-		commandClient = new CommandClientBuilder()
+		CommandClientBuilder commandClientBuilder = new CommandClientBuilder()
 			.setOwnerId(ownerId)
-			.setScheduleExecutor(scheduledExecutor)
 			.setStatus(OnlineStatus.ONLINE)
 			.setActivity(Activity.customStatus("/help"))
-			.addSlashCommands(
-				// guild
-				new AccessCmd(),
-				new AutopunishCmd(),
-				new LogsCmd(),
-				new ModuleCmd(WAITER),
-				new SetupCmd(),
-				new PersistentRoleCmd(),
-				// moderation
-				new BanCmd(),
-				new BlacklistCmd(),
-				new CaseCmd(),
-				new DurationCmd(),
-				new GroupCmd(WAITER),
-				new KickCmd(),
-				new MuteCmd(),
-				new ModLogsCmd(),
-				new ModStatsCmd(),
-				new ReasonCmd(),
-				new SyncCmd(WAITER),
-				new UnbanCmd(),
-				new UnmuteCmd(),
-				new PurgeCmd(),
-				new ModReportCmd(),
-				// other
-				new AboutCmd(),
-				new HelpCmd(),
-				new PingCmd(),
-				new StatusCmd(),
-				// owner
-				new EvalCmd(),
-				new ForceAccessCmd(),
-				new GenerateListCmd(),
-				new ShutdownCmd(),
-				new DebugCmd(),
-				new MessageCmd(),
-				new SetStatusCmd(),
-				new CheckAccessCmd(),
-				new BotBlacklist(),
-				new ExperienceCmd(),
-				// role
-				new RoleCmd(),
-				new TempRoleCmd(),
-				// strike
-				new ClearStrikesCmd(),
-				new DeleteStrikeCmd(WAITER),
-				new StrikeCmd(),
-				new StrikesCmd(),
-				// ticketing
-				new AddUserCmd(),
-				new CloseCmd(),
-				new RcloseCmd(),
-				new RemoveUserCmd(),
-				new RolesManageCmd(),
-				new RolesPanelCmd(),
-				new TicketCountCmd(),
-				new TicketCmd(),
-				// verification
-				new VerifyPanelCmd(),
-				new VerifyRoleCmd(),
-				// voice
-				new VoiceCmd(),
-				// webhook
-				new WebhookCmd(),
-				// game
-				new GameCmd(),
-				new GameStrikeCmd(),
-				// level
-				new UserProfileCmd(),
-				new LeaderboardCmd(),
-				new LevelRolesCmd(),
-				new LevelExemptCmd()
-			)
 			.addContextMenus(
 				new ReportMenu(),
 				new ModlogsMenu(),
 				new ActiveModlogsMenu()
 			)
 			.setListener(commandListener)
-			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]))
-			.build();
+			.setBlacklist(blacklist)
+			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]));
 
+		LOG.info("Registering default middlewares");
+		MiddlewareHandler.initialize(this);
+		MiddlewareHandler.register("throttle", new ThrottleMiddleware(this));
+		MiddlewareHandler.register("hasAccess", new HasAccess(this));
+		MiddlewareHandler.register("permissions", new PermissionsCheck(this));
+
+		LOG.info("Registering commands");
+		AutoloaderUtil.load(Names.PACKAGE_COMMAND_PATH, command -> commandClientBuilder.addSlashCommands((SlashCommand) command), false);
+
+		commandClient = commandClientBuilder.build();
 		// Build
 		AutoCompleteListener acListener = new AutoCompleteListener(commandClient, dbUtil);
 
@@ -256,9 +182,9 @@ public class App {
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
 			.addEventListeners(
-				commandClient, WAITER, acListener, interactionListener,
+				commandClient, eventWaiter, acListener, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,
-				auditListener, memberListener
+				auditListener, memberListener, eventListener
 			);
 			
 		JDA tempJda;
@@ -271,20 +197,20 @@ public class App {
 				tempJda = mainBuilder.build();
 				break;
 			} catch (IllegalArgumentException | InvalidTokenException ex) {
-				log.error("Login failed due to Token", ex);
+				LOG.error("Login failed due to Token", ex);
 				System.exit(0);
 			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits
 				if (retries > 0) {
 					retries--;
-					log.info("Retrying connecting in {} seconds... {} more attempts", cooldown, retries);
+					LOG.info("Retrying connecting in {} seconds... {} more attempts", cooldown, retries);
 					try {
 						Thread.sleep(cooldown*1000L);
 					} catch (InterruptedException e) {
-						log.error("Thread sleep interrupted", e);
+						LOG.error("Thread sleep interrupted", e);
 					}
 					cooldown*=2;
 				} else {
-					log.error("No network connection or couldn't connect to DNS", ex);
+					LOG.error("No network connection or couldn't connect to DNS", ex);
 					System.exit(0);
 				}
 			}
@@ -292,16 +218,18 @@ public class App {
 
 		this.JDA = tempJda;
 
+		// logger
 		createWebhookAppender();
 
-		log.info("Creating user backgrounds...");
-		try {
-			UserBackgroundHandler.getInstance().start();
-		} catch (Throwable ex) {
-			log.error("Error starting background handler", ex);
-		}
 
-		log.info("Success start");
+		LOG.info("Registering jobs...");
+		AutoloaderUtil.load(Names.PACKAGE_JOB_PATH, job -> ScheduleHandler.registerJob((Job) job));
+		LOG.info("Registered {} jobs successfully!", ScheduleHandler.entrySet().size());
+
+		LOG.info("Creating user backgrounds");
+		UserBackgroundHandler.getInstance().start();
+
+		LOG.info("Success start");
 	}
 
 	public static App getInstance() {
@@ -313,7 +241,7 @@ public class App {
 	}
 
 	public Logger getAppLogger() {
-		return log;
+		return LOG;
 	}
 
 	public FileManager getFileManager() {
@@ -360,8 +288,18 @@ public class App {
 		return levelUtil;
 	}
 
+	public Blacklist getBlacklist() {
+		return blacklist;
+	}
+
+	public EventWaiter getEventWaiter() {
+		return eventWaiter;
+	}
+
 	public void shutdownUtils() {
-		// ignore
+		for (var future : ScheduleHandler.entrySet()) {
+			future.cancel(false);
+		}
 	}
 
 	private void createWebhookAppender() {

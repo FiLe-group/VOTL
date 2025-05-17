@@ -1,14 +1,11 @@
 package dev.fileeditor.votl.commands.other;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -20,7 +17,7 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class HelpCmd extends CommandBase {
+public class HelpCmd extends SlashCommand {
 
 	public HelpCmd() {
 		this.name = "help";
@@ -43,12 +40,11 @@ public class HelpCmd extends CommandBase {
 		);
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(event.isFromGuild() && !event.optBoolean("show", false)).queue();
-
 		String findCmd = event.optString("command");
 
 		if (findCmd != null) {
@@ -77,9 +73,7 @@ public class HelpCmd extends CommandBase {
 				.setTitle(lu.getLocalized(userLocale, "bot.help.command_info.title").formatted(command.getName()))
 				.setDescription(lu.getLocalized(userLocale, "bot.help.command_info.value")
 					.formatted(
-						Optional.ofNullable(command.getCategory())
-							.map(cat -> lu.getLocalized(userLocale, "bot.help.command_menu.categories."+cat.name()))
-							.orElse(Constants.NONE),
+						lu.getLocalized(userLocale, "bot.help.command_menu.categories."+command.getCategory().name()),
 						MessageUtil.capitalize(command.getAccessLevel().getName()),
 						command.isGuildOnly() ? Emote.CROSS_C.getEmote() : Emote.CHECK_C.getEmote(),
 						Optional.ofNullable(command.getModule())
@@ -137,22 +131,20 @@ public class HelpCmd extends CommandBase {
 		Category category = null;
 		String fieldTitle = "";
 		StringBuilder fieldValue = new StringBuilder();
-		List<SlashCommand> commands = (
-			filCat == null ?
-				event.getClient().getSlashCommands() :
-				event.getClient().getSlashCommands().stream().filter(cmd -> {
-					if (cmd.getCategory() == null) return false;
-					return cmd.getCategory().name().contentEquals(filCat);
-				}).toList()
-		);
+		List<SlashCommand> commands = (filCat == null ?
+			event.getClient().getSlashCommands().stream() :
+			event.getClient().getSlashCommands().stream().filter(cmd -> cmd.getCategory().name().contentEquals(filCat))
+		)
+			.sorted(Comparator.comparing(cmd -> cmd.getCategory().name()))
+			.toList();
+
 		for (SlashCommand command : commands) {
-			if (!command.isOwnerCommand() || bot.getCheckUtil().isBotOwner(event.getUser())) {
+			if (command.getAccessLevel().isLowerThan(CmdAccessLevel.DEV) || bot.getCheckUtil().isBotOwner(event.getUser())) {
 				if (!Objects.equals(category, command.getCategory())) {
 					if (category != null) {
 						builder.addField(fieldTitle, fieldValue.toString(), false);
 					}
 					category = command.getCategory();
-					if (category == null) continue;
 					fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.categories."+category.name());
 					fieldValue = new StringBuilder();
 				}

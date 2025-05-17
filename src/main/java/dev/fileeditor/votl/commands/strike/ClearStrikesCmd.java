@@ -3,9 +3,8 @@ package dev.fileeditor.votl.commands.strike;
 import java.sql.SQLException;
 import java.util.List;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -16,8 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
-public class ClearStrikesCmd extends CommandBase {
-
+public class ClearStrikesCmd extends SlashCommand {
 	public ClearStrikesCmd() {
 		this.name = "clearstrikes";
 		this.path = "bot.moderation.clearstrikes";
@@ -27,14 +25,13 @@ public class ClearStrikesCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.STRIKES;
 		this.accessLevel = CmdAccessLevel.ADMIN;
-		this.cooldown = 10;
-		this.cooldownScope = CooldownScope.GUILD;
+		addMiddlewares(
+			"throttle:guild,1,10"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		User tu = event.optUser("user");
 		if (tu == null) {
 			editError(event, path+".not_found");
@@ -71,5 +68,4 @@ public class ClearStrikesCmd extends CommandBase {
 			.build()
 		);
 	}
-	
 }

@@ -3,18 +3,15 @@ package dev.fileeditor.votl.listeners;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.utils.database.managers.GuildVoiceManager.VoiceSettings;
-import dev.fileeditor.votl.utils.level.PlayerObject;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildDeafenEvent;
@@ -28,28 +25,27 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import net.dv8tion.jda.api.utils.TimeFormat;
 import org.jetbrains.annotations.NotNull;
 
 public class VoiceListener extends ListenerAdapter {
 
-	private final Set<Permission> ownerPerms = Set.of(
+	public static final Set<Permission> ownerPerms = Set.of(
 		Permission.MANAGE_CHANNEL, Permission.VOICE_SET_STATUS, Permission.VOICE_MOVE_OTHERS,
 		Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.MESSAGE_SEND
 	);
 
-	// cache users in voice for exp
-	// userId and start time
-	private final Cache<PlayerObject, Long> cache = Caffeine.newBuilder()
-		.expireAfterAccess(10, TimeUnit.MINUTES)
+	private final int CHANNEL_LIMIT_SECONDS = 60;
+	private final Cache<Long, Long> channelCreationLimit = Caffeine.newBuilder()
+		.expireAfterWrite(CHANNEL_LIMIT_SECONDS, TimeUnit.SECONDS)
 		.build();
 
-	private final DBUtil db;
 	private final App bot;
+	private final DBUtil db;
 
-	public VoiceListener(App bot, ScheduledExecutorService executor) {
-		this.db = bot.getDBUtil();
+	public VoiceListener(App bot) {
 		this.bot = bot;
-		startRewardTask(executor);
+		this.db = bot.getDBUtil();
 	}
 
 	@Override
@@ -92,6 +88,10 @@ public class VoiceListener extends ListenerAdapter {
 
 	@Override
 	public void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
+		if (bot.getBlacklist().isBlacklisted(event.getGuild()) || bot.getBlacklist().isBlacklisted(event.getMember())) {
+			return;
+		}
+
 		Long masterVoiceId = db.getVoiceSettings(event.getGuild()).getChannelId();
 		// If joined master vc
 		AudioChannelUnion channelJoined = event.getChannelJoined();
@@ -110,10 +110,10 @@ public class VoiceListener extends ListenerAdapter {
 		if (db.levels.getSettings(event.getGuild()).isVoiceEnabled()) {
 			if (channelJoined != null && channelLeft == null) {
 				// Joined vc first time
-				cache.put(new PlayerObject(event.getGuild().getIdLong(), event.getMember().getIdLong()), System.currentTimeMillis());
+				bot.getLevelUtil().putVoiceCache(event.getMember());
 			} else if (channelJoined == null && channelLeft != null) {
 				// left voice
-				handleUserLeave(event.getMember());
+				bot.getLevelUtil().handleVoiceLeft(event.getMember());
 			}
 		}
 	}
@@ -123,6 +123,7 @@ public class VoiceListener extends ListenerAdapter {
 		final long userId = member.getIdLong();
 		final DiscordLocale guildLocale = guild.getLocale();
 
+		// Check for existing channel
 		if (db.voice.existsUser(userId)) {
 			member.getUser().openPrivateChannel()
 				.queue(channel -> channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown"))
@@ -130,6 +131,20 @@ public class VoiceListener extends ListenerAdapter {
 				);
 			return;
 		}
+		// Rate limit
+		Long lastChannelCreationTime = channelCreationLimit.getIfPresent(userId);
+		if (lastChannelCreationTime == null) {
+			channelCreationLimit.put(userId, System.currentTimeMillis());
+		} else {
+			long allowAfter = (CHANNEL_LIMIT_SECONDS*1000) - (System.currentTimeMillis() - lastChannelCreationTime);
+			member.getUser().openPrivateChannel()
+				.queue(channel -> channel.sendMessage(
+					bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown")
+						+ "\n> Try again " + TimeFormat.RELATIVE.after(allowAfter)
+				).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
+			return;
+		}
+
 		VoiceSettings voiceSettings = db.getVoiceSettings(guild);
 		Long categoryId = voiceSettings.getCategoryId();
 		if (categoryId == null) return;
@@ -158,62 +173,14 @@ public class VoiceListener extends ListenerAdapter {
 				},
 				failure -> {
 					member.getUser().openPrivateChannel()
-						.queue(channel ->
-							channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.failed").formatted(failure.getMessage()))
-								.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
+						.flatMap(channel ->
+							channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.failed")
+								.formatted(failure.getMessage())
+							)
+						)
+						.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 				}
 			);
-	}
-
-	private boolean inVoice(GuildVoiceState state) {
-		return state != null && state.inAudioChannel();
-	}
-
-	private boolean isEligibleForRewards(GuildVoiceState state) {
-		return !state.isMuted() && !state.isDeafened() &&
-			!state.isSuppressed();
-	}
-
-	private void startRewardTask(ScheduledExecutorService executor) {
-		executor.scheduleAtFixedRate(() -> {
-			cache.asMap().forEach((player, joinTime) -> {
-				Member member = Optional.ofNullable(bot.JDA.getGuildById(player.guildId))
-					.map(g -> g.getMemberById(player.userId))
-					.orElse(null);
-
-				if (member == null) {
-					handleUserLeave(player);
-					return;
-				}
-
-				GuildVoiceState state = member.getVoiceState();
-				if (inVoice(state)) {
-					// In voice - check if not muted/deafened/AFK
-					if (isEligibleForRewards(state)) {
-						bot.getLevelUtil().rewardVoicePlayer(member, state.getChannel());
-					}
-				} else {
-					// Not in voice
-					handleUserLeave(player);
-				}
-			});
-		}, 3, 2, TimeUnit.MINUTES);
-	}
-
-	private void handleUserLeave(Member member) {
-		handleUserLeave(new PlayerObject(member));
-	}
-
-	private void handleUserLeave(PlayerObject player) {
-		Long timeJoined = cache.getIfPresent(player);
-
-		if (timeJoined != null) {
-			long duration = Math.round((System.currentTimeMillis()-timeJoined)/1000f); // to seconds
-			if (duration > 0) {
-				bot.getDBUtil().levels.addVoiceTime(player, duration);
-			}
-		}
-		cache.invalidate(player);
 	}
 
 }

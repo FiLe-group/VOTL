@@ -5,7 +5,6 @@ import java.util.*;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -26,7 +25,9 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.api.managers.channel.concrete.VoiceChannelManager;
 import org.jetbrains.annotations.NotNull;
 
-public class VoiceCmd extends CommandBase {
+import static dev.fileeditor.votl.listeners.VoiceListener.ownerPerms;
+
+public class VoiceCmd extends SlashCommand {
 	
 	public VoiceCmd() {
 		this.name = "voice";
@@ -38,6 +39,7 @@ public class VoiceCmd extends CommandBase {
 		};
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
+		this.ephemeral = true;
 	}
 
 	@Override
@@ -52,7 +54,6 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -64,12 +65,13 @@ public class VoiceCmd extends CommandBase {
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
 			try {
-				//vc.upsertPermissionOverride(event.getGuild().getPublicRole()).deny(Permission.VOICE_CONNECT).queue();
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
 					if (verifyRole != null) {
 						vc.upsertPermissionOverride(verifyRole).deny(Permission.VOICE_CONNECT).queue();
 					}
+				} else {
+					vc.upsertPermissionOverride(event.getGuild().getPublicRole()).deny(Permission.VOICE_CONNECT).queue();
 				}
 			} catch (InsufficientPermissionException ex) {
 				editPermError(event, ex.getPermission(), true);
@@ -92,7 +94,6 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -104,12 +105,13 @@ public class VoiceCmd extends CommandBase {
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
 			try {
-				//vc.upsertPermissionOverride(event.getGuild().getPublicRole()).clear(Permission.VOICE_CONNECT).queue();
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
 					if (verifyRole != null) {
-						vc.upsertPermissionOverride(verifyRole).setAllowed(Permission.VOICE_CONNECT).queue();
+						vc.upsertPermissionOverride(verifyRole).grant(Permission.VOICE_CONNECT).queue();
 					}
+				} else {
+					vc.upsertPermissionOverride(event.getGuild().getPublicRole()).clear(Permission.VOICE_CONNECT).queue();
 				}
 			} catch (InsufficientPermissionException ex) {
 				editPermError(event, ex.getPermission(), true);
@@ -132,7 +134,6 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -144,12 +145,13 @@ public class VoiceCmd extends CommandBase {
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
 			try {
-				//vc.upsertPermissionOverride(event.getGuild().getPublicRole()).deny(Permission.VIEW_CHANNEL).queue();
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
 					if (verifyRole != null) {
 						vc.upsertPermissionOverride(verifyRole).deny(Permission.VIEW_CHANNEL).queue();
 					}
+				} else {
+					vc.upsertPermissionOverride(event.getGuild().getPublicRole()).deny(Permission.VIEW_CHANNEL).queue();
 				}
 			} catch (InsufficientPermissionException ex) {
 				editPermError(event, ex.getPermission(), true);
@@ -172,7 +174,6 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -184,12 +185,13 @@ public class VoiceCmd extends CommandBase {
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
 			try {
-				//vc.upsertPermissionOverride(event.getGuild().getPublicRole()).clear(Permission.VIEW_CHANNEL).queue();
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
 					if (verifyRole != null) {
-						vc.upsertPermissionOverride(verifyRole).setAllowed(Permission.VIEW_CHANNEL).queue();
+						vc.upsertPermissionOverride(verifyRole).grant(Permission.VIEW_CHANNEL).queue();
 					}
+				} else {
+					vc.upsertPermissionOverride(event.getGuild().getPublicRole()).clear(Permission.VIEW_CHANNEL).queue();
 				}
 			} catch (InsufficientPermissionException ex) {
 				editPermError(event, ex.getPermission(), true);
@@ -240,7 +242,6 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private void sendNameReply(SlashCommandEvent event, String name) {
-		event.deferReply(true).queue();
 		long userId = event.getMember().getIdLong();
 		Long channelId = bot.getDBUtil().voice.getChannel(userId);
 		if (channelId == null) {
@@ -301,7 +302,6 @@ public class VoiceCmd extends CommandBase {
 	}
 
 	private void sendLimitReply(SlashCommandEvent event, Integer limit) {
-		event.deferReply(true).queue();
 		long userId = event.getMember().getIdLong();
 		Long channelId = bot.getDBUtil().voice.getChannel(userId);
 		if (channelId == null) {
@@ -332,8 +332,6 @@ public class VoiceCmd extends CommandBase {
 		}
 
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member author = event.getMember();
 
 			if (!author.getVoiceState().inAudioChannel()) {
@@ -362,8 +360,11 @@ public class VoiceCmd extends CommandBase {
 					}
 
 					try {
-						vc.getManager().removePermissionOverride(owner).queue();
-						vc.getManager().putPermissionOverride(author, EnumSet.of(Permission.MANAGE_CHANNEL), null).queue();
+						vc.getManager()
+							.removePermissionOverride(owner)
+							.putPermissionOverride(author, ownerPerms, null)
+							.queue();
+
 						bot.getDBUtil().voice.setUser(author.getIdLong(), vc.getIdLong());
 					} catch (InsufficientPermissionException ex) {
 						editPermError(event, ex.getPermission(), true);
@@ -396,8 +397,6 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member author = event.getMember();
 
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
@@ -465,8 +464,6 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member author = event.getMember();
 
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
@@ -532,8 +529,6 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member author = event.getMember();
 
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
@@ -640,7 +635,6 @@ public class VoiceCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Member author = event.getMember();
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
 			if (channelId == null) {
@@ -650,8 +644,10 @@ public class VoiceCmd extends CommandBase {
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
 			try {
-				vc.getManager().sync().queue();
-				vc.upsertPermissionOverride(author).setAllowed(Permission.MANAGE_CHANNEL).queue();
+				vc.getManager()
+					.sync()
+					.putPermissionOverride(author, ownerPerms, null)
+					.queue();
 			} catch (InsufficientPermissionException ex) {
 				editPermError(event, ex.getPermission(), true);
 				return;

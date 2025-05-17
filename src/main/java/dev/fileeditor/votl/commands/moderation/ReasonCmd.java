@@ -3,8 +3,8 @@ package dev.fileeditor.votl.commands.moderation;
 import java.sql.SQLException;
 import java.util.List;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
-public class ReasonCmd extends CommandBase {
+public class ReasonCmd extends SlashCommand {
 	
 	public ReasonCmd() {
 		this.name = "reason";
@@ -33,7 +33,6 @@ public class ReasonCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
 		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
 		if (caseData == null) {
 			editError(event, path+".not_found");

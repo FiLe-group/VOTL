@@ -63,7 +63,9 @@ public class MessageListener extends ListenerAdapter {
 		}
 
 		// reward player
-		bot.getLevelUtil().rewardMessagePlayer(event);
+		if (!bot.getBlacklist().isBlacklisted(event.getAuthor())) {
+			bot.getLevelUtil().rewardMessagePlayer(event);
+		}
 	}
 
 	

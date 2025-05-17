@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -18,8 +18,7 @@ import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class AddUserCmd extends CommandBase {
-
+public class AddUserCmd extends SlashCommand {
 	public AddUserCmd() {
 		this.name = "add";
 		this.path = "bot.ticketing.add";
@@ -33,8 +32,6 @@ public class AddUserCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 
@@ -78,5 +75,4 @@ public class AddUserCmd extends CommandBase {
 			}
 		}
 	}
-
 }

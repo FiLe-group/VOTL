@@ -22,9 +22,13 @@
 			"nsfw": "This command may only be used in NSFW text channels!",
 			"guild_only": "This command cannot be used in private messages! Use this command in server, where I am."
 		},
+		"throttle": {
+			"command": "Too many commands run! Please try again %s.",
+			"pm_user": "Looks like you are using commands a bit too fast, I've banned you from using any commands until you cool down a bit.\nYour ban expires %s, keep in mind repeating this behaviour will get you banned for longer periods of time.",
+			"pm_guild": "Looks like people on the server are using commands a bit too fast, I've banned the server from using any commands until everyone clams down a bit.\nThis ban expires %s, keep in mind repeating this behaviour will get the server banned for longer periods of time."
+		},
 		"cooldown": {
-			"cooldown_command": "That command is on cooldown for {time} more seconds",
-			"cooldown_button": "This button is on cooldown for {time} more seconds",
+			"cooldown_button": "This button is on cooldown for **{time}** seconds",
 			"channel": "in this channel",
 			"guild": "in this server",
 			"shard": "on this shard",
@@ -94,7 +98,7 @@
 		"strikes": "Strike punishments",
 		"games": "Games",
 		"levels": "Leveling",
-		"module_disabled": "This command(module) is disabled."
+		"module_disabled": "This command/module is disabled."
 	},
 	"role_type": {
 		"assign": "Assignable",
@@ -153,14 +157,14 @@
 			"rules": "-# [View server rules](%s)",
 			"reason_mute": "Reason changed for *a mute* issued by **{guild}** server's moderation at {time}.",
 			"reason_strike": "Reason changed for *a warning* issued by **{guild}** server's moderation at {time}.",
-			"gamestrike": "You received Game strike in [__#%s__](%s) in **{guild}** server.\n> Count: `%d`/`%d`",
+			"gamestrike": "You received Game strike in __[#%s](%s)__ in **{guild}** server.\n> Count: `%d`/`%d`",
 			"gamestrike_limit": "> Access limited to this channel - strike limit reached."
 		},
 		"drama": {
 			"kicked": "Was kicked from this server.",
 			"muted": "Was timed out for {time}.",
 			"strike": "Received %s.",
-			"gamestrike": "Received Game strike in [__#%s__](%s)."
+			"gamestrike": "Received Game strike in __[#%s](%s)__."
 		},
 		"inform": {
 			"0": "Do not dm offender",
@@ -493,7 +497,7 @@
 			},
 			"bot_blacklist": {
 				"help": "Manage bot's blacklist",
-				"usage": "bot_blacklist <add?> <ID>",
+				"usage": "bot_blacklist <add?> <ID> [type] [reason]",
 				"add": {
 					"name": "add",
 					"help": "Add (or remove)?"
@@ -501,6 +505,14 @@
 				"id": {
 					"name": "id",
 					"help": "Enter user or server ID"
+				},
+				"type": {
+					"name": "type",
+					"help": "Target type (user or guild)"
+				},
+				"reason": {
+					"name": "reason",
+					"help": "Blacklist reason"
 				}
 			},
 			"experience": {
@@ -971,7 +983,7 @@
 		"voice": {
 			"listener": {
 				"default_name": "{user}'s channel",
-				"cooldown": "Creating voice channels to quickly, wait a bit! Or you already own maximum VoiceChannels.",
+				"cooldown": "Creating voice channels to quickly, wait a bit! Or you already own a voice channel.",
 				"failed": "Failed to create the voice channel.\n> %s",
 				"not_in_voice": "You are not connected to any voice channel.",
 				"panel": {
@@ -1797,7 +1809,7 @@
 					"bot_info": {
 						"title": "Bot info",
 						"bot_version": "Bot version: `VOTL-{bot_version}`",
-						"library": "Library: [`JDA {jda_version}`]({jda_github}) and [`JDA-Chewtils`]({chewtils_github})"
+						"library": "Library: `[JDA {jda_version}]({jda_github})` and `[JDA-Chewtils]({chewtils_github})`"
 					},
 					"commands_title": "Commands",
 					"commands_value": "Use `/help` in any chat to get list of commands.",
@@ -1911,10 +1923,11 @@
 				"text": {
 					"help": "Set the text for embed panel",
 					"usage": "text",
-					"main": "Main panel text",
-					"description": "Second panel text",
-					"panel": "Setup vfpanel embed text",
-					"done": "Text updated!"
+					"send_text": "Send text below this message. You have 30 seconds to reply.",
+					"timed_out": "{EMOTE_WARNING_C} Request timed out. Please try again.",
+					"empty": "No text provided. If you want to clear text - input 'NULL'.",
+					"too_long": "Provided text is too long, must be under 1024 characters!",
+					"done": "Verify panel text updated!"
 				},
 				"image": {
 					"help": "Set the image URL for embed panel",
@@ -2012,9 +2025,8 @@
 				"role_dm": "{server}\n> Roles [{roles}] requested in ticket `role-{id}` assigned!\n-{mod}",
 				"role_none": "There aren't any roles that can be assigned. Manually assign user requested roles.",
 				"is_closed": "This ticket is already closed. Assign roles manually or press `Close` button.",
-				"close_request": "Hey! {user}, support have indicated that the ticket is now resolved. Would you like to close the ticket or do you have further questions? React below accordingly.\n\nIf no response {time} the ticket will automatically close itself. To prevent timed close please press cancel.",
-				"close_auto": "Hi! {user}, this ticket has not received a response for some time. Do you want to close the ticket or is your request still unresolved? React below accordingly.\n\nIf no response {time} the ticket will automatically close itself. To prevent timed close please press cancel.",
-				"user_left": "Sadly, the user that created this ticket has left the server. If they rejoin, it will not automatically re-add them.",
+				"close_request": "Hey, {user}! support have indicated that the ticket is now resolved. Would you like to close the ticket or do you have further questions? React below accordingly.\n\nIf no response {time} the ticket will automatically close itself. To prevent timed close please press cancel.",
+				"close_auto": "Hey, {user}! This ticket has not received a response for some time. Do you want to close the ticket or is your request still unresolved? React below accordingly.\n\nIf no response {time} the ticket will automatically close itself. To prevent timed close please press cancel.",
 				"claimed": "The ticket has been successfully claimed by {user}.",
 				"unclaimed": "The ticket has been successfully un-claimed.",
 				"delete_countdown": "This ticket will be closed in 5 seconds.",

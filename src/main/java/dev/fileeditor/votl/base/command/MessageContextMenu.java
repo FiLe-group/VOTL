@@ -15,23 +15,17 @@
  */
 package dev.fileeditor.votl.base.command;
 
+import dev.fileeditor.votl.contracts.reflection.Reflectional;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.utils.exception.CheckException;
 
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public abstract class MessageContextMenu extends ContextMenu
-{
+public abstract class MessageContextMenu extends ContextMenu implements Reflectional {
 	/**
 	 * Runs checks for the {@link MessageContextMenu} with the given {@link MessageContextMenuEvent} that called it.
 	 * <br>Will terminate, and possibly respond with a failure message, if any checks fail.
@@ -39,55 +33,9 @@ public abstract class MessageContextMenu extends ContextMenu
 	 * @param  event
 	 *         The MessageContextMenuEvent that triggered this menu
 	 */
-	public final void run(MessageContextMenuEvent event) {
+	public final boolean run(MessageContextMenuEvent event) {
 		// client 
 		final CommandClient client = event.getClient();
-
-		// check blacklist
-		if (bot.getCheckUtil().isBlacklisted(event.getUser())) {
-			terminate(event, client);
-			return;
-		}
-
-		// owner check
-		if (ownerCommand && !(event.isOwner())) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
-			return;
-		}
-
-		// cooldown check, ignoring owner
-		if (cooldown>0 && !(event.isOwner())) {
-			String key = getCooldownKey(event);
-			int remaining = client.getRemainingCooldown(key);
-			if (remaining>0) {
-				terminate(event, getCooldownError(event, event.getGuild(), remaining), client);
-				return;
-			}
-			else client.applyCooldown(key, cooldown);
-		}
-
-		// checks
-		if (event.isFromGuild()) {
-			Guild guild = event.getGuild();
-			Member author = event.getMember();
-			try {
-				bot.getCheckUtil()
-				// check module enabled
-					.moduleEnabled(event, guild, getModule())
-				// check access
-					.hasAccess(event, author, getAccessLevel())
-				// check user perms
-					.hasPermissions(event, getUserPermissions(), author)
-				// check bots perms
-					.hasPermissions(event, getBotPermissions());
-			} catch (CheckException ex) {
-				terminate(event, ex.getCreateData(), client);
-				return;
-			}
-		} else if (guildOnly) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.guild_only"), client);
-			return;
-		}
 
 		// run
 		try {
@@ -95,7 +43,7 @@ public abstract class MessageContextMenu extends ContextMenu
 		} catch (Throwable t) {
 			if (client.getListener() != null) {
 				client.getListener().onMessageContextMenuException(event, this, t);
-				return;
+				return false;
 			}
 			// otherwise we rethrow
 			throw t;
@@ -103,6 +51,8 @@ public abstract class MessageContextMenu extends ContextMenu
 
 		if (client.getListener() != null)
 			client.getListener().onCompletedMessageContextMenu(event, this);
+
+		return true;
 	}
 
 	/**
@@ -115,22 +65,6 @@ public abstract class MessageContextMenu extends ContextMenu
 	 */
 	protected abstract void execute(MessageContextMenuEvent event);
 
-	private void terminate(MessageContextMenuEvent event, @NotNull MessageEmbed embed, CommandClient client) {
-		terminate(event, MessageCreateData.fromEmbeds(embed), client);
-	}
-
-	private void terminate(MessageContextMenuEvent event, MessageCreateData message, CommandClient client) {
-		if (message!=null)
-			event.reply(message).setEphemeral(true).queue();
-		if (client.getListener()!=null)
-			client.getListener().onTerminatedMessageContextMenu(event, this);
-	}
-
-	private void terminate(MessageContextMenuEvent event, CommandClient client) {
-		if (client.getListener()!=null)
-			client.getListener().onTerminatedMessageContextMenu(event, this);
-	}
-
 	@Override
 	public CommandData buildCommandData() {
 		// Set attributes
@@ -138,19 +72,30 @@ public abstract class MessageContextMenu extends ContextMenu
 
 		// Make the command data
 		CommandData data = Commands.message(getName());
-		
+
 		// Check name localizations
 		if (!getNameLocalization().isEmpty()) {
 			//Add localizations
 			data.setNameLocalizations(getNameLocalization());
 		}
-		
-		if (!isOwnerCommand() || getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN))
+
+		if (getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN)) {
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(getUserPermissions()));
-		else
+		}
+		else {
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+		}
 
 		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
+
+		// Register middlewares
+		registerThrottleMiddleware();
+		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
+			middlewares.add("hasAccess");
+		}
+		if (botPermissions.length > 0 || userPermissions.length > 0) {
+			this.middlewares.add("permissions");
+		}
 
 		return data;
 	}

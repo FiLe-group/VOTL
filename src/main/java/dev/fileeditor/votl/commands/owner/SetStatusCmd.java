@@ -1,5 +1,7 @@
 package dev.fileeditor.votl.commands.owner;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -7,14 +9,13 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class SetStatusCmd extends CommandBase {
+public class SetStatusCmd extends SlashCommand {
 	public SetStatusCmd() {
 		this.name = "setstatus";
 		this.path = "bot.owner.setstatus";
@@ -34,14 +35,13 @@ public class SetStatusCmd extends CommandBase {
 				.setMaxLength(100)
 		);
 		this.category = CmdCategory.OWNER;
-		this.ownerCommand = true;
+		this.accessLevel = CmdAccessLevel.DEV;
 		this.guildOnly = false;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(true).queue();
-
 		ActivityType type = parseType(event.optString("type"));
 		if (type == null) {
 			event.getJDA().getPresence().setActivity(null);

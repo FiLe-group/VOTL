@@ -1,8 +1,7 @@
 package dev.fileeditor.votl.commands.moderation;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -24,7 +23,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class PurgeCmd extends CommandBase {
+public class PurgeCmd extends SlashCommand {
 
 	public PurgeCmd() {
 		this.name = "purge";
@@ -38,14 +37,14 @@ public class PurgeCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.MOD;
-		this.cooldown = 20;
-		this.cooldownScope = CooldownScope.USER;
+		addMiddlewares(
+			"throttle:user,1,15",
+			"throttle:guild,2,20"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		int toDelete = event.optInteger("count", 5);
 		User target = event.optUser("user");
 

@@ -1,18 +1,18 @@
 package dev.fileeditor.votl.commands.owner;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.FileUpload;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-public class DebugCmd extends CommandBase {
-
+public class DebugCmd extends SlashCommand {
 	public DebugCmd() {
 		this.name = "debug";
 		this.path = "bot.owner.debug";
@@ -21,24 +21,24 @@ public class DebugCmd extends CommandBase {
 			new OptionData(OptionType.STRING, "date", lu.getText(path+".date.help")).setRequiredLength(10,10)
 		);
 		this.category = CmdCategory.OWNER;
-		this.ownerCommand = true;
+		this.accessLevel = CmdAccessLevel.DEV;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		if (event.optBoolean("debug_logs", false)) {
-			event.replyFiles(FileUpload.fromData(new File("./logs/App-debug.log"))).queue();
+			event.getHook().editOriginalAttachments(FileUpload.fromData(new File("./logs/App-debug.log"))).queue();
 		} else {
 			String date = Optional.ofNullable(event.optString("date"))
 				.map(s->"."+s)
 				.orElse("");
 			File file = new File("./logs/App%s.log".formatted(date));
 			if (!file.exists()) {
-				editErrorOther(event, "No file by ");
+				editErrorOther(event, "No file by name: "+file.getName());
 			} else {
 				event.getHook().editOriginalAttachments(FileUpload.fromData(file)).queue();
 			}
 		}
 	}
-
 }

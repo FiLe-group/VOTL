@@ -53,7 +53,7 @@ public class DBUtil {
 	public final TicketTagManager ticketTags;
 	public final TicketManager tickets;
 	public final AutopunishManager autopunish;
-	public final BlacklistManager blacklist;
+	public final ServerBlacklistManager serverBlacklist;
 	public final ModifyRoleManager modifyRole;
 	public final GameStrikeManager games;
 	public final PersistentManager persistent;
@@ -61,7 +61,7 @@ public class DBUtil {
 	public final LevelManager levels;
 	public final LevelRolesManager levelRoles;
 
-	public final BotBlacklistManager botBlacklist;
+	public final BotBlacklistManager blacklist;
 
 	public DBUtil(FileManager fileManager) {
 		// Check if drivers are initiated
@@ -96,7 +96,7 @@ public class DBUtil {
 		ticketTags = new TicketTagManager(connectionUtil);
 		tickets = new TicketManager(connectionUtil);
 		autopunish = new AutopunishManager(connectionUtil);
-		blacklist = new BlacklistManager(connectionUtil);
+		serverBlacklist = new ServerBlacklistManager(connectionUtil);
 		modifyRole = new ModifyRoleManager(connectionUtil);
 		games = new GameStrikeManager(connectionUtil);
 		persistent = new PersistentManager(connectionUtil);
@@ -104,7 +104,7 @@ public class DBUtil {
 		levels = new LevelManager(connectionUtil);
 		levelRoles = new LevelRolesManager(connectionUtil);
 
-		botBlacklist = new BotBlacklistManager(connectionUtil);
+		blacklist = new BotBlacklistManager(connectionUtil);
 	}
 
 	public GuildSettings getGuildSettings(Guild guild) {

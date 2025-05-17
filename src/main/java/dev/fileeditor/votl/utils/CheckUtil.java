@@ -66,6 +66,19 @@ public class CheckUtil {
 			.orElse(CmdAccessLevel.ALL);
 	}
 
+	public boolean isOperatorPlus(Guild guild, UserSnowflake user) {
+		// Is bot developer
+		if (isDeveloper(user) || isBotOwner(user))
+			return true;
+
+		// Is guild's owner
+		if (guild.getOwnerIdLong() == user.getIdLong())
+			return true;
+
+		// Check if is operator
+		return bot.getDBUtil().access.isOperator(guild.getIdLong(), user.getIdLong());
+	}
+
 	public boolean hasHigherAccess(Member who, Member than) {
 		return getAccessLevel(who).isHigherThan(getAccessLevel(than));
 	}
@@ -73,13 +86,6 @@ public class CheckUtil {
 	public boolean hasAccess(Member member, CmdAccessLevel accessLevel) {
 		if (accessLevel.equals(CmdAccessLevel.ALL)) return true;
 		return getAccessLevel(member).satisfies(accessLevel);
-	}
-
-	public CheckUtil hasAccess(IReplyCallback replyCallback, Member member, CmdAccessLevel accessLevel) throws CheckException {
-		if (accessLevel.equals(CmdAccessLevel.ALL)) return this;
-		if (getAccessLevel(member).isLowerThan(accessLevel))
-			throw new CheckException(bot.getEmbedUtil().getError(replyCallback, "errors.interaction.no_access", "Required access: "+accessLevel.getName()));
-		return this;
 	}
 
 	public CheckUtil moduleEnabled(IReplyCallback replyCallback, Guild guild, CmdModule module) throws CheckException {
@@ -155,10 +161,6 @@ public class CheckUtil {
 			throw new CheckException(msg);
 		}
 		return this;
-	}
-
-	public boolean isBlacklisted(ISnowflake snowflake) {
-		return bot.getDBUtil().botBlacklist.blacklisted(snowflake.getIdLong());
 	}
 
 	private final Set<Permission> adminPerms = Set.of(Permission.ADMINISTRATOR, Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_SERVER, Permission.BAN_MEMBERS);

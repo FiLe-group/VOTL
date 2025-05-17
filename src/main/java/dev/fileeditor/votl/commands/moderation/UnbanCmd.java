@@ -3,8 +3,8 @@ package dev.fileeditor.votl.commands.moderation;
 import java.sql.SQLException;
 import java.util.List;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -21,7 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
-public class UnbanCmd extends CommandBase {
+public class UnbanCmd extends SlashCommand {
 	
 	public UnbanCmd() {
 		this.name = "unban";
@@ -34,12 +34,13 @@ public class UnbanCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.MOD;
+		addMiddlewares(
+			"throttle:guild,1,10"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		Guild guild = event.getGuild();
 		User tu = event.optUser("user");
 
@@ -62,11 +63,11 @@ public class UnbanCmd extends CommandBase {
 			// Check if in blacklist
 			for (int groupId : bot.getDBUtil().group.getGuildGroups(guild.getIdLong())) {
 				// Check every group this server is part of for if user is blacklisted
-				if (bot.getDBUtil().blacklist.inGroupUser(groupId, tu.getIdLong())) {
+				if (bot.getDBUtil().serverBlacklist.inGroupUser(groupId, tu.getIdLong())) {
 					if (bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.OPERATOR)) {
 						// User is Operator+, remove blacklist
 						try {
-							bot.getDBUtil().blacklist.removeUser(groupId, tu.getIdLong());
+							bot.getDBUtil().serverBlacklist.removeUser(groupId, tu.getIdLong());
 						} catch (SQLException ex) {
 							editErrorDatabase(event, ex, "Failed to remove user from blacklist.");
 							return;

@@ -1,21 +1,22 @@
 package dev.fileeditor.votl.commands.other;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
-public class PingCmd extends CommandBase {
+public class PingCmd extends SlashCommand {
 	
 	public PingCmd() {
 		this.name = "ping";
 		this.path = "bot.other.ping";
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.reply(lu.getText(event, path+".loading")).queue();
+		editMsg(event, lu.getText(event, path+".loading"));
 
 		event.getJDA().getRestPing().queue(time -> {
 			editMsg(event,
@@ -25,4 +26,5 @@ public class PingCmd extends CommandBase {
 			);
 		});	
 	}
+
 }

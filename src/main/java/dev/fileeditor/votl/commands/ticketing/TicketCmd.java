@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -37,7 +36,7 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
-public class TicketCmd extends CommandBase {
+public class TicketCmd extends SlashCommand {
 	
 	public TicketCmd() {
 		this.name = "ticket";
@@ -75,7 +74,6 @@ public class TicketCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			if (bot.getDBUtil().ticketPanels.countPanels(event.getGuild().getIdLong()) >= Limits.TICKET_PANELS) {
 				editErrorLimit(event, "panels", Limits.TICKET_PANELS);
 				return;
@@ -122,8 +120,6 @@ public class TicketCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -171,12 +167,11 @@ public class TicketCmd extends CommandBase {
 				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true).setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -207,7 +202,6 @@ public class TicketCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -253,7 +247,6 @@ public class TicketCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -274,7 +267,6 @@ public class TicketCmd extends CommandBase {
 			);
 		}
 	}
-
 
 	// Tag tools
 
@@ -306,8 +298,6 @@ public class TicketCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -381,8 +371,6 @@ public class TicketCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer tagId = event.optInteger("tag_id");
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -448,12 +436,11 @@ public class TicketCmd extends CommandBase {
 				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true, true).setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer tagId = event.optInteger("tag_id");
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -496,7 +483,6 @@ public class TicketCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer tagId = event.optInteger("tag_id");
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -518,7 +504,6 @@ public class TicketCmd extends CommandBase {
 		}
 	}
 
-
 	// Settings
 
 	private class Automation extends SlashCommand {
@@ -536,7 +521,6 @@ public class TicketCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 			
 			StringBuilder response = new StringBuilder();
@@ -607,7 +591,6 @@ public class TicketCmd extends CommandBase {
 			StringBuilder response = new StringBuilder();
 
 			if (event.getOptions().isEmpty()) {
-				event.deferReply(true).queue();
 				// Return overview
 				TicketSettingsManager.TicketSettings settings = bot.getDBUtil().getTicketSettings(event.getGuild());
 
@@ -638,7 +621,6 @@ public class TicketCmd extends CommandBase {
 					.build()
 				);
 			} else {
-				event.deferReply().queue();
 				// Edit settings
 				if (event.hasOption("delete_pings")) {
 					final boolean deletePings = event.optBoolean("delete_pings");

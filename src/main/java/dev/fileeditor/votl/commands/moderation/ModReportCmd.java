@@ -1,7 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -16,9 +15,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 
 import java.sql.SQLException;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
@@ -27,7 +24,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ModReportCmd extends CommandBase {
+public class ModReportCmd extends SlashCommand {
 	public ModReportCmd() {
 		this.name = "modreport";
 		this.path = "bot.moderation.modreport";
@@ -74,8 +71,6 @@ public class ModReportCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			List<Role> roles = event.optMentions("roles").getRoles();
 			if (roles.isEmpty() || roles.size()>4) {
 				editError(event, path+".no_roles");
@@ -84,11 +79,11 @@ public class ModReportCmd extends CommandBase {
 
 			int interval = event.optInteger("interval", 7);
 
-			Instant firstReport;
+			LocalDateTime firstReport;
 			if (event.hasOption("first_report")) {
 				String input = event.optString("first_report");
 				try {
-					firstReport = LocalDateTime.parse(input, DATE_TIME_FORMAT).toInstant(ZoneOffset.UTC);
+					firstReport = LocalDateTime.parse(input, DATE_TIME_FORMAT);
 				} catch (DateTimeParseException ex) {
 					editError(event, path+".failed_parse", ex.getMessage());
 					return;
@@ -96,11 +91,11 @@ public class ModReportCmd extends CommandBase {
 			} else {
 				// Next monday OR first month day at 3:00 (server time)
 				if (interval == 30)
-					firstReport = Instant.now().with(TemporalAdjusters.firstDayOfNextMonth()).with(ChronoField.HOUR_OF_DAY, 3);
+					firstReport = LocalDateTime.now().with(TemporalAdjusters.firstDayOfNextMonth()).withHour(3);
 				else
-					firstReport = Instant.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).with(ChronoField.HOUR_OF_DAY, 3);
+					firstReport = LocalDateTime.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).withHour(3);
 			}
-			if (firstReport.isBefore(Instant.now())) {
+			if (firstReport.isBefore(LocalDateTime.now())) {
 				editError(event, path+".wrong_date");
 				return;
 			}
@@ -124,7 +119,7 @@ public class ModReportCmd extends CommandBase {
 			// Reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(
-					TimeFormat.DATE_TIME_SHORT.format(firstReport.atZone(ZoneOffset.UTC)), channel.getAsMention(),
+					TimeFormat.DATE_TIME_SHORT.format(firstReport), channel.getAsMention(),
 					interval, roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "))
 				))
 				.build());
@@ -139,7 +134,6 @@ public class ModReportCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			try {
 				bot.getDBUtil().modReport.removeGuild(event.getGuild().getIdLong());
 			} catch (SQLException ex) {

@@ -1,6 +1,5 @@
 package dev.fileeditor.votl.menus;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.MessageContextMenu;
 import dev.fileeditor.votl.base.command.MessageContextMenuEvent;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -15,19 +14,18 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class ReportMenu extends MessageContextMenu {
-	
 	public ReportMenu() {
 		this.name = "report";
 		this.path = "menus.report";
 		this.module = CmdModule.REPORT;
-		this.cooldown = 60;
-		this.cooldownScope = CooldownScope.USER_GUILD;
+		addMiddlewares(
+			"throttle:user,1,30"
+		);
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(MessageContextMenuEvent event) {
-		event.deferReply(true).queue();
-	
 		event.getGuild().retrieveMember(event.getTarget().getAuthor()).queue(member -> {
 			Long channelId = bot.getDBUtil().getGuildSettings(event.getGuild()).getReportChannelId();
 			if (channelId == null || member.getUser().isBot() || member.hasPermission(Permission.ADMINISTRATOR)) {

@@ -31,20 +31,20 @@ public class CommandListener implements dev.fileeditor.votl.base.command.Command
 	
 	@Override
 	public void onSlashCommand(SlashCommandEvent event, SlashCommand command) {
-		LOGGER.debug("SlashCommand @ {}\n- Name: '{}'; Full: '{}'\n- Author: {}\n- Guild: {}", event.getResponseNumber(), event.getName(), event.getCommandString(), event.getUser(),
-			(event.getChannelType() != ChannelType.PRIVATE ? "'"+event.getGuild()+"' @ "+event.getChannel() : "PrivateChannel"));
+		LOGGER.debug("SlashCommand @ {}\n- Name: '{}'; Full: '{}'\n- Author: {}\n- Channel: {}", event.getResponseNumber(), event.getName(), event.getCommandString(), event.getUser(),
+			(event.getChannelType() != ChannelType.PRIVATE ? event.getChannel()+" @ "+event.getGuild() : "PrivateChannel"));
 	}
 
 	@Override
 	public void onMessageContextMenu(MessageContextMenuEvent event, MessageContextMenu menu) {
-		LOGGER.debug("MessageContextMenu @ {}\n- Name: '{}'; Full: '{}'\n- Author: {}\n- Guild: {}", event.getResponseNumber(), event.getName(), event.getCommandString(), event.getUser(),
-			(event.getChannelType() != ChannelType.PRIVATE ? "'"+event.getGuild()+"' @ "+event.getChannel() : "PrivateChannel"));
+		LOGGER.debug("MessageContextMenu @ {}\n- Name: '{}'; Full: '{}'\n- Author: {}\n- Channel: {}", event.getResponseNumber(), event.getName(), event.getCommandString(), event.getUser(),
+			(event.getChannelType() != ChannelType.PRIVATE ? event.getChannel()+" @ "+event.getGuild() : "PrivateChannel"));
 	}
 
 	@Override
 	public void onUserContextMenu(UserContextMenuEvent event, UserContextMenu menu) {
-		LOGGER.debug("UserContextMenu @ {}\n- Name: '{}'; Full: '{}'\n- Author: {}\n- Guild: {}", event.getResponseNumber(), event.getName(), event.getCommandString(), event.getUser(),
-			(event.getChannelType() != ChannelType.PRIVATE ? "'"+event.getGuild()+"' @ "+event.getChannel() : "PrivateChannel"));
+		LOGGER.debug("UserContextMenu @ {}\n- Name: '{}'; Full: '{}'\n- Author: {}\n- Channel: {}", event.getResponseNumber(), event.getName(), event.getCommandString(), event.getUser(),
+			(event.getChannelType() != ChannelType.PRIVATE ? event.getChannel()+" @ "+event.getGuild() : "PrivateChannel"));
 	}
 
 	@Override

@@ -3,8 +3,8 @@ package dev.fileeditor.votl.commands.ticketing;
 import java.util.Collections;
 import java.util.List;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -16,7 +16,7 @@ import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class RemoveUserCmd extends CommandBase {
+public class RemoveUserCmd extends SlashCommand {
 	
 	public RemoveUserCmd() {
 		this.name = "remove";
@@ -31,7 +31,6 @@ public class RemoveUserCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 		if (authorId == null) {

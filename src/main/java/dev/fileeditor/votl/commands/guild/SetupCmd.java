@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -35,7 +34,7 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
-public class SetupCmd extends CommandBase {
+public class SetupCmd extends SlashCommand {
 
 	public SetupCmd() {
 		this.name = "setup";
@@ -65,7 +64,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 			String text = event.optString("color");
 
@@ -98,7 +96,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 			String text = event.optString("link");
 
@@ -141,7 +138,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 			if (event.hasOption("channel")) {
 				MessageChannel channel = event.optMessageChannel("channel");
@@ -187,8 +183,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
 
@@ -239,8 +233,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
 
@@ -252,8 +244,8 @@ public class SetupCmd extends CommandBase {
 			}
 
 			try {
-				category.upsertPermissionOverride(guild.getBotRole()).setAllowed(getBotPermissions()).queue(doneCategory ->
-					channel.upsertPermissionOverride(guild.getPublicRole()).setDenied(Permission.VOICE_SPEAK).queue(doneChannel -> {
+				category.upsertPermissionOverride(guild.getBotRole()).grant(getBotPermissions()).queue(doneCategory ->
+					channel.upsertPermissionOverride(guild.getPublicRole()).deny(Permission.VOICE_SPEAK).queue(doneChannel -> {
 						try {
 							bot.getDBUtil().guildVoice.setup(guildId, category.getIdLong(), channel.getIdLong());
 						} catch (SQLException ex) {
@@ -286,7 +278,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			MessageChannel channel = event.optMessageChannel("channel");
 			if (channel == null || !channel.canTalk()) {
 				editError(event, path+".no_channel", "Received: "+(channel == null ? "No channel" : channel.getAsMention()));
@@ -335,7 +326,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			String filName = event.optString("name", lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name"));
 
 			if (filName.isBlank()) {
@@ -370,7 +360,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer filLimit = event.optInteger("limit");
 
 			try {
@@ -401,7 +390,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			if (event.getOptions().size() < 2) {
 				editError(event, path+".no_options");
 				return;
@@ -453,7 +441,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 
 			String action = event.optString("action");
@@ -491,7 +478,6 @@ public class SetupCmd extends CommandBase {
 		}
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			boolean enabled = event.optBoolean("enable");
 			// DB
 			try {
@@ -522,7 +508,6 @@ public class SetupCmd extends CommandBase {
 			StringBuilder response = new StringBuilder();
 
 			if (event.getOptions().isEmpty()) {
-				event.deferReply(true).queue();
 				// Return overview
 				LevelManager.LevelSettings settings = bot.getDBUtil().levels.getSettings(event.getGuild());
 
@@ -535,7 +520,6 @@ public class SetupCmd extends CommandBase {
 					.build()
 				);
 			} else {
-				event.deferReply().queue();
 				// Edit settings
 				if (event.hasOption("enable")) {
 					final boolean enabled = event.optBoolean("enable");
@@ -589,8 +573,6 @@ public class SetupCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			StringBuilder builder = new StringBuilder();
 			if (event.hasOption("level")) {
 				var level = GuildSettingsManager.DramaLevel.byLevel(event.optInteger("level"));

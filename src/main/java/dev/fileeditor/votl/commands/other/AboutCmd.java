@@ -1,9 +1,7 @@
 package dev.fileeditor.votl.commands.other;
 
-import java.util.List;
-
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Links;
@@ -11,25 +9,19 @@ import dev.fileeditor.votl.objects.constants.Links;
 import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class AboutCmd extends CommandBase {
+public class AboutCmd extends SlashCommand {
 
 	public AboutCmd() {
 		this.name = "about";
 		this.path = "bot.other.about";
-		this.options = List.of(
-			new OptionData(OptionType.BOOLEAN, "show", lu.getText(path+".show.help"))
-		);
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(event.isFromGuild() && !event.optBoolean("show", false)).queue();
-
 		DiscordLocale userLocale = event.getUserLocale();
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 			.setAuthor(event.getJDA().getSelfUser().getName(), event.getJDA().getSelfUser().getEffectiveAvatarUrl())

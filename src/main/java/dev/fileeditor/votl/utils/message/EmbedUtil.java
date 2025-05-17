@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EmbedUtil {
 
@@ -26,7 +27,8 @@ public class EmbedUtil {
 
 	@NotNull
 	public EmbedBuilder getEmbed(int color) {
-		return new EmbedBuilder().setColor(color);
+		return new EmbedBuilder()
+			.setColor(color);
 	}
 
 	@NotNull
@@ -36,20 +38,27 @@ public class EmbedUtil {
 
 	@NotNull
 	public EmbedBuilder getEmbed(IReplyCallback replyCallback) {
-		return getEmbed().setFooter(
-			lu.getText(replyCallback, "embed.footer").formatted(replyCallback.getUser().getName()),
-			replyCallback.getUser().getEffectiveAvatarUrl()
-		);
-
+		return getEmbed()
+			.setFooter(
+				lu.getText(replyCallback, "embed.footer").formatted(replyCallback.getUser().getName()),
+				replyCallback.getUser().getEffectiveAvatarUrl()
+			);
 	}
 
 	@NotNull
 	private EmbedBuilder getErrorEmbed(IReplyCallback replyCallback) {
-		return getEmbed().setColor(Constants.COLOR_FAILURE).setTitle(lu.getText(replyCallback, "errors.title"));
+		return getEmbed()
+			.setColor(Constants.COLOR_FAILURE)
+			.setTitle(lu.getText(replyCallback, "errors.title"));
 	}
 
 	@NotNull
-	private EmbedBuilder getPermErrorEmbed(IReplyCallback replyCallback, GuildChannel channel, Permission perm, boolean self) {
+	public MessageEmbed getPermErrorEmbed(IReplyCallback replyCallback, Permission perm, boolean self) {
+		return getPermErrorEmbed(replyCallback, null, perm, self);
+	}
+
+	@NotNull
+	public MessageEmbed getPermErrorEmbed(IReplyCallback replyCallback, @Nullable GuildChannel channel, Permission perm, boolean self) {
 		EmbedBuilder embed = getErrorEmbed(replyCallback);
 		String msg;
 		if (self) {
@@ -72,7 +81,7 @@ public class EmbedUtil {
 			}
 		}
 
-		return embed.setDescription(msg);
+		return embed.setDescription(msg).build();
 	}
 
 	@NotNull
@@ -118,7 +127,7 @@ public class EmbedUtil {
 				);
 			}
 		} else {
-			mb.setEmbeds(getPermErrorEmbed(replyCallback, channel, perm, self).build());
+			mb.setEmbeds(getPermErrorEmbed(replyCallback, channel, perm, self));
 		}
 		return mb.build();
 	}

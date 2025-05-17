@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import dev.fileeditor.votl.base.command.impl.CommandClientImpl;
 
+import dev.fileeditor.votl.blacklist.Blacklist;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 
@@ -46,6 +47,7 @@ public class CommandClientBuilder {
 	private CommandListener listener;
 	private boolean shutdownAutomatically = true;
 	private ScheduledExecutorService executor;
+	private Blacklist blacklist;
 
 	/**
 	 * Builds a {@link dev.fileeditor.votl.base.command.impl.CommandClientImpl CommandClientImpl}
@@ -59,8 +61,9 @@ public class CommandClientBuilder {
 			ownerId, activity, status,
 			new ArrayList<>(slashCommands), new ArrayList<>(contextMenus),
 			forcedGuildId, devGuildIds, manualUpsert,
-			shutdownAutomatically, executor
+			shutdownAutomatically, executor, blacklist
 		);
+
 		if (listener!=null)
 			client.setListener(listener);
 		return client;
@@ -76,8 +79,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder setOwnerId(long ownerId)
-	{
+	public CommandClientBuilder setOwnerId(long ownerId) {
 		this.ownerId = ownerId;
 		return this;
 	}
@@ -91,8 +93,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder setActivity(Activity activity)
-	{
+	public CommandClientBuilder setActivity(Activity activity) {
 		this.activity = activity;
 		return this;
 	}
@@ -103,8 +104,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder useDefaultGame()
-	{
+	public CommandClientBuilder useDefaultGame() {
 		this.activity = Activity.playing("default");
 		return this;
 	}
@@ -118,8 +118,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder setStatus(OnlineStatus status)
-	{
+	public CommandClientBuilder setStatus(OnlineStatus status) {
 		this.status = status;
 		return this;
 	}
@@ -133,8 +132,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder addSlashCommand(SlashCommand command)
-	{
+	public CommandClientBuilder addSlashCommand(SlashCommand command) {
 		slashCommands.add(command);
 		return this;
 	}
@@ -149,8 +147,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder addSlashCommands(SlashCommand... commands)
-	{
+	public CommandClientBuilder addSlashCommands(SlashCommand... commands) {
 		for(SlashCommand command: commands)
 			this.addSlashCommand(command);
 		return this;
@@ -165,8 +162,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder addContextMenu(ContextMenu contextMenu)
-	{
+	public CommandClientBuilder addContextMenu(ContextMenu contextMenu) {
 		contextMenus.add(contextMenu);
 		return this;
 	}
@@ -181,8 +177,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder addContextMenus(ContextMenu... contextMenus)
-	{
+	public CommandClientBuilder addContextMenus(ContextMenu... contextMenus) {
 		for(ContextMenu contextMenu: contextMenus)
 			this.addContextMenu(contextMenu);
 		return this;
@@ -195,8 +190,7 @@ public class CommandClientBuilder {
 	 * @param guildId the guild ID.
 	 * @return This Builder
 	 */
-	public CommandClientBuilder forceGuildOnly(String guildId)
-	{
+	public CommandClientBuilder forceGuildOnly(String guildId) {
 		this.forcedGuildId = guildId;
 		return this;
 	}
@@ -221,8 +215,7 @@ public class CommandClientBuilder {
 	 * @param guildIds the guild IDs.
 	 * @return This Builder
 	 */
-	public CommandClientBuilder setDevGuildIds(String... guildIds)
-	{
+	public CommandClientBuilder setDevGuildIds(String... guildIds) {
 		this.devGuildIds = guildIds;
 		return this;
 	}
@@ -248,8 +241,7 @@ public class CommandClientBuilder {
 	 * @param manualUpsert your option.
 	 * @return This Builder
 	 */
-	public CommandClientBuilder setManualUpsert(boolean manualUpsert)
-	{
+	public CommandClientBuilder setManualUpsert(boolean manualUpsert) {
 		this.manualUpsert = manualUpsert;
 		return this;
 	}
@@ -263,8 +255,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder setListener(CommandListener listener)
-	{
+	public CommandClientBuilder setListener(CommandListener listener) {
 		this.listener = listener;
 		return this;
 	}
@@ -278,8 +269,7 @@ public class CommandClientBuilder {
 	 *
 	 * @return This builder
 	 */
-	public CommandClientBuilder setScheduleExecutor(ScheduledExecutorService executor)
-	{
+	public CommandClientBuilder setScheduleExecutor(ScheduledExecutorService executor) {
 		this.executor = executor;
 		return this;
 	}
@@ -292,9 +282,13 @@ public class CommandClientBuilder {
 	 *        {@code false} to disable calling the shutdown method when a ShutdownEvent is received
 	 * @return This builder
 	 */
-	public CommandClientBuilder setShutdownAutomatically(boolean shutdownAutomatically)
-	{
+	public CommandClientBuilder setShutdownAutomatically(boolean shutdownAutomatically) {
 		this.shutdownAutomatically = shutdownAutomatically;
+		return this;
+	}
+
+	public CommandClientBuilder setBlacklist(Blacklist blacklist) {
+		this.blacklist = blacklist;
 		return this;
 	}
 }

@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.JDA;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * A Bot Client interface implemented on objects used to hold bot data.
@@ -58,8 +57,7 @@ import java.util.concurrent.ScheduledExecutorService;
  *                      java.lang.IllegalArgumentException IllegalArgumentException}).
  */
 @SuppressWarnings("unused")
-public interface CommandClient
-{
+public interface CommandClient {
 	/**
 	 * Adds a single {@link dev.fileeditor.votl.base.command.Interaction Interaction} to this CommandClient's
 	 * registered SlashCommand.
@@ -202,16 +200,6 @@ public interface CommandClient
 	OffsetDateTime getStartTime();
 
 	/**
-	 * Gets the {@link java.time.OffsetDateTime OffsetDateTime} that the specified cooldown expires.
-	 *
-	 * @param  name
-	 *         The cooldown name
-	 *
-	 * @return The expiration time, or null if the cooldown does not exist
-	 */
-	OffsetDateTime getCooldown(String name);
-
-	/**
 	 * Gets the remaining number of seconds on the specified cooldown.
 	 *
 	 * @param  name
@@ -232,23 +220,11 @@ public interface CommandClient
 	void applyCooldown(String name, int seconds);
 
 	/**
-	 * Cleans up expired cooldowns to reduce memory.
-	 */
-	void cleanCooldowns();
-
-	/**
 	 * Gets the ID of the owner of this bot as a {@code long}.
 	 *
 	 * @return The {@code long} ID of the owner of the bot
 	 */
 	long getOwnerIdLong();
-
-	/**
-	 * Gets the {@link java.util.concurrent.ScheduledExecutorService ScheduledExecutorService} held by this client.
-	 *
-	 * @return The ScheduledExecutorService held by this client.
-	 */
-	ScheduledExecutorService getScheduleExecutor();
 
 	/**
 	 * Shuts down internals of the Command Client, such as the threadpool and guild settings manager

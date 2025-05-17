@@ -15,24 +15,26 @@
  */
 package dev.fileeditor.votl.base.command;
 
+import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.utils.exception.CheckException;
 
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
+import dev.fileeditor.votl.objects.constants.CmdCategory;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
-import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.*;
-import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -70,8 +72,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Olivia (Chew)
  */
-public abstract class SlashCommand extends Interaction
-{
+public abstract class SlashCommand extends Interaction {
+
 	/**
 	 * The name of the command, allows the command to be called the formats: <br>
 	 * Slash Command: {@code /<command name>}
@@ -191,63 +193,17 @@ public abstract class SlashCommand extends Interaction
 	 * @param  event
 	 *         The SlashCommandEvent that triggered this Command
 	 */
-	public final void run(SlashCommandEvent event) {
-		// start time
-		final long timeStart = System.nanoTime();
+	public final boolean run(SlashCommandEvent event) {
 		// client 
 		final CommandClient client = event.getClient();
 
-		// check blacklist
-		if (bot.getCheckUtil().isBlacklisted(event.getUser())) {
-			terminate(event, client);
-			return;
-		}
-
-		// check owner command
-		if (ownerCommand && !isOwner(event, client)) {
-			terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
-			return;
-		}
-
-		// cooldown check, ignoring owner
-		if (cooldown > 0 && !isOwner(event, client)) {
-			String key = getCooldownKey(event);
-			int remaining = client.getRemainingCooldown(key);
-			if (remaining > 0) {
-				terminate(event, getCooldownErrorEmbed(event, remaining), client);
-				return;
-			} else {
-				client.applyCooldown(key, cooldown);
-			}
-		}
-
-		// check db and permissions
-		if (event.isFromGuild() && !ownerCommand) {
-			Guild guild = event.getGuild();
-			Member author = event.getMember();
-			try {
-				bot.getCheckUtil()
-				// check module enabled
-					.moduleEnabled(event, guild, getModule())
-				// check access
-					.hasAccess(event, author, getAccessLevel())
-				// check bots perms
-					.hasPermissions(event, getBotPermissions());
-			} catch (CheckException ex) {
-				terminate(event, ex.getCreateData(), client);
-				return;
-			}
-		}
-
-		// Record time
-		bot.getAppLogger().debug("SlashCommand check duration: {}ns @ {} ", System.nanoTime()-timeStart, event.getResponseNumber());
 		// execute
 		try {
 			execute(event);
 		} catch (Throwable t) {
 			if (client.getListener() != null) {
 				client.getListener().onSlashCommandException(event, this, t);
-				return;
+				return false;
 			}
 			// otherwise we rethrow
 			throw t;
@@ -255,6 +211,8 @@ public abstract class SlashCommand extends Interaction
 
 		if (client.getListener() != null)
 			client.getListener().onCompletedSlashCommand(event, this);
+
+		return true;
 	}
 
 	/**
@@ -306,6 +264,7 @@ public abstract class SlashCommand extends Interaction
 	 *
 	 * @return The category for the Command
 	 */
+	@NotNull
 	public Category getCategory() {
 		return category;
 	}
@@ -339,37 +298,36 @@ public abstract class SlashCommand extends Interaction
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.help = lu.getText(getHelpPath());
-		this.descriptionLocalization = lu.getFullLocaleMap(getHelpPath(), getHelp());
+		this.descriptionLocalization = lu.getFullLocaleMap(getHelpPath(), help);
+		if (category == null) {
+			category = CmdCategory.OTHER;
+		}
 
 		// Make the command data
-		SlashCommandData data = Commands.slash(getName(), getHelp());
+		SlashCommandData data = Commands.slash(name, help);
 
 		// Add options and localizations
-		if (!getOptions().isEmpty()) {
-			getOptions().forEach(option -> {
+		if (!options.isEmpty()) {
+			options.forEach(option -> {
 				option.setNameLocalizations(lu.getFullLocaleMap("%s.%s.name".formatted(getPath(), option.getName()), option.getName()));
 				option.setDescriptionLocalizations(lu.getFullLocaleMap("%s.%s.help".formatted(getPath(), option.getName()), option.getDescription()));
 			});
-			data.addOptions(getOptions());
+			data.addOptions(options);
 		}
 
 		// Check name localizations
-		if (!getNameLocalization().isEmpty()) {
+		if (!nameLocalization.isEmpty()) {
 			//Add localizations
-			data.setNameLocalizations(getNameLocalization());
+			data.setNameLocalizations(nameLocalization);
 		}
 		// Check description localizations
-		if (!getDescriptionLocalization().isEmpty()) {
+		if (!descriptionLocalization.isEmpty()) {
 			//Add localizations
-			data.setDescriptionLocalizations(getDescriptionLocalization());
+			data.setDescriptionLocalizations(descriptionLocalization);
 		}
 		// Add if NSFW command
 		if (nsfwOnly) {
 			data.setNSFW(true);
-		}
-		// Add AccessLevel if ownerCommand
-		if (ownerCommand) {
-			this.accessLevel = CmdAccessLevel.DEV;
 		}
 
 		// Check for children
@@ -379,16 +337,19 @@ public abstract class SlashCommand extends Interaction
 			for (SlashCommand child : children) {
 				// Inherit
 				if (child.userPermissions.length == 0) {
-					child.userPermissions = getUserPermissions();
+					child.userPermissions = userPermissions;
 				}
 				if (child.botPermissions.length == 0) {
-					child.botPermissions = getBotPermissions();
+					child.botPermissions = botPermissions;
 				}
-				if (Objects.equals(child.getAccessLevel().getLevel(), CmdAccessLevel.ALL.getLevel())) {
-					child.accessLevel = getAccessLevel();
+				if (child.getAccessLevel().equals(CmdAccessLevel.ALL)) {
+					child.accessLevel = accessLevel;
 				}
 				if (child.module == null) {
-					child.module = getModule();
+					child.module = module;
+				}
+				if (isEphemeralReply()) {
+					child.ephemeral = true;
 				}
 				// Set attributes
 				child.help = lu.getText(child.getHelpPath());
@@ -435,12 +396,21 @@ public abstract class SlashCommand extends Interaction
 				data.addSubcommandGroups(groupData.values());
 		}
 
-		if (getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN))
-			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(this.getUserPermissions()));
+		if (accessLevel.isLowerThan(CmdAccessLevel.ADMIN))
+			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(userPermissions));
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
 
-		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
+		data.setContexts(guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
+
+		// Register middlewares
+		registerThrottleMiddleware();
+		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
+			middlewares.add("hasAccess");
+		}
+		if (botPermissions.length > 0 || userPermissions.length > 0) {
+			middlewares.add("permissions");
+		}
 
 		return data;
 	}
@@ -452,83 +422,6 @@ public abstract class SlashCommand extends Interaction
 	 */
 	public SlashCommand[] getChildren() {
 		return children;
-	}
-
-	private void terminate(SlashCommandEvent event, @NotNull MessageEmbed embed, CommandClient client) {
-		terminate(event, MessageCreateData.fromEmbeds(embed), client);
-	}
-
-	private void terminate(SlashCommandEvent event, MessageCreateData message, CommandClient client) {
-		if (message != null)
-			event.reply(message).setEphemeral(true).queue(null, failure -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
-		if (client.getListener() != null)
-			client.getListener().onTerminatedSlashCommand(event, this);
-	}
-
-	private void terminate(SlashCommandEvent event, CommandClient client) {
-		if (client.getListener() != null)
-			client.getListener().onTerminatedSlashCommand(event, this);
-	}
-
-	/**
-	 * Gets the proper cooldown key for this Command under the provided
-	 * {@link SlashCommandEvent SlashCommandEvent}.
-	 *
-	 * @param  event
-	 *         The CommandEvent to generate the cooldown for.
-	 *
-	 * @return A String key to use when applying a cooldown.
-	 */
-	public String getCooldownKey(SlashCommandEvent event) {
-		return switch (cooldownScope) {
-			case USER -> cooldownScope.genKey(name, event.getUser().getIdLong());
-			case USER_GUILD ->
-				Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name, event.getUser().getIdLong(), g.getIdLong()))
-					.orElse(CooldownScope.USER_CHANNEL.genKey(name, event.getUser().getIdLong(), event.getChannel().getIdLong()));
-			case USER_CHANNEL ->
-				cooldownScope.genKey(name, event.getUser().getIdLong(), event.getChannel().getIdLong());
-			case GUILD -> Optional.of(event.getGuild()).map(g -> cooldownScope.genKey(name, g.getIdLong()))
-				.orElse(CooldownScope.CHANNEL.genKey(name, event.getChannel().getIdLong()));
-			case CHANNEL -> cooldownScope.genKey(name, event.getChannel().getIdLong());
-			case SHARD -> {
-				event.getJDA().getShardInfo();
-				yield cooldownScope.genKey(name, event.getJDA().getShardInfo().getShardId());
-			}
-			case USER_SHARD -> {
-				event.getJDA().getShardInfo();
-				yield cooldownScope.genKey(name, event.getUser().getIdLong(), event.getJDA().getShardInfo().getShardId());
-			}
-			case GLOBAL -> cooldownScope.genKey(name, 0);
-		};
-	}
-
-	/**
-	 * Gets an error message for this Command under the provided
-	 * {@link SlashCommandEvent SlashCommandEvent}.
-	 *
-	 * @param  event
-	 *         The CommandEvent to generate the error message for.
-	 * @param  remaining
-	 *         The remaining number of seconds a command is on cooldown for.
-	 *
-	 * @return A String error message for this command if {@code remaining > 0},
-	 *         else {@code null}.
-	 */
-	private MessageCreateData getCooldownErrorEmbed(SlashCommandEvent event, int remaining) {
-		if (remaining <= 0)
-			return null;
-		
-		StringBuilder front = new StringBuilder(lu.getText(event,"errors.cooldown.cooldown_command")
-			.replace("{time}", Integer.toString(remaining))
-		);
-		if (cooldownScope.equals(CooldownScope.USER_GUILD) && event.getGuild()==null)
-			front.append(" ").append(lu.getText(event, CooldownScope.USER_CHANNEL.getErrorPath()));
-		else if (cooldownScope.equals(CooldownScope.GUILD) && event.getGuild()==null)
-			front.append(" ").append(lu.getText(event, CooldownScope.CHANNEL.getErrorPath()));
-		else if (!cooldownScope.equals(CooldownScope.USER))
-			front.append(" ").append(lu.getText(event, cooldownScope.getErrorPath()));
-
-		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
 	}
 
 	/**
@@ -558,4 +451,82 @@ public abstract class SlashCommand extends Interaction
 	public boolean isGuildOnly() {
 		return guildOnly;
 	}
+
+	// Edit Message(String or MED) and Embed
+	protected void editMsg(IReplyCallback event, @NotNull String msg) {
+		event.getHook().editOriginal(msg).queue();
+	}
+
+	protected void editMsg(IReplyCallback event, @NotNull MessageEditData data) {
+		event.getHook().editOriginal(data).queue();
+	}
+
+	protected void editEmbed(IReplyCallback event, @NotNull MessageEmbed... embeds) {
+		event.getHook().editOriginalEmbeds(embeds).queue();
+	}
+
+	// Edit Error
+	protected void editError(IReplyCallback event, @NotNull MessageEditData data) {
+		event.getHook().editOriginal(data)
+			.setComponents()
+			.queue(msg -> {
+				if (!msg.isEphemeral())
+					msg.delete().queueAfter(20, TimeUnit.SECONDS, null, ignoreRest);
+			});
+	}
+
+	protected void editError(IReplyCallback event, @NotNull MessageEmbed embed) {
+		editError(event, new MessageEditBuilder()
+			.setContent(lu.getText(event, "misc.temp_msg"))
+			.setEmbeds(embed)
+			.build()
+		);
+	}
+
+	protected void editError(IReplyCallback event, @NotNull String path) {
+		editError(event, path, null);
+	}
+
+	protected void editError(IReplyCallback event, @NotNull String path, String reason) {
+		editError(event, bot.getEmbedUtil().getError(event, path, reason));
+	}
+
+	protected void editErrorOther(IReplyCallback event, String details) {
+		editError(event, bot.getEmbedUtil().getError(event, "errors.error", details));
+	}
+
+	protected void editErrorUnknown(IReplyCallback event, String details) {
+		editError(event, bot.getEmbedUtil().getError(event, "errors.unknown", details));
+	}
+
+	protected void editErrorDatabase(IReplyCallback event, Exception exception, String details) {
+		if (exception instanceof SQLException ex) {
+			editError(event, bot.getEmbedUtil().getError(event, "errors.database", "%s: %s".formatted(ex.getErrorCode(), details)));
+		} else {
+			editError(event, bot.getEmbedUtil().getError(event, "errors.database", "%s\n> %s".formatted(details, exception.getMessage())));
+		}
+	}
+
+	protected void editErrorLimit(IReplyCallback event, String name, int maximum) {
+		editError(event, bot.getEmbedUtil().getError(event, "errors.db_limit", "> Maximum *%s*: %d".formatted(name, maximum)));
+	}
+
+	// PermError
+	protected void editPermError(IReplyCallback event, Permission perm, boolean self) {
+		editError(event, MessageEditData.fromCreateData(bot.getEmbedUtil().createPermError(event, perm, self)));
+	}
+
+
+	protected void ignoreExc(RunnableExc runnable) {
+		try {
+			runnable.run();
+		} catch (SQLException ignored) {}
+	}
+
+	@FunctionalInterface protected interface RunnableExc { void run() throws SQLException; }
+
+	protected static final Consumer<Throwable> ignoreRest = ignored -> {
+		// Nothing to see here
+		// Ignore everything
+	};
 }

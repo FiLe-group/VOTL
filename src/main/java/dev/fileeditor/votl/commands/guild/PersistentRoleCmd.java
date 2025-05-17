@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.guild;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -18,7 +17,7 @@ import java.sql.SQLException;
 import java.util.EnumSet;
 import java.util.List;
 
-public class PersistentRoleCmd extends CommandBase {
+public class PersistentRoleCmd extends SlashCommand {
 
 	public PersistentRoleCmd() {
 		this.name = "persistent";
@@ -50,8 +49,6 @@ public class PersistentRoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			if (bot.getDBUtil().persistent.countRoles(event.getGuild().getIdLong()) >= Limits.PERSISTENT_ROLES) {
 				editErrorLimit(event, "roles", Limits.PERSISTENT_ROLES);
 				return;
@@ -90,8 +87,6 @@ public class PersistentRoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Role role = event.optRole("role");
 
 			try {
@@ -110,12 +105,11 @@ public class PersistentRoleCmd extends CommandBase {
 		public View() {
 			this.name = "view";
 			this.path = "bot.guild.persistent.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			final List<Long> roleIds = bot.getDBUtil().persistent.getRoles(event.getGuild().getIdLong());
 			if (roleIds.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()

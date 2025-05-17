@@ -7,10 +7,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -35,11 +35,11 @@ import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
-public class DeleteStrikeCmd extends CommandBase {
+public class DeleteStrikeCmd extends SlashCommand {
 
 	private final EventWaiter waiter;
-	
-	public DeleteStrikeCmd(EventWaiter waiter) {
+
+	public DeleteStrikeCmd() {
 		this.name = "delstrike";
 		this.path = "bot.moderation.delstrike";
 		this.options = List.of(
@@ -48,15 +48,14 @@ public class DeleteStrikeCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.STRIKES;
 		this.accessLevel = CmdAccessLevel.MOD;
-		this.cooldown = 10;
-		this.cooldownScope = CooldownScope.GUILD;
-		this.waiter = waiter;
+		addMiddlewares(
+			"throttle:guild,1,10"
+		);
+		this.waiter = App.getInstance().getEventWaiter();
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		User tu = event.optUser("user");
 		if (tu == null) {
 			editError(event, path+".not_found");
@@ -90,20 +89,23 @@ public class DeleteStrikeCmd extends CommandBase {
 			.setPlaceholder(lu.getText(event, path+".select_strike"))
 			.addOptions(options)
 			.build();
-		event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
-			.setTitle(lu.getText(event, path+".select_title").formatted(tu.getName(), strikeData.getLeft()))
-			.setFooter("User ID: "+tu.getId())
-			.build()
-		).setActionRow(caseSelectMenu).queue(msg -> waiter.waitForEvent(
-			StringSelectInteractionEvent.class,
-			e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
-			selectAction -> strikeSelected(selectAction, msg, cases, tu),
-			60,
-			TimeUnit.SECONDS,
-			() -> msg.editMessageComponents(ActionRow.of(
-				caseSelectMenu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build()
-			)).queue()
-		));
+		event.getHook()
+			.editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
+				.setTitle(lu.getText(event, path+".select_title").formatted(tu.getName(), strikeData.getLeft()))
+				.setFooter("User ID: "+tu.getId())
+				.build()
+			)
+			.setActionRow(caseSelectMenu)
+			.queue(msg -> waiter.waitForEvent(
+				StringSelectInteractionEvent.class,
+				e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
+				selectAction -> strikeSelected(selectAction, msg, cases, tu),
+				60,
+				TimeUnit.SECONDS,
+				() -> msg.editMessageComponents(ActionRow.of(
+					caseSelectMenu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build()
+				)).queue()
+			));
 	}
 
 	private void strikeSelected(StringSelectInteractionEvent event, Message msg, String[] strikesInfoArray, User tu) {

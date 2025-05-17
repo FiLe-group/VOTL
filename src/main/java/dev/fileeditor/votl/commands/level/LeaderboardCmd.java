@@ -1,8 +1,7 @@
 package dev.fileeditor.votl.commands.level;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -13,7 +12,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.List;
 
-public class LeaderboardCmd extends CommandBase {
+public class LeaderboardCmd extends SlashCommand {
 	public LeaderboardCmd() {
 		this.name = "leaderboard";
 		this.path = "bot.level.leaderboard";
@@ -24,14 +23,13 @@ public class LeaderboardCmd extends CommandBase {
 				.addChoice("Text", 1)
 				.addChoice("Voice", 2)
 		);
-		this.cooldown = 30;
-		this.cooldownScope = CooldownScope.USER;
+		addMiddlewares(
+			"throttle:user,1,30"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		long authorId = event.getUser().getIdLong();
 
 		ExpType expType = ExpType.values()[event.optInteger("type", 0)];

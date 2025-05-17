@@ -7,8 +7,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -17,8 +17,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class TicketCountCmd extends CommandBase {
-	
+public class TicketCountCmd extends SlashCommand {
 	public TicketCountCmd() {
 		this.name = "tcount";
 		this.path = "bot.ticketing.tcount";
@@ -33,7 +32,6 @@ public class TicketCountCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
 		String afterDate = event.optString("start_date");
 		String beforeDate = event.optString("end_date");
 		Instant afterTime = null;
@@ -66,5 +64,4 @@ public class TicketCountCmd extends CommandBase {
 				.replace("{roles}", Integer.toString(countRoles)).replace("{other}", Integer.toString(countOther)))
 			.build());
 	}
-
 }

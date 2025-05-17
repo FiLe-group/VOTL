@@ -8,9 +8,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -40,8 +39,8 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
-public class StrikeCmd extends CommandBase {
-	
+public class StrikeCmd extends SlashCommand {
+
 	public StrikeCmd() {
 		this.name = "strike";
 		this.path = "bot.moderation.strike";
@@ -58,14 +57,14 @@ public class StrikeCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.STRIKES;
 		this.accessLevel = CmdAccessLevel.MOD;
-		this.cooldown = 5;
-		this.cooldownScope = CooldownScope.GUILD;
+		addMiddlewares(
+			"throttle:user,1,10",
+			"throttle:guild,2,20"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		Member tm = event.optMember("user");
 		if (tm == null) {
 			editError(event, path+".not_found");
@@ -263,7 +262,7 @@ public class StrikeCmd extends CommandBase {
 							.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 					});
 
-					guild.ban(target, 0, TimeUnit.SECONDS).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
+					guild.ban(target, 0, TimeUnit.SECONDS).reason(reason).queue(done -> {
 						// add case to DB
 						try {
 							CaseData caseData = bot.getDBUtil().cases.add(
@@ -365,7 +364,7 @@ public class StrikeCmd extends CommandBase {
 							.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 					});
 
-					guild.timeoutFor(target, duration).reason(lu.getLocalized(locale, path+".autopunish_reason").formatted(strikes)).queue(done -> {
+					guild.timeoutFor(target, duration).reason(reason).queue(done -> {
 						try {
 							// add case to DB
 							CaseData caseData = bot.getDBUtil().cases.add(

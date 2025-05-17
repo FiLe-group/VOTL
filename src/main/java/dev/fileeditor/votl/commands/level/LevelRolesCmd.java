@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.level;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -19,7 +18,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class LevelRolesCmd extends CommandBase {
+public class LevelRolesCmd extends SlashCommand {
+
 	public LevelRolesCmd() {
 		this.name = "level_roles";
 		this.path = "bot.level.level_roles";
@@ -50,8 +50,6 @@ public class LevelRolesCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			int level = event.optInteger("level");
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -96,8 +94,6 @@ public class LevelRolesCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			int level = event.optInteger("level");
 
 			if (!bot.getDBUtil().levelRoles.getAllLevels(event.getGuild().getIdLong()).existsAtLevel(level)) {
@@ -122,12 +118,11 @@ public class LevelRolesCmd extends CommandBase {
 		public ViewLevelRoles() {
 			this.name = "view";
 			this.path = "bot.level.level_roles.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			LevelRolesManager.LevelRoleData data = bot.getDBUtil().levelRoles.getAllLevels(event.getGuild().getIdLong());
 			if (data.isEmpty()) {
 				editError(event, path+".empty");
@@ -162,4 +157,5 @@ public class LevelRolesCmd extends CommandBase {
 			);
 		}
 	}
+
 }

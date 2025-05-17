@@ -10,7 +10,6 @@ import java.util.Set;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -33,7 +32,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
-public class LogsCmd extends CommandBase {
+public class LogsCmd extends SlashCommand {
 	
 	public LogsCmd() {
 		this.name = "logs";
@@ -64,8 +63,6 @@ public class LogsCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			TextChannel channel = (TextChannel) event.optGuildChannel("channel");
 			if (channel == null) {
 				editError(event, path+".no_channel");
@@ -135,7 +132,6 @@ public class LogsCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 
 			String input = event.optString("type");
@@ -186,11 +182,11 @@ public class LogsCmd extends CommandBase {
 			this.name = "view";
 			this.path = "bot.guild.logs.manage.view";
 			this.subcommandGroup = new SubcommandGroupData("manage", lu.getText("bot.guild.logs.manage.help"));
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Guild guild = event.getGuild();
 
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
@@ -227,8 +223,6 @@ public class LogsCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			if (bot.getDBUtil().logExemptions.countExemptions(event.getGuild().getIdLong()) >= Limits.LOG_EXEMPTIONS) {
 				editErrorLimit(event, "exemptions", Limits.LOG_EXEMPTIONS);
 				return;
@@ -279,7 +273,6 @@ public class LogsCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Long targetId;
 			try {
 				targetId = castLong(event.optString("id"));
@@ -311,12 +304,13 @@ public class LogsCmd extends CommandBase {
 			this.name = "view";
 			this.path = "bot.guild.logs.exemptions.view";
 			this.subcommandGroup = new SubcommandGroupData("exemptions", lu.getText("bot.guild.logs.exemptions.help"));
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Set<Long> targets = bot.getDBUtil().logExemptions.getExemptions(event.getGuild().getIdLong());
+
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(path+".title"));
 			if (targets.isEmpty()) {
@@ -324,7 +318,9 @@ public class LogsCmd extends CommandBase {
 			} else {
 				targets.forEach(id -> builder.appendDescription("<#%s> (%<s)\n".formatted(id)));
 			}
+
 			editEmbed(event, builder.build());
 		}
 	}
+
 }

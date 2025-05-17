@@ -1,7 +1,8 @@
 package dev.fileeditor.votl.commands.owner;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.entities.Guild;
@@ -11,12 +12,12 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.sql.SQLException;
 import java.util.List;
 
-public class ExperienceCmd extends CommandBase {
+public class ExperienceCmd extends SlashCommand {
 	public ExperienceCmd() {
 		this.name = "experience";
 		this.path = "bot.owner.experience";
 		this.category = CmdCategory.OWNER;
-		this.ownerCommand = true;
+		this.accessLevel = CmdAccessLevel.DEV;
 		this.options = List.of(
 			new OptionData(OptionType.INTEGER, "action", lu.getText(path+".action.help"), true)
 				.addChoice("Add TEXT", 0)
@@ -35,8 +36,6 @@ public class ExperienceCmd extends CommandBase {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		long userId = event.optLong("user");
 
 		int action = event.optInteger("action");

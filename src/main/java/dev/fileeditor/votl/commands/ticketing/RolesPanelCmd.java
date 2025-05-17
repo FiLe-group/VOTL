@@ -6,7 +6,6 @@ import java.util.List;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.RoleType;
@@ -29,12 +28,14 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
-public class RolesPanelCmd extends CommandBase {
+public class RolesPanelCmd extends SlashCommand {
 	
 	public RolesPanelCmd() {
 		this.name = "rolespanel";
 		this.path = "bot.ticketing.rolespanel";
-		this.children = new SlashCommand[]{new Create(), new Update(), new RowText()};
+		this.children = new SlashCommand[]{
+			new Create(), new Update(), new RowText()
+		};
 		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND};
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
@@ -56,7 +57,6 @@ public class RolesPanelCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
 
@@ -117,8 +117,6 @@ public class RolesPanelCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
 			GuildChannel channel = event.optGuildChannel("channel");
@@ -190,7 +188,6 @@ public class RolesPanelCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer row = event.optInteger("row");
 			String text = event.optString("text");
 

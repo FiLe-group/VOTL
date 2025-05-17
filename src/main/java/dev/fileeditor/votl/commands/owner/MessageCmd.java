@@ -1,17 +1,17 @@
 package dev.fileeditor.votl.commands.owner;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
 import java.util.List;
 
-public class MessageCmd extends CommandBase {
-
+public class MessageCmd extends SlashCommand {
 	public MessageCmd() {
 		this.name = "message";
 		this.path = "bot.owner.message";
@@ -20,8 +20,9 @@ public class MessageCmd extends CommandBase {
 			new OptionData(OptionType.STRING, "content", lu.getText(path+".content.help"), true)
 		);
 		this.category = CmdCategory.OWNER;
-		this.ownerCommand = true;
+		this.accessLevel = CmdAccessLevel.DEV;
 		this.guildOnly = false;
+		this.ephemeral = true;
 	}
 
 	@Override
@@ -29,11 +30,11 @@ public class MessageCmd extends CommandBase {
 		String channelId = event.optString("channel_id");
 		GuildMessageChannel channel = event.getJDA().getChannelById(GuildMessageChannel.class, channelId);
 		if (channel == null) {
-			event.reply(Constants.FAILURE+" Channel not found.").queue();
+			editMsg(event, Constants.FAILURE+" Channel not found.");
 			return;
 		}
 
 		channel.sendMessage(event.optString("content")).queue();
-		event.reply(Constants.SUCCESS).queue();
+		editMsg(event, Constants.SUCCESS);
 	}
 }

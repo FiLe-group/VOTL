@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandListener;
@@ -34,6 +34,9 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
 
+import dev.fileeditor.votl.blacklist.Blacklist;
+import dev.fileeditor.votl.middleware.MiddlewareStack;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -78,7 +81,8 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	private final boolean manualUpsert;
 	private final HashMap<String,OffsetDateTime> cooldowns;
 	private final boolean shutdownAutomatically;
-	private final ScheduledExecutorService executor;
+	private final ExecutorService commandService;
+	private final Blacklist blacklist;
 
 	private CommandListener listener = null;
 
@@ -86,7 +90,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		long ownerId, Activity activity, OnlineStatus status,
 		ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus,
 		String forcedGuildId, String[] devGuildIds, boolean manualUpsert,
-		boolean shutdownAutomatically, ScheduledExecutorService executor
+		boolean shutdownAutomatically, ExecutorService executor, Blacklist blacklist
 	) {
 		Checks.check(ownerId > 0L, "Provided owner ID is incorrect (<0).");
 
@@ -105,7 +109,8 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		this.manualUpsert = manualUpsert;
 		this.cooldowns = new HashMap<>();
 		this.shutdownAutomatically = shutdownAutomatically;
-		this.executor = executor==null ? Executors.newSingleThreadScheduledExecutor() : executor;
+		this.commandService = executor!=null ? executor : Executors.newVirtualThreadPerTaskExecutor();
+		this.blacklist = blacklist;
 
 		// Load slash commands
 		for (SlashCommand command : slashCommands) {
@@ -159,11 +164,6 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public OffsetDateTime getCooldown(String name) {
-		return cooldowns.get(name);
-	}
-
-	@Override
 	public int getRemainingCooldown(String name) {
 		if (cooldowns.containsKey(name)) {
 			int time = (int) Math.ceil(OffsetDateTime.now().until(cooldowns.get(name), ChronoUnit.MILLIS) / 1000D);
@@ -179,13 +179,6 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	@Override
 	public void applyCooldown(String name, int seconds) {
 		cooldowns.put(name, OffsetDateTime.now().plusSeconds(seconds));
-	}
-
-	@Override
-	public void cleanCooldowns() {
-		OffsetDateTime now = OffsetDateTime.now();
-		cooldowns.keySet().stream().filter((str) -> (cooldowns.get(str).isBefore(now)))
-				.toList().forEach(cooldowns::remove);
 	}
 
 	@Override
@@ -248,13 +241,8 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public ScheduledExecutorService getScheduleExecutor() {
-		return executor;
-	}
-
-	@Override
 	public void shutdown() {
-		executor.shutdown();
+		commandService.shutdown();
 	}
 
 	@Override
@@ -273,8 +261,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 				if (shutdownAutomatically)
 					shutdown();
 			}
-			default -> {
-			}
+			default -> {}
 		}
 	}
 
@@ -342,22 +329,20 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public void upsertInteractions(JDA jda, String[] serverIds) {
+	public void upsertInteractions(JDA jda, String[] devGuildIds) {
 		// Get all commands
 		List<CommandData> data = new ArrayList<>();
 		List<CommandData> dataDev = new ArrayList<>();
-		List<SlashCommand> slashCommands = getSlashCommands();
-		List<ContextMenu> contextMenus = getContextMenus();
 
 		// Build the command and privilege data
-		for (SlashCommand command : slashCommands) {
-			if (!command.isOwnerCommand()) {
-				data.add(command.buildCommandData());
-			} else {
+		for (SlashCommand command : getSlashCommands()) {
+			if (command.getAccessLevel().satisfies(CmdAccessLevel.DEV)) {
 				dataDev.add(command.buildCommandData());
+			} else {
+				data.add(command.buildCommandData());
 			}
 		}
-		for (ContextMenu menu : contextMenus) {
+		for (ContextMenu menu : getContextMenus()) {
 			data.add(menu.buildCommandData());
 		}
 
@@ -365,27 +350,29 @@ public class CommandClientImpl implements CommandClient, EventListener {
 			.queue(commands -> LOG.debug("Successfully added {} slash commands globally!", commands.size()));
 
 		// Upsert the commands
-		for (String serverId : serverIds) {
+		for (String guildId : devGuildIds) {
 			// Attempt to retrieve the provided guild
-			if (serverId == null) {
+			if (guildId == null) {
 				LOG.error("One of the specified developer guild id is null! Check provided values.");
 				return;
 			}
-			Guild server = jda.getGuildById(serverId);
-			if (server == null) {
+			Guild guild = jda.getGuildById(guildId);
+			if (guild == null) {
 				LOG.error("Specified dev guild is null! Slash Commands will NOT be added! Is the bot added?");
 				return;
 			}
 			// Upsert the commands + their privileges
-			server.updateCommands().addCommands(dataDev)
+			guild.updateCommands().addCommands(dataDev)
 				.queue(
-					done -> LOG.debug("Successfully added {} slash commands to server {}", dataDev.size(), server.getName()),
+					done -> LOG.debug("Successfully added {} slash commands to server {}", dataDev.size(), guild.getName()),
 					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?", error)
 				);
 		}
 	}
 
 	private void onSlashCommand(SlashCommandInteractionEvent event) {
+		if (blacklist != null && blacklist.isBlacklisted(event)) return;
+
 		// this will be null if it's not a command
 		final SlashCommand command = findSlashCommand(event.getFullCommandName());
 
@@ -395,12 +382,13 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		if (command != null) {
 			if (listener != null)
 				listener.onSlashCommand(commandEvent, command);
-			command.run(commandEvent);
-			// Command is done
+			// Start middleware stack
+			invokeMiddlewareStack(new MiddlewareStack(command, commandEvent));
 		}
 	}
 
 	private void onCommandAutoComplete(CommandAutoCompleteInteractionEvent event) {
+		if (blacklist != null && blacklist.isBlacklisted(event)) return;
 		// this will be null if it's not a command
 		final SlashCommand command = findSlashCommand(event.getFullCommandName());
 
@@ -445,6 +433,8 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	private void onUserContextMenu(UserContextInteractionEvent event) {
+		if (blacklist != null && blacklist.isBlacklisted(event)) return;
+
 		final UserContextMenu menu; // this will be null if it's not a command
 		synchronized (contextMenuIndex) {
 			ContextMenu c;
@@ -462,12 +452,14 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		if (menu != null) {
 			if (listener != null)
 				listener.onUserContextMenu(menuEvent, menu);
-			menu.run(menuEvent);
-			// Command is done
+			// Start middleware stack
+			invokeMiddlewareStack(new MiddlewareStack(menu, menuEvent));
 		}
 	}
 
 	private void onMessageContextMenu(MessageContextInteractionEvent event) {
+		if (blacklist != null && blacklist.isBlacklisted(event)) return;
+
 		final MessageContextMenu menu; // this will be null if it's not a command
 		synchronized (contextMenuIndex) {
 			ContextMenu c;
@@ -486,9 +478,13 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		if (menu != null) {
 			if (listener != null)
 				listener.onMessageContextMenu(menuEvent, menu);
-			menu.run(menuEvent);
-			// Command is done
+			// Start middleware stack
+			invokeMiddlewareStack(new MiddlewareStack(menu, menuEvent));
 		}
+	}
+
+	private void invokeMiddlewareStack(MiddlewareStack stack) {
+		commandService.submit(stack::next);
 	}
 
 }

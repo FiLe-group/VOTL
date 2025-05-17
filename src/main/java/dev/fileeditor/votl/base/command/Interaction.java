@@ -16,6 +16,10 @@
 package dev.fileeditor.votl.base.command;
 
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.contracts.middleware.Middleware;
+import dev.fileeditor.votl.contracts.reflection.Reflectionable;
+import dev.fileeditor.votl.middleware.MiddlewareHandler;
+import dev.fileeditor.votl.middleware.ThrottleMiddleware;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
@@ -23,15 +27,22 @@ import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 import net.dv8tion.jda.api.Permission;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * A class that represents an interaction with a user.
  * <p>
- * This is all information used for all forms of interactions. Namely, permissions and cooldowns.
+ * This is all information used for all forms of interactions.
  * <p>
  * Any content here is safely functionality equivalent regardless of the source of the interaction.
  */
-public abstract class Interaction
-{
+public abstract class Interaction extends Reflectionable {
+	public Interaction() {
+		super(App.getInstance());
+	}
+
 	/**
 	 * {@code true} if the command may only be used in a {@link net.dv8tion.jda.api.entities.Guild Guild},
 	 * {@code false} if it may be used in both a Guild and a DM.
@@ -57,46 +68,7 @@ public abstract class Interaction
 	@NotNull
 	protected Permission[] botPermissions = new Permission[0];
 
-	/**
-	 * {@code true} if the interaction may only be used by a User with an ID matching the
-	 * Owners or any of the CoOwners.<br>
-	 * If enabled for a Slash Command, only owners (owner + up to 9 co-owners) will be added to the SlashCommand.
-	 * All other permissions will be ignored.
-	 * <br>Default {@code false}.
-	 */
-	protected boolean ownerCommand = false;
-
-	/**
-	 * An {@code int} number of seconds users must wait before using this command again.
-	 */
-	protected int cooldown = 0;
-
-	/**
-	 * The {@link CooldownScope CooldownScope}
-	 * of the command. This defines how far the scope the cooldowns have.
-	 * <br>Default {@link CooldownScope#USER CooldownScope.USER}.
-	 */
-	protected CooldownScope cooldownScope = CooldownScope.USER;
-
-	/**
-	 * Gets the {@link Interaction#cooldown cooldown} for the Interaction.
-	 *
-	 * @return The cooldown for the Interaction
-	 */
-	public int getCooldown()
-	{
-		return cooldown;
-	}
-
-	/**
-	 * Gets the {@link Interaction#cooldown cooldown} for the Interaction.
-	 *
-	 * @return The cooldown for the Interaction
-	 */
-	public CooldownScope getCooldownScope()
-	{
-		return cooldownScope;
-	}
+	protected String throttle = null;
 
 	/**
 	 * Gets the {@link Interaction#userPermissions userPermissions} for the Interaction.
@@ -104,8 +76,7 @@ public abstract class Interaction
 	 * @return The userPermissions for the Interaction
 	 */
 	@NotNull
-	public Permission[] getUserPermissions()
-	{
+	public Permission[] getUserPermissions() {
 		return userPermissions;
 	}
 
@@ -115,19 +86,8 @@ public abstract class Interaction
 	 * @return The botPermissions for the Interaction
 	 */
 	@NotNull
-	public Permission[] getBotPermissions()
-	{
+	public Permission[] getBotPermissions() {
 		return botPermissions;
-	}
-
-	/**
-	 * Checks whether this is an owner only Interaction, meaning only the owner and co-owners can use it.
-	 *
-	 * @return {@code true} if the command is an owner interaction, otherwise {@code false} if it is not
-	 */
-	public boolean isOwnerCommand()
-	{
-		return ownerCommand;
 	}
 	
 	/**
@@ -136,8 +96,7 @@ public abstract class Interaction
 	 * @return The path for command's help string in locale file.
 	 */
 	@NotNull
-	public String getHelpPath()
-	{
+	public String getHelpPath() {
 		return path+".help";
 	}
 
@@ -147,8 +106,7 @@ public abstract class Interaction
 	 * @return The path for command's usage description string in locale file.
 	 */
 	@NotNull
-	public String getUsagePath()
-	{
+	public String getUsagePath() {
 		return path+".usage";
 	}
 
@@ -164,12 +122,72 @@ public abstract class Interaction
 	 * @return The path for command's string in locale file.
 	 */
 	@NotNull
-	public String getPath()
-	{
+	public String getPath() {
 		return path;
 	}
 
-	protected final App bot = App.getInstance();
+	protected List<String> middlewares = new ArrayList<>();
+
+	public List<String> getMiddlewares() {
+		return middlewares;
+	}
+
+	protected boolean hasMiddleware(@NotNull Class<? extends Middleware> clazz) {
+		String key = MiddlewareHandler.getName(clazz);
+		if (key == null) {
+			return false;
+		}
+
+		for (String middleware : middlewares) {
+			if (middleware.toLowerCase().startsWith(key)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected void addMiddlewares(String... data) {
+		middlewares.addAll(Arrays.asList(data));
+	}
+
+	private static final String DEFAULT_GUILD_LIMIT = "throttle:guild,20,15";
+	private static final String DEFAULT_USER_LIMIT = "throttle:user,2,5";
+
+	protected void registerThrottleMiddleware() {
+		if (!hasMiddleware(ThrottleMiddleware.class)) {
+			middlewares.add(DEFAULT_GUILD_LIMIT);
+			middlewares.add(DEFAULT_USER_LIMIT);
+			return;
+		}
+
+		boolean addUser = true;
+		boolean addGuild = true;
+
+		List<String> addMiddlewares = new ArrayList<>();
+		for (String middlewareName : middlewares) {
+			String[] parts = middlewareName.split(":");
+
+			Middleware middleware = MiddlewareHandler.getMiddleware(parts[0]);
+			if (!(middleware instanceof ThrottleMiddleware)) {
+				continue;
+			}
+
+			var type = ThrottleMiddleware.ThrottleType.fromName(parts[1].split(",")[0]);
+
+			switch (type) {
+				case USER -> addUser = false;
+				case GUILD, CHANNEL -> addGuild = false;
+			}
+
+			if (addUser) {
+				addMiddlewares.add(DEFAULT_USER_LIMIT);
+			}
+			if (addGuild) {
+				addMiddlewares.add(DEFAULT_GUILD_LIMIT);
+			}
+		}
+		middlewares.addAll(addMiddlewares);
+	}
 
 	protected final LocaleUtil lu = bot.getLocaleUtil();
 
@@ -183,6 +201,20 @@ public abstract class Interaction
 
 	public CmdModule getModule() {
 		return module;
+	}
+
+	/**
+	 * {@code true} if the command should reply with deferred ephemeral reply.
+	 * {@code false} if it should send normal deferred reply.
+	 * <br>Default: {@code false}
+	 */
+	protected boolean ephemeral = false;
+
+	/**
+	 * @return If deferred reply will be ephemeral.
+	 */
+	public boolean isEphemeralReply() {
+		return ephemeral;
 	}
 	
 }

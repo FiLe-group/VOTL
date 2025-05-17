@@ -1,4 +1,4 @@
-package dev.fileeditor.votl.services;
+package dev.fileeditor.votl.utils;
 
 import org.jetbrains.annotations.NotNull;
 

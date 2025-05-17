@@ -7,12 +7,11 @@ import java.util.Optional;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
-import dev.fileeditor.votl.utils.database.managers.BlacklistManager;
+import dev.fileeditor.votl.utils.database.managers.ServerBlacklistManager;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -22,7 +21,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class BlacklistCmd extends CommandBase {
+public class BlacklistCmd extends SlashCommand {
 	
 	public BlacklistCmd() {
 		this.name = "blacklist";
@@ -44,12 +43,11 @@ public class BlacklistCmd extends CommandBase {
 				new OptionData(OptionType.INTEGER, "group", lu.getText(path+".group.help"), true, true).setMinValue(1),
 				new OptionData(OptionType.INTEGER, "page", lu.getText(path+".page.help")).setMinValue(1)
 			);
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer groupId = event.optInteger("group");
 			long guildId = event.getGuild().getIdLong();
 			if ( !(bot.getDBUtil().group.isOwner(groupId, guildId) || bot.getDBUtil().group.canManage(groupId, guildId)) ) {
@@ -59,12 +57,12 @@ public class BlacklistCmd extends CommandBase {
 			}
 
 			Integer page = event.optInteger("page", 1);
-			var list = bot.getDBUtil().blacklist.getByPage(groupId, page);
+			var list = bot.getDBUtil().serverBlacklist.getByPage(groupId, page);
 			if (list.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty").formatted(page)).build());
 				return;
 			}
-			int pages = (int) Math.ceil(bot.getDBUtil().blacklist.countEntries(groupId) / 20.0);
+			int pages = (int) Math.ceil(bot.getDBUtil().serverBlacklist.countEntries(groupId) / 20.0);
 
 			EmbedBuilder builder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 				.setTitle(lu.getText(event, path+".title").formatted(groupId, page, pages));
@@ -91,12 +89,11 @@ public class BlacklistCmd extends CommandBase {
 			this.options = List.of(
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			long guildId = event.getGuild().getIdLong();
 			final List<Integer> groupIds = new ArrayList<>();
 			groupIds.addAll(bot.getDBUtil().group.getOwnedGroups(guildId));
@@ -109,7 +106,7 @@ public class BlacklistCmd extends CommandBase {
 			User user = event.optUser("user");
 
 			List<MessageEmbed> embeds = new ArrayList<>();
-			for (BlacklistManager.BlacklistData data : bot.getDBUtil().blacklist.searchUserId(user.getIdLong())) {
+			for (ServerBlacklistManager.BlacklistData data : bot.getDBUtil().serverBlacklist.searchUserId(user.getIdLong())) {
 				embeds.add(bot.getEmbedUtil().getEmbed()
 					.setTitle("Group #`%s`".formatted(data.getGroupId()))
 					.setDescription(lu.getText(event, path+".value")
@@ -145,8 +142,6 @@ public class BlacklistCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Integer groupId = event.optInteger("group");
 			long guildId = event.getGuild().getIdLong();
 			if ( !(bot.getDBUtil().group.isOwner(groupId, guildId) || bot.getDBUtil().group.canManage(groupId, guildId)) ) {
@@ -156,9 +151,9 @@ public class BlacklistCmd extends CommandBase {
 			}
 
 			User user = event.optUser("user");
-			if (bot.getDBUtil().blacklist.inGroupUser(groupId, user.getIdLong())) {
+			if (bot.getDBUtil().serverBlacklist.inGroupUser(groupId, user.getIdLong())) {
 				try {
-					bot.getDBUtil().blacklist.removeUser(groupId, user.getIdLong());
+					bot.getDBUtil().serverBlacklist.removeUser(groupId, user.getIdLong());
 				} catch (SQLException ex) {
 					editErrorDatabase(event, ex, "blacklist remove user");
 					return;

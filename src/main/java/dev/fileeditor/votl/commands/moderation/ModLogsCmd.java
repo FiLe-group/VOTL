@@ -2,9 +2,8 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.util.List;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -20,7 +19,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.TimeFormat;
 
-public class ModLogsCmd extends CommandBase {
+public class ModLogsCmd extends SlashCommand {
 
 	public ModLogsCmd() {
 		this.name = "modlogs";
@@ -32,14 +31,13 @@ public class ModLogsCmd extends CommandBase {
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.cooldown = 15;
-		this.cooldownScope = CooldownScope.USER;
+		addMiddlewares(
+			"throttle:user,1,20"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		User tu;
 		if (event.hasOption("user")) {
 			tu = event.optUser("user");

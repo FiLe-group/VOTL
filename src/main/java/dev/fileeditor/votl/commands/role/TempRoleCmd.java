@@ -10,7 +10,6 @@ import java.util.Objects;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -27,14 +26,16 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.TimeFormat;
 
-public class TempRoleCmd extends CommandBase {
+public class TempRoleCmd extends SlashCommand {
 
 	public static final int MAX_DAYS = 400;
 	
 	public TempRoleCmd() {
 		this.name = "temprole";
 		this.path = "bot.roles.temprole";
-		this.children = new SlashCommand[]{new Assign(), new Cancel(), new Extend(), new View()};
+		this.children = new SlashCommand[]{
+			new Assign(), new Cancel(), new Extend(), new View()
+		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
 		this.accessLevel = CmdAccessLevel.MOD;
@@ -57,8 +58,6 @@ public class TempRoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			// Check role
 			Role role = event.optRole("role");
@@ -149,7 +148,6 @@ public class TempRoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -200,7 +198,6 @@ public class TempRoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -255,11 +252,11 @@ public class TempRoleCmd extends CommandBase {
 		public View() {
 			this.name = "view";
 			this.path = "bot.roles.temprole.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Guild guild = event.getGuild();
 			List<Map<String, Object>> list = bot.getDBUtil().tempRoles.getAll(guild.getIdLong());
 			if (list.isEmpty()) {

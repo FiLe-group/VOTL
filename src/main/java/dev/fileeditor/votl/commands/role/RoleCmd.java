@@ -8,10 +8,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -29,7 +27,7 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 @SuppressWarnings("Duplicates")
-public class RoleCmd extends CommandBase {
+public class RoleCmd extends SlashCommand {
 	
 	public RoleCmd() {
 		this.name = "role";
@@ -57,7 +55,6 @@ public class RoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 
 			// Get roles
@@ -125,7 +122,6 @@ public class RoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 
 			// Get roles
@@ -187,13 +183,13 @@ public class RoleCmd extends CommandBase {
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
 			);
 			this.accessLevel = CmdAccessLevel.ADMIN;
-			this.cooldownScope = CooldownScope.GUILD;
-			this.cooldown = 30;
+			addMiddlewares(
+				"throttle:guild,1,30"
+			);
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			// Check role
 			Role role = event.optRole("role");
@@ -256,14 +252,14 @@ public class RoleCmd extends CommandBase {
 			this.options = List.of(
 				new OptionData(OptionType.USER, "user", lu.getText(path + ".user.help"), true)
 			);
-			this.cooldownScope = CooldownScope.USER;
-			this.cooldown = 15;
+			addMiddlewares(
+				"throttle:user,1,20"
+			);
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member target = event.optMember("user");
 			if (target == null) {
 				editError(event, path+".no_user");
@@ -328,10 +324,13 @@ public class RoleCmd extends CommandBase {
 				return;
 			}
 
-			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
-				.setDescription(lu.getText(event, path+".title").formatted(target.getAsMention()))
-				.build()
-			).setComponents(actionRows).queue();
+			event.getHook()
+				.editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
+					.setDescription(lu.getText(event, path+".title").formatted(target.getAsMention()))
+					.build()
+				)
+				.setComponents(actionRows)
+				.queue();
 		}
 	}
 

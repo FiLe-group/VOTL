@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -28,12 +27,14 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.internal.utils.Checks;
 
-public class RolesManageCmd extends CommandBase {
+public class RolesManageCmd extends SlashCommand {
 	
 	public RolesManageCmd() {
 		this.name = "rolesmanage";
 		this.path = "bot.ticketing.rolesmanage";
-		this.children = new SlashCommand[]{new Add(), new Update(), new Remove(), new View()};
+		this.children = new SlashCommand[]{
+			new Add(), new Update(), new Remove(), new View()
+		};
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -68,7 +69,6 @@ public class RolesManageCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			long guildId = event.getGuild().getIdLong();
 			
 			Role role = event.optRole("role");
@@ -171,8 +171,6 @@ public class RolesManageCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			final Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, path+".no_role");
@@ -258,7 +256,6 @@ public class RolesManageCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			String input = event.optString("id").trim();
 
 			Matcher matcher = rolePattern.matcher(input);
@@ -291,11 +288,11 @@ public class RolesManageCmd extends CommandBase {
 		public View() {
 			this.name = "view";
 			this.path = "bot.ticketing.rolesmanage.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()

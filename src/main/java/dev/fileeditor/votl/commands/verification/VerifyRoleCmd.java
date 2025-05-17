@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -19,7 +18,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
 @SuppressWarnings("InnerClassMayBeStatic")
-public class VerifyRoleCmd extends CommandBase {
+public class VerifyRoleCmd extends SlashCommand {
 	
 	public VerifyRoleCmd() {
 		this.name = "verifyrole";
@@ -47,8 +46,6 @@ public class VerifyRoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Guild guild = event.getGuild();
 			// Check role
 			Role role = event.optRole("role");
@@ -89,7 +86,6 @@ public class VerifyRoleCmd extends CommandBase {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 
 			// Get roles
@@ -140,12 +136,12 @@ public class VerifyRoleCmd extends CommandBase {
 			try {
 				bot.getDBUtil().verifySettings.setAdditionalRoles(event.getGuild().getIdLong(), null);
 			} catch (SQLException ex) {
-				event.reply("Failed to update database").setEphemeral(true).queue();
+				editErrorDatabase(event, ex, "Failed to update database");
 			}
-			event.replyEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done"))
 				.build()
-			).queue();
+			);
 		}
 	}
 
@@ -154,6 +150,7 @@ public class VerifyRoleCmd extends CommandBase {
 			this.name = "view";
 			this.path = "bot.verification.verifyrole.additional.view";
 			this.subcommandGroup = new SubcommandGroupData("additional", lu.getText("bot.verification.verifyrole.additional.help"));
+			this.ephemeral = true;
 		}
 
 		@Override
@@ -161,13 +158,13 @@ public class VerifyRoleCmd extends CommandBase {
 			Set<Long> roleIds = bot.getDBUtil().getVerifySettings(event.getGuild()).getAdditionalRoles();
 
 			if (roleIds.isEmpty()) {
-				event.reply(lu.getText(event, path+".no_roles")).setEphemeral(true).queue();
+				editMsg(event, lu.getText(event, path+".no_roles"));
 			} else {
 				StringBuilder stringBuilder = new StringBuilder("**Roles:**");
 				for (Long roleId : roleIds) {
 					stringBuilder.append("\n> <@&").append(roleId).append(">");
 				}
-				event.reply(stringBuilder.toString()).setEphemeral(true).queue();
+				editMsg(event, stringBuilder.toString());
 			}
 		}
 	}

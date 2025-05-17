@@ -28,7 +28,7 @@ public class GuildListener extends ListenerAdapter {
 	@Override
 	public void onGuildJoin(@NotNull GuildJoinEvent event) {
 		Guild guild = event.getGuild();
-		if (bot.getCheckUtil().isBlacklisted(guild)) {
+		if (bot.getBlacklist().isBlacklisted(guild)) {
 			guild.leave().queue();
 			log.info("Auto-left new guild '{}'({}) BLACKLIST!", guild.getName(), guild.getId());
 		} else {

@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	// ShadowJar
 	// https://mvnrepository.com/artifact/com.gradleup.shadow/shadow-gradle-plugin
-	id 'com.gradleup.shadow' version '9.0.0-beta12'
+	id 'com.gradleup.shadow' version '9.0.0-beta13'
 }
 
 // Getting version
@@ -38,6 +38,8 @@ dependencies {
 	implementation 'org.json:json:20250107'							// JsonObject
 	// https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
 	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.0'	// Cache
+	// https://mvnrepository.com/artifact/org.reflections/reflections
+	implementation 'org.reflections:reflections:0.10.2'
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy

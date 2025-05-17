@@ -3,8 +3,9 @@ package dev.fileeditor.votl.commands.owner;
 import java.util.List;
 import java.util.Map;
 
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.message.MessageUtil;
@@ -20,8 +21,7 @@ import org.codehaus.groovy.runtime.powerassert.PowerAssertionError;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 
-public class EvalCmd extends CommandBase {
-	
+public class EvalCmd extends SlashCommand {
 	public EvalCmd() {
 		this.name = "eval";
 		this.path = "bot.owner.eval";
@@ -29,13 +29,12 @@ public class EvalCmd extends CommandBase {
 			new OptionData(OptionType.STRING, "code", lu.getText(path+".code.help"), true) 
 		);
 		this.category = CmdCategory.OWNER;
-		this.ownerCommand = true;
+		this.accessLevel = CmdAccessLevel.DEV;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(true).queue();
-
 		DiscordLocale userLocale = event.getUserLocale();
 
 		String args = event.optString("code");

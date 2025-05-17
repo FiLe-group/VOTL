@@ -3,9 +3,8 @@ package dev.fileeditor.votl.commands.moderation;
 import java.util.List;
 import java.util.Objects;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
+import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.commands.CommandBase;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -18,7 +17,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class UnmuteCmd extends CommandBase {
+public class UnmuteCmd extends SlashCommand {
 	
 	public UnmuteCmd() {
 		this.name = "unmute";
@@ -31,14 +30,13 @@ public class UnmuteCmd extends CommandBase {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.MOD;
-		this.cooldown = 5;
-		this.cooldownScope = CooldownScope.GUILD;
+		addMiddlewares(
+			"throttle:guild,1,10"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-		
 		Member tm = event.optMember("user");
 		if (tm == null) {
 			editError(event, path+".not_found");

@@ -13,10 +13,10 @@ import static dev.fileeditor.votl.utils.CastUtil.castLong;
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 
 @SuppressWarnings("unused")
-public class BlacklistManager extends LiteBase {
+public class ServerBlacklistManager extends LiteBase {
 	
-	public BlacklistManager(ConnectionUtil cu) {
-		super(cu, "blacklist");
+	public ServerBlacklistManager(ConnectionUtil cu) {
+		super(cu, "serverBlacklist");
 	}
 
 	public void add(long guildId, int groupId, long userId, @Nullable String reason, long modId) {
