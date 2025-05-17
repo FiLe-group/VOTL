@@ -15,9 +15,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 
 import java.sql.SQLException;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
@@ -83,11 +81,11 @@ public class ModReportCmd extends SlashCommand {
 
 			int interval = event.optInteger("interval", 7);
 
-			Instant firstReport;
+			LocalDateTime firstReport;
 			if (event.hasOption("first_report")) {
 				String input = event.optString("first_report");
 				try {
-					firstReport = LocalDateTime.parse(input, DATE_TIME_FORMAT).toInstant(ZoneOffset.UTC);
+					firstReport = LocalDateTime.parse(input, DATE_TIME_FORMAT);
 				} catch (DateTimeParseException ex) {
 					editError(event, path+".failed_parse", ex.getMessage());
 					return;
@@ -95,11 +93,11 @@ public class ModReportCmd extends SlashCommand {
 			} else {
 				// Next monday OR first month day at 3:00 (server time)
 				if (interval == 30)
-					firstReport = Instant.now().with(TemporalAdjusters.firstDayOfNextMonth()).with(ChronoField.HOUR_OF_DAY, 3);
+					firstReport = LocalDateTime.now().with(TemporalAdjusters.firstDayOfNextMonth()).withHour(3);
 				else
-					firstReport = Instant.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).with(ChronoField.HOUR_OF_DAY, 3);
+					firstReport = LocalDateTime.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).withHour(3);
 			}
-			if (firstReport.isBefore(Instant.now())) {
+			if (firstReport.isBefore(LocalDateTime.now())) {
 				editError(event, path+".wrong_date");
 				return;
 			}
@@ -123,7 +121,7 @@ public class ModReportCmd extends SlashCommand {
 			// Reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(
-					TimeFormat.DATE_TIME_SHORT.format(firstReport.atZone(ZoneOffset.UTC)), channel.getAsMention(),
+					TimeFormat.DATE_TIME_SHORT.format(firstReport), channel.getAsMention(),
 					interval, roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "))
 				))
 				.build());
