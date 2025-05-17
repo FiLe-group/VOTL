@@ -110,7 +110,7 @@ public abstract class SlashCommand extends Interaction {
 	 * {@code false} if it should send normal deferred reply.
 	 * <br>Default: {@code false}
 	 */
-	protected boolean ephemeralReply = false;
+	protected boolean ephemeral = false;
 
 	/**
 	 * Localization of slash command name. Allows discord to change the language of the name of slash commands in the client.<br>
@@ -303,7 +303,7 @@ public abstract class SlashCommand extends Interaction {
 	 * @return If deferred reply will be ephemeral.
 	 */
 	public boolean isEphemeralReply() {
-		return ephemeralReply;
+		return ephemeral;
 	}
 
 	/**
@@ -385,6 +385,9 @@ public abstract class SlashCommand extends Interaction {
 				}
 				if (child.module == null) {
 					child.module = getModule();
+				}
+				if (isEphemeralReply()) {
+					child.ephemeral = true;
 				}
 				// Set attributes
 				child.help = lu.getText(child.getHelpPath());

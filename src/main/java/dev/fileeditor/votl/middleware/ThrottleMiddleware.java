@@ -17,8 +17,6 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
 
-import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
-
 public class ThrottleMiddleware extends Middleware {
 
 	public static final Cache<String, ThrottleEntity> cache = Caffeine.newBuilder()
@@ -41,8 +39,8 @@ public class ThrottleMiddleware extends Middleware {
 		ThrottleType type = ThrottleType.fromName(args[0]);
 
 		try {
-			int maxAttempts = getOrDefault(args[1], 2);
-			int decaySeconds = getOrDefault(args[2], 5);
+			int maxAttempts = Integer.parseInt(args[1]);
+			int decaySeconds = Integer.parseInt(args[2]);
 
 			if (decaySeconds <= 0) {
 				return stack.next();

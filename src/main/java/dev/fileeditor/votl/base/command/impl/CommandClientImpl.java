@@ -392,8 +392,6 @@ public class CommandClientImpl implements CommandClient, EventListener {
 				listener.onSlashCommand(commandEvent, command);
 			// Start middleware stack
 			invokeMiddlewareStack(new MiddlewareStack(command, commandEvent));
-			//command.run(commandEvent);
-			// Command is done
 		}
 	}
 
