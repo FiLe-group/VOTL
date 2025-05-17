@@ -120,6 +120,10 @@ public class App {
 		MessageListener messageListener = new MessageListener(this);
 		EventListener eventListener = new EventListener(dbUtil);
 
+		LOG.info("Preparing blacklist");
+		blacklist = new Blacklist(this);
+		blacklist.syncBlacklistWithDatabase();
+
 		// Define a command client
 		CommandClientBuilder commandClientBuilder = new CommandClientBuilder()
 			.setOwnerId(ownerId)
@@ -131,6 +135,7 @@ public class App {
 				new ActiveModlogsMenu()
 			)
 			.setListener(commandListener)
+			.setBlacklist(blacklist)
 			.setDevGuildIds(fileManager.getStringList("config", "dev-servers").toArray(new String[0]));
 
 		LOG.info("Registering default middlewares");
@@ -139,7 +144,7 @@ public class App {
 		MiddlewareHandler.register("hasAccess", new HasAccess(this));
 		MiddlewareHandler.register("permissions", new PermissionsCheck(this));
 
-		LOG.info("Registering commands...");
+		LOG.info("Registering commands");
 		AutoloaderUtil.load(Names.PACKAGE_COMMAND_PATH, command -> commandClientBuilder.addSlashCommands((SlashCommand) command), false);
 
 		commandClient = commandClientBuilder.build();
@@ -220,10 +225,6 @@ public class App {
 		LOG.info("Registering jobs...");
 		AutoloaderUtil.load(Names.PACKAGE_JOB_PATH, job -> ScheduleHandler.registerJob((Job) job));
 		LOG.info("Registered {} jobs successfully!", ScheduleHandler.entrySet().size());
-
-		LOG.info("Preparing blacklist");
-		blacklist = new Blacklist(this);
-		blacklist.syncBlacklistWithDatabase();
 
 		LOG.info("Creating user backgrounds");
 		UserBackgroundHandler.getInstance().start();

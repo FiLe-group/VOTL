@@ -17,7 +17,7 @@ public class Rate {
 	}
 
 	void hit() {
-		timestamps[index] = System.currentTimeMillis();
+		timestamps[index++] = System.currentTimeMillis();
 		if (index >= Ratelimit.hitLimit) {
 			index = 0;
 		}

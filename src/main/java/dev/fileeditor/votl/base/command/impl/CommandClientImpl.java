@@ -34,6 +34,7 @@ import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
 
+import dev.fileeditor.votl.blacklist.Blacklist;
 import dev.fileeditor.votl.middleware.MiddlewareStack;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import net.dv8tion.jda.api.JDA;
@@ -81,6 +82,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	private final HashMap<String,OffsetDateTime> cooldowns;
 	private final boolean shutdownAutomatically;
 	private final ExecutorService commandService;
+	private final Blacklist blacklist;
 
 	private CommandListener listener = null;
 
@@ -88,7 +90,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		long ownerId, Activity activity, OnlineStatus status,
 		ArrayList<SlashCommand> slashCommands, ArrayList<ContextMenu> contextMenus,
 		String forcedGuildId, String[] devGuildIds, boolean manualUpsert,
-		boolean shutdownAutomatically, ExecutorService executor
+		boolean shutdownAutomatically, ExecutorService executor, Blacklist blacklist
 	) {
 		Checks.check(ownerId > 0L, "Provided owner ID is incorrect (<0).");
 
@@ -108,6 +110,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		this.cooldowns = new HashMap<>();
 		this.shutdownAutomatically = shutdownAutomatically;
 		this.commandService = executor!=null ? executor : Executors.newVirtualThreadPerTaskExecutor();
+		this.blacklist = blacklist;
 
 		// Load slash commands
 		for (SlashCommand command : slashCommands) {
@@ -161,11 +164,6 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public OffsetDateTime getCooldown(String name) {
-		return cooldowns.get(name);
-	}
-
-	@Override
 	public int getRemainingCooldown(String name) {
 		if (cooldowns.containsKey(name)) {
 			int time = (int) Math.ceil(OffsetDateTime.now().until(cooldowns.get(name), ChronoUnit.MILLIS) / 1000D);
@@ -181,13 +179,6 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	@Override
 	public void applyCooldown(String name, int seconds) {
 		cooldowns.put(name, OffsetDateTime.now().plusSeconds(seconds));
-	}
-
-	@Override
-	public void cleanCooldowns() {
-		OffsetDateTime now = OffsetDateTime.now();
-		cooldowns.keySet().stream().filter((str) -> (cooldowns.get(str).isBefore(now)))
-				.toList().forEach(cooldowns::remove);
 	}
 
 	@Override
@@ -380,6 +371,8 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	private void onSlashCommand(SlashCommandInteractionEvent event) {
+		if (blacklist != null && blacklist.isBlacklisted(event)) return;
+
 		// this will be null if it's not a command
 		final SlashCommand command = findSlashCommand(event.getFullCommandName());
 
@@ -394,11 +387,8 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		}
 	}
 
-	private void invokeMiddlewareStack(MiddlewareStack stack) {
-		commandService.submit(stack::next);
-	}
-
 	private void onCommandAutoComplete(CommandAutoCompleteInteractionEvent event) {
+		if (blacklist != null && blacklist.isBlacklisted(event)) return;
 		// this will be null if it's not a command
 		final SlashCommand command = findSlashCommand(event.getFullCommandName());
 
@@ -443,6 +433,8 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	private void onUserContextMenu(UserContextInteractionEvent event) {
+		if (blacklist != null && blacklist.isBlacklisted(event)) return;
+
 		final UserContextMenu menu; // this will be null if it's not a command
 		synchronized (contextMenuIndex) {
 			ContextMenu c;
@@ -460,12 +452,14 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		if (menu != null) {
 			if (listener != null)
 				listener.onUserContextMenu(menuEvent, menu);
-			menu.run(menuEvent);
-			// Command is done
+			// Start middleware stack
+			invokeMiddlewareStack(new MiddlewareStack(menu, menuEvent));
 		}
 	}
 
 	private void onMessageContextMenu(MessageContextInteractionEvent event) {
+		if (blacklist != null && blacklist.isBlacklisted(event)) return;
+
 		final MessageContextMenu menu; // this will be null if it's not a command
 		synchronized (contextMenuIndex) {
 			ContextMenu c;
@@ -484,9 +478,13 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		if (menu != null) {
 			if (listener != null)
 				listener.onMessageContextMenu(menuEvent, menu);
-			menu.run(menuEvent);
-			// Command is done
+			// Start middleware stack
+			invokeMiddlewareStack(new MiddlewareStack(menu, menuEvent));
 		}
+	}
+
+	private void invokeMiddlewareStack(MiddlewareStack stack) {
+		commandService.submit(stack::next);
 	}
 
 }

@@ -1,9 +1,6 @@
 package dev.fileeditor.votl.commands.other;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -76,9 +73,7 @@ public class HelpCmd extends SlashCommand {
 				.setTitle(lu.getLocalized(userLocale, "bot.help.command_info.title").formatted(command.getName()))
 				.setDescription(lu.getLocalized(userLocale, "bot.help.command_info.value")
 					.formatted(
-						Optional.ofNullable(command.getCategory())
-							.map(cat -> lu.getLocalized(userLocale, "bot.help.command_menu.categories."+cat.name()))
-							.orElse(Constants.NONE),
+						lu.getLocalized(userLocale, "bot.help.command_menu.categories."+command.getCategory().name()),
 						MessageUtil.capitalize(command.getAccessLevel().getName()),
 						command.isGuildOnly() ? Emote.CROSS_C.getEmote() : Emote.CHECK_C.getEmote(),
 						Optional.ofNullable(command.getModule())
@@ -136,14 +131,13 @@ public class HelpCmd extends SlashCommand {
 		Category category = null;
 		String fieldTitle = "";
 		StringBuilder fieldValue = new StringBuilder();
-		List<SlashCommand> commands = (
-			filCat == null ?
-				event.getClient().getSlashCommands() :
-				event.getClient().getSlashCommands().stream().filter(cmd -> {
-					if (cmd.getCategory() == null) return false;
-					return cmd.getCategory().name().contentEquals(filCat);
-				}).toList()
-		);
+		List<SlashCommand> commands = (filCat == null ?
+			event.getClient().getSlashCommands().stream() :
+			event.getClient().getSlashCommands().stream().filter(cmd -> cmd.getCategory().name().contentEquals(filCat))
+		)
+			.sorted(Comparator.comparing(cmd -> cmd.getCategory().name()))
+			.toList();
+
 		for (SlashCommand command : commands) {
 			if (command.getAccessLevel().isLowerThan(CmdAccessLevel.DEV) || bot.getCheckUtil().isBotOwner(event.getUser())) {
 				if (!Objects.equals(category, command.getCategory())) {
@@ -151,7 +145,6 @@ public class HelpCmd extends SlashCommand {
 						builder.addField(fieldTitle, fieldValue.toString(), false);
 					}
 					category = command.getCategory();
-					if (category == null) continue;
 					fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.categories."+category.name());
 					fieldValue = new StringBuilder();
 				}

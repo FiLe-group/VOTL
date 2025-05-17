@@ -57,8 +57,7 @@ import java.util.List;
  *                      java.lang.IllegalArgumentException IllegalArgumentException}).
  */
 @SuppressWarnings("unused")
-public interface CommandClient
-{
+public interface CommandClient {
 	/**
 	 * Adds a single {@link dev.fileeditor.votl.base.command.Interaction Interaction} to this CommandClient's
 	 * registered SlashCommand.
@@ -201,16 +200,6 @@ public interface CommandClient
 	OffsetDateTime getStartTime();
 
 	/**
-	 * Gets the {@link java.time.OffsetDateTime OffsetDateTime} that the specified cooldown expires.
-	 *
-	 * @param  name
-	 *         The cooldown name
-	 *
-	 * @return The expiration time, or null if the cooldown does not exist
-	 */
-	OffsetDateTime getCooldown(String name);
-
-	/**
 	 * Gets the remaining number of seconds on the specified cooldown.
 	 *
 	 * @param  name
@@ -229,11 +218,6 @@ public interface CommandClient
 	 *         The time to make the cooldown last
 	 */
 	void applyCooldown(String name, int seconds);
-
-	/**
-	 * Cleans up expired cooldowns to reduce memory.
-	 */
-	void cleanCooldowns();
 
 	/**
 	 * Gets the ID of the owner of this bot as a {@code long}.

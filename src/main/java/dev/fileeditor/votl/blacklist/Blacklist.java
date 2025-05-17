@@ -3,6 +3,8 @@ package dev.fileeditor.votl.blacklist;
 import dev.fileeditor.votl.App;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +33,11 @@ public class Blacklist {
 		return ratelimit;
 	}
 
-	public boolean isBlacklisted(@NotNull User user) {
+	public boolean isBlacklisted(GenericInteractionCreateEvent event) {
+		return isBlacklisted(event.getUser()) || (event.isFromGuild() && isBlacklisted(event.getGuild()));
+	}
+
+	public boolean isBlacklisted(@NotNull UserSnowflake user) {
 		BlacklistEntity entity = getEntity(user.getIdLong());
 		return entity != null && entity.isBlacklisted();
 	}
@@ -83,8 +89,12 @@ public class Blacklist {
 		}
 	}
 
+	/**
+	 * Get blacklist entries.
+	 * @return modifiable map of blacklist entries.
+	 */
 	public Map<Long, BlacklistEntity> getBlacklistEntities() {
-		return Collections.unmodifiableMap(blacklist);
+		return blacklist;
 	}
 
 	public synchronized void syncBlacklistWithDatabase() {

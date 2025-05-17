@@ -8,8 +8,6 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import java.sql.SQLException;
-import java.time.OffsetDateTime;
 import java.util.List;
 
 public class BotBlacklist extends SlashCommand {
@@ -32,18 +30,14 @@ public class BotBlacklist extends SlashCommand {
 	protected void execute(SlashCommandEvent event) {
 		long id = event.optLong("id");
 
-		try {
-			if (event.optBoolean("add")) {
-				Scope scope = Scope.fromId(event.optInteger("type", 0));
-				String reason = event.optString("reason");
-				bot.getDBUtil().blacklist.add(id, scope, OffsetDateTime.now().plusYears(10), reason);
-				editMsg(event, "Added %s `%s` to blacklist.\n> %s".formatted(scope.getName(), id, reason == null ? "-None-" : reason));
-			} else {
-				bot.getDBUtil().blacklist.remove(id);
-				editMsg(event, "Removed ID `%s` from blacklist.".formatted(id));
-			}
-		} catch (SQLException ex) {
-			editErrorDatabase(event, ex, "Blacklist sync error.");
+		if (event.optBoolean("add")) {
+			Scope scope = Scope.fromId(event.optInteger("type", 0));
+			String reason = event.optString("reason");
+			bot.getBlacklist().addToBlacklist(scope, id, reason);
+			editMsg(event, "Added %s `%s` to blacklist.\n> %s".formatted(scope.getName(), id, reason == null ? "-None-" : reason));
+		} else {
+			bot.getBlacklist().remove(id);
+			editMsg(event, "Removed ID `%s` from blacklist.".formatted(id));
 		}
 	}
 }

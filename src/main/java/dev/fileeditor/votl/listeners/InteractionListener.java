@@ -142,7 +142,7 @@ public class InteractionListener extends ListenerAdapter {
 	@Override
 	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
 		// Check if blacklisted
-		if (bot.getBlacklist().isBlacklisted(event.getUser())) return;
+		if (bot.getBlacklist().isBlacklisted(event)) return;
 
 		String[] actions = event.getComponentId().split(":");
 
@@ -1363,6 +1363,9 @@ public class InteractionListener extends ListenerAdapter {
 
 	@Override
 	public void onModalInteraction(@NotNull ModalInteractionEvent event) {
+		// Check if blacklisted
+		if (bot.getBlacklist().isBlacklisted(event)) return;
+
 		event.deferEdit().queue();
 		String[] modalId = event.getModalId().split(":");
 
@@ -1463,6 +1466,9 @@ public class InteractionListener extends ListenerAdapter {
 
 	@Override
 	public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {
+		// Check if blacklisted
+		if (bot.getBlacklist().isBlacklisted(event)) return;
+		
 		String menuId = event.getComponentId();
 
 		if (menuId.startsWith("menu:role_row")) {

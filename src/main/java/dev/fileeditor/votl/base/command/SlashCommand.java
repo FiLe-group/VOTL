@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 
+import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -263,6 +264,7 @@ public abstract class SlashCommand extends Interaction {
 	 *
 	 * @return The category for the Command
 	 */
+	@NotNull
 	public Category getCategory() {
 		return category;
 	}
@@ -296,29 +298,32 @@ public abstract class SlashCommand extends Interaction {
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.help = lu.getText(getHelpPath());
-		this.descriptionLocalization = lu.getFullLocaleMap(getHelpPath(), getHelp());
+		this.descriptionLocalization = lu.getFullLocaleMap(getHelpPath(), help);
+		if (category == null) {
+			category = CmdCategory.OTHER;
+		}
 
 		// Make the command data
-		SlashCommandData data = Commands.slash(getName(), getHelp());
+		SlashCommandData data = Commands.slash(name, help);
 
 		// Add options and localizations
-		if (!getOptions().isEmpty()) {
-			getOptions().forEach(option -> {
+		if (!options.isEmpty()) {
+			options.forEach(option -> {
 				option.setNameLocalizations(lu.getFullLocaleMap("%s.%s.name".formatted(getPath(), option.getName()), option.getName()));
 				option.setDescriptionLocalizations(lu.getFullLocaleMap("%s.%s.help".formatted(getPath(), option.getName()), option.getDescription()));
 			});
-			data.addOptions(getOptions());
+			data.addOptions(options);
 		}
 
 		// Check name localizations
-		if (!getNameLocalization().isEmpty()) {
+		if (!nameLocalization.isEmpty()) {
 			//Add localizations
-			data.setNameLocalizations(getNameLocalization());
+			data.setNameLocalizations(nameLocalization);
 		}
 		// Check description localizations
-		if (!getDescriptionLocalization().isEmpty()) {
+		if (!descriptionLocalization.isEmpty()) {
 			//Add localizations
-			data.setDescriptionLocalizations(getDescriptionLocalization());
+			data.setDescriptionLocalizations(descriptionLocalization);
 		}
 		// Add if NSFW command
 		if (nsfwOnly) {
@@ -332,16 +337,16 @@ public abstract class SlashCommand extends Interaction {
 			for (SlashCommand child : children) {
 				// Inherit
 				if (child.userPermissions.length == 0) {
-					child.userPermissions = getUserPermissions();
+					child.userPermissions = userPermissions;
 				}
 				if (child.botPermissions.length == 0) {
-					child.botPermissions = getBotPermissions();
+					child.botPermissions = botPermissions;
 				}
 				if (child.getAccessLevel().equals(CmdAccessLevel.ALL)) {
-					child.accessLevel = getAccessLevel();
+					child.accessLevel = accessLevel;
 				}
 				if (child.module == null) {
-					child.module = getModule();
+					child.module = module;
 				}
 				if (isEphemeralReply()) {
 					child.ephemeral = true;
@@ -391,20 +396,20 @@ public abstract class SlashCommand extends Interaction {
 				data.addSubcommandGroups(groupData.values());
 		}
 
-		if (getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN))
-			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(this.getUserPermissions()));
+		if (accessLevel.isLowerThan(CmdAccessLevel.ADMIN))
+			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(userPermissions));
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
 
-		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
+		data.setContexts(guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
 		// Register middlewares
-		this.registerThrottleMiddleware();
+		registerThrottleMiddleware();
 		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
-			this.middlewares.add("hasAccess");
+			middlewares.add("hasAccess");
 		}
 		if (botPermissions.length > 0 || userPermissions.length > 0) {
-			this.middlewares.add("permissions");
+			middlewares.add("permissions");
 		}
 
 		return data;

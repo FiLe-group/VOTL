@@ -88,6 +88,10 @@ public class VoiceListener extends ListenerAdapter {
 
 	@Override
 	public void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
+		if (bot.getBlacklist().isBlacklisted(event.getGuild()) || bot.getBlacklist().isBlacklisted(event.getMember())) {
+			return;
+		}
+
 		Long masterVoiceId = db.getVoiceSettings(event.getGuild()).getChannelId();
 		// If joined master vc
 		AudioChannelUnion channelJoined = event.getChannelJoined();
