@@ -2,7 +2,6 @@ package dev.fileeditor.votl.menus;
 
 import net.dv8tion.jda.api.entities.User;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
 import dev.fileeditor.votl.commands.moderation.ModLogsCmd;
@@ -13,19 +12,19 @@ import dev.fileeditor.votl.utils.database.managers.CaseManager;
 import java.util.List;
 
 public class ModlogsMenu extends UserContextMenu {
-
 	public ModlogsMenu() {
 		this.name = "modlogs";
 		this.path = "menus.modlogs";
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.MOD;
-		this.cooldown = 6;
-		this.cooldownScope = CooldownScope.USER;
+		addMiddlewares(
+			"throttle:user,1,10"
+		);
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(UserContextMenuEvent event) {
-		event.deferReply(true).queue();
 		User user = event.getTarget();
 
 		long guildId = event.getGuild().getIdLong();
@@ -43,5 +42,4 @@ public class ModlogsMenu extends UserContextMenu {
 				.build()
 		).queue();
 	}
-
 }

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class DebugCmd extends SlashCommand {
-
 	public DebugCmd() {
 		this.name = "debug";
 		this.path = "bot.owner.debug";
@@ -22,23 +21,23 @@ public class DebugCmd extends SlashCommand {
 		);
 		this.category = CmdCategory.OWNER;
 		this.ownerCommand = true;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		if (event.optBoolean("debug_logs", false)) {
-			event.replyFiles(FileUpload.fromData(new File("./logs/App-debug.log"))).queue();
+			event.getHook().editOriginalAttachments(FileUpload.fromData(new File("./logs/App-debug.log"))).queue();
 		} else {
 			String date = Optional.ofNullable(event.optString("date"))
 				.map(s->"."+s)
 				.orElse("");
 			File file = new File("./logs/App%s.log".formatted(date));
 			if (!file.exists()) {
-				editErrorOther(event, "No file by ");
+				editErrorOther(event, "No file by name: "+file.getName());
 			} else {
 				event.getHook().editOriginalAttachments(FileUpload.fromData(file)).queue();
 			}
 		}
 	}
-
 }

@@ -1,6 +1,5 @@
 package dev.fileeditor.votl.commands.level;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -35,14 +34,13 @@ public class UserProfileCmd extends SlashCommand {
 				.addChoice("Light", 1)
 				.addChoice("Mountains", 2)
 		);
-		this.cooldown = 120;
-		this.cooldownScope = CooldownScope.USER;
+		addMiddlewares(
+			"throttle:user,1,120"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		Member target = event.optMember("user", event.getMember());
 		if (target == null || target.getUser().isBot()) {
 			editError(event, path+".bad_user");
@@ -114,10 +112,13 @@ public class UserProfileCmd extends SlashCommand {
 			.setColor(bot.getDBUtil().getGuildSettings(event.getGuild()).getColor());
 
 		try {
-			event.getHook().editOriginalEmbeds(embed.build()).setFiles(FileUpload.fromData(
-				new ByteArrayInputStream(render.renderToBytes()),
-				attachmentName
-			)).queue();
+			event.getHook()
+				.editOriginalEmbeds(embed.build())
+				.setFiles(FileUpload.fromData(
+					new ByteArrayInputStream(render.renderToBytes()),
+					attachmentName
+				))
+				.queue();
 		} catch (IOException e) {
 			bot.getAppLogger().error("Failed to generate the rank background: {}", e.getMessage(), e);
 			editError(event, path+".failed", "Rendering exception");

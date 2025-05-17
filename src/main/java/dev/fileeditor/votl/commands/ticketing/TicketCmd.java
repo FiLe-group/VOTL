@@ -74,7 +74,6 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			if (bot.getDBUtil().ticketPanels.countPanels(event.getGuild().getIdLong()) >= Limits.TICKET_PANELS) {
 				editErrorLimit(event, "panels", Limits.TICKET_PANELS);
 				return;
@@ -121,8 +120,6 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -170,12 +167,11 @@ public class TicketCmd extends SlashCommand {
 				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true).setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -206,7 +202,6 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -252,7 +247,6 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -273,7 +267,6 @@ public class TicketCmd extends SlashCommand {
 			);
 		}
 	}
-
 
 	// Tag tools
 
@@ -305,8 +298,6 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -380,8 +371,6 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer tagId = event.optInteger("tag_id");
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -447,12 +436,11 @@ public class TicketCmd extends SlashCommand {
 				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true, true).setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer tagId = event.optInteger("tag_id");
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -495,7 +483,6 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer tagId = event.optInteger("tag_id");
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
@@ -517,7 +504,6 @@ public class TicketCmd extends SlashCommand {
 		}
 	}
 
-
 	// Settings
 
 	private class Automation extends SlashCommand {
@@ -535,7 +521,6 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			long guildId = event.getGuild().getIdLong();
 			
 			StringBuilder response = new StringBuilder();
@@ -606,7 +591,6 @@ public class TicketCmd extends SlashCommand {
 			StringBuilder response = new StringBuilder();
 
 			if (event.getOptions().isEmpty()) {
-				event.deferReply(true).queue();
 				// Return overview
 				TicketSettingsManager.TicketSettings settings = bot.getDBUtil().getTicketSettings(event.getGuild());
 
@@ -637,7 +621,6 @@ public class TicketCmd extends SlashCommand {
 					.build()
 				);
 			} else {
-				event.deferReply().queue();
 				// Edit settings
 				if (event.hasOption("delete_pings")) {
 					final boolean deletePings = event.optBoolean("delete_pings");

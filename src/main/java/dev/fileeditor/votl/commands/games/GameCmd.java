@@ -46,7 +46,6 @@ public class GameCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (bot.getDBUtil().games.countChannels(event.getGuild().getIdLong()) >= Limits.GAME_CHANNELS) {
 				editErrorLimit(event, "game channels", Limits.GAME_CHANNELS);
@@ -83,7 +82,6 @@ public class GameCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
 				editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
@@ -107,11 +105,11 @@ public class GameCmd extends SlashCommand {
 		public ViewChannels() {
 			this.name = "view-channels";
 			this.path = "bot.games.game.view-channels";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			List<Long> channels = bot.getDBUtil().games.getChannels(event.getGuild().getIdLong());
 			if (channels.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
@@ -147,7 +145,6 @@ public class GameCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
 				editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));

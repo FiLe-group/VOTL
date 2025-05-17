@@ -21,11 +21,11 @@ public class CheckAccessCmd extends SlashCommand {
 			new OptionData(OptionType.STRING, "server", lu.getText(path+".server.help"), true),
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 		);
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
 		Guild guild = event.getJDA().getGuildById(event.optString("server"));
 		if (guild == null) {
 			editError(event, path+".no_guild");

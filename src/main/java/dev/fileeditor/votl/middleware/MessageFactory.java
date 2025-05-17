@@ -20,7 +20,7 @@ public class MessageFactory {
 	private String message;
 	private MessageType type;
 	private boolean asEmbed = false;
-	private boolean temp = true;
+	private boolean temp = false;
 
 	public MessageFactory(App bot, GenericCommandInteractionEvent event) {
 		this.localeUtil = bot.getLocaleUtil();

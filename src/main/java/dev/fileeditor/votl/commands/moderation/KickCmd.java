@@ -5,7 +5,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
@@ -44,13 +43,13 @@ public class KickCmd extends SlashCommand {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.MOD;
-		this.cooldown = 10;
-		this.cooldownScope = CooldownScope.GUILD;
+		addMiddlewares(
+			"throttle:guild,2,20"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
 		Guild guild = Objects.requireNonNull(event.getGuild());
 
 		Member tm = event.optMember("member");

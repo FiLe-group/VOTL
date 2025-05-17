@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
@@ -49,14 +48,14 @@ public class GameStrikeCmd extends SlashCommand {
 		this.category = CmdCategory.GAMES;
 		this.module = CmdModule.GAMES;
 		this.accessLevel = CmdAccessLevel.MOD;
-		this.cooldown = 10;
-		this.cooldownScope = CooldownScope.USER;
+		addMiddlewares(
+			"throttle:user,1,10",
+			"throttle:guild,2,20"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		GuildChannel channel = event.optGuildChannel("channel");
 		if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
 			editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));

@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.util.List;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -32,14 +31,13 @@ public class ModLogsCmd extends SlashCommand {
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.cooldown = 15;
-		this.cooldownScope = CooldownScope.USER;
+		addMiddlewares(
+			"throttle:user,1,20"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		User tu;
 		if (event.hasOption("user")) {
 			tu = event.optUser("user");

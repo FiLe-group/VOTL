@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class AddUserCmd extends SlashCommand {
-
 	public AddUserCmd() {
 		this.name = "add";
 		this.path = "bot.ticketing.add";
@@ -33,8 +32,6 @@ public class AddUserCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 
@@ -78,5 +75,4 @@ public class AddUserCmd extends SlashCommand {
 			}
 		}
 	}
-
 }

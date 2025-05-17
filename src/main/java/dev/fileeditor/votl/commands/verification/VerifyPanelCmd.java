@@ -2,10 +2,13 @@ package dev.fileeditor.votl.commands.verification;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.base.waiter.EventWaiter;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -19,23 +22,26 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.text.TextInput;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.api.interactions.modals.Modal;
 
 public class VerifyPanelCmd extends SlashCommand {
+
+	private final EventWaiter waiter;
 	
 	public VerifyPanelCmd() {
 		this.name = "vfpanel";
 		this.path = "bot.verification.vfpanel";
-		this.children = new SlashCommand[]{new Create(), new Preview(), new SetText(), new SetImage()};
+		this.children = new SlashCommand[]{
+			new Create(), new Preview(), new SetText(), new SetImage()
+		};
 		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND};
 		this.module = CmdModule.VERIFICATION;
 		this.category = CmdCategory.VERIFICATION;
 		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.waiter = App.getInstance().getEventWaiter();
 	}
 
 	@Override
@@ -53,8 +59,6 @@ public class VerifyPanelCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Guild guild = event.getGuild();
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (channel == null ) {
@@ -99,6 +103,7 @@ public class VerifyPanelCmd extends SlashCommand {
 		public Preview() {
 			this.name = "preview";
 			this.path = "bot.verification.vfpanel.preview";
+			this.ephemeral = true;
 		}
 
 		@Override
@@ -111,8 +116,8 @@ public class VerifyPanelCmd extends SlashCommand {
 				.setImage(bot.getDBUtil().getVerifySettings(guild).getPanelImageUrl())
 				.setFooter(event.getGuild().getName(), event.getGuild().getIconUrl())
 				.build();
-			
-			event.replyEmbeds(main).setEphemeral(true).queue();
+
+			editEmbed(event, main);
 		}
 	}
 
@@ -120,16 +125,52 @@ public class VerifyPanelCmd extends SlashCommand {
 		public SetText() {
 			this.name = "text";
 			this.path = "bot.verification.vfpanel.text";
+			addMiddlewares(
+				"throttle:guild,1,30"
+			);
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			TextInput main = TextInput.create("main", lu.getText(event, path+".main"), TextInputStyle.PARAGRAPH)
-				.setPlaceholder("Verify here")
-				.setRequired(false)
-				.build();
+			editMsg(event, lu.getText(event, path+".send_text"));
 
-			event.replyModal(Modal.create("vfpanel", lu.getText(event, path+".panel")).addActionRow(main).build()).queue();
+			waiter.waitForEvent(
+				MessageReceivedEvent.class,
+				e -> e.getChannel().getIdLong() == event.getChannelIdLong() && e.getAuthor().getIdLong() == event.getUser().getIdLong(),
+				msgEvent -> {
+					String content = msgEvent.getMessage().getContentRaw();
+					if (content.isBlank()) {
+						editError(event, path+".empty");
+						return;
+					}
+					if (content.length() > 1024) {
+						editError(event, path+".too_long");
+						return;
+					}
+
+					try {
+						bot.getDBUtil().verifySettings.setPanelText(event.getGuild().getIdLong(), content);
+					} catch (SQLException e) {
+						editErrorDatabase(event, e, "Update verify panel text");
+					}
+
+					event.getHook()
+						.editOriginal("")
+						.setEmbeds(
+							bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+								.setDescription(lu.getText(event, path+".done"))
+								.build(),
+							new EmbedBuilder()
+								.setTitle("TEXT")
+								.setDescription(content)
+								.build()
+						)
+						.queue();
+				},
+				30,
+				TimeUnit.SECONDS,
+				() -> editMsg(event, lu.getText(event, path+".timed_out"))
+			);
 		}
 	}
 
@@ -146,7 +187,6 @@ public class VerifyPanelCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			String imageUrl = event.optString("image_url");
 
 			if (!imageUrl.equals("NULL") && !URL_PATTERN.matcher(imageUrl).matches()) {

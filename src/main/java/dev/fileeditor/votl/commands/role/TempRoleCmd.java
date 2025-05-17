@@ -33,7 +33,9 @@ public class TempRoleCmd extends SlashCommand {
 	public TempRoleCmd() {
 		this.name = "temprole";
 		this.path = "bot.roles.temprole";
-		this.children = new SlashCommand[]{new Assign(), new Cancel(), new Extend(), new View()};
+		this.children = new SlashCommand[]{
+			new Assign(), new Cancel(), new Extend(), new View()
+		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
 		this.accessLevel = CmdAccessLevel.MOD;
@@ -56,8 +58,6 @@ public class TempRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			// Check role
 			Role role = event.optRole("role");
@@ -148,7 +148,6 @@ public class TempRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -199,7 +198,6 @@ public class TempRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -254,11 +252,11 @@ public class TempRoleCmd extends SlashCommand {
 		public View() {
 			this.name = "view";
 			this.path = "bot.roles.temprole.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Guild guild = event.getGuild();
 			List<Map<String, Object>> list = bot.getDBUtil().tempRoles.getAll(guild.getIdLong());
 			if (list.isEmpty()) {

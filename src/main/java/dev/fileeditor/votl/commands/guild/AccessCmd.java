@@ -43,12 +43,11 @@ public class AccessCmd extends SlashCommand {
 		public View() {
 			this.name = "view";
 			this.path = "bot.guild.access.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			long guildId = guild.getIdLong();
 
@@ -132,8 +131,6 @@ public class AccessCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			if (bot.getDBUtil().access.countRoles(event.getGuild().getIdLong()) >= Limits.ACCESS_ROLES) {
 				editErrorLimit(event, "roles", Limits.ACCESS_ROLES);
 				return;
@@ -190,8 +187,6 @@ public class AccessCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, "bot.guild.access.remove.no_role");
@@ -238,8 +233,6 @@ public class AccessCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			if (bot.getDBUtil().access.countRoles(event.getGuild().getIdLong()) >= Limits.ACCESS_USERS) {
 				editErrorLimit(event, "operators", Limits.ACCESS_USERS);
 				return;
@@ -292,8 +285,6 @@ public class AccessCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			User user = event.optUser("user");
 			if (user == null) {
 				editError(event, "bot.guild.access.remove.no_user");

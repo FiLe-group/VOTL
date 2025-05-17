@@ -39,6 +39,7 @@ public class VoiceCmd extends SlashCommand {
 		};
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
+		this.ephemeral = true;
 	}
 
 	@Override
@@ -53,8 +54,6 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -95,8 +94,6 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -137,8 +134,6 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -179,8 +174,6 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -249,8 +242,6 @@ public class VoiceCmd extends SlashCommand {
 	}
 
 	private void sendNameReply(SlashCommandEvent event, String name) {
-		event.deferReply(true).queue();
-
 		long userId = event.getMember().getIdLong();
 		Long channelId = bot.getDBUtil().voice.getChannel(userId);
 		if (channelId == null) {
@@ -311,8 +302,6 @@ public class VoiceCmd extends SlashCommand {
 	}
 
 	private void sendLimitReply(SlashCommandEvent event, Integer limit) {
-		event.deferReply(true).queue();
-
 		long userId = event.getMember().getIdLong();
 		Long channelId = bot.getDBUtil().voice.getChannel(userId);
 		if (channelId == null) {
@@ -343,8 +332,6 @@ public class VoiceCmd extends SlashCommand {
 		}
 
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member author = event.getMember();
 
 			if (!author.getVoiceState().inAudioChannel()) {
@@ -410,8 +397,6 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member author = event.getMember();
 
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
@@ -479,8 +464,6 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member author = event.getMember();
 
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
@@ -546,8 +529,6 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member author = event.getMember();
 
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
@@ -654,7 +635,6 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Member author = event.getMember();
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
 			if (channelId == null) {

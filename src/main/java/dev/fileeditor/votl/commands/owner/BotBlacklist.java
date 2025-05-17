@@ -36,10 +36,10 @@ public class BotBlacklist extends SlashCommand {
 				Scope scope = Scope.fromId(event.optInteger("type", 0));
 				String reason = event.optString("reason");
 				bot.getDBUtil().blacklist.add(id, scope, OffsetDateTime.now().plusYears(10), reason);
-				event.reply("Added %s `%s` to blacklist.\n> %s".formatted(scope.getName(), id, reason==null?"-None-":reason)).queue();
+				editMsg(event, "Added %s `%s` to blacklist.\n> %s".formatted(scope.getName(), id, reason == null ? "-None-" : reason));
 			} else {
 				bot.getDBUtil().blacklist.remove(id);
-				event.reply("Removed ID `%s` from blacklist.".formatted(id)).queue();
+				editMsg(event, "Removed ID `%s` from blacklist.".formatted(id));
 			}
 		} catch (SQLException ex) {
 			editErrorDatabase(event, ex, "Blacklist sync error.");

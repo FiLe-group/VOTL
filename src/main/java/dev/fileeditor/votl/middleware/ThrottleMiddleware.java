@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class ThrottleMiddleware extends Middleware {
 
 	public static final Cache<String, ThrottleEntity> cache = Caffeine.newBuilder()
-		.expireAfterWrite(120, TimeUnit.SECONDS)
+		.expireAfterWrite(60, TimeUnit.SECONDS)
 		.build();
 
 	public ThrottleMiddleware(App bot) {
@@ -76,7 +76,7 @@ public class ThrottleMiddleware extends Middleware {
 	private boolean cancelCommandThrottleRequest(GenericCommandInteractionEvent event, MiddlewareStack stack, ThrottleEntity entity) {
 		return runErrorCheck(event, () -> {
 			String throttleMessage = bot.getLocaleUtil().getText(event, "errors.throttle.command")
-				.formatted(TimeFormat.RELATIVE.after(((entity.getTime() - System.currentTimeMillis())/1000) + 1));
+				.formatted(TimeFormat.RELATIVE.format(entity.getTime()));
 
 			ThrottleMessage annotation = stack.getInteraction().getClass().getAnnotation(ThrottleMessage.class);
 			if (annotation != null && !annotation.message().trim().isEmpty()) {
@@ -94,7 +94,14 @@ public class ThrottleMiddleware extends Middleware {
 	}
 
 	private ThrottleEntity getEntityFromCache(@NotNull String key, int maxAttempts, int decaySeconds) {
-		return cache.get(key, (v) -> new ThrottleEntity(maxAttempts, decaySeconds));
+		ThrottleEntity entity = cache.get(key, (v) -> new ThrottleEntity(maxAttempts, decaySeconds));
+
+		if (entity.hasExpired()) {
+			cache.invalidate(key);
+			return getEntityFromCache(key, maxAttempts, decaySeconds);
+		}
+
+		return entity;
 	}
 
 	private void sendBlacklistMessage(GenericCommandInteractionEvent event, Object o, OffsetDateTime expiresIn) {
@@ -141,7 +148,7 @@ public class ThrottleMiddleware extends Middleware {
 		private int hit;
 
 		ThrottleEntity(int maxAttempts, int decaySeconds) {
-			this.time = System.currentTimeMillis() + (decaySeconds * 1000L);
+			this.time = Instant.now().plusSeconds(decaySeconds).toEpochMilli();
 			this.maxAttempts = maxAttempts;
 			this.hit = 0;
 		}
@@ -158,12 +165,12 @@ public class ThrottleMiddleware extends Middleware {
 			return maxAttempts;
 		}
 
-		public long getTime() {
-			return time;
+		public Instant getTime() {
+			return Instant.ofEpochMilli(time);
 		}
 
 		public boolean hasExpired() {
-			return System.currentTimeMillis() > time;
+			return Instant.now().isAfter(getTime());
 		}
 	}
 

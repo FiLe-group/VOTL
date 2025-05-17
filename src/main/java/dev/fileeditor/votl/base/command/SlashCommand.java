@@ -106,13 +106,6 @@ public abstract class SlashCommand extends Interaction {
 	protected boolean nsfwOnly = false;
 
 	/**
-	 * {@code true} if the command should reply with deferred ephemeral reply.
-	 * {@code false} if it should send normal deferred reply.
-	 * <br>Default: {@code false}
-	 */
-	protected boolean ephemeral = false;
-
-	/**
 	 * Localization of slash command name. Allows discord to change the language of the name of slash commands in the client.<br>
 	 * Example:<br>
 	 *<pre><code>
@@ -299,14 +292,6 @@ public abstract class SlashCommand extends Interaction {
 	}
 
 	/**
-	 *
-	 * @return If deferred reply will be ephemeral.
-	 */
-	public boolean isEphemeralReply() {
-		return ephemeral;
-	}
-
-	/**
 	 * Gets the subcommand data associated with this subcommand.
 	 *
 	 * @return subcommand data
@@ -442,12 +427,9 @@ public abstract class SlashCommand extends Interaction {
 		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
 		// Register middlewares
-		registerThrottleMiddleware();
-		if (cooldown > 0) {
-			middlewares.add("cooldown");
-		}
+		this.registerThrottleMiddleware();
 		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
-			middlewares.add("hasAccess");
+			this.middlewares.add("hasAccess");
 		}
 
 		return data;

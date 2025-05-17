@@ -128,18 +128,10 @@ public abstract class MessageContextMenu extends ContextMenu implements Reflecti
 
 		// Register middlewares
 		registerThrottleMiddleware();
-		if (cooldown > 0) {
-			middlewares.add("cooldown");
-		}
 		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
 			middlewares.add("hasAccess");
 		}
 
 		return data;
-	}
-
-	@Override
-	public boolean isEphemeralReply() {
-		return false;
 	}
 }

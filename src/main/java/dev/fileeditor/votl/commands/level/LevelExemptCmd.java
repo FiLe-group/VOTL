@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class LevelExemptCmd extends SlashCommand {
+
 	public LevelExemptCmd() {
 		this.name = "level_exempt";
 		this.path = "bot.level.level_exempt";
@@ -45,8 +46,6 @@ public class LevelExemptCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (channel == null) {
 				editError(event, path+".invalid_args");
@@ -91,8 +90,6 @@ public class LevelExemptCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			GuildChannel channel = null;
 			long channelId;
 			try {
@@ -138,8 +135,6 @@ public class LevelExemptCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			try {
 				bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), null);
 			} catch (SQLException ex) {
@@ -157,12 +152,11 @@ public class LevelExemptCmd extends SlashCommand {
 		public ViewLevelExempt() {
 			this.name = "view";
 			this.path = "bot.level.level_exempt.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Set<Long> channelIds = bot.getDBUtil().levels.getSettings(event.getGuild()).getExemptChannels();
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(path+".title"));

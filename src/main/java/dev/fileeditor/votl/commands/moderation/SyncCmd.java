@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
@@ -50,14 +49,13 @@ public class SyncCmd extends SlashCommand {
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
 				new OptionData(OptionType.INTEGER, "group", lu.getText(path+".group.help"), true, true).setMinValue(0)
 			);
-			this.cooldownScope = CooldownScope.GUILD;
-			this.cooldown = 20;
+			addMiddlewares(
+				"throttle:guild,1,20"
+			);
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			User target = event.optUser("user");
 			if (target == null) {
 				editError(event, path+".not_found");
@@ -87,7 +85,7 @@ public class SyncCmd extends SlashCommand {
 				.build()
 			).setComponents(button).queue(msg -> waiter.waitForEvent(
 				ButtonInteractionEvent.class,
-				e -> msg.getId().equals(e.getMessageId()) && e.getComponentId().equals("button:confirm"),
+				e -> msg.getId().equals(e.getMessageId()) && e.getComponentId().equals("button:confirm") && e.getUser().getIdLong() == event.getUser().getIdLong(),
 				action -> {
 					if (bot.getDBUtil().group.countMembers(groupId) < 1) {
 						editError(event, path+".no_guilds");

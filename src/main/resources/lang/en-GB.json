@@ -28,7 +28,6 @@
 			"pm_guild": "Looks like people on the server are using commands a bit too fast, I've banned the server from using any commands until everyone clams down a bit.\nThis ban expires %s, keep in mind repeating this behaviour will get the server banned for longer periods of time."
 		},
 		"cooldown": {
-			"cooldown_command": "Command is on cooldown%s! Please try again %s.",
 			"cooldown_button": "This button is on cooldown for **{time}** seconds",
 			"channel": "in this channel",
 			"guild": "in this server",
@@ -1924,10 +1923,11 @@
 				"text": {
 					"help": "Set the text for embed panel",
 					"usage": "text",
-					"main": "Main panel text",
-					"description": "Second panel text",
-					"panel": "Setup vfpanel embed text",
-					"done": "Text updated!"
+					"send_text": "Send text below this message. You have 30 seconds to reply.",
+					"timed_out": "{EMOTE_WARNING_C} Request timed out. Please try again.",
+					"empty": "No text provided. If you want to clear text - input 'NULL'.",
+					"too_long": "Provided text is too long, must be under 1024 characters!",
+					"done": "Verify panel text updated!"
 				},
 				"image": {
 					"help": "Set the image URL for embed panel",

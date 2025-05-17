@@ -71,8 +71,6 @@ public class ModReportCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			List<Role> roles = event.optMentions("roles").getRoles();
 			if (roles.isEmpty() || roles.size()>4) {
 				editError(event, path+".no_roles");
@@ -136,7 +134,6 @@ public class ModReportCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			try {
 				bot.getDBUtil().modReport.removeGuild(event.getGuild().getIdLong());
 			} catch (SQLException ex) {

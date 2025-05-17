@@ -44,11 +44,11 @@ public class ModuleCmd extends SlashCommand {
 		public Show() {
 			this.name = "show";
 			this.path = "bot.guild.module.show";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			long guildId = event.getGuild().getIdLong();
 
 			StringBuilder builder = new StringBuilder();
@@ -79,7 +79,6 @@ public class ModuleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			InteractionHook hook = event.getHook();
 
 			long guildId = event.getGuild().getIdLong();
@@ -107,7 +106,7 @@ public class ModuleCmd extends SlashCommand {
 
 			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(msg -> waiter.waitForEvent(
 				StringSelectInteractionEvent.class,
-				e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(msg.getId()),
+				e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(msg.getId()) && event.getUser().getIdLong() == e.getUser().getIdLong(),
 				actionEvent -> {
 					actionEvent.deferEdit().queue();
 					CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().getFirst().getValue());
@@ -148,7 +147,6 @@ public class ModuleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			InteractionHook hook = event.getHook();
 
 			long guildId = event.getGuild().getIdLong();
@@ -175,7 +173,7 @@ public class ModuleCmd extends SlashCommand {
 
 			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(msg -> waiter.waitForEvent(
 				StringSelectInteractionEvent.class,
-				e -> e.getComponentId().equals("enable-module") && e.getMessageId().equals(msg.getId()),
+				e -> e.getComponentId().equals("enable-module") && e.getMessageId().equals(msg.getId()) && event.getUser().getIdLong() == e.getUser().getIdLong(),
 				actionEvent -> actionEvent.deferEdit().queue(
 					actionHook -> {
 						CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().getFirst().getValue());

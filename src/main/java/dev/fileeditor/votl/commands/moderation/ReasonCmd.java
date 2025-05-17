@@ -33,7 +33,6 @@ public class ReasonCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
 		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
 		if (caseData == null) {
 			editError(event, path+".not_found");

@@ -43,12 +43,11 @@ public class BlacklistCmd extends SlashCommand {
 				new OptionData(OptionType.INTEGER, "group", lu.getText(path+".group.help"), true, true).setMinValue(1),
 				new OptionData(OptionType.INTEGER, "page", lu.getText(path+".page.help")).setMinValue(1)
 			);
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Integer groupId = event.optInteger("group");
 			long guildId = event.getGuild().getIdLong();
 			if ( !(bot.getDBUtil().group.isOwner(groupId, guildId) || bot.getDBUtil().group.canManage(groupId, guildId)) ) {
@@ -90,12 +89,11 @@ public class BlacklistCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			long guildId = event.getGuild().getIdLong();
 			final List<Integer> groupIds = new ArrayList<>();
 			groupIds.addAll(bot.getDBUtil().group.getOwnedGroups(guildId));
@@ -144,8 +142,6 @@ public class BlacklistCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Integer groupId = event.optInteger("group");
 			long guildId = event.getGuild().getIdLong();
 			if ( !(bot.getDBUtil().group.isOwner(groupId, guildId) || bot.getDBUtil().group.canManage(groupId, guildId)) ) {

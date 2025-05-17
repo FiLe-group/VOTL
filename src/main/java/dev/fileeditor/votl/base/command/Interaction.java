@@ -28,12 +28,13 @@ import net.dv8tion.jda.api.Permission;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * A class that represents an interaction with a user.
  * <p>
- * This is all information used for all forms of interactions. Namely, permissions and cooldowns.
+ * This is all information used for all forms of interactions.
  * <p>
  * Any content here is safely functionality equivalent regardless of the source of the interaction.
  */
@@ -76,49 +77,7 @@ public abstract class Interaction extends Reflectionable {
 	 */
 	protected boolean ownerCommand = false;
 
-	/**
-	 * An {@code int} number of seconds users must wait before using this command again.
-	 */
-	protected int cooldown = 0;
-
-	/**
-	 * The {@link CooldownScope CooldownScope}
-	 * of the command. This defines how far the scope the cooldowns have.
-	 * <br>Default {@link CooldownScope#USER CooldownScope.USER}.
-	 */
-	protected CooldownScope cooldownScope = CooldownScope.USER;
-
-	/**
-	 * An {@code int} number of times users can use this command per cooldown.
-	 */
-	protected int maxAttempts = 1;
-
-	/**
-	 * Gets the {@link Interaction#cooldown cooldown} for the Interaction.
-	 *
-	 * @return The cooldown for the Interaction
-	 */
-	public int getCooldown() {
-		return cooldown;
-	}
-
-	/**
-	 * Gets the {@link Interaction#cooldown cooldown} for the Interaction.
-	 *
-	 * @return The cooldown for the Interaction
-	 */
-	public CooldownScope getCooldownScope() {
-		return cooldownScope;
-	}
-
-	/**
-	 * Gets the {@link Interaction#maxAttempts max attempts} for the Interaction.
-	 *
-	 * @return The mex attempts per cooldown for the Interaction
-	 */
-	public int getMaxAttempts() {
-		return maxAttempts;
-	}
+	protected String throttle = null;
 
 	/**
 	 * Gets the {@link Interaction#userPermissions userPermissions} for the Interaction.
@@ -205,8 +164,12 @@ public abstract class Interaction extends Reflectionable {
 		return false;
 	}
 
+	protected void addMiddlewares(String... data) {
+		middlewares.addAll(Arrays.asList(data));
+	}
+
 	private static final String DEFAULT_GUILD_LIMIT = "throttle:guild,20,15";
-	private static final String DEFAULT_USER_LIMIT = "throttle:user,2,3";
+	private static final String DEFAULT_USER_LIMIT = "throttle:user,2,5";
 
 	protected void registerThrottleMiddleware() {
 		if (!hasMiddleware(ThrottleMiddleware.class)) {
@@ -218,6 +181,7 @@ public abstract class Interaction extends Reflectionable {
 		boolean addUser = true;
 		boolean addGuild = true;
 
+		List<String> addMiddlewares = new ArrayList<>();
 		for (String middlewareName : middlewares) {
 			String[] parts = middlewareName.split(":");
 
@@ -234,12 +198,13 @@ public abstract class Interaction extends Reflectionable {
 			}
 
 			if (addUser) {
-				middlewares.add(DEFAULT_USER_LIMIT);
+				addMiddlewares.add(DEFAULT_USER_LIMIT);
 			}
 			if (addGuild) {
-				middlewares.add(DEFAULT_GUILD_LIMIT);
+				addMiddlewares.add(DEFAULT_GUILD_LIMIT);
 			}
 		}
+		middlewares.addAll(addMiddlewares);
 	}
 
 	protected final LocaleUtil lu = bot.getLocaleUtil();
@@ -257,8 +222,17 @@ public abstract class Interaction extends Reflectionable {
 	}
 
 	/**
+	 * {@code true} if the command should reply with deferred ephemeral reply.
+	 * {@code false} if it should send normal deferred reply.
+	 * <br>Default: {@code false}
+	 */
+	protected boolean ephemeral = false;
+
+	/**
 	 * @return If deferred reply will be ephemeral.
 	 */
-	public abstract boolean isEphemeralReply();
+	public boolean isEphemeralReply() {
+		return ephemeral;
+	}
 	
 }

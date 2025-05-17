@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
@@ -41,7 +40,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 public class StrikeCmd extends SlashCommand {
-	
+
 	public StrikeCmd() {
 		this.name = "strike";
 		this.path = "bot.moderation.strike";
@@ -58,14 +57,14 @@ public class StrikeCmd extends SlashCommand {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.STRIKES;
 		this.accessLevel = CmdAccessLevel.MOD;
-		this.cooldown = 5;
-		this.cooldownScope = CooldownScope.GUILD;
+		addMiddlewares(
+			"throttle:user,1,10",
+			"throttle:guild,2,20"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		Member tm = event.optMember("user");
 		if (tm == null) {
 			editError(event, path+".not_found");

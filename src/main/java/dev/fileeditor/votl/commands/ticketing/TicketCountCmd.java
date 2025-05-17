@@ -18,7 +18,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class TicketCountCmd extends SlashCommand {
-	
 	public TicketCountCmd() {
 		this.name = "tcount";
 		this.path = "bot.ticketing.tcount";
@@ -33,7 +32,6 @@ public class TicketCountCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
 		String afterDate = event.optString("start_date");
 		String beforeDate = event.optString("end_date");
 		Instant afterTime = null;
@@ -66,5 +64,4 @@ public class TicketCountCmd extends SlashCommand {
 				.replace("{roles}", Integer.toString(countRoles)).replace("{other}", Integer.toString(countOther)))
 			.build());
 	}
-
 }

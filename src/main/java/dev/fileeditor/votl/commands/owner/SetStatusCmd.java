@@ -36,12 +36,11 @@ public class SetStatusCmd extends SlashCommand {
 		this.category = CmdCategory.OWNER;
 		this.ownerCommand = true;
 		this.guildOnly = false;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(true).queue();
-
 		ActivityType type = parseType(event.optString("type"));
 		if (type == null) {
 			event.getJDA().getPresence().setActivity(null);

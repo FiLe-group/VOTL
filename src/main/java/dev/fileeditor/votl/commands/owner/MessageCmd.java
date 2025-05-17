@@ -11,7 +11,6 @@ import dev.fileeditor.votl.objects.constants.Constants;
 import java.util.List;
 
 public class MessageCmd extends SlashCommand {
-
 	public MessageCmd() {
 		this.name = "message";
 		this.path = "bot.owner.message";
@@ -22,6 +21,7 @@ public class MessageCmd extends SlashCommand {
 		this.category = CmdCategory.OWNER;
 		this.ownerCommand = true;
 		this.guildOnly = false;
+		this.ephemeral = true;
 	}
 
 	@Override
@@ -29,11 +29,11 @@ public class MessageCmd extends SlashCommand {
 		String channelId = event.optString("channel_id");
 		GuildMessageChannel channel = event.getJDA().getChannelById(GuildMessageChannel.class, channelId);
 		if (channel == null) {
-			event.reply(Constants.FAILURE+" Channel not found.").queue();
+			editMsg(event, Constants.FAILURE+" Channel not found.");
 			return;
 		}
 
 		channel.sendMessage(event.optString("content")).queue();
-		event.reply(Constants.SUCCESS).queue();
+		editMsg(event, Constants.SUCCESS);
 	}
 }

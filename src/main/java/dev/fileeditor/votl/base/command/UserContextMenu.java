@@ -165,18 +165,10 @@ public abstract class UserContextMenu extends ContextMenu implements Reflectiona
 
 		// Register middlewares
 		registerThrottleMiddleware();
-		if (cooldown > 0) {
-			middlewares.add("cooldown");
-		}
 		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
 			middlewares.add("hasAccess");
 		}
 
 		return data;
-	}
-
-	@Override
-	public boolean isEphemeralReply() {
-		return false;
 	}
 }

@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import dev.fileeditor.votl.base.command.CooldownScope;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -56,7 +55,6 @@ public class RoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 
 			// Get roles
@@ -124,7 +122,6 @@ public class RoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 
 			// Get roles
@@ -186,13 +183,13 @@ public class RoleCmd extends SlashCommand {
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
 			);
 			this.accessLevel = CmdAccessLevel.ADMIN;
-			this.cooldownScope = CooldownScope.GUILD;
-			this.cooldown = 30;
+			addMiddlewares(
+				"throttle:guild,1,30"
+			);
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			// Check role
 			Role role = event.optRole("role");
@@ -255,14 +252,14 @@ public class RoleCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.USER, "user", lu.getText(path + ".user.help"), true)
 			);
-			this.cooldownScope = CooldownScope.USER;
-			this.cooldown = 15;
+			addMiddlewares(
+				"throttle:user,1,20"
+			);
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Member target = event.optMember("user");
 			if (target == null) {
 				editError(event, path+".no_user");
@@ -327,10 +324,13 @@ public class RoleCmd extends SlashCommand {
 				return;
 			}
 
-			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
-				.setDescription(lu.getText(event, path+".title").formatted(target.getAsMention()))
-				.build()
-			).setComponents(actionRows).queue();
+			event.getHook()
+				.editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
+					.setDescription(lu.getText(event, path+".title").formatted(target.getAsMention()))
+					.build()
+				)
+				.setComponents(actionRows)
+				.queue();
 		}
 	}
 

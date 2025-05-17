@@ -49,8 +49,6 @@ public class PersistentRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			if (bot.getDBUtil().persistent.countRoles(event.getGuild().getIdLong()) >= Limits.PERSISTENT_ROLES) {
 				editErrorLimit(event, "roles", Limits.PERSISTENT_ROLES);
 				return;
@@ -89,8 +87,6 @@ public class PersistentRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			Role role = event.optRole("role");
 
 			try {
@@ -109,12 +105,11 @@ public class PersistentRoleCmd extends SlashCommand {
 		public View() {
 			this.name = "view";
 			this.path = "bot.guild.persistent.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			final List<Long> roleIds = bot.getDBUtil().persistent.getRoles(event.getGuild().getIdLong());
 			if (roleIds.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()

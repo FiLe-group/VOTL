@@ -39,7 +39,6 @@ public class AutopunishCmd extends SlashCommand {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Add extends SlashCommand {
-
 		public Add() {
 			this.name = "add";
 			this.path = "bot.guild.autopunish.add";
@@ -57,8 +56,6 @@ public class AutopunishCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
-
 			if (bot.getDBUtil().autopunish.countActions(event.getGuild().getIdLong()) >= Limits.AUTOPUNISHMENTS) {
 				editErrorLimit(event, "autopunish actions", Limits.AUTOPUNISHMENTS);
 				return;
@@ -183,11 +180,9 @@ public class AutopunishCmd extends SlashCommand {
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_SUCCESS).setDescription(builder.toString()).build());
 		}
-
 	}
 
 	private class Remove extends SlashCommand {
-
 		public Remove() {
 			this.name = "remove";
 			this.path = "bot.guild.autopunish.remove";
@@ -198,7 +193,6 @@ public class AutopunishCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply().queue();
 			Integer strikeCount = event.optInteger("strike-count");
 
 			if (bot.getDBUtil().autopunish.getAction(event.getGuild().getIdLong(), strikeCount) == null) {
@@ -217,7 +211,6 @@ public class AutopunishCmd extends SlashCommand {
 				.setDescription(lu.getText(event, path+".done").formatted(strikeCount))
 				.build());
 		}
-		
 	}
 
 	private class View extends SlashCommand {
@@ -225,12 +218,11 @@ public class AutopunishCmd extends SlashCommand {
 		public View() {
 			this.name = "view";
 			this.path = "bot.guild.autopunish.view";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			List<AutopunishManager.Autopunish> list = bot.getDBUtil().autopunish.getAllActions(event.getGuild().getIdLong());
 			if (list.isEmpty()) {
 				editError(event, path+".empty");
@@ -303,7 +295,6 @@ public class AutopunishCmd extends SlashCommand {
 				.setDescription(builder.toString())
 				.build());
 		}
-		
 	}
 	
 }

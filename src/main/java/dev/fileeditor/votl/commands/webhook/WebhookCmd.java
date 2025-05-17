@@ -52,12 +52,11 @@ public class WebhookCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.BOOLEAN, "all", lu.getText(path+".all.help"))
 			);
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			Guild guild = Objects.requireNonNull(event.getGuild());
 			DiscordLocale userLocale = event.getUserLocale();
 
@@ -117,8 +116,6 @@ public class WebhookCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			if (bot.getDBUtil().webhook.countWebhooks(event.getGuild().getIdLong()) >= Limits.WEBHOOKS) {
 				editErrorLimit(event, "webhooks", Limits.WEBHOOKS);
 				return;
@@ -166,8 +163,6 @@ public class WebhookCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
-
 			if (bot.getDBUtil().webhook.countWebhooks(event.getGuild().getIdLong()) >= Limits.WEBHOOKS) {
 				editErrorLimit(event, "webhooks", Limits.WEBHOOKS);
 				return;
@@ -212,7 +207,6 @@ public class WebhookCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			long webhookId = Long.parseLong(event.optString("id"));
 			boolean delete = event.optBoolean("delete", false);
 
@@ -258,11 +252,11 @@ public class WebhookCmd extends SlashCommand {
 				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true),
 				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
 			);
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Guild guild = event.getGuild();
 			long webhookId = Long.parseLong(event.optString("id"));
 			GuildChannel channel = event.optGuildChannel("channel");
@@ -311,11 +305,11 @@ public class WebhookCmd extends SlashCommand {
 		public Here() {
 			this.name = "here";
 			this.path = "bot.webhook.here";
+			this.ephemeral = true;
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			event.deferReply(true).queue();
 			Guild guild = event.getGuild();
 
 			Long webhookId = bot.getDBUtil().getGuildSettings(guild).getLastWebhookId();

@@ -11,11 +11,12 @@ public class PingCmd extends SlashCommand {
 		this.path = "bot.other.ping";
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.reply(lu.getText(event, path+".loading")).queue();
+		editMsg(event, lu.getText(event, path+".loading"));
 
 		event.getJDA().getRestPing().queue(time -> {
 			editMsg(event,
@@ -25,4 +26,5 @@ public class PingCmd extends SlashCommand {
 			);
 		});	
 	}
+
 }

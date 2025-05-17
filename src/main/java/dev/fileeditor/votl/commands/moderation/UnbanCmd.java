@@ -34,12 +34,13 @@ public class UnbanCmd extends SlashCommand {
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
 		this.accessLevel = CmdAccessLevel.MOD;
+		addMiddlewares(
+			"throttle:guild,1,10"
+		);
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		Guild guild = event.getGuild();
 		User tu = event.optUser("user");
 

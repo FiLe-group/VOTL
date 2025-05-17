@@ -35,8 +35,6 @@ public class ExperienceCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
-
 		long userId = event.optLong("user");
 
 		int action = event.optInteger("action");

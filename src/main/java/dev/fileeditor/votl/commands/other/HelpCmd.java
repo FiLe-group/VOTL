@@ -42,12 +42,11 @@ public class HelpCmd extends SlashCommand {
 		);
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(event.isFromGuild() && !event.optBoolean("show", false)).queue();
-
 		String findCmd = event.optString("command");
 
 		if (findCmd != null) {

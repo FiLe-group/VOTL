@@ -1366,25 +1366,10 @@ public class InteractionListener extends ListenerAdapter {
 		event.deferEdit().queue();
 		String[] modalId = event.getModalId().split(":");
 
+		//noinspection SwitchStatementWithTooFewBranches
 		switch (modalId[0]) {
-			case "vfpanel" -> modalVfpanel(event);
 			case "role_temp" -> modalTempRole(event, castLong(modalId[1]));
 		}
-	}
-
-	private void modalVfpanel(ModalInteractionEvent event) {
-		if (event.getValues().isEmpty()) {
-			sendError(event, "errors.interaction.no_values");
-			return;
-		}
-
-		String main = event.getValue("main").getAsString();
-		ignoreExc(() -> db.verifySettings.setPanelText(event.getGuild().getIdLong(), main.isBlank() ? "NULL" : main));
-
-		event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, "bot.verification.vfpanel.text.done"))
-			.build()
-		).setEphemeral(true).queue();
 	}
 
 	private void modalTempRole(ModalInteractionEvent event, long channelId) {

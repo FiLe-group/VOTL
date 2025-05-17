@@ -13,7 +13,6 @@ import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
-import dev.fileeditor.votl.middleware.CooldownMiddleware;
 import dev.fileeditor.votl.middleware.MiddlewareHandler;
 import dev.fileeditor.votl.middleware.ThrottleMiddleware;
 import dev.fileeditor.votl.middleware.global.HasAccess;
@@ -136,7 +135,6 @@ public class App {
 		LOG.info("Registering default middlewares");
 		MiddlewareHandler.initialize(this);
 		MiddlewareHandler.register("throttle", new ThrottleMiddleware(this));
-		MiddlewareHandler.register("cooldown", new CooldownMiddleware(this));
 		MiddlewareHandler.register("hasAccess", new HasAccess(this));
 
 		LOG.info("Registering commands...");

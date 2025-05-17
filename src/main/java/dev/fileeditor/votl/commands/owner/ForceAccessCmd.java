@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class ForceAccessCmd extends SlashCommand {
-	
 	public ForceAccessCmd() {
 		this.name = "forceaccess";
 		this.path = "bot.owner.forceaccess";
@@ -36,7 +35,6 @@ public class ForceAccessCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
 		Guild guild = event.getJDA().getGuildById(event.optString("server"));
 		if (guild == null) {
 			editError(event, path+".no_guild");
@@ -65,5 +63,4 @@ public class ForceAccessCmd extends SlashCommand {
 			editErrorDatabase(event, ex, "force access");
 		}
 	}
-
 }

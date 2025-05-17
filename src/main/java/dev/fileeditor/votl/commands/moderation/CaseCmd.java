@@ -28,7 +28,6 @@ public class CaseCmd extends SlashCommand {
 	
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(true).queue();
 		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
 		if (caseData == null) {
 			editError(event, path+".not_found");

@@ -36,7 +36,6 @@ public class DurationCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply().queue();
 		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
 		if (caseData == null || event.getGuild().getIdLong() != caseData.getGuildId()) {
 			editError(event, path+".not_found");

@@ -21,7 +21,6 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 
 public class EvalCmd extends SlashCommand {
-	
 	public EvalCmd() {
 		this.name = "eval";
 		this.path = "bot.owner.eval";
@@ -30,12 +29,11 @@ public class EvalCmd extends SlashCommand {
 		);
 		this.category = CmdCategory.OWNER;
 		this.ownerCommand = true;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(true).queue();
-
 		DiscordLocale userLocale = event.getUserLocale();
 
 		String args = event.optString("code");

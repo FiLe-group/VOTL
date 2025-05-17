@@ -24,17 +24,16 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class GenerateListCmd extends SlashCommand {
-	
 	public GenerateListCmd() {
 		this.name = "generate";
 		this.path = "bot.owner.generate";
 		this.category = CmdCategory.OWNER;
 		this.ownerCommand = true;
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		event.deferReply(true).queue();
 		List<SlashCommand> commands = event.getClient().getSlashCommands();
 		if (commands.isEmpty()) {
 			editError(event, "Commands not found");
@@ -80,9 +79,9 @@ public class GenerateListCmd extends SlashCommand {
 			writer.write(commandArray.toString());
 			writer.flush();
 			writer.close();
-			event.getHook().editOriginalAttachments(FileUpload.fromData(file, "commands.json")).queue(hook -> {
-				boolean ignored2 = file.delete();
-			});
+			//noinspection ResultOfMethodCallIgnored
+			event.getHook().editOriginalAttachments(FileUpload.fromData(file, "commands.json"))
+				.queue(hook -> file.delete());
 		} catch (IOException | UncheckedIOException ex) {
 			editError(event, path+".error", ex.getMessage());
 		}
@@ -105,5 +104,4 @@ public class GenerateListCmd extends SlashCommand {
 		}
 		return map;
 	}
-
 }
