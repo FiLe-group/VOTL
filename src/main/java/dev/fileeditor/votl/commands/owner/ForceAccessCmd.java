@@ -17,7 +17,7 @@ public class ForceAccessCmd extends SlashCommand {
 		this.name = "forceaccess";
 		this.path = "bot.owner.forceaccess";
 		this.category = CmdCategory.OWNER;
-		this.ownerCommand = true;
+		this.accessLevel = CmdAccessLevel.DEV;
 		this.options = List.of(
 			new OptionData(OptionType.STRING, "server", lu.getText(path+".server.help"), true),
 			new OptionData(OptionType.INTEGER, "type", lu.getText(path+".type.help"), true)

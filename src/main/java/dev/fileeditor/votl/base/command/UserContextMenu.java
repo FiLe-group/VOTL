@@ -79,11 +79,6 @@ public abstract class UserContextMenu extends ContextMenu implements Reflectiona
 		// client 
 		final CommandClient client = event.getClient();
 
-		// owner check
-		if (ownerCommand && !(event.isOwner())) {
-			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
-		}
-
 		// checks
 		if (event.isFromGuild()) {
 			Member author = event.getMember();
@@ -154,7 +149,7 @@ public abstract class UserContextMenu extends ContextMenu implements Reflectiona
 			data.setNameLocalizations(getNameLocalization());
 		}
 
-		if (!isOwnerCommand() || getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN)) {
+		if (getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN)) {
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(getUserPermissions()));
 		}
 		else {

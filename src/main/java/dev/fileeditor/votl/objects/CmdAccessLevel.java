@@ -46,6 +46,10 @@ public enum CmdAccessLevel {
 		return(this.level > other.getLevel());
 	}
 
+	/**
+	 * @param other Access to compare to
+	 * @return If this access equals or is higher that other access.
+	 */
 	public boolean satisfies(CmdAccessLevel other) {
 		return (this.level >= other.getLevel());
 	}

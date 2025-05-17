@@ -3,6 +3,7 @@ package dev.fileeditor.votl.commands.owner;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.blacklist.Scope;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -16,7 +17,7 @@ public class BotBlacklist extends SlashCommand {
 		this.name = "bot_blacklist";
 		this.path = "bot.owner.bot_blacklist";
 		this.category = CmdCategory.OWNER;
-		this.ownerCommand = true;
+		this.accessLevel = CmdAccessLevel.DEV;
 		this.options = List.of(
 			new OptionData(OptionType.BOOLEAN, "add", lu.getText(path+".add.help"), true),
 			new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true),

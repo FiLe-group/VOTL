@@ -35,6 +35,7 @@ import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
 
 import dev.fileeditor.votl.middleware.MiddlewareStack;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -337,22 +338,20 @@ public class CommandClientImpl implements CommandClient, EventListener {
 	}
 
 	@Override
-	public void upsertInteractions(JDA jda, String[] serverIds) {
+	public void upsertInteractions(JDA jda, String[] devGuildIds) {
 		// Get all commands
 		List<CommandData> data = new ArrayList<>();
 		List<CommandData> dataDev = new ArrayList<>();
-		List<SlashCommand> slashCommands = getSlashCommands();
-		List<ContextMenu> contextMenus = getContextMenus();
 
 		// Build the command and privilege data
-		for (SlashCommand command : slashCommands) {
-			if (!command.isOwnerCommand()) {
-				data.add(command.buildCommandData());
-			} else {
+		for (SlashCommand command : getSlashCommands()) {
+			if (command.getAccessLevel().satisfies(CmdAccessLevel.DEV)) {
 				dataDev.add(command.buildCommandData());
+			} else {
+				data.add(command.buildCommandData());
 			}
 		}
-		for (ContextMenu menu : contextMenus) {
+		for (ContextMenu menu : getContextMenus()) {
 			data.add(menu.buildCommandData());
 		}
 
@@ -360,21 +359,21 @@ public class CommandClientImpl implements CommandClient, EventListener {
 			.queue(commands -> LOG.debug("Successfully added {} slash commands globally!", commands.size()));
 
 		// Upsert the commands
-		for (String serverId : serverIds) {
+		for (String guildId : devGuildIds) {
 			// Attempt to retrieve the provided guild
-			if (serverId == null) {
+			if (guildId == null) {
 				LOG.error("One of the specified developer guild id is null! Check provided values.");
 				return;
 			}
-			Guild server = jda.getGuildById(serverId);
-			if (server == null) {
+			Guild guild = jda.getGuildById(guildId);
+			if (guild == null) {
 				LOG.error("Specified dev guild is null! Slash Commands will NOT be added! Is the bot added?");
 				return;
 			}
 			// Upsert the commands + their privileges
-			server.updateCommands().addCommands(dataDev)
+			guild.updateCommands().addCommands(dataDev)
 				.queue(
-					done -> LOG.debug("Successfully added {} slash commands to server {}", dataDev.size(), server.getName()),
+					done -> LOG.debug("Successfully added {} slash commands to server {}", dataDev.size(), guild.getName()),
 					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?", error)
 				);
 		}

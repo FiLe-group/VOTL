@@ -16,7 +16,7 @@ public class CheckAccessCmd extends SlashCommand {
 		this.name = "checkaccess";
 		this.path = "bot.owner.checkaccess";
 		this.category = CmdCategory.OWNER;
-		this.ownerCommand = true;
+		this.accessLevel = CmdAccessLevel.DEV;
 		this.options = List.of(
 			new OptionData(OptionType.STRING, "server", lu.getText(path+".server.help"), true),
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)

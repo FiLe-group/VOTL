@@ -106,7 +106,7 @@ public abstract class ContextMenu extends Interaction
 			data.setNameLocalizations(getNameLocalization());
 		}
 
-		if (!isOwnerCommand() || getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN))
+		if (getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN))
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(getUserPermissions()));
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);

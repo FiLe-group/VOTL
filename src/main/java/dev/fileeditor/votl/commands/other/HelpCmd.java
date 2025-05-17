@@ -8,6 +8,7 @@ import java.util.Optional;
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -144,7 +145,7 @@ public class HelpCmd extends SlashCommand {
 				}).toList()
 		);
 		for (SlashCommand command : commands) {
-			if (!command.isOwnerCommand() || bot.getCheckUtil().isBotOwner(event.getUser())) {
+			if (command.getAccessLevel().isLowerThan(CmdAccessLevel.DEV) || bot.getCheckUtil().isBotOwner(event.getUser())) {
 				if (!Objects.equals(category, command.getCategory())) {
 					if (category != null) {
 						builder.addField(fieldTitle, fieldValue.toString(), false);

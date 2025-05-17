@@ -202,13 +202,8 @@ public abstract class SlashCommand extends Interaction {
 		// client 
 		final CommandClient client = event.getClient();
 
-		// check owner command
-		if (ownerCommand && !isOwner(event, client)) {
-			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
-		}
-
 		// check db and permissions
-		if (event.isFromGuild() && !ownerCommand) {
+		if (event.isFromGuild()) {
 			try {
 				bot.getCheckUtil()
 				// check bots perms
@@ -348,10 +343,6 @@ public abstract class SlashCommand extends Interaction {
 		if (nsfwOnly) {
 			data.setNSFW(true);
 		}
-		// Add AccessLevel if ownerCommand
-		if (ownerCommand) {
-			this.accessLevel = CmdAccessLevel.DEV;
-		}
 
 		// Check for children
 		if (children.length != 0) {
@@ -365,7 +356,7 @@ public abstract class SlashCommand extends Interaction {
 				if (child.botPermissions.length == 0) {
 					child.botPermissions = getBotPermissions();
 				}
-				if (Objects.equals(child.getAccessLevel().getLevel(), CmdAccessLevel.ALL.getLevel())) {
+				if (child.getAccessLevel().equals(CmdAccessLevel.ALL)) {
 					child.accessLevel = getAccessLevel();
 				}
 				if (child.module == null) {
@@ -442,10 +433,6 @@ public abstract class SlashCommand extends Interaction {
 	 */
 	public SlashCommand[] getChildren() {
 		return children;
-	}
-
-	private boolean terminate(SlashCommandEvent event, @NotNull MessageEmbed embed, CommandClient client) {
-		return terminate(event, MessageCreateData.fromEmbeds(embed), client);
 	}
 
 	private boolean terminate(SlashCommandEvent event, MessageCreateData message, CommandClient client) {

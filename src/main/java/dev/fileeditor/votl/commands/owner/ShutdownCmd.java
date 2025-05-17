@@ -2,6 +2,7 @@ package dev.fileeditor.votl.commands.owner;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
 import dev.fileeditor.votl.scheduler.ScheduleHandler;
@@ -13,7 +14,7 @@ public class ShutdownCmd extends SlashCommand {
 		this.name = "shutdown";
 		this.path = "bot.owner.shutdown";
 		this.category = CmdCategory.OWNER;
-		this.ownerCommand = true;
+		this.accessLevel = CmdAccessLevel.DEV;
 		this.guildOnly = false;
 	}
 	

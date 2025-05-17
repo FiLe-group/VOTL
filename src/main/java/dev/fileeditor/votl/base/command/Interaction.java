@@ -68,15 +68,6 @@ public abstract class Interaction extends Reflectionable {
 	@NotNull
 	protected Permission[] botPermissions = new Permission[0];
 
-	/**
-	 * {@code true} if the interaction may only be used by a User with an ID matching the
-	 * Owners or any of the CoOwners.<br>
-	 * If enabled for a Slash Command, only owners (owner + up to 9 co-owners) will be added to the SlashCommand.
-	 * All other permissions will be ignored.
-	 * <br>Default {@code false}.
-	 */
-	protected boolean ownerCommand = false;
-
 	protected String throttle = null;
 
 	/**
@@ -97,15 +88,6 @@ public abstract class Interaction extends Reflectionable {
 	@NotNull
 	public Permission[] getBotPermissions() {
 		return botPermissions;
-	}
-
-	/**
-	 * Checks whether this is an owner only Interaction, meaning only the owner and co-owners can use it.
-	 *
-	 * @return {@code true} if the command is an owner interaction, otherwise {@code false} if it is not
-	 */
-	public boolean isOwnerCommand() {
-		return ownerCommand;
 	}
 	
 	/**
