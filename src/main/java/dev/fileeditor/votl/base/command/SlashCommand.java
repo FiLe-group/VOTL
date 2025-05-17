@@ -25,7 +25,6 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
@@ -211,11 +210,6 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 		// client 
 		final CommandClient client = event.getClient();
 
-		// check blacklist
-		if (bot.getCheckUtil().isBlacklisted(event.getUser())) {
-			return terminate(event, client);
-		}
-
 		// check owner command
 		if (ownerCommand && !isOwner(event, client)) {
 			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
@@ -223,11 +217,8 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 
 		// check db and permissions
 		if (event.isFromGuild() && !ownerCommand) {
-			Member author = event.getMember();
 			try {
 				bot.getCheckUtil()
-				// check access
-					.hasAccess(event, author, getAccessLevel())
 				// check bots perms
 					.hasPermissions(event, getBotPermissions());
 			} catch (CheckException ex) {
@@ -347,12 +338,6 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 		this.help = lu.getText(getHelpPath());
 		this.descriptionLocalization = lu.getFullLocaleMap(getHelpPath(), getHelp());
 
-		// Register middlewares
-		registerThrottleMiddleware();
-		if (cooldown > 0) {
-			middlewares.add("cooldown");
-		}
-
 		// Make the command data
 		SlashCommandData data = Commands.slash(getName(), getHelp());
 
@@ -454,6 +439,15 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 
 		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
+		// Register middlewares
+		registerThrottleMiddleware();
+		if (cooldown > 0) {
+			middlewares.add("cooldown");
+		}
+		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
+			middlewares.add("hasAccess");
+		}
+
 		return data;
 	}
 
@@ -475,12 +469,6 @@ public abstract class SlashCommand extends Interaction implements Reflectional {
 			event.reply(message)
 				.setEphemeral(true)
 				.queue(null, failure -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
-		if (client.getListener() != null)
-			client.getListener().onTerminatedSlashCommand(event, this);
-		return false;
-	}
-
-	private boolean terminate(SlashCommandEvent event, CommandClient client) {
 		if (client.getListener() != null)
 			client.getListener().onTerminatedSlashCommand(event, this);
 		return false;

@@ -4,6 +4,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.*;
 import dev.fileeditor.votl.contracts.middleware.Middleware;
 import dev.fileeditor.votl.middleware.global.IsModuleEnabled;
+import dev.fileeditor.votl.middleware.global.RunCommand;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.ListIterator;
 public class MiddlewareStack {
 
 	private static IsModuleEnabled isModuleEnabled;
+	private static RunCommand runCommand;
 
 	private final Interaction interaction;
 	private final GenericCommandInteractionEvent event;
@@ -26,7 +28,7 @@ public class MiddlewareStack {
 
 		event.deferReply(interaction.isEphemeralReply()).queue();
 
-		// process command
+		middlewares.add(new MiddlewareContainer(runCommand));
 
 		buildMiddlewareStack();
 
@@ -35,10 +37,11 @@ public class MiddlewareStack {
 
 	static void buildGlobalMiddlewares(App bot) {
 		isModuleEnabled = new IsModuleEnabled(bot);
+		runCommand = new RunCommand(bot);
 	}
 
 	private void buildMiddlewareStack() {
-		List<String> middleware = interaction.getMiddleware();
+		List<String> middleware = interaction.getMiddlewares();
 		if (middleware.isEmpty()) {
 			return;
 		}
@@ -55,8 +58,9 @@ public class MiddlewareStack {
 
 			if (split.length == 1) {
 				middlewares.add(new MiddlewareContainer(middlewareReference));
+			} else {
+				middlewares.add(new MiddlewareContainer(middlewareReference, split[1].split(",")));
 			}
-			middlewares.add(new MiddlewareContainer(middlewareReference, split[1].split(",")));
 		}
 	}
 

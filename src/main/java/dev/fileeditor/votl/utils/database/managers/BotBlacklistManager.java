@@ -1,37 +1,31 @@
 package dev.fileeditor.votl.utils.database.managers;
 
+import dev.fileeditor.votl.blacklist.Scope;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.OffsetDateTime;
+import java.util.*;
 
 public class BotBlacklistManager extends LiteBase {
-	// Cache
-	private final Set<Long> cache = Collections.synchronizedSet(new HashSet<>());
 
 	public BotBlacklistManager(ConnectionUtil cu) {
-		super(cu, "botBlacklist");
-		loadCache();
+		super(cu, "blacklist");
 	}
 
-	public void add(long id) throws SQLException {
-		cache.add(id);
-		execute("INSERT INTO %s(id) VALUES (%s) ON CONFLICT (id) DO NOTHING".formatted(table, id));
+	public void add(long id, Scope scope, @NotNull OffsetDateTime expiresIn, String reason) throws SQLException {
+		execute("INSERT INTO %s(id, type, expiresIn, reason) VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO UPDATE SET expiresIn=%4$s, reason=%5$s"
+			.formatted(table, id, scope.getId(), expiresIn.toEpochSecond(), quote(reason)));
 	}
 
 	public void remove(long id) throws SQLException {
-		cache.remove(id);
 		execute("DELETE FROM %s WHERE (id = %s)".formatted(table, id));
 	}
 
-	public boolean blacklisted(long id) {
-		return cache.contains(id);
+	public List<Map<String, Object>> load() {
+		return select("SELECT * FROM %s WHERE expiresIn>%s".formatted(table, OffsetDateTime.now().toEpochSecond()), Set.of("id", "type", "expiresIn", "reason"));
 	}
 
-	private void loadCache() {
-		cache.addAll(select("SELECT id FROM %s".formatted(table), "id", Long.class));
-	}
 }

@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.contracts.blacklist;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 public interface PunishmentLevel {
-	Instant generateTime();
+	OffsetDateTime generateTime();
 }

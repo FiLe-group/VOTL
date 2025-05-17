@@ -42,11 +42,6 @@ public abstract class MessageContextMenu extends ContextMenu implements Reflecti
 		// client 
 		final CommandClient client = event.getClient();
 
-		// check blacklist
-		if (bot.getCheckUtil().isBlacklisted(event.getUser())) {
-			return terminate(event, client);
-		}
-
 		// owner check
 		if (ownerCommand && !(event.isOwner())) {
 			return terminate(event, bot.getEmbedUtil().getError(event, "errors.command.not_owner"), client);
@@ -57,8 +52,6 @@ public abstract class MessageContextMenu extends ContextMenu implements Reflecti
 			Member author = event.getMember();
 			try {
 				bot.getCheckUtil()
-				// check access
-					.hasAccess(event, author, getAccessLevel())
 				// check user perms
 					.hasPermissions(event, getUserPermissions(), author)
 				// check bots perms
@@ -110,38 +103,37 @@ public abstract class MessageContextMenu extends ContextMenu implements Reflecti
 		return false;
 	}
 
-	private boolean terminate(MessageContextMenuEvent event, CommandClient client) {
-		if (client.getListener()!=null)
-			client.getListener().onTerminatedMessageContextMenu(event, this);
-		return false;
-	}
-
 	@Override
 	public CommandData buildCommandData() {
 		// Set attributes
 		this.nameLocalization = lu.getFullLocaleMap(getPath()+".name", lu.getText(getPath()+".name"));
+
+		// Make the command data
+		CommandData data = Commands.message(getName());
+
+		// Check name localizations
+		if (!getNameLocalization().isEmpty()) {
+			//Add localizations
+			data.setNameLocalizations(getNameLocalization());
+		}
+
+		if (!isOwnerCommand() || getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN)) {
+			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(getUserPermissions()));
+		}
+		else {
+			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+		}
+
+		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
 		// Register middlewares
 		registerThrottleMiddleware();
 		if (cooldown > 0) {
 			middlewares.add("cooldown");
 		}
-
-		// Make the command data
-		CommandData data = Commands.message(getName());
-		
-		// Check name localizations
-		if (!getNameLocalization().isEmpty()) {
-			//Add localizations
-			data.setNameLocalizations(getNameLocalization());
+		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
+			middlewares.add("hasAccess");
 		}
-		
-		if (!isOwnerCommand() || getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN))
-			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(getUserPermissions()));
-		else
-			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
-
-		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 
 		return data;
 	}

@@ -62,11 +62,11 @@ public class UnbanCmd extends SlashCommand {
 			// Check if in blacklist
 			for (int groupId : bot.getDBUtil().group.getGuildGroups(guild.getIdLong())) {
 				// Check every group this server is part of for if user is blacklisted
-				if (bot.getDBUtil().blacklist.inGroupUser(groupId, tu.getIdLong())) {
+				if (bot.getDBUtil().serverBlacklist.inGroupUser(groupId, tu.getIdLong())) {
 					if (bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.OPERATOR)) {
 						// User is Operator+, remove blacklist
 						try {
-							bot.getDBUtil().blacklist.removeUser(groupId, tu.getIdLong());
+							bot.getDBUtil().serverBlacklist.removeUser(groupId, tu.getIdLong());
 						} catch (SQLException ex) {
 							editErrorDatabase(event, ex, "Failed to remove user from blacklist.");
 							return;

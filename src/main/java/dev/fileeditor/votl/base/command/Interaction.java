@@ -182,7 +182,7 @@ public abstract class Interaction {
 
 	protected List<String> middlewares = new ArrayList<>();
 
-	public List<String> getMiddleware() {
+	public List<String> getMiddlewares() {
 		return middlewares;
 	}
 

@@ -10,8 +10,7 @@ import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionE
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,15 +31,15 @@ public class Ratelimit {
 	private static final Map<Long, Integer> punishments = new HashMap<>();
 
 	private static final List<PunishmentLevel> levels = List.of(
-		() -> Instant.now().plus(1, ChronoUnit.MINUTES),
-		() -> Instant.now().plus(15, ChronoUnit.MINUTES),
-		() -> Instant.now().plus(30, ChronoUnit.MINUTES),
-		() -> Instant.now().plus(1, ChronoUnit.HOURS),
-		() -> Instant.now().plus(6, ChronoUnit.HOURS),
-		() -> Instant.now().plus(12, ChronoUnit.HOURS),
-		() -> Instant.now().plus(1, ChronoUnit.DAYS),
-		() -> Instant.now().plus(3, ChronoUnit.DAYS),
-		() -> Instant.now().plus(1, ChronoUnit.WEEKS)
+		() -> OffsetDateTime.now().plusMinutes(1),
+		() -> OffsetDateTime.now().plusMinutes(15),
+		() -> OffsetDateTime.now().plusMinutes(30),
+		() -> OffsetDateTime.now().plusHours(1),
+		() -> OffsetDateTime.now().plusHours(6),
+		() -> OffsetDateTime.now().plusHours(12),
+		() -> OffsetDateTime.now().plusDays(1),
+		() -> OffsetDateTime.now().plusDays(3),
+		() -> OffsetDateTime.now().plusWeeks(1)
 	);
 
 	private final Blacklist blacklist;
@@ -50,7 +49,7 @@ public class Ratelimit {
 	}
 
 	@Nullable
-	public Instant hit(ThrottleMiddleware.ThrottleType type, GenericCommandInteractionEvent event) {
+	public OffsetDateTime hit(ThrottleMiddleware.ThrottleType type, GenericCommandInteractionEvent event) {
 		final long id = type.getSnowflake(event).getIdLong();
 
 		Rate rate = cache.get(id);
@@ -72,7 +71,7 @@ public class Ratelimit {
 			return null;
 		}
 
-		Instant punishment = getPunishment(id);
+		OffsetDateTime punishment = getPunishment(id);
 
 		LOG.info("{}:{} has been added to blacklist for excessive command usage, the blacklist expires {}.",
 			type.getName(), id, TimeUtil.timeToString(punishment)
@@ -88,7 +87,7 @@ public class Ratelimit {
 		return punishment;
 	}
 
-	private Instant getPunishment(long userId) {
+	private OffsetDateTime getPunishment(long userId) {
 		int level = punishments.getOrDefault(userId, -1) + 1;
 
 		punishments.put(userId, level);
@@ -96,7 +95,7 @@ public class Ratelimit {
 		return getPunishment(level);
 	}
 
-	private Instant getPunishment(int level) {
+	private OffsetDateTime getPunishment(int level) {
 		if (level < 0) {
 			return levels.getFirst().generateTime();
 		}

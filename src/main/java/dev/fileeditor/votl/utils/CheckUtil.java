@@ -88,13 +88,6 @@ public class CheckUtil {
 		return getAccessLevel(member).satisfies(accessLevel);
 	}
 
-	public CheckUtil hasAccess(IReplyCallback replyCallback, Member member, CmdAccessLevel accessLevel) throws CheckException {
-		if (accessLevel.equals(CmdAccessLevel.ALL)) return this;
-		if (getAccessLevel(member).isLowerThan(accessLevel))
-			throw new CheckException(bot.getEmbedUtil().getError(replyCallback, "errors.interaction.no_access", "Required access: "+accessLevel.getName()));
-		return this;
-	}
-
 	public CheckUtil moduleEnabled(IReplyCallback replyCallback, Guild guild, CmdModule module) throws CheckException {
 		if (module == null)
 			return this;
@@ -168,10 +161,6 @@ public class CheckUtil {
 			throw new CheckException(msg);
 		}
 		return this;
-	}
-
-	public boolean isBlacklisted(ISnowflake snowflake) {
-		return bot.getDBUtil().botBlacklist.blacklisted(snowflake.getIdLong());
 	}
 
 	private final Set<Permission> adminPerms = Set.of(Permission.ADMINISTRATOR, Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_SERVER, Permission.BAN_MEMBERS);

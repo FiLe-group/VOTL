@@ -22,7 +22,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.DBUtil;
-import dev.fileeditor.votl.utils.database.managers.BlacklistManager;
+import dev.fileeditor.votl.utils.database.managers.ServerBlacklistManager;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.database.managers.RoleManager;
 import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
@@ -71,7 +71,6 @@ import net.dv8tion.jda.api.managers.channel.concrete.VoiceChannelManager;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.restaction.ChannelAction;
 import net.dv8tion.jda.api.utils.TimeFormat;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -143,7 +142,7 @@ public class InteractionListener extends ListenerAdapter {
 	@Override
 	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
 		// Check if blacklisted
-		if (bot.getCheckUtil().isBlacklisted(event.getUser())) return;
+		if (bot.getBlacklist().isBlacklisted(event.getUser())) return;
 
 		String[] actions = event.getComponentId().split(":");
 
@@ -234,7 +233,7 @@ public class InteractionListener extends ListenerAdapter {
 		groupIds.addAll(db.group.getOwnedGroups(guild.getIdLong()));
 		groupIds.addAll(db.group.getGuildGroups(guild.getIdLong()));
 		for (int groupId : groupIds) {
-			BlacklistManager.BlacklistData data = db.blacklist.getInfo(groupId, member.getIdLong());
+			ServerBlacklistManager.BlacklistData data = db.serverBlacklist.getInfo(groupId, member.getIdLong());
 			if (data != null && db.group.getAppealGuildId(groupId)!=guild.getIdLong()) {
 				sendError(event, "bot.verification.blacklisted", "Reason: "+data.getReason());
 				return;
@@ -1057,8 +1056,8 @@ public class InteractionListener extends ListenerAdapter {
 
 				event.getJDA().retrieveUserById(targetId).queue(target -> {
 					selected.forEach(groupId -> {
-						if (!db.blacklist.inGroupUser(groupId, caseData.getTargetId())) {
-							db.blacklist.add(selectEvent.getGuild().getIdLong(), groupId, target.getIdLong(), caseData.getReason(), selectEvent.getUser().getIdLong());
+						if (!db.serverBlacklist.inGroupUser(groupId, caseData.getTargetId())) {
+							db.serverBlacklist.add(selectEvent.getGuild().getIdLong(), groupId, target.getIdLong(), caseData.getReason(), selectEvent.getUser().getIdLong());
 						}
 
 						bot.getHelper().runBan(groupId, event.getGuild(), target, caseData.getReason(), event.getUser());
@@ -1185,8 +1184,8 @@ public class InteractionListener extends ListenerAdapter {
 
 				event.getJDA().retrieveUserById(event.getComponentId().split(":")[1]).queue(target -> {
 					selected.forEach(groupId -> {
-						if (db.blacklist.inGroupUser(groupId, target.getIdLong())) {
-							ignoreExc(() -> db.blacklist.removeUser(groupId, target.getIdLong()));
+						if (db.serverBlacklist.inGroupUser(groupId, target.getIdLong())) {
+							ignoreExc(() -> db.serverBlacklist.removeUser(groupId, target.getIdLong()));
 							bot.getLogger().mod.onBlacklistRemoved(event.getUser(), target, groupId);
 						}
 
@@ -1714,22 +1713,21 @@ public class InteractionListener extends ListenerAdapter {
 		};
 	}
 
-	private MessageCreateData getCooldownErrorString(Cooldown cooldown, GenericInteractionCreateEvent event, int remaining) {
-		if (remaining <= 0)
-			return null;
+	@NotNull
+	private String getCooldownErrorString(Cooldown cooldown, GenericInteractionCreateEvent event, int remaining) {
+		CooldownScope scope = cooldown.getScope();
+		String descriptor;
+		if (scope.equals(CooldownScope.USER_GUILD) && event.getGuild()==null)
+			descriptor = lu.getLocalized(event.getUserLocale(), CooldownScope.USER_CHANNEL.getErrorPath());
+		else if (scope.equals(CooldownScope.GUILD) && event.getGuild()==null)
+			descriptor = lu.getLocalized(event.getUserLocale(), CooldownScope.CHANNEL.getErrorPath());
+		else if (!scope.equals(CooldownScope.USER))
+			descriptor = lu.getLocalized(event.getUserLocale(), scope.getErrorPath());
+		else
+			descriptor = null;
 
-		StringBuilder front = new StringBuilder(lu.getLocalized(event.getUserLocale(), "errors.cooldown.cooldown_button")
-			.replace("{time}", Integer.toString(remaining))
-		);
-		CooldownScope cooldownScope = cooldown.getScope();
-		if (cooldownScope.equals(CooldownScope.USER_GUILD) && event.getGuild()==null)
-			front.append(" ").append(lu.getLocalized(event.getUserLocale(), CooldownScope.USER_CHANNEL.getErrorPath()));
-		else if (cooldownScope.equals(CooldownScope.GUILD) && event.getGuild()==null)
-			front.append(" ").append(lu.getLocalized(event.getUserLocale(), CooldownScope.CHANNEL.getErrorPath()));
-		else if (!cooldownScope.equals(CooldownScope.USER))
-			front.append(" ").append(lu.getLocalized(event.getUserLocale(), cooldownScope.getErrorPath()));
-
-		return MessageCreateData.fromContent(Objects.requireNonNull(front.append("!").toString()));
+		return lu.getLocalized(event.getUserLocale(), "errors.cooldown.cooldown_button")
+			.formatted(descriptor == null ? "" : descriptor, TimeFormat.RELATIVE.after(remaining));
 	}
 
 

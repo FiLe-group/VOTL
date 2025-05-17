@@ -7,9 +7,9 @@ import dev.fileeditor.votl.middleware.MiddlewareStack;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class runCommand extends Middleware {
+public class RunCommand extends Middleware {
 
-	public runCommand(App bot) {
+	public RunCommand(App bot) {
 		super(bot);
 	}
 

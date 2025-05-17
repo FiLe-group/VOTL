@@ -2,16 +2,16 @@ package dev.fileeditor.votl.blacklist;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 public class BlacklistEntity {
 
 	private final Scope scope;
 	private final long id;
-	private final Instant expiresIn;
+	private final OffsetDateTime expiresIn;
 	private final String reason;
 
-	BlacklistEntity(Scope scope, long id, @Nullable String reason, @Nullable Instant expiresIn) {
+	BlacklistEntity(Scope scope, long id, @Nullable String reason, @Nullable OffsetDateTime expiresIn) {
 		this.scope = scope;
 		this.id = id;
 		this.expiresIn = expiresIn;
@@ -31,7 +31,7 @@ public class BlacklistEntity {
 	}
 
 	public boolean isBlacklisted() {
-		return expiresIn == null || Instant.now().isBefore(expiresIn);
+		return expiresIn == null || OffsetDateTime.now().isBefore(expiresIn);
 	}
 
 	@Nullable

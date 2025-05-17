@@ -6,8 +6,13 @@ import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLException;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
+
+import static dev.fileeditor.votl.utils.CastUtil.*;
 
 public class Blacklist {
 
@@ -47,7 +52,11 @@ public class Blacklist {
 	public void remove(long id) {
 		blacklist.remove(id);
 
-		// TODO database
+		try {
+			bot.getDBUtil().blacklist.remove(id);
+		} catch (SQLException e) {
+			bot.getAppLogger().error("Failed to sync blacklist with the database: {}", e.getMessage(), e);
+		}
 	}
 
 	@Nullable
@@ -59,7 +68,7 @@ public class Blacklist {
 		addToBlacklist(scope, id, reason, null);
 	}
 
-	public void addToBlacklist(Scope scope, long id, @Nullable String reason, @Nullable Instant expiresIn) {
+	public void addToBlacklist(Scope scope, long id, @Nullable String reason, @Nullable OffsetDateTime expiresIn) {
 		BlacklistEntity entity = getEntity(id);
 		if (entity != null) {
 			remove(id);
@@ -67,12 +76,30 @@ public class Blacklist {
 
 		blacklist.put(id, new BlacklistEntity(scope, id, reason, expiresIn));
 
-		// TODO sync with database
+		try {
+			bot.getDBUtil().blacklist.add(id, scope, expiresIn==null ? OffsetDateTime.now().plusYears(10) : expiresIn, reason);
+		} catch (SQLException e) {
+			bot.getAppLogger().error("Failed to sync blacklist with the database: {}", e.getMessage(), e);
+		}
 	}
 
 	public Map<Long, BlacklistEntity> getBlacklistEntities() {
 		return Collections.unmodifiableMap(blacklist);
 	}
 
-	// TODO sync with database
+	public synchronized void syncBlacklistWithDatabase() {
+		blacklist.clear();
+		try {
+			for (var map : bot.getDBUtil().blacklist.load()) {
+				long id = requireNonNull(map.get("id"));
+				Scope scope = Scope.fromId(getOrDefault(map.get("type"), 0));
+				String reason = getOrDefault(map.get("reason"), null);
+				OffsetDateTime expiresIn = resolveOrDefault(map.get("expiresIn"), o -> Instant.ofEpochSecond(castLong(o)).atOffset(ZoneOffset.UTC), null);
+
+				blacklist.put(id, new BlacklistEntity(scope, id, reason, expiresIn));
+			}
+		} catch (Exception e) {
+			bot.getAppLogger().error("Failed to sync blacklist with the database: {}", e.getMessage(), e);
+		}
+	}
 }

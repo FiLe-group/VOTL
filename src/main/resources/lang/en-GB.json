@@ -498,7 +498,7 @@
 			},
 			"bot_blacklist": {
 				"help": "Manage bot's blacklist",
-				"usage": "bot_blacklist <add?> <ID>",
+				"usage": "bot_blacklist <add?> <ID> [type] [reason]",
 				"add": {
 					"name": "add",
 					"help": "Add (or remove)?"
@@ -506,6 +506,14 @@
 				"id": {
 					"name": "id",
 					"help": "Enter user or server ID"
+				},
+				"type": {
+					"name": "type",
+					"help": "Target type (user or guild)"
+				},
+				"reason": {
+					"name": "reason",
+					"help": "Blacklist reason"
 				}
 			},
 			"experience": {

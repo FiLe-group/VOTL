@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
 
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
@@ -49,7 +50,7 @@ public class ThrottleMiddleware extends Middleware {
 
 			ThrottleEntity entity = getEntityFromCache(type.genKey(event), maxAttempts, decaySeconds);
 			if (entity.getHits() >= maxAttempts) {
-				Instant expires = bot.getBlacklist().getRatelimit().hit(type, event);
+				OffsetDateTime expires = bot.getBlacklist().getRatelimit().hit(type, event);
 
 				if (expires != null) {
 					sendBlacklistMessage(event, type==ThrottleType.USER ? event.getUser() : event.getMessageChannel(), expires);
@@ -98,7 +99,7 @@ public class ThrottleMiddleware extends Middleware {
 		return cache.get(key, (v) -> new ThrottleEntity(maxAttempts, decaySeconds));
 	}
 
-	private void sendBlacklistMessage(GenericCommandInteractionEvent event, Object o, Instant expiresIn) {
+	private void sendBlacklistMessage(GenericCommandInteractionEvent event, Object o, OffsetDateTime expiresIn) {
 		if (o instanceof User user) {
 			sendBlacklistMessage(event, user, expiresIn);
 		} else if (o instanceof MessageChannel channel) {
@@ -106,7 +107,7 @@ public class ThrottleMiddleware extends Middleware {
 		}
 	}
 
-	private void sendBlacklistMessage(GenericCommandInteractionEvent event, User user, Instant expiresIn) {
+	private void sendBlacklistMessage(GenericCommandInteractionEvent event, User user, OffsetDateTime expiresIn) {
 		user.openPrivateChannel()
 			.flatMap(channel ->
 				channel.sendMessageEmbeds(
@@ -123,7 +124,7 @@ public class ThrottleMiddleware extends Middleware {
 			.queue();
 	}
 
-	private void sendBlacklistMessage(GenericCommandInteractionEvent event, MessageChannel channel, Instant expiresIn) {
+	private void sendBlacklistMessage(GenericCommandInteractionEvent event, MessageChannel channel, OffsetDateTime expiresIn) {
 		channel.sendMessageEmbeds(
 			bot.getEmbedUtil()
 				.getEmbed(Constants.COLOR_WARNING)
