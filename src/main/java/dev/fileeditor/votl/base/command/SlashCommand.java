@@ -20,7 +20,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import dev.fileeditor.votl.contracts.reflection.Reflectional;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.utils.exception.CheckException;
 
@@ -76,7 +75,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Olivia (Chew)
  */
-public abstract class SlashCommand extends Interaction implements Reflectional {
+public abstract class SlashCommand extends Interaction {
 
 	/**
 	 * The name of the command, allows the command to be called the formats: <br>

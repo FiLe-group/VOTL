@@ -17,6 +17,7 @@ package dev.fileeditor.votl.base.command;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.contracts.middleware.Middleware;
+import dev.fileeditor.votl.contracts.reflection.Reflectionable;
 import dev.fileeditor.votl.middleware.MiddlewareHandler;
 import dev.fileeditor.votl.middleware.ThrottleMiddleware;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
@@ -36,7 +37,11 @@ import java.util.List;
  * <p>
  * Any content here is safely functionality equivalent regardless of the source of the interaction.
  */
-public abstract class Interaction {
+public abstract class Interaction extends Reflectionable {
+	public Interaction() {
+		super(App.getInstance());
+	}
+
 	/**
 	 * {@code true} if the command may only be used in a {@link net.dv8tion.jda.api.entities.Guild Guild},
 	 * {@code false} if it may be used in both a Guild and a DM.
@@ -236,8 +241,6 @@ public abstract class Interaction {
 			}
 		}
 	}
-
-	protected final App bot = App.getInstance();
 
 	protected final LocaleUtil lu = bot.getLocaleUtil();
 

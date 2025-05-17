@@ -7,6 +7,7 @@ import org.reflections.Reflections;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -22,6 +23,16 @@ public class AutoloaderUtil {
 		Set<Class<? extends Reflectional>> types = new Reflections(path).getSubTypesOf(Reflectional.class);
 
 		for (Class<? extends Reflectional> reflectionClass : types) {
+			// Skip inner/nested classes
+			if (reflectionClass.isMemberClass() || reflectionClass.getEnclosingClass() != null) {
+				continue;
+			}
+
+			// Skip abstract classes
+			if (Modifier.isAbstract(reflectionClass.getModifiers())) {
+				continue;
+			}
+
 			if (reflectionClass.getPackage().getName().contains("contracts")) {
 				continue;
 			}
