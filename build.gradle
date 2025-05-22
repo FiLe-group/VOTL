@@ -35,7 +35,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
 	implementation 'io.github.java-diff-utils:java-diff-utils:4.15'	// Diff finder
 	// https://mvnrepository.com/artifact/org.json/json
-	implementation 'org.json:json:20250107'							// JsonObject
+	implementation 'org.json:json:20250517'							// JsonObject
 	// https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
 	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.0'	// Cache
 	// https://mvnrepository.com/artifact/org.reflections/reflections
