@@ -25,7 +25,7 @@ jobs:
         id: get_sha
         run: echo "sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
       - name: Build with Gradle and set runId
-        run: ./gradlew shadowJar -Psha=${{ env.sha }} -PrunId=${{ github.run_id }}
+        run: ./gradlew shadowJar -Psha=${{ env.sha }} -Psnap
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

@@ -101,12 +101,12 @@ tasks.shadowJar {
 
 String getFullVersion(String baseVersion) {
 	def sha = project.findProperty("sha") as String
-	def runId = project.findProperty("runId") as String
+	def isSnapshot = project.hasProperty("snap")
 
 	def fullVersion = baseVersion
 
-	if (runId != null) {
-		fullVersion += "-SNAPSHOT.${runId}"
+	if (isSnapshot) {
+		fullVersion += "-SNAPSHOT"
 	}
 	if (sha != null) {
 		fullVersion += "+${sha}"
