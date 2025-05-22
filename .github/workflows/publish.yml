@@ -19,8 +19,11 @@ jobs:
       uses: gradle/actions/wrapper-validation@v4
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
+    - name: Get latest commit short sha
+      id: get_sha
+      run: echo "sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
     - name: Build with Gradle
-      run: ./gradlew shadowJar
+      run: ./gradlew build -Psha=${{ env.sha }}
     - name: Get App Version
       id: get_version
       run: echo "version=$(./gradlew printVersion --console=plain -q --warning-mode=none)" >> $GITHUB_ENV
@@ -28,16 +31,15 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Package
-        path: |
-          ./build/libs/VOTL-*
+        path: VOTL.jar
         overwrite: true
     - name: Create Release
       # You may pin to the exact commit or the version.
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: true
-        # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
-        artifacts: ./build/libs/VOTL-*.jar
+        # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma-delimited list of paths (or globs)
+        artifacts: VOTL.jar
         artifactContentType: "raw"
         # Generate release notes. There needs to be a previous version for it to diff against.
         generateReleaseNotes: true

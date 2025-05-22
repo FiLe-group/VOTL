@@ -76,11 +76,7 @@ tasks.build {
 // ShadowJar config
 tasks.shadowJar {
 	archiveBaseName = 'VOTL'
-	if (project.hasProperty('runId')) {
-		archiveVersion = "${version}-SNAPSHOT-${project.property('runId')}"
-	} else {
-		archiveVersion = version
-	}
+	archiveVersion = version
 	archiveClassifier = ''
 	minimize {
 		exclude(dependency('ch.qos.logback:logback-classic:.*'))
@@ -97,10 +93,27 @@ tasks.shadowJar {
 
 	manifest {
 		attributes 'Implementation-Title': 'VOTL Bot',
-				'Implementation-Version': version,
+				'Implementation-Version': getFullVersion(version),
 				'Implementation-Vendor': 'FiLe group',
 				'Main-Class': mainClassName
 	}
+}
+
+String getFullVersion(String baseVersion) {
+	def sha = project.findProperty("sha") as String
+	def runId = project.findProperty("runId") as String
+
+	def fullVersion = baseVersion
+
+	if (runId != null) {
+		fullVersion += "-SNAPSHOT.${runId}"
+	}
+	if (sha != null) {
+		fullVersion += "+${sha}"
+	}
+
+	// Use this version as the project version
+	return fullVersion
 }
 
 compileJava.options.encoding = 'UTF-8'
