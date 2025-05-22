@@ -39,7 +39,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
 	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.0'	// Cache
 	// https://mvnrepository.com/artifact/org.reflections/reflections
-	implementation 'org.reflections:reflections:0.10.2'
+	implementation 'org.reflections:reflections:0.10.2'				// Reflections for auto-load
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
@@ -48,6 +48,9 @@ dependencies {
 
 java {
 	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(21))
+	}
 }
 
 // jar's Manifest
@@ -55,8 +58,19 @@ tasks.jar {
 	enabled = false
 }
 
+// ShadowJar + copy to base folder
 tasks.build {
 	dependsOn(shadowJar)
+
+	doLast {
+		copy {
+			from('build/libs') {
+				include 'VOTL-*.jar'
+			}
+			into '.'
+			rename 'VOTL-(.*).jar', 'VOTL.jar'
+		}
+	}
 }
 
 // ShadowJar config
