@@ -8,7 +8,6 @@ import dev.fileeditor.votl.scheduler.tasks.RemoveExpiredCases;
 
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings("unused")
 public class RegularJobs extends Job {
 
 	private final DrainDbQueue drainDbQueue = new DrainDbQueue();

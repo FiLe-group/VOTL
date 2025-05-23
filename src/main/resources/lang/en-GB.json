@@ -410,7 +410,15 @@
 			},
 			"shutdown": {
 				"help": "Safely shuts down the bot",
-				"usage": "shutdown"
+				"usage": "shutdown [now] [status]",
+				"now": {
+					"name": "now",
+					"help": "Shutdown now (or in 5 minutes)"
+				},
+				"status": {
+					"name": "status",
+					"help": "Shutdown status to use"
+				}
 			},
 			"generate": {
 				"help": "Generates json file with information about all bot's public commands",

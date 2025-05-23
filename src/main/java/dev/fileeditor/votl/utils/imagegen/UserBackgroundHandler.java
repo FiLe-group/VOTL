@@ -2,6 +2,7 @@ package dev.fileeditor.votl.utils.imagegen;
 
 import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.objects.ExitCodes;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.file.ResourceLoaderUtil;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +72,7 @@ public class UserBackgroundHandler {
 			backgrounds.addAll(userBackgrounds);
 		} catch (IOException e) {
 			log.error("Failed to load backgrounds: {}", e.getMessage(), e);
-			System.exit(101);
+			System.exit(ExitCodes.ERROR.code);
 		}
 	}
 

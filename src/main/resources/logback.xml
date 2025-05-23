@@ -7,7 +7,7 @@
 			<level>INFO</level>
 		</filter>
 		<encoder>
-			<pattern>%d{HH:mm:ss.SSS} %-30.-30thread %6.6X{jda.shard} %-15.-15logger{0} [ %-6level] %msg%n</pattern>
+			<pattern>%d{HH:mm:ss.SSS} %-30.-30thread %6.6X{jda.shard} %-15.-15logger{0} [ %highlight(%-6level)] %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -28,7 +28,7 @@
 		<append>true</append>
 		<immediateFlush>true</immediateFlush>
 		<encoder>
-			<pattern>%d{dd.MM.yyyy HH:mm:ss} [%thread] [ %-6level] [%logger{0}] %msg%n</pattern>
+			<pattern>%d{dd.MM.yyyy HH:mm:ss} [%thread] [ %highlight(%-6level)] [%logger{0}] %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -49,7 +49,7 @@
 		<append>false</append>
 		<immediateFlush>true</immediateFlush>
 		<encoder>
-			<pattern>%d{dd.MM.yyyy HH:mm:ss} [%thread] [ %-6level] [%logger{0}] %.-1000msg%n</pattern>
+			<pattern>%d{dd.MM.yyyy HH:mm:ss} [%thread] [ %highlight(%-6level)] [%logger{0}] %.-1000msg%n</pattern>
 		</encoder>
 	</appender>
 

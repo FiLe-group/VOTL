@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.objects.ExitCodes;
 import dev.fileeditor.votl.utils.database.managers.*;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager.GuildSettings;
 import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager.TicketSettings;
@@ -69,7 +70,7 @@ public class DBUtil {
 			Class.forName("org.sqlite.JDBC").getDeclaredConstructor().newInstance();
 		} catch (Exception ex) {
 			log.error("SQLite: Exiting!\nSQLite java client driver not found.\nPossibly, this OS/architecture is not supported or Driver has problems.", ex);
-			System.exit(666);
+			System.exit(ExitCodes.ERROR.code);
 		}
 
 		this.fileManager = fileManager;

@@ -42,20 +42,20 @@ public class FileManager {
 	// name - with what name associate this file
 	// internal - path to file inside jar file (/filename)
 	// external - path where to store this file
-	public FileManager addFile(String name, String internal, String external) {
+	public FileManager addFile(String name, String internal, String external) throws IOException {
 		createUpdateLoad(name, internal, external, false);
 		
 		return this;
 	}
 
-	public FileManager addFileUpdate(String name, String internal, String external) {
+	public FileManager addFileUpdate(String name, String internal, String external) throws IOException {
 		createUpdateLoad(name, internal, external, true);
 
 		return this;
 	}
 	
 	// Add new language by locale
-	public FileManager addLang(@NotNull String localeTag) {
+	public FileManager addLang(@NotNull String localeTag) throws IOException {
 		DiscordLocale locale = DiscordLocale.from(localeTag);
 		if (locale.equals(DiscordLocale.UNKNOWN)) {
 			throw new IllegalArgumentException("Unknown locale tag was provided: "+localeTag);
@@ -91,26 +91,26 @@ public class FileManager {
 		return file;
 	}
 	
-	public void createUpdateLoad(String name, String internal, String external, boolean forceUpdate) {
-		File file = new File(external);
+	public void createUpdateLoad(String name, String internal, String external, boolean forceUpdate) throws FileNotFoundException {
+		File externalFile = new File(external);
 		
 		String[] split = external.contains("/") ? external.split(Constants.SEPAR) : external.split(Pattern.quote(Constants.SEPAR));
 
 		try {
-			if (!file.exists()) {
+			if (!externalFile.exists()) {
 				if (App.class.getResource(internal) == null)
-					throw new FileNotFoundException("Resource file '"+internal+"' not found.");
+					throw new FileNotFoundException("Resource file '" + internal + "' not found.");
 				if ((split.length == 2 && !split[0].equals(".")) || (split.length >= 3 && split[0].equals("."))) {
-					if (!file.getParentFile().mkdirs() && !file.getParentFile().exists()) {
+					if (!externalFile.getParentFile().mkdirs() && !externalFile.getParentFile().exists()) {
 						log.error("Failed to create directory {}", split[1]);
 					}
 				}
-				if (file.createNewFile()) {
+				if (externalFile.createNewFile()) {
 					if (!export(App.class.getResourceAsStream(internal), Paths.get(external))) {
 						log.error("Failed to write {}!", name);
 					} else {
 						log.info("Successfully created {}!", name);
-						files.put(name, file);
+						files.put(name, externalFile);
 					}
 				}
 				return;
@@ -120,10 +120,10 @@ public class FileManager {
 				if (!export(App.class.getResourceAsStream(internal), tempFile.toPath())) {
 					log.error("Failed to write temp file {}!", tempFile.getName());
 				} else {
-					if (Files.mismatch(file.toPath(), tempFile.toPath()) != -1) {
+					if (Files.mismatch(externalFile.toPath(), tempFile.toPath()) != -1) {
 						if (export(App.class.getResourceAsStream(internal), Paths.get(external))) {
 							log.info("Successfully updated {}!", name);
-							files.put(name, file);
+							files.put(name, externalFile);
 							return;
 						} else {
 							log.error("Failed to overwrite {}!", name);
@@ -132,10 +132,12 @@ public class FileManager {
 				}
 				boolean ignored = tempFile.delete();
 			}
-			files.put(name, file);
+			files.put(name, externalFile);
 			log.info("Successfully loaded {}!", name);
+		} catch (FileNotFoundException e) {
+			throw e;
 		} catch (IOException ex) {
-			log.error("Couldn't locate nor create {}", file.getAbsolutePath(), ex);
+			log.error("Couldn't locate nor create {}", externalFile.getAbsolutePath(), ex);
 		}
 	}
 
@@ -233,7 +235,7 @@ public class FileManager {
 		return null;
 	}
 
-	public boolean export(InputStream inputStream, Path destination){
+	public boolean export(InputStream inputStream, Path destination) {
 		boolean success = true;
 		try {
 			Files.copy(inputStream, destination, StandardCopyOption.REPLACE_EXISTING);

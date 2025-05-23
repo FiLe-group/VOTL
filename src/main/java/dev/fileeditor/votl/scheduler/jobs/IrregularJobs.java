@@ -6,7 +6,6 @@ import dev.fileeditor.votl.scheduler.tasks.*;
 
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings("unused")
 public class IrregularJobs extends Job {
 
 	private final MarkTickets markTickets = new MarkTickets();

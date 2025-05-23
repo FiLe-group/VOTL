@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.other;
 
+import dev.fileeditor.votl.AppInfo;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -43,7 +44,7 @@ public class AboutCmd extends SlashCommand {
 				lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.title"),
 				String.join(
 					"\n",
-					lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.bot_version").replace("{bot_version}", bot.VERSION),
+					lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.bot_version").replace("{bot_version}", AppInfo.VERSION),
 					lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.library")
 						.replace("{jda_version}", JDAInfo.VERSION)
 						.replace("{jda_github}", JDAInfo.GITHUB)

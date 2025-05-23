@@ -1,6 +1,7 @@
 package dev.fileeditor.votl;
 
-import java.util.Optional;
+import java.io.IOException;
+import java.time.Instant;
 import java.util.Set;
 
 import dev.fileeditor.votl.base.command.CommandClient;
@@ -17,6 +18,7 @@ import dev.fileeditor.votl.middleware.MiddlewareHandler;
 import dev.fileeditor.votl.middleware.PermissionsCheck;
 import dev.fileeditor.votl.middleware.ThrottleMiddleware;
 import dev.fileeditor.votl.middleware.HasAccess;
+import dev.fileeditor.votl.objects.ExitCodes;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.constants.Names;
 import dev.fileeditor.votl.scheduler.ScheduleHandler;
@@ -42,6 +44,7 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
+import net.dv8tion.jda.internal.utils.Checks;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -52,10 +55,9 @@ import static java.lang.Long.parseLong;
 
 public class App {
 	protected static App instance;
+	private final Settings settings;
 	
-	private final Logger LOG = (Logger) LoggerFactory.getLogger(App.class);
-
-	public final String VERSION = Optional.ofNullable(App.class.getPackage().getImplementationVersion()).map(v -> "v"+v).orElse("DEVELOPMENT");
+	private static final Logger LOG = (Logger) LoggerFactory.getLogger(App.class);
 
 	public final JDA JDA;
 	private final CommandClient commandClient;
@@ -77,21 +79,27 @@ public class App {
 
 	private final Blacklist blacklist;
 
+	private Instant shutdownTime = null;
+	private ExitCodes shutdownCode = ExitCodes.RESTART;
+
 	@SuppressWarnings("BusyWait")
-	public App() {
+	public App(Settings settings) throws IOException {
 		App.instance = this;
+		this.settings = settings;
 
-		try {
-			fileManager.addFile("config", "/config.json", Constants.DATA_PATH + "config.json")
-				.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
-				.addFileUpdate("backgrounds", "/backgrounds/index.json", Constants.DATA_PATH+"backgrounds"+Constants.SEPAR+"main.json")
-				.addLang("en-GB")
-				.addLang("ru");
-		} catch (Exception ex) {
-			System.out.println(ex.getMessage());
-			System.exit(0);
-		}
+		System.out.println(AppInfo.getVersionInfo(settings));
 
+		LOG.debug("==================================================");
+		LOG.debug("Starting VOTL instance with debug logging enabled!");
+		LOG.debug("==================================================\n");
+
+		fileManager.addFile("config", "/config.example.json", Constants.DATA_PATH + "config.json")
+			.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
+			.addFileUpdate("backgrounds", "/backgrounds/index.json", Constants.DATA_PATH + "backgrounds" + Constants.SEPAR + "main.json")
+			.addLang("en-GB")
+			.addLang("ru");
+
+		Checks.notBlank(fileManager.getString("config", "bot-token"), "Token inside config.example.json");
 		final long ownerId = parseLong(fileManager.getString("config", "owner-id"));
 		
 		// Define for default
@@ -198,7 +206,7 @@ public class App {
 				break;
 			} catch (IllegalArgumentException | InvalidTokenException ex) {
 				LOG.error("Login failed due to Token", ex);
-				System.exit(0);
+				System.exit(ExitCodes.ERROR.code);
 			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits
 				if (retries > 0) {
 					retries--;
@@ -211,7 +219,7 @@ public class App {
 					cooldown*=2;
 				} else {
 					LOG.error("No network connection or couldn't connect to DNS", ex);
-					System.exit(0);
+					System.exit(ExitCodes.ERROR.code);
 				}
 			}
 		}
@@ -236,11 +244,15 @@ public class App {
 		return instance;
 	}
 
+	public Settings getSettings() {
+		return settings;
+	}
+
 	public CommandClient getClient() {
 		return commandClient;
 	}
 
-	public Logger getAppLogger() {
+	public static Logger getAppLogger() {
 		return LOG;
 	}
 
@@ -296,10 +308,45 @@ public class App {
 		return eventWaiter;
 	}
 
-	public void shutdownUtils() {
+	public void scheduleShutdown(Instant time, ExitCodes exitCode) {
+		shutdownTime = time;
+		shutdownCode = exitCode;
+	}
+
+	public Instant getShutdownTime() {
+		return shutdownTime;
+	}
+
+	public ExitCodes getShutdownCode() {
+		return shutdownCode;
+	}
+
+	public void shutdown() {
+		shutdown(ExitCodes.RESTART);
+	}
+
+	public void shutdown(ExitCodes exitCode) {
+		getAppLogger().info("Shutting down instance with exit code {}", exitCode.code);
+
+		JDA.shutdown();
+
 		for (var future : ScheduleHandler.entrySet()) {
 			future.cancel(false);
 		}
+
+		try {
+			Thread.sleep(2000L);
+		} catch (InterruptedException e) {
+			getAppLogger().error("Thread sleep interrupted", e);
+		}
+
+		JDA.shutdownNow();
+
+		for (var future : ScheduleHandler.entrySet()) {
+			future.cancel(true);
+		}
+
+		System.exit(exitCode.code);
 	}
 
 	private void createWebhookAppender() {

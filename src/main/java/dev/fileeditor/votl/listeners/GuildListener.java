@@ -1,6 +1,7 @@
 package dev.fileeditor.votl.listeners;
 
 import ch.qos.logback.classic.Logger;
+import dev.fileeditor.votl.utils.ConsoleColor;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
@@ -30,16 +31,16 @@ public class GuildListener extends ListenerAdapter {
 		Guild guild = event.getGuild();
 		if (bot.getBlacklist().isBlacklisted(guild)) {
 			guild.leave().queue();
-			log.info("Auto-left new guild '{}'({}) BLACKLIST!", guild.getName(), guild.getId());
+			log.info(ConsoleColor.format("%redAuto-left new guild '{}'({}) BLACKLIST!%reset"), guild.getName(), guild.getId());
 		} else {
-			log.info("Joined guild '{}'({})", guild.getName(), guild.getId());
+			log.info(ConsoleColor.format("%greenJoined guild '{}'({})%reset"), guild.getName(), guild.getId());
 		}
 	}
 
 	@Override
 	public void onGuildLeave(@NotNull GuildLeaveEvent event) {
 		long guildId = event.getGuild().getIdLong();
-		log.info("Left guild '{}'({})", event.getGuild().getName(), guildId);
+		log.info(ConsoleColor.format("%redLeft guild '{}'({})%reset"), event.getGuild().getName(), guildId);
 
 		// Deletes every information connected to this guild from bot's DB (except ban tables)
 		// May be dangerous, but provides privacy
