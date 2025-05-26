@@ -37,14 +37,16 @@ public class ShutdownCmd extends SlashCommand {
 		String text = text(exitCode);
 		if (event.optBoolean("now", false)) {
 			// Reply
-			editMsg(event, "%s...".formatted(text));
+			event.getHook().editOriginal("%s...".formatted(text))
+				.submit()
+				.whenComplete((v,e) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("%s...".formatted(text)));
-
-			bot.shutdown(exitCode);
 		} else {
 			// Reply
-			editMsg(event, "%s in 5 minutes.".formatted(text));
+			event.getHook().editOriginal("%s in 5 minutes.".formatted(text))
+				.submit()
+				.whenComplete((v,e) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Preparing to shutdown"));
 

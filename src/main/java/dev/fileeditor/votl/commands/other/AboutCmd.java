@@ -48,7 +48,6 @@ public class AboutCmd extends SlashCommand {
 					lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.library")
 						.replace("{jda_version}", JDAInfo.VERSION)
 						.replace("{jda_github}", JDAInfo.GITHUB)
-						.replace("{chewtils_github}", Links.CHEWTILS_GITHUB)
 				),
 				false
 			)

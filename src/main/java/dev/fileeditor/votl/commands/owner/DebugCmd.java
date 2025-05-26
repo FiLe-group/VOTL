@@ -28,12 +28,12 @@ public class DebugCmd extends SlashCommand {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		if (event.optBoolean("debug_logs", false)) {
-			event.getHook().editOriginalAttachments(FileUpload.fromData(new File("./logs/App-debug.log"))).queue();
+			event.getHook().editOriginalAttachments(FileUpload.fromData(new File("./logs/debug.log"))).queue();
 		} else {
 			String date = Optional.ofNullable(event.optString("date"))
 				.map(s->"."+s)
 				.orElse("");
-			File file = new File("./logs/App%s.log".formatted(date));
+			File file = new File("./logs/votl%s.log".formatted(date));
 			if (!file.exists()) {
 				editErrorOther(event, "No file by name: "+file.getName());
 			} else {

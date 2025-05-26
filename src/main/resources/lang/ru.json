@@ -411,7 +411,15 @@
 			},
 			"shutdown": {
 				"help": "Безопасно выключает бота",
-				"usage": "shutdown"
+				"usage": "shutdown [сейчас?] [статус]",
+				"now": {
+					"name": "now",
+					"help": "Выключить сейчас (или через 5 минут)?"
+				},
+				"status": {
+					"name": "status",
+					"help": "Причина выключения"
+				}
 			},
 			"generate": {
 				"help": "Генерирует json файл с информацией обо всех публичных командах бота",
@@ -1810,7 +1818,7 @@
 					"bot_info": {
 						"title": "Информация о боте",
 						"bot_version": "Версия: `VOTL-{bot_version}`",
-						"library": "Библиотеки: `[JDA {jda_version}]({jda_github})` и `[JDA-Chewtils]({chewtils_github})`"
+						"library": "Библиотеки: [`JDA {jda_version}`]({jda_github})"
 					},
 					"commands_title": "Команды",
 					"commands_value": "Используйте `/help` чтобы получить список доступных команд.",

@@ -37,7 +37,7 @@ public class Main {
 				formatter.printHelp("Help menu", options);
 				System.exit(ExitCodes.NORMAL.code);
 			} else if (cmd.hasOption("version")) {
-				System.out.println(AppInfo.getVersionInfo(settings));
+				System.out.println(AppInfo.getVersionInfo());
 				System.exit(ExitCodes.NORMAL.code);
 			}
 

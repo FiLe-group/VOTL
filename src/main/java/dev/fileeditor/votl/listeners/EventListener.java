@@ -22,7 +22,7 @@ public class EventListener extends ListenerAdapter {
 		// Check voice channels
 		try {
 			db.voice.checkCache(event.getJDA());
-			LOG.info("Voice cache checked!");
+			LOG.debug("Voice cache checked");
 		} catch (Throwable ex) {
 			LOG.error("Error checking custom voice channels cache", ex);
 		}

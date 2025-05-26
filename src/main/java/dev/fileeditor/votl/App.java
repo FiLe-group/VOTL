@@ -87,11 +87,9 @@ public class App {
 		App.instance = this;
 		this.settings = settings;
 
-		System.out.println(AppInfo.getVersionInfo(settings));
+		System.out.println(AppInfo.getVersionInfo());
 
-		LOG.debug("==================================================");
-		LOG.debug("Starting VOTL instance with debug logging enabled!");
-		LOG.debug("==================================================\n");
+		LOG.debug("Starting VOTL instance with debug logging enabled!\n");
 
 		fileManager.addFile("config", "/config.example.json", Constants.DATA_PATH + "config.json")
 			.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
@@ -230,14 +228,13 @@ public class App {
 		createWebhookAppender();
 
 
-		LOG.info("Registering jobs...");
 		AutoloaderUtil.load(Names.PACKAGE_JOB_PATH, job -> ScheduleHandler.registerJob((Job) job));
 		LOG.info("Registered {} jobs successfully!", ScheduleHandler.entrySet().size());
 
-		LOG.info("Creating user backgrounds");
+		LOG.info("Loading user backgrounds");
 		UserBackgroundHandler.getInstance().start();
 
-		LOG.info("Success start");
+		LOG.info("Completed building\n");
 	}
 
 	public static App getInstance() {
@@ -335,7 +332,7 @@ public class App {
 		}
 
 		try {
-			Thread.sleep(2000L);
+			Thread.sleep(3000L);
 		} catch (InterruptedException e) {
 			getAppLogger().error("Thread sleep interrupted", e);
 		}
