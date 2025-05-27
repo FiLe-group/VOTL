@@ -51,6 +51,7 @@ public class GameCmd extends SlashCommand {
 				editErrorLimit(event, "game channels", Limits.GAME_CHANNELS);
 				return;
 			}
+
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) != null) {
 				editError(event, path+".already", "Channel: %s".formatted(channel.getAsMention()));
 				return;

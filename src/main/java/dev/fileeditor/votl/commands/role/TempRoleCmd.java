@@ -51,7 +51,8 @@ public class TempRoleCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true),
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
-				new OptionData(OptionType.STRING, "duration", lu.getText(path+".duration.help"), true),
+				new OptionData(OptionType.STRING, "duration", lu.getText(path+".duration.help"), true)
+					.setMaxLength(12),
 				new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".delete.help"))
 			);
 		}
@@ -106,7 +107,7 @@ public class TempRoleCmd extends SlashCommand {
 				return;
 			}
 			if (duration.toMinutes() < 10 || duration.toDays() > MAX_DAYS) {
-				editError(event, path+".time_limit", "Received: "+duration);
+				editError(event, path+".time_limit", "Received: "+TimeUtil.durationToString(duration));
 				return;
 			}
 
@@ -193,6 +194,7 @@ public class TempRoleCmd extends SlashCommand {
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true),
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
 				new OptionData(OptionType.STRING, "duration", lu.getText(path+".duration.help"), true)
+					.setMaxLength(12)
 			);
 		}
 
@@ -211,8 +213,8 @@ public class TempRoleCmd extends SlashCommand {
 				return;
 			}
 			// Check time
-			Instant previousTime = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), member.getIdLong());
-			if (previousTime == null) {
+			Instant oldTime = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), member.getIdLong());
+			if (oldTime == null) {
 				editError(event, path+".not_found");
 				return;
 			}
@@ -225,24 +227,24 @@ public class TempRoleCmd extends SlashCommand {
 				editError(event, ex.getPath());
 				return;
 			}
-			Instant until = previousTime.plus(duration);
-			if (duration.toMinutes() < 10 || until.isAfter(Instant.now().plus(MAX_DAYS, ChronoUnit.DAYS))) {
-				editError(event, path+".time_limit", "New duration: %s days".formatted(Duration.between(Instant.now(), until).toDays()));
+			Instant newTime = oldTime.plus(duration);
+			if (duration.toMinutes() < 10 || newTime.isAfter(Instant.now().plus(MAX_DAYS, ChronoUnit.DAYS))) {
+				editError(event, path+".time_limit", "New duration: %s days".formatted(Duration.between(Instant.now(), newTime).toDays()));
 				return;
 			}
 
 			try {
-				bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), member.getIdLong(), until);
+				bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), member.getIdLong(), newTime);
 			} catch (SQLException ex) {
 				editErrorDatabase(event, ex, "update temp role duration");
 				return;
 			}
 			// Log
-			bot.getLogger().role.onTempRoleUpdated(event.getGuild(), event.getUser(), member.getUser(), role, until);
+			bot.getLogger().role.onTempRoleUpdated(event.getGuild(), event.getUser(), member.getUser(), role, newTime);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()).replace("{user}", member.getAsMention())
-					.replace("{until}", TimeUtil.formatTime(until, true)))
+					.replace("{until}", TimeUtil.formatTime(newTime, true)))
 				.build()
 			);
 		}

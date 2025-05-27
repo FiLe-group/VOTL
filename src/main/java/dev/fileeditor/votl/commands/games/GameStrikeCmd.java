@@ -13,6 +13,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
@@ -42,7 +43,7 @@ public class GameStrikeCmd extends SlashCommand {
 				.setChannelTypes(ChannelType.TEXT),
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
 			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"), true)
-				.setMaxLength(200),
+				.setMaxLength(Limits.REASON_CHARS),
 			new OptionData(OptionType.ATTACHMENT, "proof", lu.getText(path+".proof.help"))
 		);
 		this.category = CmdCategory.GAMES;

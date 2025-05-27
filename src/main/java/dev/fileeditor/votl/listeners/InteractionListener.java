@@ -1361,6 +1361,7 @@ public class InteractionListener extends ListenerAdapter {
 		);
 	}
 
+
 	@Override
 	public void onModalInteraction(@NotNull ModalInteractionEvent event) {
 		// Check if blacklisted

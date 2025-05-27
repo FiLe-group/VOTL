@@ -19,4 +19,5 @@ public final class Limits {
 	public static final int TICKET_PANELS = 10;
 	public static final int WEBHOOKS = 10;
 
+	public static final int REASON_CHARS = 300;
 }

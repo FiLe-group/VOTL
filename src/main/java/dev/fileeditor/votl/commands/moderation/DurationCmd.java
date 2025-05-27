@@ -26,8 +26,10 @@ public class DurationCmd extends SlashCommand {
 		this.name = "duration";
 		this.path = "bot.moderation.duration";
 		this.options = List.of(
-			new OptionData(OptionType.INTEGER, "id", lu.getText(path+".id.help"), true).setMinValue(1),
-			new OptionData(OptionType.STRING, "time", lu.getText(path+".time.help"), true).setMaxLength(20)
+			new OptionData(OptionType.INTEGER, "id", lu.getText(path+".id.help"), true)
+				.setMinValue(1),
+			new OptionData(OptionType.STRING, "time", lu.getText(path+".time.help"), true)
+				.setMaxLength(12)
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;

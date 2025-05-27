@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 public class ClearStrikesCmd extends SlashCommand {
+
 	public ClearStrikesCmd() {
 		this.name = "clearstrikes";
 		this.path = "bot.moderation.clearstrikes";
@@ -68,4 +69,5 @@ public class ClearStrikesCmd extends SlashCommand {
 			.build()
 		);
 	}
+
 }

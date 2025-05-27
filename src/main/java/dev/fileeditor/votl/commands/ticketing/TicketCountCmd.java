@@ -22,8 +22,10 @@ public class TicketCountCmd extends SlashCommand {
 		this.name = "tcount";
 		this.path = "bot.ticketing.tcount";
 		this.options = List.of(new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
-			new OptionData(OptionType.STRING, "start_date", lu.getText(path+".start_date.help")),
+			new OptionData(OptionType.STRING, "start_date", lu.getText(path+".start_date.help"))
+				.setRequiredLength(10, 10),
 			new OptionData(OptionType.STRING, "end_date", lu.getText(path+".end_date.help"))
+				.setRequiredLength(10, 10)
 		);
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;

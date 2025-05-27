@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
@@ -14,6 +15,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.exception.AttachmentParseException;
@@ -40,8 +42,10 @@ public class BanCmd extends SlashCommand {
 		this.path = "bot.moderation.ban";
 		this.options = List.of(
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
-			new OptionData(OptionType.STRING, "time", lu.getText(path+".time.help")),
-			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")).setMaxLength(400),
+			new OptionData(OptionType.STRING, "time", lu.getText(path+".time.help"))
+				.setMaxLength(12),
+			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"))
+				.setMaxLength(Limits.REASON_CHARS),
 			new OptionData(OptionType.ATTACHMENT, "proof", lu.getText(path+".proof.help")),
 			new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".delete.help")),
 			new OptionData(OptionType.BOOLEAN, "can_appeal", lu.getText(path+".can_appeal.help"))
@@ -176,7 +180,7 @@ public class BanCmd extends SlashCommand {
 		failure -> {
 			// checks if thrown something except from "ban not found"
 			if (!failure.getMessage().startsWith("10026")) {
-				bot.getAppLogger().warn(failure.getMessage());
+				App.getAppLogger().warn(failure.getMessage());
 				editError(event, path+".ban_abort", failure.getMessage());
 				return;
 			}

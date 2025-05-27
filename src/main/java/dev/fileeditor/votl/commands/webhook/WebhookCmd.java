@@ -107,7 +107,8 @@ public class WebhookCmd extends SlashCommand {
 			this.name = "create";
 			this.path = "bot.webhook.add.create";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true),
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true)
+					.setRequiredLength(2, 100),
 				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"))
 					.setChannelTypes(ChannelType.TEXT)
 			);
@@ -157,6 +158,7 @@ public class WebhookCmd extends SlashCommand {
 			this.path = "bot.webhook.add.select";
 			this.options = List.of(
 				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true)
+					.setRequiredLength(10, 30)
 			);
 			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.webhook.add.help"));
 		}
@@ -200,7 +202,8 @@ public class WebhookCmd extends SlashCommand {
 			this.name = "remove";
 			this.path = "bot.webhook.remove";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true),
+				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true)
+					.setRequiredRange(10, 30),
 				new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".delete.help"))
 			);
 		}
@@ -249,7 +252,8 @@ public class WebhookCmd extends SlashCommand {
 			this.name = "move";
 			this.path = "bot.webhook.move";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true),
+				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true)
+					.setRequiredRange(10, 30),
 				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
 			);
 			this.ephemeral = true;

@@ -26,7 +26,8 @@ public class ModLogsCmd extends SlashCommand {
 		this.path = "bot.moderation.modlogs";
 		this.options = List.of(
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help")),
-			new OptionData(OptionType.INTEGER, "page", lu.getText(path+".page.help")).setMinValue(1),
+			new OptionData(OptionType.INTEGER, "page", lu.getText(path+".page.help"))
+				.setMinValue(1),
 			new OptionData(OptionType.BOOLEAN, "only_active", lu.getText(path+".only_active.help"))
 		);
 		this.category = CmdCategory.MODERATION;

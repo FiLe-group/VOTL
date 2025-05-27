@@ -53,8 +53,10 @@ public class GroupCmd extends SlashCommand {
 			this.name = "create";
 			this.path = "bot.moderation.group.create";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true).setMaxLength(120),
-				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help")).setRequiredLength(12, 20)
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true)
+					.setMaxLength(100),
+				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help"))
+					.setRequiredLength(12, 20)
 			);
 			addMiddlewares(
 				"throttle:guild,1,30"
@@ -107,7 +109,8 @@ public class GroupCmd extends SlashCommand {
 			this.name = "delete";
 			this.path = "bot.moderation.group.delete";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(1)
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
+					.setMinValue(1)
 			);
 			addMiddlewares(
 				"throttle:guild,1,30"
@@ -150,7 +153,8 @@ public class GroupCmd extends SlashCommand {
 			this.name = "remove";
 			this.path = "bot.moderation.group.remove";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(0)
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
+					.setMinValue(1)
 			);
 		}
 
@@ -245,7 +249,8 @@ public class GroupCmd extends SlashCommand {
 			this.name = "generateinvite";
 			this.path = "bot.moderation.group.generateinvite";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(0)
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
+					.setMinValue(1)
 			);
 		}
 
@@ -285,9 +290,9 @@ public class GroupCmd extends SlashCommand {
 			this.path = "bot.moderation.group.modify";
 			this.options = List.of(
 				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
-					.setMinValue(0),
+					.setMinValue(1),
 				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"))
-					.setMaxLength(120),
+					.setMaxLength(100),
 				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help"))
 					.setRequiredLength(12, 20)
 			);
@@ -370,7 +375,8 @@ public class GroupCmd extends SlashCommand {
 			this.name = "manage";
 			this.path = "bot.moderation.group.manage";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true).setMinValue(0),
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
+					.setMinValue(1),
 				new OptionData(OptionType.BOOLEAN, "manage", lu.getText(path+".manage.help"), true)
 			);
 		}
@@ -471,6 +477,7 @@ public class GroupCmd extends SlashCommand {
 			this.path = "bot.moderation.group.join";
 			this.options = List.of(
 				new OptionData(OptionType.INTEGER, "invite", lu.getText(path+".invite.help"), true)
+					.setRequiredRange(100_000, 999_999)
 			);
 			addMiddlewares(
 				"throttle:guild,1,30"
@@ -525,7 +532,8 @@ public class GroupCmd extends SlashCommand {
 			this.name = "leave";
 			this.path = "bot.moderation.group.leave";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "group_joined", lu.getText(path+".group_joined.help"), true, true).setMinValue(0)
+				new OptionData(OptionType.INTEGER, "group_joined", lu.getText(path+".group_joined.help"), true, true)
+					.setMinValue(1)
 			);
 		}
 
@@ -560,8 +568,10 @@ public class GroupCmd extends SlashCommand {
 			this.name = "view";
 			this.path = "bot.moderation.group.view";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), false, true).setMinValue(0),
-				new OptionData(OptionType.INTEGER, "group_joined", lu.getText(path+".group_joined.help"), false, true).setMinValue(0)
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), false, true)
+					.setMinValue(1),
+				new OptionData(OptionType.INTEGER, "group_joined", lu.getText(path+".group_joined.help"), false, true)
+					.setMinValue(1)
 			);
 			this.ephemeral = true;
 		}

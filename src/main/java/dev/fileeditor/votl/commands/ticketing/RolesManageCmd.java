@@ -50,19 +50,19 @@ public class RolesManageCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true),
 				new OptionData(OptionType.STRING, "type", lu.getText(path+".type.help"), true)
-					.addChoices(List.of(
+					.addChoices(
 						new Choice(lu.getText(RoleType.ASSIGN.getPath()), RoleType.ASSIGN.toString()),
 						new Choice(lu.getText(RoleType.TOGGLE.getPath()), RoleType.TOGGLE.toString()),
 						new Choice(lu.getText(RoleType.CUSTOM.getPath()), RoleType.CUSTOM.toString())
-					)),
+					),
 				new OptionData(OptionType.STRING, "description", lu.getText(path+".description.help"))
 					.setMaxLength(80),
 				new OptionData(OptionType.INTEGER, "row", lu.getText(path+".row.help"))
-					.addChoices(List.of(
+					.addChoices(
 						new Choice("1", 1),
 						new Choice("2", 2),
 						new Choice("3", 3)
-					)),
+					),
 				new OptionData(OptionType.BOOLEAN, "timed", lu.getText(path+".timed.help"))
 			);
 		}
@@ -160,11 +160,11 @@ public class RolesManageCmd extends SlashCommand {
 				new OptionData(OptionType.STRING, "description", lu.getText(path+".description.help"))
 					.setMaxLength(80),
 				new OptionData(OptionType.INTEGER, "row", lu.getText(path+".row.help"))
-					.addChoices(List.of(
+					.addChoices(
 						new Choice("1", 1),
 						new Choice("2", 2),
 						new Choice("3", 3)
-					)),
+					),
 				new OptionData(OptionType.BOOLEAN, "timed", lu.getText(path+".timed.help"))
 			);
 		}

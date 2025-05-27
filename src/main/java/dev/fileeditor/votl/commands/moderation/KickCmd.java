@@ -11,6 +11,7 @@ import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
@@ -35,7 +36,8 @@ public class KickCmd extends SlashCommand {
 		this.path = "bot.moderation.kick";
 		this.options = List.of(
 			new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
-			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")).setMaxLength(400),
+			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"))
+				.setMaxLength(Limits.REASON_CHARS),
 			new OptionData(OptionType.ATTACHMENT, "proof", lu.getText(path+".proof.help")),
 			new OptionData(OptionType.BOOLEAN, "dm", lu.getText(path+".dm.help"))
 		);

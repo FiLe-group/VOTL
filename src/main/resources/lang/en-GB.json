@@ -924,8 +924,11 @@
 					"ban_kick_role": "Can't give or remove role if options Mute or Ban are used.",
 					"same_role": "Can't give or remove same roles.",
 					"not_zero": "Mute/Temp role duration can't be zero.",
+					"max_mute": "Mute duration can't be larger than 28 days.",
+					"max_ban": "Ban duration can't be larger than 150 days.",
+					"max_role": "Temp role duration can't be larger than 400 days.",
 					"incorrect_role": "I can't interact with provided role.",
-					"no_duration": "Duration for temp role is not set.",
+					"no_duration": "Duration for temp role is not provided.",
 					"exists": "Action already exists. Remove it and re-add.",
 					"empty": "No options selected.",
 					"title": "Created action for receiving `%d` strikes:\n\n",
@@ -2616,7 +2619,7 @@
 					"no_member": "Member not found.",
 					"incorrect_user": "Selected member can't be assigned role.",
 					"already_set": "Member already assigned this role.",
-					"time_limit": "Provided time must be between 10m <-> 150d.",
+					"time_limit": "Provided time must be between 10m <-> 400d.",
 					"done": "Temporary assigned user {user} role {role} until {until}."
 				},
 				"cancel": {
@@ -2653,7 +2656,7 @@
 					"no_role": "Role not found.",
 					"no_member": "Member not found.",
 					"not_found": "Selected role is not assigned temporary to this user.",
-					"time_limit": "Provided time must be between 10m <-> 150d.",
+					"time_limit": "Provided time must be between 10m <-> 400d.",
 					"done": "Extended temporary role {role} assignment for user {user} until {until}."
 				},
 				"view": {

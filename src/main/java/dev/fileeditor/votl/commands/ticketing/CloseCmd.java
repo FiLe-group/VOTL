@@ -3,12 +3,14 @@ package dev.fileeditor.votl.commands.ticketing;
 import java.util.List;
 import java.util.stream.Stream;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.objects.constants.Limits;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -21,7 +23,8 @@ public class CloseCmd extends SlashCommand {
 		this.name = "close";
 		this.path = "bot.ticketing.close";
 		this.options = List.of(
-			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")).setMaxLength(200)
+			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"))
+				.setMaxLength(Limits.REASON_CHARS)
 		);
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
@@ -97,7 +100,7 @@ public class CloseCmd extends SlashCommand {
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
 				if (ErrorResponse.UNKNOWN_MESSAGE.test(failure) || ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
 				msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed")).queue();
-				bot.getAppLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
+				App.getAppLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
 			});
 		});
 	}

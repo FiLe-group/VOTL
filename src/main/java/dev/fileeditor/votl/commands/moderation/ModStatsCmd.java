@@ -10,6 +10,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
@@ -33,8 +34,10 @@ public class ModStatsCmd extends SlashCommand {
 		this.path = "bot.moderation.modstats";
 		this.options = List.of(
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help")),
-			new OptionData(OptionType.STRING, "start_date", lu.getText(path+".start_date.help")),
-			new OptionData(OptionType.STRING, "end_date", lu.getText(path+".end_date.help")),
+			new OptionData(OptionType.STRING, "start_date", lu.getText(path+".start_date.help"))
+				.setRequiredLength(10, 10),
+			new OptionData(OptionType.STRING, "end_date", lu.getText(path+".end_date.help"))
+				.setRequiredLength(10, 10),
 			new OptionData(OptionType.BOOLEAN, "as_text", lu.getText(path+".as_text.help"))
 		);
 		this.category = CmdCategory.MODERATION;
@@ -171,7 +174,7 @@ public class ModStatsCmd extends SlashCommand {
 					attachmentName
 				)).queue();
 			} catch (IOException e) {
-				bot.getAppLogger().error("Failed to generate the rank background: {}", e.getMessage(), e);
+				App.getAppLogger().error("Failed to generate the rank background: {}", e.getMessage(), e);
 				editError(event, path+".failed_image", "Rendering exception");
 			}
 		}

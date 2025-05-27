@@ -182,7 +182,7 @@ public class RolesPanelCmd extends SlashCommand {
 				new OptionData(OptionType.INTEGER, "row", lu.getText(path+".row.help"), true)
 					.setRequiredRange(1, 3),
 				new OptionData(OptionType.STRING, "text", lu.getText(path+".text.help"), true)
-					.setMaxLength(150)
+					.setMaxLength(100)
 			);
 		}
 

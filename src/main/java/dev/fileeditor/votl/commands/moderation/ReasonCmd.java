@@ -9,6 +9,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -23,8 +24,10 @@ public class ReasonCmd extends SlashCommand {
 		this.name = "reason";
 		this.path = "bot.moderation.reason";
 		this.options = List.of(
-			new OptionData(OptionType.INTEGER, "id", lu.getText(path+".id.help"), true).setMinValue(1),
-			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"), true).setMaxLength(400)
+			new OptionData(OptionType.INTEGER, "id", lu.getText(path+".id.help"), true)
+				.setMinValue(1),
+			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"), true)
+				.setMaxLength(Limits.REASON_CHARS)
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;

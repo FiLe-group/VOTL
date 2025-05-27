@@ -182,6 +182,7 @@ public class VerifyPanelCmd extends SlashCommand {
 			this.path = "bot.verification.vfpanel.image";
 			this.options = List.of(
 				new OptionData(OptionType.STRING, "image_url", lu.getText(path+".image_url.help"), true)
+					.setMaxLength(200)
 			);
 		}
 

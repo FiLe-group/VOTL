@@ -32,7 +32,10 @@ public class RoleCmd extends SlashCommand {
 	public RoleCmd() {
 		this.name = "role";
 		this.path = "bot.roles.role";
-		this.children = new SlashCommand[]{new Add(), new Remove(), new RemoveAll(), new Modify()};
+		this.children = new SlashCommand[]{
+			new Add(), new Remove(), new RemoveAll(),
+			new Modify()
+		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
 		this.accessLevel = CmdAccessLevel.HELPER;

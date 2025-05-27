@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ModReportCmd extends SlashCommand {
+
 	public ModReportCmd() {
 		this.name = "modreport";
 		this.path = "bot.moderation.modreport";
@@ -53,7 +54,8 @@ public class ModReportCmd extends SlashCommand {
 						new Command.Choice(lu.getText(path+".biweekly"), 14),
 						new Command.Choice(lu.getText(path+".monthly"), 30)
 					),
-				new OptionData(OptionType.STRING, "roles", lu.getText(path+".roles.help"), true),
+				new OptionData(OptionType.STRING, "roles", lu.getText(path+".roles.help"), true)
+					.setMaxLength(200),
 				new OptionData(OptionType.STRING, "first_report", lu.getText(path+".first_report.help"))
 					.setRequiredLength(10, 16)
 			);
@@ -145,4 +147,5 @@ public class ModReportCmd extends SlashCommand {
 				.build());
 		}
 	}
+
 }

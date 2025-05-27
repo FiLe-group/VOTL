@@ -19,7 +19,8 @@ public class CaseCmd extends SlashCommand {
 		this.name = "case";
 		this.path = "bot.moderation.case";
 		this.options = List.of(
-			new OptionData(OptionType.INTEGER, "id", lu.getText(path+".id.help"), true).setMinValue(1)
+			new OptionData(OptionType.INTEGER, "id", lu.getText(path+".id.help"), true)
+				.setMinValue(1)
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;

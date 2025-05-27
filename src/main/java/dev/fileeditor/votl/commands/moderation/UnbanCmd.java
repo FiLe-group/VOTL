@@ -10,6 +10,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
 import net.dv8tion.jda.api.Permission;
@@ -28,7 +29,8 @@ public class UnbanCmd extends SlashCommand {
 		this.path = "bot.moderation.unban";
 		this.options = List.of(
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
-			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")).setMaxLength(400)
+			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"))
+				.setMaxLength(Limits.REASON_CHARS)
 		);
 		this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
 		this.category = CmdCategory.MODERATION;

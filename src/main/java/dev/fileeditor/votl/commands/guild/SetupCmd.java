@@ -58,7 +58,8 @@ public class SetupCmd extends SlashCommand {
 			this.name = "color";
 			this.path = "bot.guild.setup.color";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "color", lu.getText(path+".color.help"), true).setRequiredLength(5, 11)
+				new OptionData(OptionType.STRING, "color", lu.getText(path+".color.help"), true)
+					.setRequiredLength(5, 11)
 			);
 		}
 
@@ -91,6 +92,7 @@ public class SetupCmd extends SlashCommand {
 			this.path = "bot.guild.setup.appeal";
 			this.options = List.of(
 				new OptionData(OptionType.STRING, "link", lu.getText(path+".link.help"), true)
+					.setMaxLength(200)
 			);
 		}
 
@@ -176,7 +178,10 @@ public class SetupCmd extends SlashCommand {
 		public VoiceCreate() {
 			this.name = "create";
 			this.path = "bot.guild.setup.voice.create";
-			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS};
+			this.botPermissions = new Permission[]{
+				Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS,
+				Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS
+			};
 			this.subcommandGroup = new SubcommandGroupData("voice", lu.getText("bot.guild.setup.voice.help"));
 			this.module = CmdModule.VOICE;
 		}
@@ -223,10 +228,13 @@ public class SetupCmd extends SlashCommand {
 			this.name = "select";
 			this.path = "bot.guild.setup.voice.select";
 			this.options = List.of(
-				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.name"), true)
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
 					.setChannelTypes(ChannelType.VOICE)
 			);
-			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS};
+			this.botPermissions = new Permission[]{
+				Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS,
+				Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS
+			};
 			this.subcommandGroup = new SubcommandGroupData("voice", lu.getText("bot.guild.setup.voice.help"));
 			this.module = CmdModule.VOICE;
 		}

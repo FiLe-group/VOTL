@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
@@ -16,6 +17,7 @@ import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.PunishAction;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.CaseProofUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
@@ -46,12 +48,13 @@ public class StrikeCmd extends SlashCommand {
 		this.path = "bot.moderation.strike";
 		this.options = List.of(
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
-			new OptionData(OptionType.INTEGER, "severity", lu.getText(path+".severity.help"), true).addChoices(List.of(
+			new OptionData(OptionType.INTEGER, "severity", lu.getText(path+".severity.help"), true).addChoices(
 				new Choice(lu.getText(path+".severity.minor"), 1).setNameLocalizations(lu.getLocaleMap(path+".severity.minor")),
 				new Choice(lu.getText(path+".severity.severe"), 2).setNameLocalizations(lu.getLocaleMap(path+".severity.severe")),
 				new Choice(lu.getText(path+".severity.extreme"), 3).setNameLocalizations(lu.getLocaleMap(path+".severity.extreme"))
-			)),
-			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"), true).setMaxLength(400),
+			),
+			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"), true)
+				.setMaxLength(Limits.REASON_CHARS),
 			new OptionData(OptionType.ATTACHMENT, "proof", lu.getText(path+".proof.help"))
 		);
 		this.category = CmdCategory.MODERATION;
@@ -240,7 +243,7 @@ public class StrikeCmd extends SlashCommand {
 						});
 					} catch (SQLException ignored) {}
 				}, failure ->
-					bot.getAppLogger().error("Strike punishment execution, Kick member", failure)
+					App.getAppLogger().error("Strike punishment execution, Kick member", failure)
 				);
 				builder.append(lu.getLocalized(locale, PunishAction.KICK.getPath()))
 					.append("\n");
@@ -276,7 +279,7 @@ public class StrikeCmd extends SlashCommand {
 							});
 						} catch (SQLException ignored) {}
 					}, failure ->
-						bot.getAppLogger().error("Strike punishment execution, Ban member", failure)
+						App.getAppLogger().error("Strike punishment execution, Ban member", failure)
 					);
 					builder.append(lu.getLocalized(locale, PunishAction.BAN.getPath()))
 						.append(" ").append(lu.getLocalized(locale, path + ".for")).append(" ")
@@ -298,7 +301,7 @@ public class StrikeCmd extends SlashCommand {
 							// log action
 							bot.getLogger().role.onRoleRemoved(guild, bot.JDA.getSelfUser(), target.getUser(), role);
 						},
-						failure -> bot.getAppLogger().error("Strike punishment execution, Remove role", failure));
+						failure -> App.getAppLogger().error("Strike punishment execution, Remove role", failure));
 					builder.append(lu.getLocalized(locale, PunishAction.REMOVE_ROLE.getPath()))
 						.append(" ").append(role.getName())
 						.append("\n");
@@ -318,7 +321,7 @@ public class StrikeCmd extends SlashCommand {
 							// log action
 							bot.getLogger().role.onRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), role);
 						},
-						failure -> bot.getAppLogger().error("Strike punishment execution, Add role", failure));
+						failure -> App.getAppLogger().error("Strike punishment execution, Add role", failure));
 					builder.append(lu.getLocalized(locale, PunishAction.ADD_ROLE.getPath()))
 						.append(" ").append(role.getName())
 						.append("\n");
@@ -341,7 +344,7 @@ public class StrikeCmd extends SlashCommand {
 							bot.getLogger().role.onTempRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), roleId, duration, false);
 						} catch (SQLException ignored) {}
 					}, failure ->
-						bot.getAppLogger().error("Strike punishment execution, Add temp role", failure)
+						App.getAppLogger().error("Strike punishment execution, Add temp role", failure)
 					);
 					builder.append(lu.getLocalized(locale, PunishAction.TEMP_ROLE.getPath()))
 						.append(" ").append(role.getName())
@@ -378,7 +381,7 @@ public class StrikeCmd extends SlashCommand {
 							});
 						} catch (SQLException ignored) {}
 					}, failure ->
-						bot.getAppLogger().error("Strike punishment execution, Mute member", failure)
+						App.getAppLogger().error("Strike punishment execution, Mute member", failure)
 					);
 					builder.append(lu.getLocalized(locale, PunishAction.MUTE.getPath()))
 						.append(" ").append(lu.getLocalized(locale, path + ".for")).append(" ")

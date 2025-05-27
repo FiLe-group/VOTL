@@ -47,7 +47,8 @@ public class SyncCmd extends SlashCommand {
 			this.path = "bot.moderation.sync.kick";
 			this.options = List.of(
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
-				new OptionData(OptionType.INTEGER, "group", lu.getText(path+".group.help"), true, true).setMinValue(0)
+				new OptionData(OptionType.INTEGER, "group", lu.getText(path+".group.help"), true, true)
+					.setMinValue(1)
 			);
 			addMiddlewares(
 				"throttle:guild,1,20"

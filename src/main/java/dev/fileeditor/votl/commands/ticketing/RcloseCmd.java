@@ -11,6 +11,7 @@ import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
+import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -24,7 +25,8 @@ public class RcloseCmd extends SlashCommand {
 		this.name = "rclose";
 		this.path = "bot.ticketing.rclose";
 		this.options = List.of(
-			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")).setMaxLength(200)
+			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"))
+				.setMaxLength(Limits.REASON_CHARS)
 		);
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;

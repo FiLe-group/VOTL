@@ -3,6 +3,7 @@ package dev.fileeditor.votl.commands.voice;
 import java.sql.SQLException;
 import java.util.*;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -391,6 +392,7 @@ public class VoiceCmd extends SlashCommand {
 			this.path = "bot.voice.voice.permit";
 			this.options = List.of(
 				new OptionData(OptionType.STRING, "mentions", lu.getText(path+".mentions.help"), true)
+					.setMaxLength(200)
 			);
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
 		}
@@ -458,6 +460,7 @@ public class VoiceCmd extends SlashCommand {
 			this.path = "bot.voice.voice.reject";
 			this.options = List.of(
 				new OptionData(OptionType.STRING, "mentions", lu.getText(path+".mentions.help"), true)
+					.setMaxLength(200)
 			);
 			this.botPermissions = new Permission[]{Permission.MANAGE_ROLES, Permission.MANAGE_PERMISSIONS, Permission.VIEW_CHANNEL, Permission.VOICE_CONNECT};
 		}
@@ -559,7 +562,7 @@ public class VoiceCmd extends SlashCommand {
 				overrides.remove(vc.getPermissionOverride(guild.getBotRole())); // removes bot's role
 				overrides.remove(vc.getPermissionOverride(guild.getPublicRole())); // removes @everyone role
 			} catch (NullPointerException ex) {
-				bot.getAppLogger().warn("PermsCmd null pointer at role override remove");
+				App.getAppLogger().warn("PermsCmd null pointer at role override remove");
 			}
 			
 			if (overrides.isEmpty()) {
@@ -580,7 +583,7 @@ public class VoiceCmd extends SlashCommand {
 				overrides.remove(vc.getPermissionOverride(author)); // removes user
 				overrides.remove(vc.getPermissionOverride(guild.getSelfMember())); // removes bot
 			} catch (NullPointerException ex) {
-				bot.getAppLogger().warn("PermsCmd null pointer at member override remove");
+				App.getAppLogger().warn("PermsCmd null pointer at member override remove");
 			}
 
 			EmbedBuilder embedBuilder2 = embedBuilder;

@@ -65,7 +65,8 @@ public class TicketCmd extends SlashCommand {
 					.setMaxLength(256),
 				new OptionData(OptionType.STRING, "embed_description", lu.getText(path+".embed_description.help"))
 					.setMaxLength(2000),
-				new OptionData(OptionType.STRING, "embed_image", lu.getText(path+".embed_image.help")),
+				new OptionData(OptionType.STRING, "embed_image", lu.getText(path+".embed_image.help"))
+					.setMaxLength(200),
 				new OptionData(OptionType.STRING, "embed_footer", lu.getText(path+".embed_footer.help"))
 					.setMaxLength(2048)
 			);
@@ -109,11 +110,16 @@ public class TicketCmd extends SlashCommand {
 			this.name = "modify";
 			this.path = "bot.ticketing.ticket.panels.modify";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true).setMinValue(1),
-				new OptionData(OptionType.STRING, "embed_title", lu.getText(path+".embed_title.help")),
-				new OptionData(OptionType.STRING, "embed_description", lu.getText(path+".embed_description.help")),
-				new OptionData(OptionType.STRING, "embed_image", lu.getText(path+".embed_image.help")),
+				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true)
+					.setMinValue(1),
+				new OptionData(OptionType.STRING, "embed_title", lu.getText(path+".embed_title.help"))
+					.setMaxLength(256),
+				new OptionData(OptionType.STRING, "embed_description", lu.getText(path+".embed_description.help"))
+					.setMaxLength(2000),
+				new OptionData(OptionType.STRING, "embed_image", lu.getText(path+".embed_image.help"))
+					.setMaxLength(200),
 				new OptionData(OptionType.STRING, "embed_footer", lu.getText(path+".embed_footer.help"))
+					.setMaxLength(2048)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
 		}
@@ -164,7 +170,8 @@ public class TicketCmd extends SlashCommand {
 			this.name = "view";
 			this.path = "bot.ticketing.ticket.panels.view";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true).setMinValue(1)
+				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true)
+					.setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
 			this.ephemeral = true;
@@ -194,8 +201,10 @@ public class TicketCmd extends SlashCommand {
 			this.name = "send";
 			this.path = "bot.ticketing.ticket.panels.send";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true).setMinValue(1),
-				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true).setChannelTypes(ChannelType.TEXT)
+				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true)
+					.setMinValue(1),
+				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
+					.setChannelTypes(ChannelType.TEXT)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
 		}
@@ -240,7 +249,8 @@ public class TicketCmd extends SlashCommand {
 			this.name = "delete";
 			this.path = "bot.ticketing.ticket.panels.delete";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true).setMinValue(1)
+				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true)
+					.setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("panels", lu.getText("bot.ticketing.ticket.panels.help"));
 		}
@@ -275,23 +285,30 @@ public class TicketCmd extends SlashCommand {
 			this.name = "create";
 			this.path = "bot.ticketing.ticket.tags.create";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true).setMinValue(1),
-				new OptionData(OptionType.INTEGER, "tag_type", lu.getText(path+".tag_type.help"), true).addChoices(List.of(
+				new OptionData(OptionType.INTEGER, "panel_id", lu.getText(path+".panel_id.help"), true, true)
+					.setMinValue(1),
+				new OptionData(OptionType.INTEGER, "tag_type", lu.getText(path+".tag_type.help"), true).addChoices(
 					new Choice("Thread", 1),
 					new Choice("Channel", 2)
-				)),
-				new OptionData(OptionType.STRING, "button_text", lu.getText(path+".button_text.help")).setMaxLength(80),
-				new OptionData(OptionType.STRING, "emoji", lu.getText(path+".emoji.help")).setMaxLength(30),
-				new OptionData(OptionType.CHANNEL, "location", lu.getText(path+".location.help")).setChannelTypes(ChannelType.CATEGORY),
-				new OptionData(OptionType.STRING, "message", lu.getText(path+".message.help")).setMaxLength(2000),
-				new OptionData(OptionType.STRING, "support_roles", lu.getText(path+".support_roles.help")),
-				new OptionData(OptionType.STRING, "ticket_name", lu.getText(path+".ticket_name.help")).setMaxLength(60),
-				new OptionData(OptionType.INTEGER, "button_style", lu.getText(path+".button_style.help")).addChoices(List.of(
+				),
+				new OptionData(OptionType.STRING, "button_text", lu.getText(path+".button_text.help"))
+					.setMaxLength(80),
+				new OptionData(OptionType.STRING, "emoji", lu.getText(path+".emoji.help"))
+					.setMaxLength(30),
+				new OptionData(OptionType.CHANNEL, "location", lu.getText(path+".location.help"))
+					.setChannelTypes(ChannelType.CATEGORY),
+				new OptionData(OptionType.STRING, "message", lu.getText(path+".message.help"))
+					.setMaxLength(2000),
+				new OptionData(OptionType.STRING, "support_roles", lu.getText(path+".support_roles.help"))
+					.setMaxLength(200),
+				new OptionData(OptionType.STRING, "ticket_name", lu.getText(path+".ticket_name.help"))
+					.setMaxLength(60),
+				new OptionData(OptionType.INTEGER, "button_style", lu.getText(path+".button_style.help")).addChoices(
 					new Choice("Blue", ButtonStyle.PRIMARY.getKey()),
 					new Choice("Gray (default)", ButtonStyle.SECONDARY.getKey()),
 					new Choice("Green", ButtonStyle.SUCCESS.getKey()),
 					new Choice("Red", ButtonStyle.DANGER.getKey())
-				))
+				)
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
 		}
@@ -348,23 +365,30 @@ public class TicketCmd extends SlashCommand {
 			this.name = "modify";
 			this.path = "bot.ticketing.ticket.tags.modify";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true, true).setMinValue(1),
-				new OptionData(OptionType.INTEGER, "tag_type", lu.getText(path+".tag_type.help")).addChoices(List.of(
+				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true, true)
+					.setMinValue(1),
+				new OptionData(OptionType.INTEGER, "tag_type", lu.getText(path+".tag_type.help")).addChoices(
 					new Choice("Thread", 1),
 					new Choice("Channel", 2)
-				)),
-				new OptionData(OptionType.STRING, "button_text", lu.getText(path+".button_text.help")).setMaxLength(80),
-				new OptionData(OptionType.STRING, "emoji", lu.getText(path+".emoji.help")).setMaxLength(20),
-				new OptionData(OptionType.CHANNEL, "location", lu.getText(path+".location.help")).setChannelTypes(ChannelType.CATEGORY),
-				new OptionData(OptionType.STRING, "message", lu.getText(path+".message.help")).setMaxLength(2000),
-				new OptionData(OptionType.STRING, "support_roles", lu.getText(path+".support_roles.help")),
-				new OptionData(OptionType.STRING, "ticket_name", lu.getText(path+".ticket_name.help")).setMaxLength(60),
-				new OptionData(OptionType.INTEGER, "button_style", lu.getText(path+".button_style.help")).addChoices(List.of(
+				),
+				new OptionData(OptionType.STRING, "button_text", lu.getText(path+".button_text.help"))
+					.setMaxLength(80),
+				new OptionData(OptionType.STRING, "emoji", lu.getText(path+".emoji.help"))
+					.setMaxLength(20),
+				new OptionData(OptionType.CHANNEL, "location", lu.getText(path+".location.help"))
+					.setChannelTypes(ChannelType.CATEGORY),
+				new OptionData(OptionType.STRING, "message", lu.getText(path+".message.help"))
+					.setMaxLength(2000),
+				new OptionData(OptionType.STRING, "support_roles", lu.getText(path+".support_roles.help"))
+					.setMaxLength(200),
+				new OptionData(OptionType.STRING, "ticket_name", lu.getText(path+".ticket_name.help"))
+					.setMaxLength(60),
+				new OptionData(OptionType.INTEGER, "button_style", lu.getText(path+".button_style.help")).addChoices(
 					new Choice("Blue", ButtonStyle.PRIMARY.getKey()),
 					new Choice("Gray (default)", ButtonStyle.SECONDARY.getKey()),
 					new Choice("Green", ButtonStyle.SUCCESS.getKey()),
 					new Choice("Red", ButtonStyle.DANGER.getKey())
-				))
+				)
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
 		}
@@ -433,7 +457,8 @@ public class TicketCmd extends SlashCommand {
 			this.name = "view";
 			this.path = "bot.ticketing.ticket.tags.view";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true, true).setMinValue(1)
+				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true, true)
+					.setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
 			this.ephemeral = true;
@@ -476,7 +501,8 @@ public class TicketCmd extends SlashCommand {
 			this.name = "delete";
 			this.path = "bot.ticketing.ticket.tags.delete";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true).setMinValue(1)
+				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true)
+					.setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
 		}
@@ -574,7 +600,8 @@ public class TicketCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.BOOLEAN, "delete_pings", lu.getText(path+".delete_pings.help")),
 				new OptionData(OptionType.BOOLEAN, "other_roles", lu.getText(path+".other_roles.help")),
-				new OptionData(OptionType.STRING, "role_tickets_support", lu.getText(path+".role_tickets_support.help")),
+				new OptionData(OptionType.STRING, "role_tickets_support", lu.getText(path+".role_tickets_support.help"))
+					.setMaxLength(200),
 				new OptionData(OptionType.INTEGER, "allow_close", lu.getText(path+".allow_close.help"))
 					.addChoice("Everyone (default)", TicketSettingsManager.AllowClose.EVERYONE.getValue())
 					.addChoice("Helper+ access", TicketSettingsManager.AllowClose.HELPER.getValue())

@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
+import dev.fileeditor.votl.commands.role.TempRoleCmd;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -43,14 +44,18 @@ public class AutopunishCmd extends SlashCommand {
 			this.name = "add";
 			this.path = "bot.guild.autopunish.add";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "strike-count", lu.getText(path+".strike-count.help"), true).setRequiredRange(1, 40),
+				new OptionData(OptionType.INTEGER, "strike-count", lu.getText(path+".strike-count.help"), true)
+					.setRequiredRange(1, 40),
 				new OptionData(OptionType.BOOLEAN, "kick", lu.getText(path+".kick.help")),
-				new OptionData(OptionType.STRING, "mute", lu.getText(path+".mute.help")),
-				new OptionData(OptionType.STRING, "ban", lu.getText(path+".ban.help")),
+				new OptionData(OptionType.STRING, "mute", lu.getText(path+".mute.help"))
+					.setMaxLength(12),
+				new OptionData(OptionType.STRING, "ban", lu.getText(path+".ban.help"))
+					.setMaxLength(12),
 				new OptionData(OptionType.ROLE, "remove-role", lu.getText(path+".remove-role.help")),
 				new OptionData(OptionType.ROLE, "add-role", lu.getText(path+".add-role.help")),
 				new OptionData(OptionType.ROLE, "temp-role", lu.getText(path+".temp-role.help")),
 				new OptionData(OptionType.STRING, "temp-duration", lu.getText(path+".temp-duration.help"))
+					.setMaxLength(12)
 			);
 		}
 
@@ -102,6 +107,11 @@ public class AutopunishCmd extends SlashCommand {
 					editError(event, path+".not_zero");
 					return;
 				}
+				if (duration.toDaysPart() > 28) {
+					editError(event, path+".max_mute", "Provided: "+TimeUtil.durationToString(duration));
+					return;
+				}
+
 				actions.add(PunishAction.MUTE);
 				data.add("t"+duration.getSeconds());
 				builder.append(lu.getText(event, path+".vmute").formatted(TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
@@ -114,6 +124,11 @@ public class AutopunishCmd extends SlashCommand {
 					editError(event, ex.getPath());
 					return;
 				}
+				if (duration.toDaysPart() > 150) {
+					editError(event, path+".max_ban", "Provided: "+TimeUtil.durationToString(duration));
+					return;
+				}
+
 				actions.add(PunishAction.BAN);
 				data.add("t"+duration.getSeconds());
 				builder.append(lu.getText(event, path+".vban").formatted(duration.isZero() ?
@@ -162,6 +177,11 @@ public class AutopunishCmd extends SlashCommand {
 					editError(event, path+".not_zero");
 					return;
 				}
+				if (duration.toDaysPart() > TempRoleCmd.MAX_DAYS) {
+					editError(event, path+".max_role", "Provided: "+duration);
+					return;
+				}
+
 				actions.add(PunishAction.TEMP_ROLE);
 				data.add("tr"+role.getId()+"-"+duration.getSeconds());
 				builder.append(lu.getText(event, path+".vtempadd").formatted(role.getName(), TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
