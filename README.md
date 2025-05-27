@@ -21,7 +21,15 @@ Requirements: Java JDK/JRE 21
 Download latest Release [here](https://github.com/FileEditor97/VOTL/releases/latest).  
 Or Snapshot build [here](https://github.com/FileEditor97/VOTL/actions/workflows/build.yml).
 
-### Config file (data/config.json):
+#### Docker image:
+    docker pull fileeditor/votl
+More at [Docker hub](https://hub.docker.com/r/fileeditor/votl)
+
+### Configuration
+After first bot launch, folders `data` and `logs` will be created at .jar file location (or other specified location).  
+Inside folder `data` file `config.json` must be configured with data as stated below.
+
+#### Config file (data/config.json):
 ```json
 {
     "bot-token": "",
