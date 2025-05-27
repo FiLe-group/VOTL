@@ -7,6 +7,8 @@ jobs:
   build_release:
     name: Build and Release
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
 
     steps:
       - name: Checkout
@@ -27,7 +29,7 @@ jobs:
         run: ./gradlew build -Psha=${{ env.sha }}
       - name: Get App Version
         id: get_version
-        run: echo "version=$(./gradlew printVersion --console=plain -q --warning-mode=none)" >> $GITHUB_ENV
+        run: echo "version=$(./gradlew printVersion --console=plain -q --warning-mode=none)" >> "$GITHUB_OUTPUT"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -45,15 +47,14 @@ jobs:
           # Generate release notes. There needs to be a previous version for it to diff against.
           generateReleaseNotes: true
           # Optionally marks this release as prerelease. Set to true to enable.
-          prerelease: (contains( ${{ env.version }} , 'SNAPSHOT'))
+          prerelease: (contains( ${{ steps.get_version.outputs.version }} , 'SNAPSHOT'))
           # Indicates if existing release artifacts should be replaced. Defaults to true.
           replacesArtifacts: true
           # An optional tag for the release. If this is omitted the git ref will be used (if it is a tag).
-          tag: ${{ env.version }}
+          tag: ${{ steps.get_version.outputs.version }}
           # The GitHub token.
           token: ${{ secrets.TOKEN }}
-    outputs:
-      version: ${{ steps.get_version.outputs.version }}
+
   push_docker:
     name: Push build to docker hub
     runs-on: ubuntu-latest
