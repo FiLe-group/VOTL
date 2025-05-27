@@ -97,8 +97,8 @@ public class App {
 			.addLang("en-GB")
 			.addLang("ru");
 
-		Checks.notBlank(fileManager.getString("config", "bot-token"), "Token inside config.example.json");
-		final long ownerId = parseLong(fileManager.getString("config", "owner-id"));
+		Checks.notBlank(fileManager.getNullableString("config", "bot-token"), "Token inside config.example.json");
+		final long ownerId = parseLong(fileManager.getNullableString("config", "owner-id"));
 		
 		// Define for default
 		dbUtil		= new DBUtil(getFileManager());
@@ -181,7 +181,7 @@ public class App {
 			CacheFlag.SCHEDULED_EVENTS
 		);
 
-		JDABuilder mainBuilder = JDABuilder.create(fileManager.getString("config", "bot-token"), intents)
+		JDABuilder mainBuilder = JDABuilder.create(fileManager.getNullableString("config", "bot-token"), intents)
 			.setMemberCachePolicy(MemberCachePolicy.ALL)	// cache all members
 			.setChunkingFilter(ChunkingFilter.ALL)			// enable chunking
 			.enableCache(enabledCacheFlags)
