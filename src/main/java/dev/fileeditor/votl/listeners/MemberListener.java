@@ -44,7 +44,7 @@ public class MemberListener extends ListenerAdapter {
 	public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
 		// Log
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
-			bot.getLogger().member.onJoined(event.getMember());
+			bot.getGuildLogger().member.onJoined(event.getMember());
 		}
 
 		long userId = event.getUser().getIdLong();
@@ -95,14 +95,14 @@ public class MemberListener extends ListenerAdapter {
 						AuditLogEntry entry = list.getFirst();
 						if (!entry.getUser().equals(event.getJDA().getSelfUser()) && entry.getTargetIdLong() == event.getUser().getIdLong()
 							&& entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
-							bot.getLogger().mod.onUserKick(entry, event.getUser());
+							bot.getGuildLogger().mod.onUserKick(entry, event.getUser());
 						}
 					}
-					bot.getLogger().member.onLeft(event.getGuild(), event.getMember(), event.getUser());
+					bot.getGuildLogger().member.onLeft(event.getGuild(), event.getMember(), event.getUser());
 				},
 				failure -> {
 					log.warn("Unable to retrieve audit log for member kick.", failure);
-					bot.getLogger().member.onLeft(event.getGuild(), event.getMember(), event.getUser());
+					bot.getGuildLogger().member.onLeft(event.getGuild(), event.getMember(), event.getUser());
 				});
 		}
 
@@ -148,7 +148,7 @@ public class MemberListener extends ListenerAdapter {
 	@Override
 	public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
-			bot.getLogger().member.onNickChange(event.getMember(), event.getOldValue(), event.getNewValue());
+			bot.getGuildLogger().member.onNickChange(event.getMember(), event.getOldValue(), event.getNewValue());
 		}
 	}
 	

@@ -39,7 +39,7 @@ public class ModerationListener extends ListenerAdapter {
 				if (list.isEmpty()) return;
 				AuditLogEntry entry = list.getFirst();
 				if (entry.getUser().equals(event.getJDA().getSelfUser())) return;  // Ignore self
-				bot.getLogger().mod.onUserBan(entry, event.getUser());
+				bot.getGuildLogger().mod.onUserBan(entry, event.getUser());
 			});
 	}
 
@@ -60,7 +60,7 @@ public class ModerationListener extends ListenerAdapter {
 				if (list.isEmpty()) return;
 				AuditLogEntry entry = list.getFirst();
 				if (entry.getUser().equals(event.getJDA().getSelfUser())) return;  // Ignore self
-				bot.getLogger().mod.onUserUnban(entry, event.getUser());
+				bot.getGuildLogger().mod.onUserUnban(entry, event.getUser());
 			});
 	}
 
@@ -85,7 +85,7 @@ public class ModerationListener extends ListenerAdapter {
 					AuditLogEntry entry = list.getFirst();
 					if (Objects.equals(entry.getUser(), event.getJDA().getSelfUser())) return;  // Ignore self
 					if (entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT) == null) return; // Not timeout
-					bot.getLogger().mod.onUserTimeoutRemoved(entry, event.getUser());
+					bot.getGuildLogger().mod.onUserTimeoutRemoved(entry, event.getUser());
 				});
 		} else {
 			// Timeout updated or set
@@ -98,7 +98,7 @@ public class ModerationListener extends ListenerAdapter {
 					AuditLogEntry entry = list.getFirst();
 					if (Objects.equals(entry.getUser(), event.getJDA().getSelfUser())) return;  // Ignore self
 					if (entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT) == null) return; // Not timeout
-					bot.getLogger().mod.onUserTimeoutUpdated(entry, event.getUser(), event.getNewTimeOutEnd());
+					bot.getGuildLogger().mod.onUserTimeoutUpdated(entry, event.getUser(), event.getNewTimeOutEnd());
 				});
 		}
 	}

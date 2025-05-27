@@ -114,7 +114,7 @@ public class GameStrikeCmd extends SlashCommand {
 		// Log
 		final int strikeCount = bot.getDBUtil().games.countStrikes(channelId, tm.getIdLong());
 		final int maxStrikes = bot.getDBUtil().games.getMaxStrikes(channelId);
-		bot.getLogger().mod.onNewCase(event.getGuild(), tm.getUser(), strikeData, proofData, strikeCount+"/"+maxStrikes);
+		bot.getGuildLogger().mod.onNewCase(event.getGuild(), tm.getUser(), strikeData, proofData, strikeCount+"/"+maxStrikes);
 
 		// Check if reached limit
 		if (strikeCount >= maxStrikes) {

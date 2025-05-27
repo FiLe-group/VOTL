@@ -128,7 +128,7 @@ public class ModuleCmd extends SlashCommand {
 						.build()
 					).setComponents().queue();
 					// Log
-					bot.getLogger().botLogs.onModuleDisabled(event.getGuild(), event.getUser(), sModule);
+					bot.getGuildLogger().botLogs.onModuleDisabled(event.getGuild(), event.getUser(), sModule);
 				},
 				30,
 				TimeUnit.SECONDS,
@@ -195,7 +195,7 @@ public class ModuleCmd extends SlashCommand {
 							.build()
 						).setComponents().queue();
 						// Log
-						bot.getLogger().botLogs.onModuleEnabled(event.getGuild(), event.getUser(), sModule);
+						bot.getGuildLogger().botLogs.onModuleEnabled(event.getGuild(), event.getUser(), sModule);
 					}
 				),
 				10,

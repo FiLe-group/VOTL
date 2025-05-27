@@ -562,7 +562,7 @@ public class VoiceCmd extends SlashCommand {
 				overrides.remove(vc.getPermissionOverride(guild.getBotRole())); // removes bot's role
 				overrides.remove(vc.getPermissionOverride(guild.getPublicRole())); // removes @everyone role
 			} catch (NullPointerException ex) {
-				App.getAppLogger().warn("PermsCmd null pointer at role override remove");
+				App.getLogger().warn("PermsCmd null pointer at role override remove");
 			}
 			
 			if (overrides.isEmpty()) {
@@ -583,7 +583,7 @@ public class VoiceCmd extends SlashCommand {
 				overrides.remove(vc.getPermissionOverride(author)); // removes user
 				overrides.remove(vc.getPermissionOverride(guild.getSelfMember())); // removes bot
 			} catch (NullPointerException ex) {
-				App.getAppLogger().warn("PermsCmd null pointer at member override remove");
+				App.getLogger().warn("PermsCmd null pointer at member override remove");
 			}
 
 			EmbedBuilder embedBuilder2 = embedBuilder;

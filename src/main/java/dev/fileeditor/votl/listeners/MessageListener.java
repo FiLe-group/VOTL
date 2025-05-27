@@ -93,7 +93,7 @@ public class MessageListener extends ListenerAdapter {
 		MessageData newData = new MessageData(event.getMessage());
 		cache.put(event.getMessageIdLong(), newData);
 
-		bot.getLogger().message.onMessageUpdate(event.getMember(), event.getGuildChannel(), messageId, oldData, newData);
+		bot.getGuildLogger().message.onMessageUpdate(event.getMember(), event.getGuildChannel(), messageId, oldData, newData);
 	}
 
 	@Override
@@ -127,15 +127,15 @@ public class MessageListener extends ListenerAdapter {
 				if (!list.isEmpty() && data != null) {
 					AuditLogEntry entry = list.getFirst();
 					if (entry.getTargetIdLong() == data.getAuthorId() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(10))) {
-						bot.getLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, entry.getUserIdLong());
+						bot.getGuildLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, entry.getUserIdLong());
 						return;
 					}
 				}
-				bot.getLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, null);
+				bot.getGuildLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, null);
 			},
 			failure -> {
 				log.warn("Failed to queue audit log for message deletion.", failure);
-				bot.getLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, null);
+				bot.getGuildLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, null);
 			});
 	}
 
@@ -156,14 +156,14 @@ public class MessageListener extends ListenerAdapter {
 			.limit(1)
 			.queue(list -> {
 				if (list.isEmpty()) {
-					bot.getLogger().message.onMessageBulkDelete(event.getChannel(), String.valueOf(messageIds.size()), messages, null);
+					bot.getGuildLogger().message.onMessageBulkDelete(event.getChannel(), String.valueOf(messageIds.size()), messages, null);
 				} else {
 					AuditLogEntry entry = list.getFirst();
 					String count = entry.getOption(AuditLogOption.COUNT);
 					if (entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(10)))
-						bot.getLogger().message.onMessageBulkDelete(event.getChannel(), count, messages, entry.getUserIdLong());
+						bot.getGuildLogger().message.onMessageBulkDelete(event.getChannel(), count, messages, entry.getUserIdLong());
 					else
-						bot.getLogger().message.onMessageBulkDelete(event.getChannel(), count, messages, null);
+						bot.getGuildLogger().message.onMessageBulkDelete(event.getChannel(), count, messages, null);
 				}
 			});
 	}

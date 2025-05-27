@@ -100,7 +100,7 @@ public class CloseCmd extends SlashCommand {
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
 				if (ErrorResponse.UNKNOWN_MESSAGE.test(failure) || ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
 				msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed")).queue();
-				App.getAppLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
+				App.getLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
 			});
 		});
 	}

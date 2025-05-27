@@ -120,7 +120,7 @@ public class BanCmd extends SlashCommand {
 					}
 
 					// log ban
-					bot.getLogger().mod.onNewCase(guild, tu, newBanData, proofData).thenAccept(logUrl -> {
+					bot.getGuildLogger().mod.onNewCase(guild, tu, newBanData, proofData).thenAccept(logUrl -> {
 						// Add log url to db
 						bot.getDBUtil().cases.setLogUrl(newBanData.getRowId(), logUrl);
 						// reply and add blacklist button
@@ -156,7 +156,7 @@ public class BanCmd extends SlashCommand {
 					return;
 				}
 				// log ban
-				bot.getLogger().mod.onNewCase(guild, tu, newBanData, proofData).thenAccept(logUrl -> {
+				bot.getGuildLogger().mod.onNewCase(guild, tu, newBanData, proofData).thenAccept(logUrl -> {
 					// Add log url to db
 					bot.getDBUtil().cases.setLogUrl(newBanData.getRowId(), logUrl);
 					// create embed
@@ -180,7 +180,7 @@ public class BanCmd extends SlashCommand {
 		failure -> {
 			// checks if thrown something except from "ban not found"
 			if (!failure.getMessage().startsWith("10026")) {
-				App.getAppLogger().warn(failure.getMessage());
+				App.getLogger().warn(failure.getMessage());
 				editError(event, path+".ban_abort", failure.getMessage());
 				return;
 			}
@@ -228,7 +228,7 @@ public class BanCmd extends SlashCommand {
 					return;
 				}
 				// log ban
-				bot.getLogger().mod.onNewCase(guild, tu, newBanData, proofData).thenAccept(logUrl -> {
+				bot.getGuildLogger().mod.onNewCase(guild, tu, newBanData, proofData).thenAccept(logUrl -> {
 					// Add log url to db
 					bot.getDBUtil().cases.setLogUrl(newBanData.getRowId(), logUrl);
 					// create embed

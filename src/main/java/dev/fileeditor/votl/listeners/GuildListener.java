@@ -46,13 +46,13 @@ public class GuildListener extends ListenerAdapter {
 		// May be dangerous, but provides privacy
 		for (Integer groupId : db.group.getGuildGroups(guildId)) {
 			try {
-				bot.getLogger().group.onGuildLeft(event.getGuild(), groupId);
+				bot.getGuildLogger().group.onGuildLeft(event.getGuild(), groupId);
 			} catch (Exception ignored) {}
 		}
 		String ownerIcon = event.getGuild().getIconUrl();
 		for (Integer groupId : db.group.getOwnedGroups(guildId)) {
 			try {
-				bot.getLogger().group.onDeletion(guildId, ownerIcon, groupId);
+				bot.getGuildLogger().group.onDeletion(guildId, ownerIcon, groupId);
 				db.group.clearGroup(groupId);
 			} catch (Exception ignored) {}
 		}

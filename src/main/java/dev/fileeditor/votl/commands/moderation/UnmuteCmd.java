@@ -69,7 +69,7 @@ public class UnmuteCmd extends SlashCommand {
 					return;
 				}
 				// log unmute
-				bot.getLogger().mod.onNewCase(guild, tm.getUser(), unmuteData, muteData != null ? muteData.getReason() : null).thenAccept(logUrl -> {
+				bot.getGuildLogger().mod.onNewCase(guild, tm.getUser(), unmuteData, muteData != null ? muteData.getReason() : null).thenAccept(logUrl -> {
 					// reply
 					editEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), unmuteData.getLocalIdInt(),
 						path+".success", tm.getUser(), mod.getUser(), reason, logUrl)

@@ -126,7 +126,7 @@ public class TempRoleCmd extends SlashCommand {
 					return;
 				}
 				// Log
-				bot.getLogger().role.onTempRoleAdded(guild, event.getUser(), member.getUser(), role, duration);
+				bot.getGuildLogger().role.onTempRoleAdded(guild, event.getUser(), member.getUser(), role, duration);
 				// Send reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()).replace("{user}", member.getAsMention())
@@ -177,7 +177,7 @@ public class TempRoleCmd extends SlashCommand {
 				return;
 			}
 			// Log
-			bot.getLogger().role.onTempRoleRemoved(event.getGuild(), event.getUser(), member.getUser(), role);
+			bot.getGuildLogger().role.onTempRoleRemoved(event.getGuild(), event.getUser(), member.getUser(), role);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done"))
@@ -240,7 +240,7 @@ public class TempRoleCmd extends SlashCommand {
 				return;
 			}
 			// Log
-			bot.getLogger().role.onTempRoleUpdated(event.getGuild(), event.getUser(), member.getUser(), role, newTime);
+			bot.getGuildLogger().role.onTempRoleUpdated(event.getGuild(), event.getUser(), member.getUser(), role, newTime);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()).replace("{user}", member.getAsMention())

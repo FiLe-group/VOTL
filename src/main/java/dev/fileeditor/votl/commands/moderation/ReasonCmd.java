@@ -85,6 +85,6 @@ public class ReasonCmd extends SlashCommand {
 			default -> {}
 		}
 
-		bot.getLogger().mod.onChangeReason(event.getGuild(), caseData, event.getMember(), newReason);
+		bot.getGuildLogger().mod.onChangeReason(event.getGuild(), caseData, event.getMember(), newReason);
 	}
 }

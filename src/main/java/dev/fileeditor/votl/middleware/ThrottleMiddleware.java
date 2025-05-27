@@ -30,7 +30,7 @@ public class ThrottleMiddleware extends Middleware {
 	@Override
 	public boolean handle(@NotNull GenericCommandInteractionEvent event, @NotNull MiddlewareStack stack, String... args) {
 		if (args.length < 3) {
-			bot.getAppLogger().warn(
+			App.getLogger().warn(
 				"{} is parsing invalid amount of arguments to the throttle middleware, 3 arguments are required.", event.getFullCommandName()
 			);
 			return stack.next();
@@ -66,7 +66,7 @@ public class ThrottleMiddleware extends Middleware {
 
 			return response;
 		} catch (NumberFormatException ex) {
-			bot.getAppLogger().warn(
+			App.getLogger().warn(
 				"Invalid integers given to throttle middleware by {}, args: ({}, {})", event.getFullCommandName(), args[1], args[2]
 			);
 		}

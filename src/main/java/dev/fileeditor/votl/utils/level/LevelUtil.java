@@ -130,7 +130,7 @@ public class LevelUtil {
 		if (newLevel > level) {
 			// message
 			if (informLevelUp(newLevel)) {
-				bot.getLogger().level.onLevelUp(member, newLevel, expType);
+				bot.getGuildLogger().level.onLevelUp(member, newLevel, expType);
 			}
 			// give role
 			Set<Long> roleIds = bot.getDBUtil().levelRoles.getRoles(member.getGuild().getIdLong(), newLevel, expType);

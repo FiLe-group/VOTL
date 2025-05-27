@@ -57,7 +57,7 @@ public class PurgeCmd extends SlashCommand {
 
 				deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(avoid -> {
 					// Log
-					bot.getLogger().mod.onMessagePurge(event.getUser(), null, toDelete, event.getGuildChannel());
+					bot.getGuildLogger().mod.onMessagePurge(event.getUser(), null, toDelete, event.getGuildChannel());
 					// Reply
 					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getText(event, path+".done").formatted(toDelete))
@@ -76,7 +76,7 @@ public class PurgeCmd extends SlashCommand {
 
 			deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(avoid -> {
 				// Log
-				bot.getLogger().mod.onMessagePurge(event.getUser(), target, toDelete, event.getGuildChannel());
+				bot.getGuildLogger().mod.onMessagePurge(event.getUser(), target, toDelete, event.getGuildChannel());
 				// Reply
 				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done_user").formatted(toDelete, target.getEffectiveName()))

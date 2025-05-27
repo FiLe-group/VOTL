@@ -174,7 +174,7 @@ public class ModStatsCmd extends SlashCommand {
 					attachmentName
 				)).queue();
 			} catch (IOException e) {
-				App.getAppLogger().error("Failed to generate the rank background: {}", e.getMessage(), e);
+				App.getLogger().error("Failed to generate the rank background: {}", e.getMessage(), e);
 				editError(event, path+".failed_image", "Rendering exception");
 			}
 		}

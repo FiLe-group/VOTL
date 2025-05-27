@@ -73,14 +73,14 @@ public class DeleteStrikeCmd extends SlashCommand {
 		}
 		String[] cases = strikeData.getRight().split(";");
 		if (cases[0].isEmpty()) {
-			bot.getAppLogger().error("Strikes data is empty for user {} @ {}.\nStrike amount {}",
+			App.getLogger().error("Strikes data is empty for user {} @ {}.\nStrike amount {}",
 				tu.toString(), event.getGuild().toString(), strikeData.getLeft());
 			editErrorUnknown(event, "Strikes data is empty");
 			return;
 		}
 		List<SelectOption> options = buildOptions(cases);
 		if (options.isEmpty()) {
-			bot.getAppLogger().error("Strikes options are empty for user {} @ {}.",
+			App.getLogger().error("Strikes options are empty for user {} @ {}.",
 				tu.toString(), event.getGuild().toString());
 			editErrorUnknown(event, "Strikes options are empty");
 			return;
@@ -119,7 +119,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 		if (!caseData.isActive()) {
 			msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "errors.unknown", "Case is not active (strike can't be removed)"))
 				.setComponents().queue();
-			bot.getAppLogger().error("At DeleteStrike: Case inside strikes info is not active. Unable to remove. Perform manual removal.\nCase ID: {}", caseRowId);
+			App.getLogger().error("At DeleteStrike: Case inside strikes info is not active. Unable to remove. Perform manual removal.\nCase ID: {}", caseRowId);
 			return;
 		}
 
@@ -175,7 +175,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 				pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 			});
 			// Log
-			bot.getLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseData.getLocalIdInt(), 1, activeAmount);
+			bot.getGuildLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseData.getLocalIdInt(), 1, activeAmount);
 			// Reply
 			msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(event, path+".button_title"))
@@ -201,7 +201,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 		if (!caseData.isActive()) {
 			msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "errors.unknown", "Case is not active (strike can't be removed)"))
 				.setComponents().queue();
-			bot.getAppLogger().error("At DeleteStrike: Case inside strikes info is not active. Unable to remove. Perform manual removal.\nCase ID: {}", caseRowId);
+			App.getLogger().error("At DeleteStrike: Case inside strikes info is not active. Unable to remove. Perform manual removal.\nCase ID: {}", caseRowId);
 			return;
 		}
 
@@ -254,7 +254,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 			pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 		});
 		// Log
-		bot.getLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseData.getLocalIdInt(), removeAmount, activeAmount);
+		bot.getGuildLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseData.getLocalIdInt(), removeAmount, activeAmount);
 		// Reply
 		msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getText(event, path+".done").formatted(removeAmount, activeAmount, caseData.getReason(), tu.getName()))

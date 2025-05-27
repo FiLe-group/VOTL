@@ -101,7 +101,7 @@ public class RoleCmd extends SlashCommand {
 			guild.modifyMemberRoles(member, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(done -> {
 				String rolesString = roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "));
 				// Log
-				bot.getLogger().role.onRolesAdded(guild, event.getUser(), member.getUser(), rolesString);
+				bot.getGuildLogger().role.onRolesAdded(guild, event.getUser(), member.getUser(), rolesString);
 				// Send reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setColor(Constants.COLOR_SUCCESS)
@@ -169,7 +169,7 @@ public class RoleCmd extends SlashCommand {
 			guild.modifyMemberRoles(member, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(done -> {
 				String rolesString = roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "));
 				// Log
-				bot.getLogger().role.onRolesRemoved(guild, event.getUser(), member.getUser(), rolesString);
+				bot.getGuildLogger().role.onRolesRemoved(guild, event.getUser(), member.getUser(), rolesString);
 				// Send reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").replace("{roles}", rolesString).replace("{user}", member.getAsMention()))
@@ -237,7 +237,7 @@ public class RoleCmd extends SlashCommand {
 								if (!future.isCompletedExceptionally()) removed++;
 							}
 							// Log
-							bot.getLogger().role.onRoleRemovedAll(guild, event.getUser(), role);
+							bot.getGuildLogger().role.onRoleRemovedAll(guild, event.getUser(), role);
 							// Send reply
 							editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
 								.replace("{role}", role.getName()).replace("{count}", Integer.toString(removed)).replace("{max}", Integer.toString(maxSize))

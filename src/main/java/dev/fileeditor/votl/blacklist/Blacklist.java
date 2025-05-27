@@ -61,7 +61,7 @@ public class Blacklist {
 		try {
 			bot.getDBUtil().blacklist.remove(id);
 		} catch (SQLException e) {
-			bot.getAppLogger().error("Failed to sync blacklist with the database: {}", e.getMessage(), e);
+			App.getLogger().error("Failed to sync blacklist with the database: {}", e.getMessage(), e);
 		}
 	}
 
@@ -85,7 +85,7 @@ public class Blacklist {
 		try {
 			bot.getDBUtil().blacklist.add(id, scope, expiresIn==null ? OffsetDateTime.now().plusYears(10) : expiresIn, reason);
 		} catch (SQLException e) {
-			bot.getAppLogger().error("Failed to sync blacklist with the database: {}", e.getMessage(), e);
+			App.getLogger().error("Failed to sync blacklist with the database: {}", e.getMessage(), e);
 		}
 	}
 
@@ -109,7 +109,7 @@ public class Blacklist {
 				blacklist.put(id, new BlacklistEntity(scope, id, reason, expiresIn));
 			}
 		} catch (Exception e) {
-			bot.getAppLogger().error("Failed to sync blacklist with the database: {}", e.getMessage(), e);
+			App.getLogger().error("Failed to sync blacklist with the database: {}", e.getMessage(), e);
 		}
 	}
 }

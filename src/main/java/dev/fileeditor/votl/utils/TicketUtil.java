@@ -90,7 +90,7 @@ public class TicketUtil {
 
 			long authorId = db.tickets.getUserId(channel.getIdLong());
 
-			bot.getLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
+			bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
 		}, failureHandler);
 	}
 
@@ -121,7 +121,7 @@ public class TicketUtil {
 				});
 			});
 
-			bot.getLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
+			bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
 		}, failureHandler);
 	}
 
@@ -146,6 +146,6 @@ public class TicketUtil {
 			.build()
 		).setEphemeral(true).queue();
 		// Log
-		bot.getLogger().ticket.onCreate(event.getGuild(), channel, event.getUser());
+		bot.getGuildLogger().ticket.onCreate(event.getGuild(), channel, event.getUser());
 	}
 }

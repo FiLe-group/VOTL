@@ -163,7 +163,7 @@ public class StrikeCmd extends SlashCommand {
 			return;
 		}
 		// log
-		bot.getLogger().mod.onNewCase(guild, tm.getUser(), caseData, proofData).thenAccept(logUrl -> {
+		bot.getGuildLogger().mod.onNewCase(guild, tm.getUser(), caseData, proofData).thenAccept(logUrl -> {
 			// Add log url to db
 			bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
 			// send reply
@@ -238,12 +238,12 @@ public class StrikeCmd extends SlashCommand {
 							guild.getIdLong(), reason, null
 						);
 						// log case
-						bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+						bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
 							bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
 						});
 					} catch (SQLException ignored) {}
 				}, failure ->
-					App.getAppLogger().error("Strike punishment execution, Kick member", failure)
+					App.getLogger().error("Strike punishment execution, Kick member", failure)
 				);
 				builder.append(lu.getLocalized(locale, PunishAction.KICK.getPath()))
 					.append("\n");
@@ -274,12 +274,12 @@ public class StrikeCmd extends SlashCommand {
 								guild.getIdLong(), reason, duration
 							);
 							// log case
-							bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+							bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
 								bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
 							});
 						} catch (SQLException ignored) {}
 					}, failure ->
-						App.getAppLogger().error("Strike punishment execution, Ban member", failure)
+						App.getLogger().error("Strike punishment execution, Ban member", failure)
 					);
 					builder.append(lu.getLocalized(locale, PunishAction.BAN.getPath()))
 						.append(" ").append(lu.getLocalized(locale, path + ".for")).append(" ")
@@ -299,9 +299,9 @@ public class StrikeCmd extends SlashCommand {
 					// Apply action, result will be in logs
 					guild.removeRoleFromMember(target, role).reason(reason).queueAfter(5, TimeUnit.SECONDS, done -> {
 							// log action
-							bot.getLogger().role.onRoleRemoved(guild, bot.JDA.getSelfUser(), target.getUser(), role);
+							bot.getGuildLogger().role.onRoleRemoved(guild, bot.JDA.getSelfUser(), target.getUser(), role);
 						},
-						failure -> App.getAppLogger().error("Strike punishment execution, Remove role", failure));
+						failure -> App.getLogger().error("Strike punishment execution, Remove role", failure));
 					builder.append(lu.getLocalized(locale, PunishAction.REMOVE_ROLE.getPath()))
 						.append(" ").append(role.getName())
 						.append("\n");
@@ -319,9 +319,9 @@ public class StrikeCmd extends SlashCommand {
 					// Apply action, result will be in logs
 					guild.addRoleToMember(target, role).reason(reason).queueAfter(5, TimeUnit.SECONDS, done -> {
 							// log action
-							bot.getLogger().role.onRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), role);
+							bot.getGuildLogger().role.onRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), role);
 						},
-						failure -> App.getAppLogger().error("Strike punishment execution, Add role", failure));
+						failure -> App.getLogger().error("Strike punishment execution, Add role", failure));
 					builder.append(lu.getLocalized(locale, PunishAction.ADD_ROLE.getPath()))
 						.append(" ").append(role.getName())
 						.append("\n");
@@ -341,10 +341,10 @@ public class StrikeCmd extends SlashCommand {
 						try {
 							bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, target.getIdLong(), false, Instant.now().plus(duration));
 							// log action
-							bot.getLogger().role.onTempRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), roleId, duration, false);
+							bot.getGuildLogger().role.onTempRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), roleId, duration, false);
 						} catch (SQLException ignored) {}
 					}, failure ->
-						App.getAppLogger().error("Strike punishment execution, Add temp role", failure)
+						App.getLogger().error("Strike punishment execution, Add temp role", failure)
 					);
 					builder.append(lu.getLocalized(locale, PunishAction.TEMP_ROLE.getPath()))
 						.append(" ").append(role.getName())
@@ -376,12 +376,12 @@ public class StrikeCmd extends SlashCommand {
 								guild.getIdLong(), reason, duration
 							);
 							// log case
-							bot.getLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
+							bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
 								bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
 							});
 						} catch (SQLException ignored) {}
 					}, failure ->
-						App.getAppLogger().error("Strike punishment execution, Mute member", failure)
+						App.getLogger().error("Strike punishment execution, Mute member", failure)
 					);
 					builder.append(lu.getLocalized(locale, PunishAction.MUTE.getPath()))
 						.append(" ").append(lu.getLocalized(locale, path + ".for")).append(" ")

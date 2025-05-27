@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.level;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdModule;
@@ -120,7 +121,7 @@ public class UserProfileCmd extends SlashCommand {
 				))
 				.queue();
 		} catch (IOException e) {
-			bot.getAppLogger().error("Failed to generate the rank background: {}", e.getMessage(), e);
+			App.getLogger().error("Failed to generate the rank background: {}", e.getMessage(), e);
 			editError(event, path+".failed", "Rendering exception");
 		}
 	}

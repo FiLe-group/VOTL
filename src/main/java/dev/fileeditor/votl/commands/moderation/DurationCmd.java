@@ -96,6 +96,6 @@ public class DurationCmd extends SlashCommand {
 			.build();
 		editEmbed(event, embed);
 
-		bot.getLogger().mod.onChangeDuration(event.getGuild(), caseData, event.getMember(), newTime);
+		bot.getGuildLogger().mod.onChangeDuration(event.getGuild(), caseData, event.getMember(), newTime);
 	}
 }

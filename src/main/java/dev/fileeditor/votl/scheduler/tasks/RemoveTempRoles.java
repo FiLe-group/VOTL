@@ -48,7 +48,7 @@ public class RemoveTempRoles implements Task {
 				} catch (SQLException ignored) {}
 			}
 			// Log
-			bot.getLogger().role.onTempRoleAutoRemoved(role.getGuild(), userId, role);
+			bot.getGuildLogger().role.onTempRoleAutoRemoved(role.getGuild(), userId, role);
 		});
 	}
 

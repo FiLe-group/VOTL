@@ -159,7 +159,7 @@ public class BlacklistCmd extends SlashCommand {
 					return;
 				}
 				// Log into master
-				bot.getLogger().mod.onBlacklistRemoved(event.getUser(), user, groupId);
+				bot.getGuildLogger().mod.onBlacklistRemoved(event.getUser(), user, groupId);
 				// Reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done_user").formatted(user.getAsMention(), user.getId(), groupId))

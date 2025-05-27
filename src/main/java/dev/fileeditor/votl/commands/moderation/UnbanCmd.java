@@ -74,7 +74,7 @@ public class UnbanCmd extends SlashCommand {
 							editErrorDatabase(event, ex, "Failed to remove user from blacklist.");
 							return;
 						}
-						bot.getLogger().mod.onBlacklistRemoved(event.getUser(), tu, groupId);
+						bot.getGuildLogger().mod.onBlacklistRemoved(event.getUser(), tu, groupId);
 					} else {
 						// User is not Operator+, reject unban
 						editError(event, path+".blacklisted", "Group ID : "+groupId);
@@ -101,7 +101,7 @@ public class UnbanCmd extends SlashCommand {
 				}
 
 				// log unban
-				bot.getLogger().mod.onNewCase(guild, tu, unbanData, banData != null ? banData.getReason() : ban.getReason()).thenAccept(logUrl -> {
+				bot.getGuildLogger().mod.onNewCase(guild, tu, unbanData, banData != null ? banData.getReason() : ban.getReason()).thenAccept(logUrl -> {
 					// reply and ask for unban sync
 					event.getHook().editOriginalEmbeds(
 						bot.getModerationUtil().actionEmbed(guild.getLocale(), unbanData.getLocalIdInt(),

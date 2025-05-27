@@ -495,7 +495,7 @@ public class InteractionListener extends ListenerAdapter {
 				});
 
 				// Log
-				bot.getLogger().ticket.onCreate(guild, channel, event.getUser());
+				bot.getGuildLogger().ticket.onCreate(guild, channel, event.getUser());
 				// Send reply
 				event.getHook().editOriginalEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, "bot.ticketing.listener.created").replace("{channel}", channel.getAsMention()))
@@ -588,7 +588,7 @@ public class InteractionListener extends ListenerAdapter {
 			guild.modifyMemberRoles(member, roles, null)
 				.reason("Request role-"+ticketId+" approved by "+event.getMember().getEffectiveName())
 				.queue(done -> {
-					bot.getLogger().role.onApproved(member, event.getMember(), guild, roles, ticketId);
+					bot.getGuildLogger().role.onApproved(member, event.getMember(), guild, roles, ticketId);
 					db.tickets.setClaimed(channelId, event.getMember().getIdLong());
 					event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
 						.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.role_added"))
@@ -1064,7 +1064,7 @@ public class InteractionListener extends ListenerAdapter {
 					});
 
 					// Log to master
-					bot.getLogger().mod.onBlacklistAdded(event.getUser(), target, selected);
+					bot.getGuildLogger().mod.onBlacklistAdded(event.getUser(), target, selected);
 					// Reply
 					selectEvent.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 						.setColor(Constants.COLOR_SUCCESS)
@@ -1186,7 +1186,7 @@ public class InteractionListener extends ListenerAdapter {
 					selected.forEach(groupId -> {
 						if (db.serverBlacklist.inGroupUser(groupId, target.getIdLong())) {
 							ignoreExc(() -> db.serverBlacklist.removeUser(groupId, target.getIdLong()));
-							bot.getLogger().mod.onBlacklistRemoved(event.getUser(), target, groupId);
+							bot.getGuildLogger().mod.onBlacklistRemoved(event.getUser(), target, groupId);
 						}
 
 						bot.getHelper().runUnban(groupId, event.getGuild(), target, "Sync group unban, by "+event.getUser().getName(), event.getUser());
@@ -1347,7 +1347,7 @@ public class InteractionListener extends ListenerAdapter {
 					.append(removeIds.stream().map(String::valueOf).collect(Collectors.joining(">, <@&", "<@&", ">")));
 				String rolesString = builder.toString();
 				// Log
-				bot.getLogger().role.onRolesModified(guild, event.getUser(), target.getUser(), rolesString);
+				bot.getGuildLogger().role.onRolesModified(guild, event.getUser(), target.getUser(), rolesString);
 				// Send reply
 				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, "bot.roles.role.modify.done").formatted(target.getAsMention(), rolesString))
@@ -1439,10 +1439,10 @@ public class InteractionListener extends ListenerAdapter {
 							bot.getDBUtil().tempRoles.add(guild.getIdLong(), id, userId, false, Instant.now().plus(duration))
 						);
 						// Log
-						bot.getLogger().role.onTempRoleAdded(guild, event.getUser(), member.getUser(), id, duration, false);
+						bot.getGuildLogger().role.onTempRoleAdded(guild, event.getUser(), member.getUser(), id, duration, false);
 					});
 					// Log approval
-					bot.getLogger().role.onApproved(member, event.getMember(), guild, roles, ticketId);
+					bot.getGuildLogger().role.onApproved(member, event.getMember(), guild, roles, ticketId);
 					// Reply and send DM to the target member
 					event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
 						.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.role_added"))

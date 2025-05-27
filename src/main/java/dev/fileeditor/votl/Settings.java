@@ -97,7 +97,7 @@ public class Settings {
 
 			return shards;
 		} catch (NumberFormatException e) {
-			App.getAppLogger().error("Failed to parse shard range for the \"--shards\" flag, error: {}", e.getMessage(), e);
+			App.getLogger().error("Failed to parse shard range for the \"--shards\" flag, error: {}", e.getMessage(), e);
 			return null;
 		}
 	}

@@ -95,7 +95,7 @@ public class GroupCmd extends SlashCommand {
 				editErrorOther(event, "Failed to create new group.");
 				return;
 			}
-			bot.getLogger().group.onCreation(event, groupId, groupName);
+			bot.getGuildLogger().group.onCreation(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(groupName, groupId))
@@ -134,7 +134,7 @@ public class GroupCmd extends SlashCommand {
 
 			try {
 				bot.getDBUtil().group.deleteGroup(groupId);
-				bot.getLogger().group.onDeletion(event, groupId, groupName);
+				bot.getGuildLogger().group.onDeletion(event, groupId, groupName);
 				bot.getDBUtil().group.clearGroup(groupId);
 			} catch (SQLException ex) {
 				editErrorDatabase(event, ex, "delete group");
@@ -226,7 +226,7 @@ public class GroupCmd extends SlashCommand {
 						return;
 					}
 					if (targetGuild != null)
-						bot.getLogger().group.onGuildRemoved(event, targetGuild, groupId, groupName);
+						bot.getGuildLogger().group.onGuildRemoved(event, targetGuild, groupId, groupName);
 
 					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getText(event, path+".done").formatted(Optional.ofNullable(targetGuild).map(Guild::getName).orElse("*Unknown*"), groupName))
@@ -323,7 +323,7 @@ public class GroupCmd extends SlashCommand {
 					editErrorDatabase(event, e, "group rename");
 					return;
 				}
-				bot.getLogger().group.onRenamed(event, currentGroupName, groupId, newName);
+				bot.getGuildLogger().group.onRenamed(event, currentGroupName, groupId, newName);
 
 				builder.append(lu.getText(event, path+".changed_name").formatted(newName))
 					.append("\n");
@@ -518,7 +518,7 @@ public class GroupCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "add group member");
 				return;
 			}
-			bot.getLogger().group.onGuildJoined(event, groupId, groupName);
+			bot.getGuildLogger().group.onGuildJoined(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(groupName))
@@ -554,7 +554,7 @@ public class GroupCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "remove group member");
 				return;
 			}
-			bot.getLogger().group.onGuildLeft(event, groupId, groupName);
+			bot.getGuildLogger().group.onGuildLeft(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(groupName))

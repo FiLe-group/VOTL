@@ -249,7 +249,7 @@ public class App {
 		return commandClient;
 	}
 
-	public static Logger getAppLogger() {
+	public static Logger getLogger() {
 		return LOG;
 	}
 
@@ -273,7 +273,7 @@ public class App {
 		return localeUtil;
 	}
 
-	public GuildLogger getLogger() {
+	public GuildLogger getGuildLogger() {
 		return guildLogger;
 	}
 
@@ -323,7 +323,7 @@ public class App {
 	}
 
 	public void shutdown(ExitCodes exitCode) {
-		getAppLogger().info("Shutting down instance with exit code {}", exitCode.code);
+		getLogger().info("Shutting down instance with exit code {}", exitCode.code);
 
 		JDA.shutdown();
 
@@ -334,7 +334,7 @@ public class App {
 		try {
 			Thread.sleep(3000L);
 		} catch (InterruptedException e) {
-			getAppLogger().error("Thread sleep interrupted", e);
+			getLogger().error("Thread sleep interrupted", e);
 		}
 
 		JDA.shutdownNow();

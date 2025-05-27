@@ -61,7 +61,7 @@ public class ClearStrikesCmd extends SlashCommand {
 		}
 
 		// Log
-		bot.getLogger().mod.onStrikesCleared(event.getGuild(), tu, event.getUser());
+		bot.getGuildLogger().mod.onStrikesCleared(event.getGuild(), tu, event.getUser());
 		// Reply
 		editEmbed(event, bot.getEmbedUtil().getEmbed()
 			.setColor(Constants.COLOR_SUCCESS)

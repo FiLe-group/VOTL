@@ -23,7 +23,7 @@ public class GroupHelper {
 
 	public GroupHelper(App bot) {
 		this.JDA = bot.JDA;
-		this.logger = bot.getLogger();
+		this.logger = bot.getGuildLogger();
 		this.db = bot.getDBUtil();
 	}
 

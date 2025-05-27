@@ -59,11 +59,11 @@ public class VoiceListener extends ListenerAdapter {
 				if (!list.isEmpty()) {
 					AuditLogEntry entry = list.getFirst();
 					if (entry.getChangeByKey("mute")!=null && entry.getTargetIdLong() == event.getMember().getIdLong() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
-						bot.getLogger().voice.onVoiceMute(event.getMember(), event.isGuildMuted(), entry.getUserIdLong());
+						bot.getGuildLogger().voice.onVoiceMute(event.getMember(), event.isGuildMuted(), entry.getUserIdLong());
 						return;
 					}
 				}
-				bot.getLogger().voice.onVoiceMute(event.getMember(), event.isGuildMuted(), null);
+				bot.getGuildLogger().voice.onVoiceMute(event.getMember(), event.isGuildMuted(), null);
 			});
 	}
 
@@ -78,11 +78,11 @@ public class VoiceListener extends ListenerAdapter {
 				if (!list.isEmpty()) {
 					AuditLogEntry entry = list.getFirst();
 					if (entry.getChangeByKey("deaf")!=null && entry.getTargetIdLong() == event.getMember().getIdLong() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
-						bot.getLogger().voice.onVoiceDeafen(event.getMember(), event.isGuildDeafened(), entry.getUserIdLong());
+						bot.getGuildLogger().voice.onVoiceDeafen(event.getMember(), event.isGuildDeafened(), entry.getUserIdLong());
 						return;
 					}
 				}
-				bot.getLogger().voice.onVoiceDeafen(event.getMember(), event.isGuildDeafened(), null);
+				bot.getGuildLogger().voice.onVoiceDeafen(event.getMember(), event.isGuildDeafened(), null);
 			});
 	}
 

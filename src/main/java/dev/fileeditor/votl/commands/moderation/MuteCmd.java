@@ -178,7 +178,7 @@ public class MuteCmd extends SlashCommand {
 					return;
 				}
 				// log mute
-				bot.getLogger().mod.onNewCase(guild, tm.getUser(), newMuteData, proofData).thenAccept(logUrl -> {
+				bot.getGuildLogger().mod.onNewCase(guild, tm.getUser(), newMuteData, proofData).thenAccept(logUrl -> {
 					// Add log url to db
 					bot.getDBUtil().cases.setLogUrl(newMuteData.getRowId(), logUrl);
 					// send embed
