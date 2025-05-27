@@ -1,6 +1,8 @@
 # Build container
 
-FROM eclipse-temurin:21-alpine AS build
+FROM --platform=$BUILDPLATFORM eclipse-temurin:21-alpine AS build
+ARG TARGETOS
+ARG TARGETARCH
 # Add tools to run gradle wrapper
 RUN apk add --no-cache bash unzip coreutils
 

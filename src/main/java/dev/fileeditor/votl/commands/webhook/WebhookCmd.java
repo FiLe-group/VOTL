@@ -203,7 +203,7 @@ public class WebhookCmd extends SlashCommand {
 			this.path = "bot.webhook.remove";
 			this.options = List.of(
 				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true)
-					.setRequiredRange(10, 30),
+					.setRequiredLength(10, 30),
 				new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".delete.help"))
 			);
 		}
@@ -253,7 +253,7 @@ public class WebhookCmd extends SlashCommand {
 			this.path = "bot.webhook.move";
 			this.options = List.of(
 				new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true)
-					.setRequiredRange(10, 30),
+					.setRequiredLength(10, 30),
 				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
 			);
 			this.ephemeral = true;
