@@ -82,8 +82,12 @@ public class ModStatsCmd extends SlashCommand {
 			return;
 		}
 
-		int countRoles = bot.getDBUtil().tickets.countTicketsByMod(event.getGuild().getIdLong(), mod.getIdLong(), afterTime, beforeTime, true);
-		Map<Integer, Integer> countCases = bot.getDBUtil().cases.countCasesByMod(guildId, mod.getIdLong(), afterTime, beforeTime);
+		int countRoles = bot.getDBUtil().tickets.countTicketsByMod(
+			event.getGuild().getIdLong(), mod.getIdLong(), afterTime.getEpochSecond(), beforeTime.getEpochSecond(), true
+		);
+		Map<Integer, Integer> countCases = bot.getDBUtil().cases.countCasesByMod(
+			guildId, mod.getIdLong(), afterTime.getEpochSecond(), beforeTime.getEpochSecond()
+		);
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneOffset.UTC);
 		String intervalText = "%s\n`%s` - `%s`".formatted(lu.getText(event, path+".title"), formatter.format(afterTime), formatter.format(beforeTime));

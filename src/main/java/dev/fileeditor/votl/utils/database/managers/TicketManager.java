@@ -124,10 +124,10 @@ public class TicketManager extends LiteBase {
 		return selectOne("SELECT tagId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "tagId", Integer.class);
 	}
 
-	public int countTicketsByMod(long guildId, long modId, Instant afterTime, Instant beforeTime, boolean roleTag) {
+	public int countTicketsByMod(long guildId, long modId, long afterEpoch, long beforeEpoch, boolean roleTag) {
 		String tagType = roleTag ? "tagId=0" : "tagId>=1";
 		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%s AND modId=%s AND timeClosed>=%d AND timeClosed<=%d AND %s)"
-			.formatted(table, guildId, modId, afterTime.getEpochSecond(), beforeTime.getEpochSecond(), tagType));
+			.formatted(table, guildId, modId, afterEpoch, beforeEpoch, tagType));
 	}
 
 	public int countTicketsByMod(long guildId, long modId, Instant afterTime, boolean roleTag) {

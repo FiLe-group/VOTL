@@ -56,8 +56,12 @@ public class TicketCountCmd extends SlashCommand {
 		}
 
 		User user = event.optUser("user");
-		int countRoles = bot.getDBUtil().tickets.countTicketsByMod(event.getGuild().getIdLong(), user.getIdLong(), afterTime, beforeTime, true);
-		int countOther = bot.getDBUtil().tickets.countTicketsByMod(event.getGuild().getIdLong(), user.getIdLong(), afterTime, beforeTime, false);
+		int countRoles = bot.getDBUtil().tickets.countTicketsByMod(
+			event.getGuild().getIdLong(), user.getIdLong(), afterTime.getEpochSecond(), beforeTime.getEpochSecond(), true
+		);
+		int countOther = bot.getDBUtil().tickets.countTicketsByMod(
+			event.getGuild().getIdLong(), user.getIdLong(), afterTime.getEpochSecond(), beforeTime.getEpochSecond(), false
+		);
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneOffset.UTC);
 		editEmbed(event, bot.getEmbedUtil().getEmbed()

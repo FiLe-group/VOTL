@@ -169,9 +169,9 @@ public class CaseManager extends LiteBase {
 	}
 
 	// count cases by moderator after and before certain dates
-	public Map<Integer, Integer> countCasesByMod(long guildId, long modId, Instant afterTime, Instant beforeTime) {
+	public Map<Integer, Integer> countCasesByMod(long guildId, long modId, long afterEpoch, long beforeEpoch) {
 		List<Map<String, Object>> data = select("SELECT type, COUNT(*) AS cc FROM %s WHERE (guildId=%d AND modId=%d AND timeStart>%d AND timeStart<%d) GROUP BY type"
-			.formatted(table, guildId, modId, afterTime.getEpochSecond(), beforeTime.getEpochSecond()), Set.of("type", "cc"));
+			.formatted(table, guildId, modId, afterEpoch, beforeEpoch), Set.of("type", "cc"));
 		if (data.isEmpty()) return Collections.emptyMap();
 		return data.stream().collect(Collectors.toMap(s -> (Integer) s.get("type"), s -> (Integer) s.get("cc")));
 	}

@@ -16,8 +16,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,8 +59,8 @@ public class GenerateReport implements Task {
 			}
 
 			Duration interval = Duration.ofDays((Integer) data.get("interval"));
-			Instant nextReport = Instant.ofEpochSecond(castLong(data.get("nextReport")));
-			nextReport = interval.toDaysPart()==30 ? nextReport.plus(1, ChronoUnit.MONTHS) : nextReport.plus(interval);
+			LocalDateTime nextReport = LocalDateTime.ofEpochSecond(castLong(data.get("nextReport")), 0, ZoneOffset.UTC);
+			nextReport = interval.toDaysPart()==30 ? nextReport.plusMonths(1) : nextReport.plus(interval);
 			// Update next report date
 			// If fails - remove guild
 			try {
@@ -74,17 +74,19 @@ public class GenerateReport implements Task {
 			// Search for members with any of required roles (Mod, Admin, ...)
 			guild.findMembers(m -> !Collections.disjoint(m.getRoles(), roles)).setTimeout(10, TimeUnit.SECONDS).onSuccess(members -> {
 				if (members.isEmpty() || members.size() > 20) return; // TODO normal reply - too much users
-				Instant now = Instant.now();
-				Instant previous = (interval.toDaysPart()==30 ?
-					now.minus(1, ChronoUnit.MONTHS) :
+				LocalDateTime now = LocalDateTime.now();
+				LocalDateTime previous = (interval.toDaysPart()==30 ?
+					now.minusMonths(1) :
 					now.minus(interval)
 				);
 
 				List<ReportData> reportDataList = new ArrayList<>(members.size());
 				members.forEach(m -> {
 					if (m.getUser().isBot()) return;
-					int countRoles = bot.getDBUtil().tickets.countTicketsByMod(guild.getIdLong(), m.getIdLong(), previous, now, true);
-					Map<Integer, Integer> countCases = bot.getDBUtil().cases.countCasesByMod(guild.getIdLong(), m.getIdLong(), previous, now);
+					int countRoles = bot.getDBUtil().tickets.countTicketsByMod(
+						guild.getIdLong(), m.getIdLong(), previous.toEpochSecond(ZoneOffset.UTC), now.toEpochSecond(ZoneOffset.UTC), true
+					);
+					Map<Integer, Integer> countCases = bot.getDBUtil().cases.countCasesByMod(guild.getIdLong(), m.getIdLong(), previous.toEpochSecond(ZoneOffset.UTC), now.toEpochSecond(ZoneOffset.UTC));
 					ReportData reportData = new ReportData(m, countRoles, countCases);
 					if (reportData.getCountTotalInt() > 0) {
 						reportDataList.add(reportData);
@@ -94,7 +96,7 @@ public class GenerateReport implements Task {
 				ModReportRender render = new ModReportRender(guild.getLocale(), bot.getLocaleUtil(),
 					previous, now, reportDataList);
 
-				final String attachmentName = EncodingUtil.encodeModreport(guild.getIdLong(), now.getEpochSecond());
+				final String attachmentName = EncodingUtil.encodeModreport(guild.getIdLong(), now.toEpochSecond(ZoneOffset.UTC));
 
 				try {
 					channel.sendFiles(FileUpload.fromData(
