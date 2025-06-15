@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	// ShadowJar
 	// https://mvnrepository.com/artifact/com.gradleup.shadow/shadow-gradle-plugin
-	id 'com.gradleup.shadow' version '9.0.0-beta13'
+	id 'com.gradleup.shadow' version '9.0.0-beta15'
 }
 
 // Getting version
@@ -19,7 +19,7 @@ repositories {
 dependencies {
 	// JDA library and additions
 	// https://mvnrepository.com/artifact/net.dv8tion/JDA
-	implementation('net.dv8tion:JDA:5.5.1') {						// JDA library
+	implementation('net.dv8tion:JDA:5.6.1') {						// JDA library
 		exclude module: 'opus-java'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
@@ -29,7 +29,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:2.9.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.49.1.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.50.1.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
 	implementation 'org.jsoup:jsoup:1.20.1'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
@@ -37,7 +37,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.json/json
 	implementation 'org.json:json:20250517'							// JsonObject
 	// https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
-	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.0'	// Cache
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.1'	// Cache
 	// https://mvnrepository.com/artifact/org.reflections/reflections
 	implementation 'org.reflections:reflections:0.10.2'				// Reflections for auto-load
 	// https://mvnrepository.com/artifact/commons-cli/commons-cli
@@ -45,7 +45,7 @@ dependencies {
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
-	implementation 'org.apache.groovy:groovy:4.0.26'				// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:4.0.27'				// Groovy - code evaluation
 }
 
 java {
@@ -84,6 +84,7 @@ tasks.shadowJar {
 		exclude(dependency('ch.qos.logback:logback-classic:.*'))
 		exclude(dependency('org.xerial:sqlite-jdbc:.*'))
 		exclude(dependency('com.github.ben-manes.caffeine:caffeine:.*'))
+		exclude(dependency('org.apache.groovy:groovy:.*'))
 	}
 
 	exclude('META-INF/*.SF')
