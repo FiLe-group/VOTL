@@ -410,14 +410,26 @@
 			},
 			"shutdown": {
 				"help": "Safely shuts down the bot",
-				"usage": "shutdown [now] [status]",
+				"usage": "shutdown [now]",
 				"now": {
 					"name": "now",
-					"help": "Shutdown now (or in 5 minutes)"
-				},
-				"status": {
-					"name": "status",
-					"help": "Shutdown status to use"
+					"help": "Shutdown now (or in 3 minutes)"
+				}
+			},
+			"restart": {
+				"help": "Safely restarts the bot",
+				"usage": "restart [now]",
+				"now": {
+					"name": "now",
+					"help": "Restart now (or in 3 minutes)"
+				}
+			},
+			"update": {
+				"help": "Safely update the bot (requires Watchdog)",
+				"usage": "update [now]",
+				"now": {
+					"name": "now",
+					"help": "Update now (or in 3 minutes)"
 				}
 			},
 			"generate": {
