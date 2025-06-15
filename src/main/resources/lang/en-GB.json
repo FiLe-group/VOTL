@@ -1376,7 +1376,9 @@
 				"autopunish_error": "Unable to apply auto punishment.",
 				"autopunish_higher": "User is higher than bot.",
 				"autopunish_exception": "User is an exception.",
-				"autopunish_reason": "Autopunish: user has %d active strikes",
+				"autopunish_reason_1": "Autopunish: user has 1 active strike",
+				"autopunish_reason_2": "Autopunish: user has %d active strikes",
+				"autopunish_reason_5": "Autopunish: user has %d active strikes",
 				"for": "for"
 			},
 			"delstrike": {
