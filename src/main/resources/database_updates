@@ -17,3 +17,4 @@ ALTER TABLE "logWebhooks" ADD "bot" TEXT;
 CREATE TABLE "autopunish_new" ("guildId" INTEGER NOT NULL, "strike" INTEGER NOT NULL, "actions" INTEGER NOT NULL, "data" TEXT, UNIQUE("guildId","strike")); INSERT INTO "autopunish_new"("guildId", "strike", "actions", "data") SELECT "guildId", "strike", "actions", "data" FROM "autopunish"; DROP TABLE "autopunish"; ALTER TABLE "autopunish_new" RENAME TO "autopunish";
 ALTER TABLE "guild" ADD "drama" INTEGER DEFAULT 0; ALTER TABLE "guild" ADD "dramaChannel" INTEGER;
 ALTER TABLE "blacklist" RENAME TO "serverBlacklist"; DROP TABLE "botBlacklist"; CREATE TABLE "blacklist" ("id" INTEGER NOT NULL UNIQUE, "type" INTEGER NOT NULL, "expiresIn" INTEGER, "reason" TEXT)
+ALTER TABLE "guild" ADD "locale" TEXT

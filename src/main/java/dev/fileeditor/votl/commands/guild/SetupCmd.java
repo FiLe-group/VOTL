@@ -16,6 +16,7 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
 import dev.fileeditor.votl.utils.database.managers.LevelManager;
+import dev.fileeditor.votl.utils.file.lang.LangUtil;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -28,6 +29,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
@@ -44,7 +46,8 @@ public class SetupCmd extends SlashCommand {
 			new VoiceCreate(), new VoiceSelect(), new VoicePanel(),
 			new VoiceName(), new VoiceLimit(),
 			new Strikes(), new InformLevel(), new RoleWhitelist(),
-			new Levels(), new Drama()
+			new Levels(), new Drama(),
+			new LanguageSet(), new LanguageReset()
 		};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -632,6 +635,60 @@ public class SetupCmd extends SlashCommand {
 					.build()
 				);
 			}
+		}
+	}
+
+	private class LanguageSet extends SlashCommand {
+		public LanguageSet() {
+			this.name = "set";
+			this.path = "bot.guild.setup.language.set";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "forced_language", lu.getText(path+".forced_language.help"), true)
+					.addChoices(LangUtil.getLocaleChoices())
+			);
+			this.subcommandGroup = new SubcommandGroupData("language", lu.getText("bot.guild.setup.language.help"));
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			DiscordLocale locale = DiscordLocale.from(event.optString("forced_language", ""));
+			if (locale == DiscordLocale.UNKNOWN || !LangUtil.locales.contains(locale)) {
+				editError(event, path+".bad_input", "Input: "+locale.getLanguageName());
+				return;
+			}
+
+			try {
+				bot.getDBUtil().guildSettings.setLocale(event.getGuild().getIdLong(), locale);
+			} catch (SQLException e) {
+				editErrorDatabase(event, e, "setup language reset");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(path+".done"))
+				.build());
+		}
+	}
+
+	private class LanguageReset extends SlashCommand {
+		public LanguageReset() {
+			this.name = "reset";
+			this.path = "bot.guild.setup.language.reset";
+			this.subcommandGroup = new SubcommandGroupData("language", lu.getText("bot.guild.setup.language.help"));
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			try {
+				bot.getDBUtil().guildSettings.setLocale(event.getGuild().getIdLong(), null);
+			} catch (SQLException e) {
+				editErrorDatabase(event, e, "setup language reset");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(path+".done"))
+				.build());
 		}
 	}
 

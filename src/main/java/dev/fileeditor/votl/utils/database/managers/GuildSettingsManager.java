@@ -15,6 +15,7 @@ import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +26,7 @@ public class GuildSettingsManager extends LiteBase {
 		"color", "lastWebhookId", "appealLink", "reportChannelId",
 		"strikeExpire", "strikeCooldown", "modulesOff",
 		"informBan", "informKick", "informMute", "informStrike", "informDelstrike",
-		"roleWhitelist", "drama", "dramaChannel"
+		"roleWhitelist", "drama", "dramaChannel", "locale"
 	);
 
 	// Cache
@@ -126,6 +127,11 @@ public class GuildSettingsManager extends LiteBase {
 		execute("INSERT INTO %s(guildId, dramaChannel) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET dramaChannel=%<s".formatted(table, guildId, channelId==null ? "NULL" : channelId));
 	}
 
+	public void setLocale(long guildId, @Nullable DiscordLocale locale) throws SQLException {
+		invalidateCache(guildId);
+		execute("INSERT INTO %s(guildId, locale) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET locale=%<s".formatted(table, guildId, locale==null ? "NULL" : locale.getLocale()));
+	}
+
 
 	private void invalidateCache(long guildId) {
 		cache.invalidate(guildId);
@@ -135,9 +141,10 @@ public class GuildSettingsManager extends LiteBase {
 		private final Long lastWebhookId, reportChannelId, dramaChannelId;
 		private final int color, strikeExpire, strikeCooldown, modulesOff;
 		private final String appealLink;
-		private final ModerationInformLevel informBan, informKick, informMute, informStrike, informDelstrike;
+		@NotNull private final ModerationInformLevel informBan, informKick, informMute, informStrike, informDelstrike;
 		private final boolean roleWhitelist;
-		private final DramaLevel dramaLevel;
+		@NotNull private final DramaLevel dramaLevel;
+		@NotNull private final DiscordLocale locale;
 
 		public GuildSettings() {
 			this.color = Constants.COLOR_DEFAULT;
@@ -155,6 +162,7 @@ public class GuildSettingsManager extends LiteBase {
 			this.roleWhitelist = false;
 			this.dramaLevel = DramaLevel.OFF;
 			this.dramaChannelId = null;
+			this.locale = DiscordLocale.UNKNOWN;
 		}
 
 		public GuildSettings(Map<String, Object> data) {
@@ -173,6 +181,7 @@ public class GuildSettingsManager extends LiteBase {
 			this.roleWhitelist = getOrDefault(data.get("roleWhitelist"), 0) == 1;
 			this.dramaLevel = DramaLevel.byLevel(getOrDefault(data.get("drama"), 0));
 			this.dramaChannelId = getOrDefault(data.get("dramaChannel"), null);
+			this.locale = resolveOrDefault(data.get("locale"), s->DiscordLocale.from((String) s), DiscordLocale.UNKNOWN);
 		}
 
 		public int getColor() {
@@ -253,6 +262,14 @@ public class GuildSettingsManager extends LiteBase {
 		@NotNull
 		public DramaLevel getDramaLevel() {
 			return dramaLevel;
+		}
+
+		/**
+		 * @return Guild forced language or {@link DiscordLocale#UNKNOWN}.
+		 */
+		@NotNull
+		public DiscordLocale getLocale() {
+			return locale;
 		}
 	}
 

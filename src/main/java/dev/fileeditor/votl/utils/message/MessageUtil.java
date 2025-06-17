@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+import net.dv8tion.jda.api.entities.User;
 
 public class MessageUtil {
 	private static final DecimalFormat decimalFormat = new DecimalFormat("# ### ###");
@@ -70,16 +72,22 @@ public class MessageUtil {
 		return color;
 	}
 
-	public static String getFormattedMembers(LocaleUtil lu, String... members) {
-		if (members.length == 1)
-			return "**" + escapeAll(members[0]) + "**";
+	public static String getFormattedUsers(LocaleUtil lu, User... users) {
+		return getFormattedUsers(lu, Stream.of(users)
+			.map(User::getEffectiveName)
+			.toArray(String[]::new));
+	}
+
+	public static String getFormattedUsers(LocaleUtil lu, String... names) {
+		if (names.length == 1)
+			return "**" + escapeAll(names[0]) + "**";
 
 		StringBuilder builder = new StringBuilder();
-		for (String member : members) {
+		for (String name : names) {
 			if (!builder.isEmpty())
 				builder.append(", ");
 
-			builder.append("**").append(escapeAll(member)).append("**");
+			builder.append("**").append(escapeAll(name)).append("**");
 		}
 
 		return replaceLast(builder.toString(), ", ", " "+lu.getText("misc.and")+" ");
