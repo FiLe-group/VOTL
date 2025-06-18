@@ -444,7 +444,7 @@ public class VoiceCmd extends SlashCommand {
 
 			vcManager.queue(done -> {
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getUserText(event, path+".done", mentionStrings))
+					.setDescription(lu.getTargetText(event, path+".done", mentionStrings))
 					.build()
 				);
 			}, failure -> editPermError(event, Permission.MANAGE_PERMISSIONS, true));
@@ -515,7 +515,7 @@ public class VoiceCmd extends SlashCommand {
 
 			vcManager.queue(done -> {
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getUserText(event, path+".done", mentionStrings))
+					.setDescription(lu.getTargetText(event, path+".done", mentionStrings))
 					.build()
 				);
 			}, failure -> editPermError(event, Permission.MANAGE_PERMISSIONS, true));

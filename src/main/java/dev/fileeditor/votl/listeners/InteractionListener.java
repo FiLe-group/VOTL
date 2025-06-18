@@ -1593,7 +1593,7 @@ public class InteractionListener extends ListenerAdapter {
 						}
 					}
 
-					text = lu.getUserText(event, "bot.voice.listener.panel.permit_done", mentionStrings);
+					text = lu.getTargetText(event, "bot.voice.listener.panel.permit_done", mentionStrings);
 				} else {
 					for (Member member : members) {
 						manager = manager.putPermissionOverride(member, null, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL));
@@ -1612,7 +1612,7 @@ public class InteractionListener extends ListenerAdapter {
 						}
 					}
 
-					text = lu.getUserText(event, "bot.voice.listener.panel.reject_done", mentionStrings);
+					text = lu.getTargetText(event, "bot.voice.listener.panel.reject_done", mentionStrings);
 				}
 
 				final MessageEmbed embed = bot.getEmbedUtil().getEmbed(event).setDescription(text).build();

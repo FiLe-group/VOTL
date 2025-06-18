@@ -4,7 +4,6 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.Emote;
 
 import dev.fileeditor.votl.utils.message.MessageUtil;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import org.jetbrains.annotations.NotNull;
@@ -29,55 +28,35 @@ public class LocaleUtil {
 	}
 
 	@NotNull
-	public String getLocalized(DiscordLocale locale, String path) {
+	public String getLocalized(@NotNull DiscordLocale locale, @NotNull String path) {
 		return Emote.getWithEmotes(langUtil.getString(locale, path));
 	}
 
 	@NotNull
-	public String getLocalized(DiscordLocale locale, String path, User user) {
-		return getLocalized(locale, path, user, true);
+	public String getLocalized(@NotNull DiscordLocale locale, @NotNull String path, @Nullable String target) {
+		if (target == null)
+			return getLocalized(locale, path, List.of());
+		else
+			return getLocalized(locale, path, List.of(target));
 	}
 
 	@NotNull
-	public String getLocalized(DiscordLocale locale, String path, User user, boolean format) {
-		String name = user.getEffectiveName();
-		if (format)
-			name = MessageUtil.getFormattedUsers(this, name);
+	public String getLocalized(@NotNull DiscordLocale locale, @NotNull String path, @NotNull List<String> targets) {
+		String targetReplacement = targets.isEmpty() ? "none" : MessageUtil.getFormattedUsers(this, targets.toArray(String[]::new));
 
 		return Objects.requireNonNull(getLocalized(locale, path)
-			.replace("{user}", name));
-	}
-
-	@NotNull
-	public String getLocalized(DiscordLocale locale, String path, User user, String target) {
-		if (target == null)
-			return getLocalized(locale, path, user, List.of(), false);
-		else
-			return getLocalized(locale, path, user, List.of(target), false);
-	}
-
-	@NotNull
-	public String getLocalized(DiscordLocale locale, String path, User user, List<String> targets) {
-		return getLocalized(locale, path, user, targets, false);
-	}
-
-	@NotNull
-	public String getLocalized(DiscordLocale locale, String path, User user, List<String> targets, boolean format) {
-		String targetReplacement = targets.isEmpty() ? "null" : MessageUtil.getFormattedUsers(this, targets.toArray(String[]::new));
-
-		return Objects.requireNonNull(getLocalized(locale, path, user, format)
 			.replace("{target}", targetReplacement)
 			.replace("{targets}", targetReplacement)
 		);
 	}
 
 	@Nullable
-	public String getLocalizedNullable(DiscordLocale locale, String path) {
+	public String getLocalizedNullable(@NotNull DiscordLocale locale, @NotNull String path) {
 		return langUtil.getNullableString(locale, path);
 	}
 
 	@NotNull
-	public String getLocalizedRandom(DiscordLocale locale, String path) {
+	public String getLocalizedRandom(@NotNull DiscordLocale locale, @NotNull String path) {
 		return Emote.getWithEmotes(langUtil.getRandomString(locale, path));
 	}
 
@@ -112,33 +91,13 @@ public class LocaleUtil {
 	}
 
 	@NotNull
-	public String getText(IReplyCallback replyCallback, @NotNull String path) {
+	public String getText(@NotNull IReplyCallback replyCallback, @NotNull String path) {
 		return getLocalized(getLocale(replyCallback), path);
 	}
 
 	@NotNull
-	public String getUserText(IReplyCallback replyCallback, @NotNull String path) {
-		return getUserText(replyCallback, path, List.of(), false);
-	}
-
-	@NotNull
-	public String getUserText(IReplyCallback replyCallback, @NotNull String path, boolean format) {
-		return getUserText(replyCallback, path, List.of(), format);
-	}
-
-	@NotNull
-	public String getUserText(IReplyCallback replyCallback, @NotNull String path, String target) {
-		return getUserText(replyCallback, path, List.of(target), false);
-	}
-	
-	@NotNull
-	public String getUserText(IReplyCallback replyCallback, @NotNull String path, List<String> targets) {
-		return getUserText(replyCallback, path, targets, false);
-	}
-
-	@NotNull
-	private String getUserText(IReplyCallback replyCallback, @NotNull String path, List<String> targets, boolean format) {
-		return getLocalized(replyCallback.getUserLocale(), path, replyCallback.getUser(), targets, format);
+	public String getUserText(@NotNull IReplyCallback replyCallback, @NotNull String path) {
+		return getLocalized(replyCallback.getUserLocale(), path);
 	}
 
 	@NotNull
@@ -149,6 +108,21 @@ public class LocaleUtil {
 
 		return getLocalized(locale, path);
 	}
+
+
+	@NotNull
+	public String getTargetText(@NotNull IReplyCallback replyCallback, @NotNull String path, @Nullable String target) {
+		if (target == null)
+			return getTargetText(replyCallback, path, List.of());
+		else
+			return getTargetText(replyCallback, path, List.of(target));
+	}
+
+	@NotNull
+	public String getTargetText(@NotNull IReplyCallback replyCallback, @NotNull String path, List<String> targets) {
+		return getLocalized(getLocale(replyCallback), path, targets);
+	}
+
 
 	@NotNull
 	public DiscordLocale getLocale(IReplyCallback replyCallback) {

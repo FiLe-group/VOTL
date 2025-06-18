@@ -42,17 +42,17 @@ public final class LangUtil {
 	}
 
 	@NotNull
-	public String getString(DiscordLocale locale, String path) {
+	public String getString(@NotNull DiscordLocale locale, @NotNull String path) {
 		return getString(languageSelector(locale), path);
 	}
 
 	@Nullable
-	public String getNullableString(DiscordLocale locale, String path) {
+	public String getNullableString(@NotNull DiscordLocale locale, @NotNull String path) {
 		return getNullableString(languageSelector(locale), path);
 	}
 
 	@NotNull
-	public String getRandomString(DiscordLocale locale, String path) {
+	public String getRandomString(@NotNull DiscordLocale locale, @NotNull String path) {
 		return (String) RandomUtil.pickRandom(getStringList(languageSelector(locale), path));
 	}
 
@@ -69,7 +69,7 @@ public final class LangUtil {
 	 * @return Returns not-null string. If search returns null string, returns provided path.
 	 */
 	@NotNull
-	public String getString(String lang, String path) {
+	public String getString(@NotNull String lang, @NotNull String path) {
 		String result = getNullableString(lang, path);
 		if (result == null) {
 			log.warn("Couldn't find \"{}\" in file {}.json", path, lang);
