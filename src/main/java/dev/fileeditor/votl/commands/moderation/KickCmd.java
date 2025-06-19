@@ -142,7 +142,7 @@ public class KickCmd extends SlashCommand {
 				bot.getDBUtil().cases.setLogUrl(kickData.getRowId(), logUrl);
 				// reply and ask for kick sync
 				event.getHook().editOriginalEmbeds(
-					bot.getModerationUtil().actionEmbed(guild.getLocale(), kickData.getLocalIdInt(),
+					bot.getModerationUtil().actionEmbed(lu.getLocale(event), kickData.getLocalIdInt(),
 						path+".success", tm.getUser(), mod.getUser(), reason, logUrl)
 				).setActionRow(
 					Button.primary("sync_kick:"+tm.getId(), "Sync kick").withEmoji(Emoji.fromUnicode("🆑"))

@@ -113,7 +113,7 @@ public class RolesManageCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "add managed role");
 					return;
 				}
-				sendSuccess(event, lu.getText(event, RoleType.ASSIGN.getPath()), role);
+				sendSuccess(event, lu.getGuildText(event, RoleType.ASSIGN.getPath()), role);
 			} else if (type.equals(RoleType.TOGGLE.toString())) {
 				if (bot.getDBUtil().roles.getToggleable(guildId).size() >= 5) {
 					editError(event, path+".toggle_max");
@@ -126,7 +126,7 @@ public class RolesManageCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "add managed role");
 					return;
 				}
-				sendSuccess(event, lu.getText(event, RoleType.ASSIGN.getPath()), role);
+				sendSuccess(event, lu.getGuildText(event, RoleType.ASSIGN.getPath()), role);
 			} else if (type.equals(RoleType.CUSTOM.toString())) {
 				if (bot.getDBUtil().roles.countRoles(guildId, RoleType.CUSTOM) >= Limits.CUSTOM_ROLES) {
 					editErrorLimit(event, "custom roles", Limits.CUSTOM_ROLES);
@@ -138,7 +138,7 @@ public class RolesManageCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "add managed role");
 					return;
 				}
-				sendSuccess(event, lu.getText(event, RoleType.ASSIGN.getPath()), role);
+				sendSuccess(event, lu.getGuildText(event, RoleType.ASSIGN.getPath()), role);
 			} else {
 				editError(event, path+".no_type");
 			}
@@ -146,7 +146,7 @@ public class RolesManageCmd extends SlashCommand {
 
 		private void sendSuccess(SlashCommandEvent event, String type, Role role) {
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(role.getAsMention(), type))
+				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention(), type))
 				.build());
 		}
 	}
@@ -193,9 +193,9 @@ public class RolesManageCmd extends SlashCommand {
 						description = role.getName();
 					else
 						description = null;
-					response.append(lu.getText(event, path+".default_description"));
+					response.append(lu.getGuildText(event, path+".default_description"));
 				} else {
-					response.append(lu.getText(event, path+".changed_description").formatted(description));
+					response.append(lu.getGuildText(event, path+".changed_description", description));
 				}
 				try {
 					bot.getDBUtil().roles.setDescription(roleId, description);
@@ -213,7 +213,7 @@ public class RolesManageCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "update role row");
 					return;
 				}
-				response.append(lu.getText(event, path+".changed_row").formatted(row));
+				response.append(lu.getGuildText(event, path+".changed_row", row));
 			}
 
 			if (event.hasOption("timed") && roleType.equals(RoleType.ASSIGN)) {
@@ -224,7 +224,7 @@ public class RolesManageCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "update role timed");
 					return;
 				}
-				response.append(lu.getText(event, path+".changed_timed").formatted(timed?Constants.SUCCESS:Constants.FAILURE));
+				response.append(lu.getGuildText(event, path+".changed_timed", timed?Constants.SUCCESS:Constants.FAILURE));
 			}
 
 			sendReply(event, response, role);
@@ -236,7 +236,7 @@ public class RolesManageCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".embed_title").formatted(role.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".embed_title", role.getAsMention()))
 				.appendDescription(response.toString())
 				.build());
 		}
@@ -279,7 +279,7 @@ public class RolesManageCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(roleId))
+				.setDescription(lu.getGuildText(event, path+".done", roleId))
 				.build());
 		}
 	}
@@ -296,24 +296,24 @@ public class RolesManageCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 			long guildId = guild.getIdLong();
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".title"));
+				.setTitle(lu.getGuildText(event, path+".title"));
 			
 			for (RoleType type : RoleType.values()) {
 				if (type.equals(RoleType.ASSIGN)) {
 					for (int row = 1; row <= 3; row++) {
 						List<RoleManager.RoleData> roles = bot.getDBUtil().roles.getAssignableByRow(guildId, row);
-						String title = "%s-%s | %s".formatted(lu.getText(event, type.getPath()), row, bot.getDBUtil().getTicketSettings(guild).getRowText(row));
+						String title = "%s-%s | %s".formatted(lu.getGuildText(event, type.getPath()), row, bot.getDBUtil().getTicketSettings(guild).getRowText(row));
 						if (roles.isEmpty()) {
-							builder.addField(title, lu.getText(event, path+".none"), false);
+							builder.addField(title, lu.getGuildText(event, path+".none"), false);
 						} else {
 							generateField(guild, title, roles).forEach(builder::addField);
 						}
 					}
 				} else {
 					List<RoleManager.RoleData> roles = bot.getDBUtil().roles.getRolesByType(guildId, type);
-					String title = lu.getText(event, type.getPath());
+					String title = lu.getGuildText(event, type.getPath());
 					if (roles.isEmpty()) {
-						builder.addField(title, lu.getText(event, path+".none"), false);
+						builder.addField(title, lu.getGuildText(event, path+".none"), false);
 					} else {
 						generateField(guild, title, roles).forEach(builder::addField);
 					}

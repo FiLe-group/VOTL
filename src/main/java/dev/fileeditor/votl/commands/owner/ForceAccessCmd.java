@@ -50,14 +50,14 @@ public class ForceAccessCmd extends SlashCommand {
 					bot.getDBUtil().access.removeRole(guild.getIdLong(), targetId);
 				else
 					bot.getDBUtil().access.addRole(guild.getIdLong(), targetId, level);
-				editMsg(event, lu.getText(event, path+".done").replace("{level}", level.getName()).replace("{target}", "Role `"+targetId+"`"));
+				editMsg(event, lu.getGuildText(event, path+".done", level.getName(), "Role `"+targetId+"`"));
 			} else {
 				// Target is user
 				if (level.equals(CmdAccessLevel.ALL))
 					bot.getDBUtil().access.removeUser(guild.getIdLong(), targetId);
 				else
 					bot.getDBUtil().access.addOperator(guild.getIdLong(), targetId);
-				editMsg(event, lu.getText(event, path+".done").replace("{level}", level.getName()).replace("{target}", "User `"+targetId+"`"));
+				editMsg(event, lu.getGuildText(event, path+".done", level.getName(), "User `"+targetId+"`"));
 			}
 		} catch (SQLException ex) {
 			editErrorDatabase(event, ex, "force access");

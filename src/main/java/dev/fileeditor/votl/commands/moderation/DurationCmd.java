@@ -92,7 +92,7 @@ public class DurationCmd extends SlashCommand {
 		
 		String newTime = TimeUtil.formatDuration(lu, event.getUserLocale(), caseData.getTimeStart(), newDuration);
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, path+".done").formatted(caseData.getLocalId(), newTime))
+			.setDescription(lu.getGuildText(event, path+".done", caseData.getLocalId(), newTime))
 			.build();
 		editEmbed(event, embed);
 

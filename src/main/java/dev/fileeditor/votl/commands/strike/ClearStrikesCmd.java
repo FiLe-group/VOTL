@@ -46,7 +46,7 @@ public class ClearStrikesCmd extends SlashCommand {
 		long guildId = event.getGuild().getIdLong();
 		Pair<Integer, String> strikeData = bot.getDBUtil().strikes.getData(guildId, tu.getIdLong());
 		if (strikeData == null) {
-			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".no_strikes")).build());
+			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getGuildText(event, path+".no_strikes")).build());
 			return;
 		}
 		int activeCount = strikeData.getLeft();
@@ -65,7 +65,7 @@ public class ClearStrikesCmd extends SlashCommand {
 		// Reply
 		editEmbed(event, bot.getEmbedUtil().getEmbed()
 			.setColor(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, path+".done").formatted(activeCount, tu.getName()))
+			.setDescription(lu.getGuildText(event, path+".done", activeCount, tu.getName()))
 			.build()
 		);
 	}

@@ -12,7 +12,6 @@ import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -35,8 +34,6 @@ public class EvalCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		DiscordLocale userLocale = event.getUserLocale();
-
 		String args = event.optString("code");
 		if (args == null) {
 			return;
@@ -65,25 +62,27 @@ public class EvalCmd extends SlashCommand {
 		try {
 			String reply = String.valueOf(shell.evaluate(args));
 
-			editEmbed(event, formatEvalEmbed(userLocale, args, reply,
-				lu.getLocalized(userLocale, "bot.owner.eval.time")
-					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
-	 			, true));
+			editEmbed(event, formatEvalEmbed(event, args, reply,
+				lu.getText(event, "bot.owner.eval.time",
+					String.valueOf(System.currentTimeMillis() - startTime))
+	 			, true
+			));
 		} catch (PowerAssertionError | Exception ex) {
-			editEmbed(event, formatEvalEmbed(userLocale, args, ex.getMessage(),
-				lu.getLocalized(userLocale, "bot.owner.eval.time")
-					.replace("{time}", String.valueOf(System.currentTimeMillis() - startTime))
-				, false));
+			editEmbed(event, formatEvalEmbed(event, args, ex.getMessage(),
+				lu.getText(event, "bot.owner.eval.time",
+					String.valueOf(System.currentTimeMillis() - startTime))
+				, false
+			));
 		}
 	}
 
-	private MessageEmbed formatEvalEmbed(DiscordLocale locale, String input, String output, String footer, boolean success) {		
+	private MessageEmbed formatEvalEmbed(SlashCommandEvent event, String input, String output, String footer, boolean success) {
 		EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
 			.setColor(success ? Constants.COLOR_SUCCESS : Constants.COLOR_FAILURE)
-			.addField(lu.getLocalized(locale, "bot.owner.eval.input"),
+			.addField(lu.getText(event, "bot.owner.eval.input"),
 				"```groovy\n"+MessageUtil.limitString(input, 1000)+"\n```",
 				false)
-			.addField(lu.getLocalized(locale, "bot.owner.eval.output"),
+			.addField(lu.getText(event, "bot.owner.eval.output"),
 				"```groovy\n"+MessageUtil.limitString(output, 1000)+"\n```",
 				false)
 			.setFooter(footer, null);

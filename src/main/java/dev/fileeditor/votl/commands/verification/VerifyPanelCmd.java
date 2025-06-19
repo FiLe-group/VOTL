@@ -82,7 +82,7 @@ public class VerifyPanelCmd extends SlashCommand {
 				return;
 			}
 
-			Button next = Button.primary("verify", lu.getLocalized(event.getGuildLocale(), path+".continue"));
+			Button next = Button.primary("verify", lu.getGuildText(event, path+".continue"));
 
 			tc.sendMessageEmbeds(new EmbedBuilder()
 				.setColor(bot.getDBUtil().getGuildSettings(guild).getColor())
@@ -93,7 +93,7 @@ public class VerifyPanelCmd extends SlashCommand {
 			).addActionRow(next).queue();
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{channel}", tc.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", tc.getAsMention()))
 				.build()
 			);
 		}
@@ -132,7 +132,7 @@ public class VerifyPanelCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			editMsg(event, lu.getText(event, path+".send_text"));
+			editMsg(event, lu.getGuildText(event, path+".send_text"));
 
 			waiter.waitForEvent(
 				MessageReceivedEvent.class,
@@ -158,7 +158,7 @@ public class VerifyPanelCmd extends SlashCommand {
 						.editOriginal("")
 						.setEmbeds(
 							bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-								.setDescription(lu.getText(event, path+".done"))
+								.setDescription(lu.getGuildText(event, path+".done"))
 								.build(),
 							new EmbedBuilder()
 								.setTitle("TEXT")
@@ -169,7 +169,7 @@ public class VerifyPanelCmd extends SlashCommand {
 				},
 				30,
 				TimeUnit.SECONDS,
-				() -> editMsg(event, lu.getText(event, path+".timed_out"))
+				() -> editMsg(event, lu.getGuildText(event, path+".timed_out"))
 			);
 		}
 	}
@@ -201,7 +201,7 @@ public class VerifyPanelCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(imageUrl))
+				.setDescription(lu.getGuildText(event, path+".done", imageUrl))
 				.build()
 			);
 		}

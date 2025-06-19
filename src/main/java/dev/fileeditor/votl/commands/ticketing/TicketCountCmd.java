@@ -66,8 +66,9 @@ public class TicketCountCmd extends SlashCommand {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneOffset.UTC);
 		editEmbed(event, bot.getEmbedUtil().getEmbed()
 			.setTitle("`"+formatter.format(afterTime)+"` - `"+formatter.format(beforeTime)+"`")
-			.setDescription(lu.getText(event, path+".done").replace("{user}", user.getAsMention()).replace("{id}", user.getId())
-				.replace("{roles}", Integer.toString(countRoles)).replace("{other}", Integer.toString(countOther)))
+			.setDescription(lu.getGuildText(event, path+".done",
+				user.getAsMention(), user.getId(), countRoles, countOther
+			))
 			.build());
 	}
 }

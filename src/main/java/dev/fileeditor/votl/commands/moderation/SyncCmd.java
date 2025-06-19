@@ -79,10 +79,10 @@ public class SyncCmd extends SlashCommand {
 			}
 
 			ActionRow button = ActionRow.of(
-				Button.of(ButtonStyle.PRIMARY, "button:confirm", lu.getText(event, path+".button_confirm"))
+				Button.of(ButtonStyle.PRIMARY, "button:confirm", lu.getGuildText(event, path+".button_confirm"))
 			);
 			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
-				.setDescription(lu.getText(event, path+".embed_title"))
+				.setDescription(lu.getGuildText(event, path+".embed_title"))
 				.build()
 			).setComponents(button).queue(msg -> waiter.waitForEvent(
 				ButtonInteractionEvent.class,
@@ -94,7 +94,7 @@ public class SyncCmd extends SlashCommand {
 					}
 
 					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done"))
+						.setDescription(lu.getGuildText(event, path+".done"))
 						.build()
 					).setComponents().queue();
 					// Perform action using Helper bot

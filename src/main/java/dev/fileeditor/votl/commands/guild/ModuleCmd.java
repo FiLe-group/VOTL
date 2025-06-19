@@ -54,14 +54,14 @@ public class ModuleCmd extends SlashCommand {
 			StringBuilder builder = new StringBuilder();
 			EnumSet<CmdModule> disabled = getModules(guildId, false);
 			for (CmdModule sModule : CmdModule.values()) {
-				builder.append(format(lu.getText(event, sModule.getPath()), disabled.contains(sModule)))
+				builder.append(format(lu.getGuildText(event, sModule.getPath()), disabled.contains(sModule)))
 					.append("\n");
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".embed.title"))
-				.setDescription(lu.getText(event, path+".embed.value"))
-				.addField(lu.getText(event, path+".embed.field"), builder.toString(), false)
+				.setTitle(lu.getGuildText(event, path+".embed.title"))
+				.setDescription(lu.getGuildText(event, path+".embed.value"))
+				.addField(lu.getGuildText(event, path+".embed.field"), builder.toString(), false)
 				.build());
 		}
 
@@ -84,22 +84,22 @@ public class ModuleCmd extends SlashCommand {
 			long guildId = event.getGuild().getIdLong();
 
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".embed_title"));
+				.setTitle(lu.getGuildText(event, path+".embed_title"));
 
 			EnumSet<CmdModule> enabled = getModules(guildId, true);
 			if (enabled.isEmpty()) {
-				embed.setDescription(lu.getText(event, path+".none"))
+				embed.setDescription(lu.getGuildText(event, path+".none"))
 					.setColor(Constants.COLOR_FAILURE);
 				editEmbed(event, embed.build());
 				return;
 			}
 
-			embed.setDescription(lu.getText(event, path+".embed_value"));
+			embed.setDescription(lu.getGuildText(event, path+".embed_value"));
 			StringSelectMenu menu = StringSelectMenu.create("disable-module")
-				.setPlaceholder(lu.getText(event, path+".select"))
+				.setPlaceholder(lu.getGuildText(event, path+".select"))
 				.setRequiredRange(1, 1)
 				.addOptions(enabled.stream()
-					.map(sModule -> SelectOption.of(lu.getText(event, sModule.getPath()), sModule.toString()))
+					.map(sModule -> SelectOption.of(lu.getGuildText(event, sModule.getPath()), sModule.toString()))
 					.toList()
 				)
 				.build();
@@ -124,7 +124,7 @@ public class ModuleCmd extends SlashCommand {
 					}
 					// Send reply
 					hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setTitle(lu.getText(event, path+".done").replace("{module}", lu.getText(event, sModule.getPath())))
+						.setTitle(lu.getGuildText(event, path+".done", lu.getGuildText(event, sModule.getPath())))
 						.build()
 					).setComponents().queue();
 					// Log
@@ -133,7 +133,7 @@ public class ModuleCmd extends SlashCommand {
 				30,
 				TimeUnit.SECONDS,
 				() -> hook.editOriginalComponents(
-					ActionRow.of(menu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
+					ActionRow.of(menu.createCopy().setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
 				).queue()
 			));
 		}
@@ -152,22 +152,22 @@ public class ModuleCmd extends SlashCommand {
 			long guildId = event.getGuild().getIdLong();
 
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".embed_title"));
+				.setTitle(lu.getGuildText(event, path+".embed_title"));
 
 			EnumSet<CmdModule> disabled = getModules(guildId, false);
 			if (disabled.isEmpty()) {
-				embed.setDescription(lu.getText(event, path+".none"))
+				embed.setDescription(lu.getGuildText(event, path+".none"))
 					.setColor(Constants.COLOR_FAILURE);
 				editEmbed(event, embed.build());
 				return;
 			}
 
-			embed.setDescription(lu.getText(event, path+".embed_value"));
+			embed.setDescription(lu.getGuildText(event, path+".embed_value"));
 			StringSelectMenu menu = StringSelectMenu.create("enable-module")
-				.setPlaceholder(lu.getText(event, path+".select"))
+				.setPlaceholder(lu.getGuildText(event, path+".select"))
 				.setRequiredRange(1, 1)
 				.addOptions(disabled.stream()
-					.map(sModule -> SelectOption.of(lu.getText(event, sModule.getPath()), sModule.toString()))
+					.map(sModule -> SelectOption.of(lu.getGuildText(event, sModule.getPath()), sModule.toString()))
 					.toList())
 				.build();
 
@@ -191,7 +191,7 @@ public class ModuleCmd extends SlashCommand {
 						}
 						// Send reply
 						hook.editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-							.setTitle(lu.getText(event, path+".done").replace("{module}", lu.getText(event, sModule.getPath())))
+							.setTitle(lu.getGuildText(event, path+".done", lu.getGuildText(event, sModule.getPath())))
 							.build()
 						).setComponents().queue();
 						// Log
@@ -201,7 +201,7 @@ public class ModuleCmd extends SlashCommand {
 				10,
 				TimeUnit.SECONDS,
 				() -> hook.editOriginalComponents(
-					ActionRow.of(menu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
+					ActionRow.of(menu.createCopy().setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
 				).queue()
 			));
 		}

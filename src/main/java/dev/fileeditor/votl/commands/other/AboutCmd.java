@@ -9,7 +9,6 @@ import dev.fileeditor.votl.objects.constants.Links;
 
 import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 
 public class AboutCmd extends SlashCommand {
 
@@ -23,47 +22,46 @@ public class AboutCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		DiscordLocale userLocale = event.getUserLocale();
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 			.setAuthor(event.getJDA().getSelfUser().getName(), event.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.setThumbnail(event.getJDA().getSelfUser().getEffectiveAvatarUrl())
 			.addField(
-				lu.getLocalized(userLocale, "bot.other.about.embed.about_title")
+				lu.getText(event, "bot.other.about.embed.about_title")
 					.replace("{name}", "VOTL bot"),
-				lu.getLocalized(userLocale, "bot.other.about.embed.about_value")
+				lu.getText(event, "bot.other.about.embed.about_value")
 					.replace("{developer_name}", Constants.DEVELOPER_TAG)
 					.replace("{developer_id}", String.valueOf(Constants.DEVELOPER_ID)),
 				false
 			)
 			.addField(
-				lu.getLocalized(userLocale, "bot.other.about.embed.commands_title"),
-				lu.getLocalized(userLocale, "bot.other.about.embed.commands_value"),
+				lu.getText(event, "bot.other.about.embed.commands_title"),
+				lu.getText(event, "bot.other.about.embed.commands_value"),
 				false
 			)
 			.addField(
-				lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.title"),
+				lu.getText(event, "bot.other.about.embed.bot_info.title"),
 				String.join(
 					"\n",
-					lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.bot_version").replace("{bot_version}", AppInfo.VERSION),
-					lu.getLocalized(userLocale, "bot.other.about.embed.bot_info.library")
+					lu.getText(event, "bot.other.about.embed.bot_info.bot_version").replace("{bot_version}", AppInfo.VERSION),
+					lu.getText(event, "bot.other.about.embed.bot_info.library")
 						.replace("{jda_version}", JDAInfo.VERSION)
 						.replace("{jda_github}", JDAInfo.GITHUB)
 				),
 				false
 			)
 			.addField(
-				lu.getLocalized(userLocale, "bot.other.about.embed.links.title"),
+				lu.getText(event, "bot.other.about.embed.links.title"),
 				String.join(
 					"\n",
-					lu.getLocalized(userLocale, "bot.other.about.embed.links.discord").replace("{guild_invite}", Links.DISCORD),
-					lu.getLocalized(userLocale, "bot.other.about.embed.links.github").replace("{github_url}", Links.GITHUB),
-					lu.getLocalized(userLocale, "bot.other.about.embed.links.terms").replace("{terms_url}", Links.TERMS),
-					lu.getLocalized(userLocale, "bot.other.about.embed.links.privacy").replace("{privacy_url}", Links.PRIVACY)
+					lu.getText(event, "bot.other.about.embed.links.discord").replace("{guild_invite}", Links.DISCORD),
+					lu.getText(event, "bot.other.about.embed.links.github").replace("{github_url}", Links.GITHUB),
+					lu.getText(event, "bot.other.about.embed.links.terms").replace("{terms_url}", Links.TERMS),
+					lu.getText(event, "bot.other.about.embed.links.privacy").replace("{privacy_url}", Links.PRIVACY)
 				),
 				true
 			)
 			.addField(
-				lu.getLocalized(userLocale, "bot.other.about.embed.links.translate"),
+				lu.getText(event, "bot.other.about.embed.links.translate"),
 				"[Crowdin.com](%s)".formatted(Links.CROWDIN),
 				false
 			)

@@ -55,7 +55,7 @@ public class ReasonCmd extends SlashCommand {
 		}
 
 		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, path+".done").formatted(caseData.getLocalId(), newReason))
+			.setDescription(lu.getGuildText(event, path+".done", caseData.getLocalId(), newReason))
 			.build()
 		);
 
@@ -66,7 +66,7 @@ public class ReasonCmd extends SlashCommand {
 				// Retrieve user by guild and send dm
 				event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(member -> {
 					member.getUser().openPrivateChannel().queue(pm -> {
-						MessageEmbed embed = bot.getModerationUtil().getReasonUpdateEmbed(event.getGuildLocale(), event.getGuild(), caseData.getTimeStart(), caseData.getType(), caseData.getReason(), newReason);
+						MessageEmbed embed = bot.getModerationUtil().getReasonUpdateEmbed(event.getGuild(), caseData.getTimeStart(), caseData.getType(), caseData.getReason(), newReason);
 						pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 					});
 				}, failure -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER));
@@ -77,7 +77,7 @@ public class ReasonCmd extends SlashCommand {
 				// Retrieve user by guild and send dm
 				event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(member -> {
 					member.getUser().openPrivateChannel().queue(pm -> {
-						MessageEmbed embed = bot.getModerationUtil().getReasonUpdateEmbed(event.getGuildLocale(), event.getGuild(), caseData.getTimeStart(), caseData.getType(), caseData.getReason(), newReason);
+						MessageEmbed embed = bot.getModerationUtil().getReasonUpdateEmbed(event.getGuild(), caseData.getTimeStart(), caseData.getType(), caseData.getReason(), newReason);
 						pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 					});
 				}, failure -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER));

@@ -37,13 +37,13 @@ public class LeaderboardCmd extends SlashCommand {
 		LevelManager.TopInfo top = bot.getDBUtil().levels.getServerTop(event.getGuild().getIdLong(), expType, limit);
 
 		EmbedBuilder embed = bot.getEmbedUtil().getEmbed(event)
-			.setAuthor(lu.getText(event, path+".embed_title"), null, event.getGuild().getIconUrl());
+			.setAuthor(lu.getGuildText(event, path+".embed_title"), null, event.getGuild().getIconUrl());
 
 		// Text top
 		if (!expType.equals(ExpType.VOICE)) {
-			String title = lu.getText(event, path+".top_text").formatted(limit);
+			String title = lu.getGuildText(event, path+".top_text", limit);
 			if (top.getTextTop().isEmpty()) {
-				embed.addField(title, lu.getText(event, path+".empty"), true);
+				embed.addField(title, lu.getGuildText(event, path+".empty"), true);
 			} else {
 				StringBuilder builder = new StringBuilder();
 				top.getTextTop().forEach((place, user) -> {
@@ -58,9 +58,9 @@ public class LeaderboardCmd extends SlashCommand {
 		}
 
 		if (!expType.equals(ExpType.TEXT)) {
-			String title = lu.getText(event, path+".top_voice").formatted(limit);
+			String title = lu.getGuildText(event, path+".top_voice", limit);
 			if (top.getVoiceTop().isEmpty()) {
-				embed.addField(title, lu.getText(event, path+".empty"), true);
+				embed.addField(title, lu.getGuildText(event, path+".empty"), true);
 			} else {
 				StringBuilder builder = new StringBuilder();
 				top.getVoiceTop().forEach((place, user) -> {

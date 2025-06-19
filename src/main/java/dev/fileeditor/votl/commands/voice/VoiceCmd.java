@@ -80,7 +80,7 @@ public class VoiceCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			);
 		}
@@ -120,7 +120,7 @@ public class VoiceCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			);
 		}
@@ -160,7 +160,7 @@ public class VoiceCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			);
 		}
@@ -200,7 +200,7 @@ public class VoiceCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			);
 		}
@@ -237,7 +237,7 @@ public class VoiceCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			String name = Optional
 				.ofNullable(bot.getDBUtil().getVoiceSettings(event.getGuild()).getDefaultName())
-				.orElse(lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name"));
+				.orElse(lu.getGuildText(event, "bot.voice.listener.default_name"));
 			sendNameReply(event, name);
 		}
 	}
@@ -261,7 +261,7 @@ public class VoiceCmd extends SlashCommand {
 		}
 
 		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, "bot.voice.voice.name.done").replace("{value}", name))
+			.setDescription(lu.getGuildText(event, "bot.voice.voice.name.done", name))
 			.build()
 		);
 	}
@@ -320,7 +320,7 @@ public class VoiceCmd extends SlashCommand {
 		}
 
 		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, "bot.voice.voice.limit.done").replace("{value}", limit.toString()))
+			.setDescription(lu.getGuildText(event, "bot.voice.voice.limit.done", limit))
 			.build()
 		);
 	}
@@ -355,7 +355,7 @@ public class VoiceCmd extends SlashCommand {
 				owner -> {
 					for (Member vcMember : vc.getMembers()) {
 						if (vcMember == owner) {
-							editMsg(event, lu.getText(event, path+".has_owner"));
+							editMsg(event, lu.getGuildText(event, path+".has_owner"));
 							return;
 						}
 					}
@@ -376,7 +376,7 @@ public class VoiceCmd extends SlashCommand {
 					}
 
 					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done").replace("{channel}", vc.getAsMention()))
+						.setDescription(lu.getGuildText(event, path+".done", vc.getAsMention()))
 						.build()
 					);
 				}, failure -> editErrorOther(event, failure.getMessage())
@@ -444,7 +444,7 @@ public class VoiceCmd extends SlashCommand {
 
 			vcManager.queue(done -> {
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getUserText(event, path+".done", mentionStrings))
+					.setDescription(lu.getTargetText(event, path+".done", mentionStrings))
 					.build()
 				);
 			}, failure -> editPermError(event, Permission.MANAGE_PERMISSIONS, true));
@@ -515,7 +515,7 @@ public class VoiceCmd extends SlashCommand {
 
 			vcManager.queue(done -> {
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getUserText(event, path+".done", mentionStrings))
+					.setDescription(lu.getTargetText(event, path+".done", mentionStrings))
 					.build()
 				);
 			}, failure -> editPermError(event, Permission.MANAGE_PERMISSIONS, true));
@@ -544,8 +544,8 @@ public class VoiceCmd extends SlashCommand {
 			VoiceChannel vc = guild.getVoiceChannelById(channelId);
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".embed.title").replace("{channel}", vc.getName()))
-				.setDescription(lu.getText(event, path+".embed.field")+"\n\n");
+				.setTitle(lu.getGuildText(event, path+".embed.title", vc.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".embed.field")+"\n\n");
 
 			//@Everyone
 			PermissionOverride publicOverride = vc.getPermissionOverride(guild.getPublicRole());
@@ -553,8 +553,8 @@ public class VoiceCmd extends SlashCommand {
 			String view = contains(publicOverride, Permission.VIEW_CHANNEL);
 			String join = contains(publicOverride, Permission.VOICE_CONNECT);
 			
-			embedBuilder = embedBuilder.appendDescription(formatHolder(lu.getText(event, path+".embed.everyone"), view, join))
-				.appendDescription("\n\n" + lu.getText(event, path+".embed.roles") + "\n");
+			embedBuilder = embedBuilder.appendDescription(formatHolder(lu.getGuildText(event, path+".embed.everyone"), view, join))
+				.appendDescription("\n\n" + lu.getGuildText(event, path+".embed.roles") + "\n");
 
 			//Roles
 			List<PermissionOverride> overrides = new ArrayList<>(vc.getRolePermissionOverrides()); // cause given override list is immutable
@@ -566,7 +566,7 @@ public class VoiceCmd extends SlashCommand {
 			}
 			
 			if (overrides.isEmpty()) {
-				embedBuilder.appendDescription(lu.getText(event, path+".embed.none") + "\n");
+				embedBuilder.appendDescription(lu.getGuildText(event, path+".embed.none") + "\n");
 			} else {
 				for (PermissionOverride ov : overrides) {
 					view = contains(ov, Permission.VIEW_CHANNEL);
@@ -575,7 +575,7 @@ public class VoiceCmd extends SlashCommand {
 					embedBuilder.appendDescription(formatHolder(ov.getRole().getName(), view, join) + "\n");
 				}
 			}
-			embedBuilder.appendDescription("\n" + lu.getText(event, path+".embed.members") + "\n");
+			embedBuilder.appendDescription("\n" + lu.getGuildText(event, path+".embed.members") + "\n");
 
 			//Members
 			overrides = new ArrayList<>(vc.getMemberPermissionOverrides());
@@ -592,7 +592,7 @@ public class VoiceCmd extends SlashCommand {
 			guild.retrieveMembersByIds(false, overrides.stream().map(PermissionOverride::getId).toArray(String[]::new)).onSuccess(
 				members -> {
 					if (members.isEmpty()) {
-						embedBuilder2.appendDescription(lu.getText(event, path+".embed.none") + "\n");
+						embedBuilder2.appendDescription(lu.getGuildText(event, path+".embed.none") + "\n");
 					} else {
 						for (PermissionOverride ov : ovs) {
 							String view2 = contains(ov, Permission.VIEW_CHANNEL);
@@ -657,7 +657,7 @@ public class VoiceCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			);
 		}

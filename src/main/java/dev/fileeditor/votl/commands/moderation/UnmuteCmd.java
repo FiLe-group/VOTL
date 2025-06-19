@@ -46,7 +46,7 @@ public class UnmuteCmd extends SlashCommand {
 		}
 
 		Guild guild = Objects.requireNonNull(event.getGuild());
-		String reason = event.optString("reason", lu.getLocalized(event.getGuildLocale(), path+".no_reason"));
+		String reason = event.optString("reason", lu.getGuildText(event, path+".no_reason"));
 		
 		CaseData muteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 		if (muteData != null) {
@@ -71,7 +71,7 @@ public class UnmuteCmd extends SlashCommand {
 				// log unmute
 				bot.getGuildLogger().mod.onNewCase(guild, tm.getUser(), unmuteData, muteData != null ? muteData.getReason() : null).thenAccept(logUrl -> {
 					// reply
-					editEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), unmuteData.getLocalIdInt(),
+					editEmbed(event, bot.getModerationUtil().actionEmbed(lu.getLocale(event), unmuteData.getLocalIdInt(),
 						path+".success", tm.getUser(), mod.getUser(), reason, logUrl)
 					);
 				});

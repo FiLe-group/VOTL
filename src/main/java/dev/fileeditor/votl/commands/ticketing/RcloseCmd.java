@@ -101,18 +101,18 @@ public class RcloseCmd extends SlashCommand {
 
 		MessageEmbed embed = new EmbedBuilder()
 			.setColor(bot.getDBUtil().getGuildSettings(guild).getColor())
-			.setDescription(bot.getLocaleUtil().getLocalized(guild.getLocale(), "bot.ticketing.listener.close_request")
+			.setDescription(lu.getGuildText(event, "bot.ticketing.listener.close_request")
 				.replace("{user}", user.getAsMention())
 				.replace("{time}", TimeUtil.formatTime(closeTime, false)))
 			.build();
 
-		Button close = Button.primary("ticket:close", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.close"));
-		Button cancel = Button.secondary("ticket:cancel", bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.cancel"));
+		Button close = Button.primary("ticket:close", lu.getGuildText(event, "ticket.close"));
+		Button cancel = Button.secondary("ticket:cancel", lu.getGuildText(event, "ticket.cancel"));
 		
 		event.getHook().editOriginal("||%s||".formatted(user.getAsMention())).setEmbeds(embed).setActionRow(close, cancel).queue();
 		bot.getDBUtil().tickets.setRequestStatus(
 			channelId, closeTime.getEpochSecond(),
-			event.optString("reason", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support"))
+			event.optString("reason", lu.getGuildText(event, "bot.ticketing.listener.closed_support"))
 		);
 	}
 

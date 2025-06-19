@@ -14,7 +14,7 @@ import dev.fileeditor.votl.utils.message.TimeUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.TimeFormat;
@@ -57,18 +57,18 @@ public class ModLogsCmd extends SlashCommand {
 			bot.getDBUtil().cases.getGuildUser(guildId, userId, page, true) :
 			bot.getDBUtil().cases.getGuildUser(guildId, userId, page);
 		if (cases.isEmpty()) {
-			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty")).build());
+			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getGuildText(event, path+".empty")).build());
 			return;
 		}
 		final int pages = (int) Math.ceil(bot.getDBUtil().cases.countCases(guildId, userId)/10.0);
 
-		editEmbed(event, buildEmbed(lu, event.getUserLocale(), tu, cases, page, pages).build());
+		editEmbed(event, buildEmbed(lu, event, tu, cases, page, pages).build());
 	}
 
-	public static EmbedBuilder buildEmbed(LocaleUtil lu, DiscordLocale locale, User tu, List<CaseData> cases, int page, int pages) {
+	public static EmbedBuilder buildEmbed(LocaleUtil lu, IReplyCallback callback, User tu, List<CaseData> cases, int page, int pages) {
 		EmbedBuilder builder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
-			.setTitle(lu.getLocalized(locale, "bot.moderation.modlogs.title").formatted(tu.getName(), page, pages))
-			.setFooter(lu.getLocalized(locale, "bot.moderation.modlogs.footer").formatted(tu.getId()));
+			.setTitle(lu.getGuildText(callback, "bot.moderation.modlogs.title", tu.getName(), page, pages))
+			.setFooter(lu.getGuildText(callback, "bot.moderation.modlogs.footer", tu.getId()));
 		cases.forEach(c -> {
 			final String temp = c.getLogUrl()==null ? "" : " - [Link](%s)".formatted(c.getLogUrl());
 			StringBuilder stringBuilder = new StringBuilder()
@@ -76,17 +76,19 @@ public class ModLogsCmd extends SlashCommand {
 				.append(TimeFormat.DATE_TIME_SHORT.format(c.getTimeStart()))
 				.append(temp)
 				.append("\n")
-				.append(lu.getLocalized(locale, "bot.moderation.modlogs.mod").formatted(c.getModId()>0 ? c.getModTag() : "-"));
+				.append(lu.getGuildText(callback, "bot.moderation.modlogs.mod", c.getModId()>0 ? c.getModTag() : "-"));
 
 			if (!c.getDuration().isNegative())
-				stringBuilder.append(lu.getLocalized(locale, "bot.moderation.modlogs.duration")
-					.formatted(TimeUtil.formatDuration(lu, locale, c.getTimeStart(), c.getDuration())));
+				stringBuilder.append(lu.getGuildText(callback, "bot.moderation.modlogs.duration",
+					TimeUtil.formatDuration(lu, lu.getLocale(callback), c.getTimeStart(), c.getDuration())
+				));
 
-			stringBuilder.append(lu.getLocalized(locale, "bot.moderation.modlogs.reason")
-				.formatted(c.getReason()));
+			stringBuilder.append(lu.getGuildText(callback, "bot.moderation.modlogs.reason",
+				c.getReason()
+			));
 
 			builder.addField("%s  #`%s`| %s"
-				.formatted(c.isActive() ? "🟥" : "⬛", c.getLocalId(), lu.getLocalized(locale, c.getType().getPath())),
+				.formatted(c.isActive() ? "🟥" : "⬛", c.getLocalId(), lu.getGuildText(callback, c.getType().getPath())),
 				stringBuilder.toString(),
 				false
 			);

@@ -93,7 +93,7 @@ public class GenerateReport implements Task {
 					}
 				});
 
-				ModReportRender render = new ModReportRender(guild.getLocale(), bot.getLocaleUtil(),
+				ModReportRender render = new ModReportRender(bot.getLocaleUtil().getLocale(guild), bot.getLocaleUtil(),
 					previous, now, reportDataList);
 
 				final String attachmentName = EncodingUtil.encodeModreport(guild.getIdLong(), now.toEpochSecond(ZoneOffset.UTC));

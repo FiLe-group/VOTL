@@ -125,7 +125,7 @@ public class BanCmd extends SlashCommand {
 						bot.getDBUtil().cases.setLogUrl(newBanData.getRowId(), logUrl);
 						// reply and add blacklist button
 						event.getHook().editOriginalEmbeds(
-							bot.getModerationUtil().actionEmbed(guild.getLocale(), newBanData.getLocalIdInt(),
+							bot.getModerationUtil().actionEmbed(lu.getLocale(event), newBanData.getLocalIdInt(),
 								path+".success", tu, mod.getUser(), reason, duration, logUrl)
 						).setActionRow(
 							Button.danger("blacklist:"+ban.getUser().getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨")),
@@ -136,7 +136,7 @@ public class BanCmd extends SlashCommand {
 				} else {
 					// already has temporal ban (return case ID and use /duration to change time)
 					MessageEmbed embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
-						.setDescription(lu.getText(event, path+".already_temp").formatted(oldBanData.getLocalId()))
+						.setDescription(lu.getGuildText(event, path+".already_temp", oldBanData.getLocalId()))
 						.build();
 					event.getHook().editOriginalEmbeds(embed).queue();
 				}
@@ -161,13 +161,14 @@ public class BanCmd extends SlashCommand {
 					bot.getDBUtil().cases.setLogUrl(newBanData.getRowId(), logUrl);
 					// create embed
 					EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
-						.setDescription(lu.getText(event, path+".already_banned"))
-						.addField(lu.getText(event, "logger.moderation.ban.short_title"), lu.getText(event, "logger.moderation.ban.short_info")
+						.setDescription(lu.getGuildText(event, path+".already_banned"))
+						.addField(lu.getGuildText(event, "logger.moderation.ban.short_title"), lu.getGuildText(event, "logger.moderation.ban.short_info")
 								.replace("{username}", ban.getUser().getEffectiveName())
 								.replace("{reason}", Optional.ofNullable(ban.getReason()).orElse("*none*"))
-							, false);
+							, false
+						);
 					if (logUrl != null)
-						embedBuilder.addField("", lu.getText(event, "logger.moderation.log_url").formatted(logUrl), false);
+						embedBuilder.addField("", lu.getGuildText(event, "logger.moderation.log_url", logUrl), false);
 					// reply and add blacklist button
 					event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRow(
 						Button.danger("blacklist:"+ban.getUser().getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨")),
@@ -232,7 +233,7 @@ public class BanCmd extends SlashCommand {
 					// Add log url to db
 					bot.getDBUtil().cases.setLogUrl(newBanData.getRowId(), logUrl);
 					// create embed
-					MessageEmbed embed = bot.getModerationUtil().actionEmbed(guild.getLocale(), newBanData.getLocalIdInt(),
+					MessageEmbed embed = bot.getModerationUtil().actionEmbed(lu.getLocale(event), newBanData.getLocalIdInt(),
 						path+".success", tu, mod.getUser(), reason, duration, logUrl);
 					// if permanent - add button to blacklist target
 					if (duration.isZero())

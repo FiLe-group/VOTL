@@ -39,12 +39,12 @@ public class ReportMenu extends MessageContextMenu {
 			}
 
 			MessageEmbed reportEmbed = getReportEmbed(event);
-			Button delete = Button.danger("delete:%s:%s".formatted(event.getMessageChannel().getId(), event.getTarget().getId()), lu.getLocalized(event.getGuildLocale(), path+".delete")).withEmoji(Emoji.fromUnicode("🗑️"));
-			Button link = Button.link(event.getTarget().getJumpUrl(), lu.getLocalized(event.getGuildLocale(), path+".link"));
+			Button delete = Button.danger("delete:%s:%s".formatted(event.getMessageChannel().getId(), event.getTarget().getId()), lu.getGuildText(event, path+".delete")).withEmoji(Emoji.fromUnicode("🗑️"));
+			Button link = Button.link(event.getTarget().getJumpUrl(), lu.getGuildText(event, path+".link"));
 			channel.sendMessageEmbeds(reportEmbed).addActionRow(link, delete).queue();
 
 			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			).queue();
 		}, failure -> event.getHook().editOriginal(Constants.FAILURE).queue());
@@ -54,11 +54,11 @@ public class ReportMenu extends MessageContextMenu {
 	private MessageEmbed getReportEmbed(MessageContextMenuEvent event) {
 		String content = MessageUtil.limitString(event.getTarget().getContentStripped(), 1024);
 		return new EmbedBuilder().setColor(Constants.COLOR_WARNING)
-			.setTitle(lu.getLocalized(event.getGuildLocale(), path+".title"))
-			.addField(lu.getLocalized(event.getGuildLocale(), path+".user"), event.getTarget().getAuthor().getAsMention(), true)
-			.addField(lu.getLocalized(event.getGuildLocale(), path+".channel"), event.getMessageChannel().getAsMention(), true)
-			.addField(lu.getLocalized(event.getGuildLocale(), path+".complain"), event.getMember().getAsMention(), false)
-			.addField(lu.getLocalized(event.getGuildLocale(), path+".content"), content, false)
+			.setTitle(lu.getGuildText(event, path+".title"))
+			.addField(lu.getGuildText(event, path+".user"), event.getTarget().getAuthor().getAsMention(), true)
+			.addField(lu.getGuildText(event, path+".channel"), event.getMessageChannel().getAsMention(), true)
+			.addField(lu.getGuildText(event, path+".complain"), event.getMember().getAsMention(), false)
+			.addField(lu.getGuildText(event, path+".content"), content, false)
 			.setFooter("Message ID: %s".formatted(event.getTarget().getId()))
 			.build();
 	}

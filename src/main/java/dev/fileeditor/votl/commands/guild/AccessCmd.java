@@ -57,12 +57,12 @@ public class AccessCmd extends SlashCommand {
 			List<Long> operatorIds = bot.getDBUtil().access.getOperators(guildId);
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, "bot.guild.access.view.embed.title"));
+				.setTitle(lu.getGuildText(event, "bot.guild.access.view.embed.title"));
 
 			if (exemptIds.isEmpty() && helperIds.isEmpty() && modIds.isEmpty() && operatorIds.isEmpty()) {
 				editEmbed(event,
 					embedBuilder.setDescription(
-						lu.getText(event, "bot.guild.access.view.embed.none_found")
+						lu.getGuildText(event, "bot.guild.access.view.embed.none_found")
 					).build()
 				);
 				return;
@@ -70,8 +70,8 @@ public class AccessCmd extends SlashCommand {
 
 			StringBuilder sb = new StringBuilder();
 
-			sb.append(lu.getText(event, "bot.guild.access.view.embed.exempt")).append("\n");
-			if (exemptIds.isEmpty()) sb.append("> %s\n".formatted(lu.getText(event, "bot.guild.access.view.embed.none")));
+			sb.append(lu.getGuildText(event, "bot.guild.access.view.embed.exempt")).append("\n");
+			if (exemptIds.isEmpty()) sb.append("> %s\n".formatted(lu.getGuildText(event, "bot.guild.access.view.embed.none")));
 			else for (Long roleId : exemptIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
@@ -81,8 +81,8 @@ public class AccessCmd extends SlashCommand {
 				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
 			}
 
-			sb.append(lu.getText(event, "bot.guild.access.view.embed.helper")).append("\n");
-			if (helperIds.isEmpty()) sb.append("> %s\n".formatted(lu.getText(event, "bot.guild.access.view.embed.none")));
+			sb.append(lu.getGuildText(event, "bot.guild.access.view.embed.helper")).append("\n");
+			if (helperIds.isEmpty()) sb.append("> %s\n".formatted(lu.getGuildText(event, "bot.guild.access.view.embed.none")));
 			else for (Long roleId : helperIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
@@ -92,8 +92,8 @@ public class AccessCmd extends SlashCommand {
 				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
 			}
 
-			sb.append(lu.getText(event, "bot.guild.access.view.embed.mod")).append("\n");
-			if (modIds.isEmpty()) sb.append("> %s".formatted(lu.getText(event, "bot.guild.access.view.embed.none")));
+			sb.append(lu.getGuildText(event, "bot.guild.access.view.embed.mod")).append("\n");
+			if (modIds.isEmpty()) sb.append("> %s".formatted(lu.getGuildText(event, "bot.guild.access.view.embed.none")));
 			else for (Long roleId : modIds) {
 				Role role = guild.getRoleById(roleId);
 				if (role == null) {
@@ -103,8 +103,8 @@ public class AccessCmd extends SlashCommand {
 				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
 			}
 
-			sb.append("\n").append(lu.getText(event, "bot.guild.access.view.embed.operator")).append("\n");
-			if (operatorIds.isEmpty()) sb.append("> %s".formatted(lu.getText(event, "bot.guild.access.view.embed.none")));
+			sb.append("\n").append(lu.getGuildText(event, "bot.guild.access.view.embed.operator")).append("\n");
+			if (operatorIds.isEmpty()) sb.append("> %s".formatted(lu.getGuildText(event, "bot.guild.access.view.embed.none")));
 			else for (Long userId : operatorIds) {
 				UserSnowflake user = User.fromId(userId);
 				sb.append("> %s `%s`\n".formatted(user.getAsMention(), userId));
@@ -166,10 +166,7 @@ public class AccessCmd extends SlashCommand {
 			bot.getGuildLogger().botLogs.onAccessAdded(guild, event.getUser(), null, role, level);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, "bot.guild.access.add.role.done")
-					.replace("{role}", role.getAsMention())
-					.replace("{level}", level.getName())
-				)
+				.setDescription(lu.getGuildText(event, "bot.guild.access.add.role.done", role.getAsMention(), level.getName()))
 				.build()
 			);
 		}
@@ -211,10 +208,7 @@ public class AccessCmd extends SlashCommand {
 			bot.getGuildLogger().botLogs.onAccessRemoved(event.getGuild(), event.getUser(), null, role, level);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, "bot.guild.access.remove.role.done")
-					.replace("{role}", role.getAsMention())
-					.replace("{level}", level.getName())
-				)
+				.setDescription(lu.getGuildText(event, "bot.guild.access.remove.role.done", role.getAsMention(), level.getName()))
 				.build()
 			);
 		}
@@ -266,7 +260,7 @@ public class AccessCmd extends SlashCommand {
 			bot.getGuildLogger().botLogs.onAccessAdded(event.getGuild(), event.getUser(), member.getUser(), null, CmdAccessLevel.OPERATOR);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, "bot.guild.access.add.operator.done").replace("{user}", member.getAsMention()))
+				.setDescription(lu.getGuildText(event, "bot.guild.access.add.operator.done", member.getAsMention()))
 				.build()
 			);
 		}
@@ -309,7 +303,7 @@ public class AccessCmd extends SlashCommand {
 			bot.getGuildLogger().botLogs.onAccessRemoved(event.getGuild(), event.getUser(), user, null, CmdAccessLevel.OPERATOR);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, "bot.guild.access.remove.operator.done").replace("{user}", user.getAsMention()))
+				.setDescription(lu.getGuildText(event, "bot.guild.access.remove.operator.done", user.getAsMention()))
 				.build()
 			);
 		}

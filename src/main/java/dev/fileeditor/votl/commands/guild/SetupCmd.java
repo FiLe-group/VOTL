@@ -16,6 +16,7 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
 import dev.fileeditor.votl.utils.database.managers.LevelManager;
+import dev.fileeditor.votl.utils.file.lang.LangUtil;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -28,6 +29,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
@@ -44,7 +46,8 @@ public class SetupCmd extends SlashCommand {
 			new VoiceCreate(), new VoiceSelect(), new VoicePanel(),
 			new VoiceName(), new VoiceLimit(),
 			new Strikes(), new InformLevel(), new RoleWhitelist(),
-			new Levels(), new Drama()
+			new Levels(), new Drama(),
+			new LanguageSet(), new LanguageReset()
 		};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -81,7 +84,7 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(color.getRGB())
-				.setDescription(lu.getText(event, path+".done").replace("{color}", "#"+Integer.toHexString(color.getRGB() & 0xFFFFFF)))
+				.setDescription(lu.getGuildText(event, path+".done", "#"+Integer.toHexString(color.getRGB() & 0xFFFFFF)))
 				.build());
 		}
 	}
@@ -114,7 +117,7 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{link}", text))
+				.setDescription(lu.getGuildText(event, path+".done", text))
 				.build());
 		}
 
@@ -156,7 +159,7 @@ public class SetupCmd extends SlashCommand {
 				}
 
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
+					.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 					.build());
 			} else {
 				try {
@@ -167,7 +170,7 @@ public class SetupCmd extends SlashCommand {
 				}
 
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done_cleared"))
+					.setDescription(lu.getGuildText(event, path+".done_cleared"))
 					.build());
 			}
 
@@ -192,12 +195,12 @@ public class SetupCmd extends SlashCommand {
 			long guildId = guild.getIdLong();
 
 			try {
-				guild.createCategory(lu.getLocalized(event.getGuildLocale(), path+".category_name"))
+				guild.createCategory(lu.getGuildText(event, path+".category_name"))
 					.addPermissionOverride(guild.getBotRole(), Arrays.asList(getBotPermissions()), null)
 					.queue(
 						category -> {
 							try {
-								category.createVoiceChannel(lu.getLocalized(event.getGuildLocale(), path+".channel_name"))
+								category.createVoiceChannel(lu.getGuildText(event, path+".channel_name"))
 									.addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VOICE_SPEAK))
 									.queue(
 										channel -> {
@@ -208,7 +211,7 @@ public class SetupCmd extends SlashCommand {
 												return;
 											}
 											editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-												.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
+												.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 												.build());
 										}
 									);
@@ -261,7 +264,7 @@ public class SetupCmd extends SlashCommand {
 							return;
 						}
 						editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-							.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
+							.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 							.build());
 					})
 				);
@@ -292,14 +295,14 @@ public class SetupCmd extends SlashCommand {
 				return;
 			}
 
-			Button lock = Button.danger("voice:lock", lu.getLocalized(event.getGuildLocale(), path+".lock")).withEmoji(Emoji.fromUnicode("🔒"));
-			Button unlock = Button.success("voice:unlock", lu.getLocalized(event.getGuildLocale(), path+".unlock")).withEmoji(Emoji.fromUnicode("🔓"));
-			Button ghost = Button.danger("voice:ghost", lu.getLocalized(event.getGuildLocale(), path+".ghost")).withEmoji(Emoji.fromUnicode("👻"));
-			Button unghost = Button.success("voice:unghost", lu.getLocalized(event.getGuildLocale(), path+".unghost")).withEmoji(Emoji.fromUnicode("👁️"));
-			Button permit = Button.success("voice:permit", lu.getLocalized(event.getGuildLocale(), path+".permit")).withEmoji(Emoji.fromUnicode("➕"));
-			Button reject = Button.danger("voice:reject", lu.getLocalized(event.getGuildLocale(), path+".reject")).withEmoji(Emoji.fromUnicode("➖"));
-			Button perms = Button.secondary("voice:perms", lu.getLocalized(event.getGuildLocale(), path+".perms")).withEmoji(Emoji.fromUnicode("⚙️"));
-			Button delete = Button.danger("voice:delete", lu.getLocalized(event.getGuildLocale(), path+".delete")).withEmoji(Emoji.fromUnicode("🗑️"));
+			Button lock = Button.danger("voice:lock", lu.getGuildText(event, path+".lock")).withEmoji(Emoji.fromUnicode("🔒"));
+			Button unlock = Button.success("voice:unlock", lu.getGuildText(event, path+".unlock")).withEmoji(Emoji.fromUnicode("🔓"));
+			Button ghost = Button.danger("voice:ghost", lu.getGuildText(event, path+".ghost")).withEmoji(Emoji.fromUnicode("👻"));
+			Button unghost = Button.success("voice:unghost", lu.getGuildText(event, path+".unghost")).withEmoji(Emoji.fromUnicode("👁️"));
+			Button permit = Button.success("voice:permit", lu.getGuildText(event, path+".permit")).withEmoji(Emoji.fromUnicode("➕"));
+			Button reject = Button.danger("voice:reject", lu.getGuildText(event, path+".reject")).withEmoji(Emoji.fromUnicode("➖"));
+			Button perms = Button.secondary("voice:perms", lu.getGuildText(event, path+".perms")).withEmoji(Emoji.fromUnicode("⚙️"));
+			Button delete = Button.danger("voice:delete", lu.getGuildText(event, path+".delete")).withEmoji(Emoji.fromUnicode("🗑️"));
 
 			ActionRow row1 = ActionRow.of(unlock, lock);
 			ActionRow row2 = ActionRow.of(unghost, ghost);
@@ -309,13 +312,13 @@ public class SetupCmd extends SlashCommand {
 			Long channelId = bot.getDBUtil().getVoiceSettings(event.getGuild()).getChannelId();
 			channel.sendMessageEmbeds(new EmbedBuilder()
 				.setColor(Constants.COLOR_DEFAULT)
-				.setTitle(lu.getLocalized(event.getGuildLocale(), path+".embed_title"))
-				.setDescription(lu.getLocalized(event.getGuildLocale(), path+".embed_value").replace("{id}", String.valueOf(channelId)))
+				.setTitle(lu.getGuildText(event, path+".embed_title"))
+				.setDescription(lu.getGuildText(event, path+".embed_value", channelId))
 				.build()
 			).addComponents(row1, row2, row4, row5).queue();
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 				.build());
 		}
 	}
@@ -334,7 +337,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			String filName = event.optString("name", lu.getLocalized(event.getGuildLocale(), "bot.voice.listener.default_name"));
+			String filName = event.optString("name", lu.getGuildText(event, "bot.voice.listener.default_name"));
 
 			if (filName.isBlank()) {
 				editError(event, path+".invalid_range");
@@ -349,7 +352,7 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{value}", filName))
+				.setDescription(lu.getGuildText(event, path+".done", filName))
 				.build());
 		}
 	}
@@ -378,7 +381,7 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{value}", filLimit.toString()))
+				.setDescription(lu.getGuildText(event, path+".done", filLimit.toString()))
 				.build());
 		}
 	}
@@ -403,7 +406,7 @@ public class SetupCmd extends SlashCommand {
 				return;
 			}
 
-			StringBuilder builder = new StringBuilder(lu.getText(event, path+".embed_title"));
+			StringBuilder builder = new StringBuilder(lu.getGuildText(event, path+".embed_title"));
 			Integer expiresAfter = event.optInteger("expires_after");
 			if (expiresAfter != null) {
 				try {
@@ -412,7 +415,7 @@ public class SetupCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "set guild strike expires");
 					return;
 				}
-				builder.append(lu.getText(event, path+".expires_changed").formatted(expiresAfter));
+				builder.append(lu.getGuildText(event, path+".expires_changed", expiresAfter));
 			}
 			Integer cooldown = event.optInteger("cooldown");
 			if (cooldown != null) {
@@ -422,7 +425,7 @@ public class SetupCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "set guild strike cooldown");
 					return;
 				}
-				builder.append(lu.getText(event, path+".cooldown_changed").formatted(cooldown));
+				builder.append(lu.getGuildText(event, path+".cooldown_changed", cooldown));
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -471,7 +474,7 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").formatted(action, lu.getText(event, informLevel.getPath())))
+					.setDescription(lu.getGuildText(event, path+".done", action, lu.getGuildText(event, informLevel.getPath())))
 					.build());
 		}
 	}
@@ -496,7 +499,7 @@ public class SetupCmd extends SlashCommand {
 			}
 			// Reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(enabled?Constants.SUCCESS:Constants.FAILURE))
+				.setDescription(lu.getGuildText(event, path+".done", enabled?Constants.SUCCESS:Constants.FAILURE))
 				.build());
 		}
 	}
@@ -523,7 +526,7 @@ public class SetupCmd extends SlashCommand {
 				response.append("\n> Grant xp for voice activity: ").append(settings.isVoiceEnabled()?Constants.SUCCESS:Constants.FAILURE);
 
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
-					.setDescription(lu.getText(event, path+".embed_view"))
+					.setDescription(lu.getGuildText(event, path+".embed_view"))
 					.appendDescription(response.toString())
 					.build()
 				);
@@ -538,7 +541,7 @@ public class SetupCmd extends SlashCommand {
 						editErrorDatabase(event, ex, "leveling settings set enabled");
 						return;
 					}
-					response.append(lu.getText(event, path+".changed_enabled").formatted(enabled ? Constants.SUCCESS : Constants.FAILURE));
+					response.append(lu.getGuildText(event, path+".changed_enabled", enabled ? Constants.SUCCESS : Constants.FAILURE));
 				}
 				if (event.hasOption("voice_enable")) {
 					final boolean enabled = event.optBoolean("voice_enable");
@@ -549,14 +552,14 @@ public class SetupCmd extends SlashCommand {
 						editErrorDatabase(event, ex, "leveling settings set voice enabled");
 						return;
 					}
-					response.append(lu.getText(event, path+".changed_voice").formatted(enabled ? Constants.SUCCESS : Constants.FAILURE));
+					response.append(lu.getGuildText(event, path+".changed_voice", enabled ? Constants.SUCCESS : Constants.FAILURE));
 				}
 
 				if (response.isEmpty()) {
 					editErrorUnknown(event, "Response for ticket settings is empty.");
 				} else {
 					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".embed_changes"))
+						.setDescription(lu.getGuildText(event, path+".embed_changes"))
 						.appendDescription(response.toString())
 						.build()
 					);
@@ -593,7 +596,7 @@ public class SetupCmd extends SlashCommand {
 				}
 
 				builder.append("\n> ")
-					.append(lu.getText(event, path+".set_level").formatted(level.name()));
+					.append(lu.getGuildText(event, path+".set_level", level.name()));
 			}
 			if (event.hasOption("channel")) {
 				TextChannel channel = (TextChannel) event.optGuildChannel("channel");
@@ -611,12 +614,12 @@ public class SetupCmd extends SlashCommand {
 				}
 
 				builder.append("\n> ")
-					.append(lu.getText(event, path+".set_channel").formatted(channel.getAsMention()));
+					.append(lu.getGuildText(event, path+".set_channel", channel.getAsMention()));
 			}
 
 			if (builder.isEmpty()) {
 				GuildSettingsManager.GuildSettings settings = bot.getDBUtil().getGuildSettings(event.getGuild());
-				builder.append(lu.getText(event, path+".view"))
+				builder.append(lu.getGuildText(event, path+".view"))
 					.append("\n> Enabled: ")
 					.append(settings.getDramaLevel())
 					.append("\n> Channel: ")
@@ -632,6 +635,60 @@ public class SetupCmd extends SlashCommand {
 					.build()
 				);
 			}
+		}
+	}
+
+	private class LanguageSet extends SlashCommand {
+		public LanguageSet() {
+			this.name = "set";
+			this.path = "bot.guild.setup.language.set";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "forced_language", lu.getText(path+".forced_language.help"), true)
+					.addChoices(LangUtil.getLocaleChoices())
+			);
+			this.subcommandGroup = new SubcommandGroupData("language", lu.getText("bot.guild.setup.language.help"));
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			DiscordLocale locale = DiscordLocale.from(event.optString("forced_language", ""));
+			if (locale == DiscordLocale.UNKNOWN || !LangUtil.locales.contains(locale)) {
+				editError(event, path+".bad_input", "Input: "+locale.getLanguageName());
+				return;
+			}
+
+			try {
+				bot.getDBUtil().guildSettings.setLocale(event.getGuild().getIdLong(), locale);
+			} catch (SQLException e) {
+				editErrorDatabase(event, e, "setup language reset");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, path+".done", locale.getNativeName()))
+				.build());
+		}
+	}
+
+	private class LanguageReset extends SlashCommand {
+		public LanguageReset() {
+			this.name = "reset";
+			this.path = "bot.guild.setup.language.reset";
+			this.subcommandGroup = new SubcommandGroupData("language", lu.getText("bot.guild.setup.language.help"));
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			try {
+				bot.getDBUtil().guildSettings.setLocale(event.getGuild().getIdLong(), null);
+			} catch (SQLException e) {
+				editErrorDatabase(event, e, "setup language reset");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getText(event, path+".done"))
+				.build());
 		}
 	}
 

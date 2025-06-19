@@ -120,7 +120,7 @@ public class ModReportCmd extends SlashCommand {
 			}
 			// Reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(
+				.setDescription(lu.getGuildText(event, path+".done",
 					TimeFormat.DATE_TIME_SHORT.format(firstReport), channel.getAsMention(),
 					interval, roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "))
 				))
@@ -143,7 +143,7 @@ public class ModReportCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build());
 		}
 	}

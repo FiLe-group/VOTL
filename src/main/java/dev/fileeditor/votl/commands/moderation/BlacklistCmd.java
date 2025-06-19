@@ -59,17 +59,17 @@ public class BlacklistCmd extends SlashCommand {
 			Integer page = event.optInteger("page", 1);
 			var list = bot.getDBUtil().serverBlacklist.getByPage(groupId, page);
 			if (list.isEmpty()) {
-				editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty").formatted(page)).build());
+				editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getGuildText(event, path+".empty", page)).build());
 				return;
 			}
 			int pages = (int) Math.ceil(bot.getDBUtil().serverBlacklist.countEntries(groupId) / 20.0);
 
 			EmbedBuilder builder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
-				.setTitle(lu.getText(event, path+".title").formatted(groupId, page, pages));
+				.setTitle(lu.getGuildText(event, path+".title").formatted(groupId, page, pages));
 			list.forEach(data ->
 				builder.addField(
 					"ID: %s".formatted(data.getUserId()),
-					lu.getText(event, path+".value").formatted(
+					lu.getGuildText(event, path+".value").formatted(
 						Optional.ofNullable(event.getJDA().getGuildById(data.getGuildId())).map(Guild::getName).orElse("-"),
 						"<@%s>".formatted(data.getModId()),
 						Optional.ofNullable(data.getReason()).map(v -> MessageUtil.limitString(v, 100)).orElse("-")
@@ -109,20 +109,18 @@ public class BlacklistCmd extends SlashCommand {
 			for (ServerBlacklistManager.BlacklistData data : bot.getDBUtil().serverBlacklist.searchUserId(user.getIdLong())) {
 				embeds.add(bot.getEmbedUtil().getEmbed()
 					.setTitle("Group #`%s`".formatted(data.getGroupId()))
-					.setDescription(lu.getText(event, path+".value")
-						.formatted(
-							"%s `%s`".formatted(user.getAsMention(), user.getId()),
-							Optional.ofNullable(event.getJDA().getGuildById(data.getGuildId())).map(Guild::getName).orElse("-"),
-							"<@%s>".formatted(data.getModId()),
-							Optional.ofNullable(data.getReason()).map(v -> MessageUtil.limitString(v, 100)).orElse("-")
-						)
-					).build()
+					.setDescription(lu.getGuildText(event, path+".value",
+						"%s `%s`".formatted(user.getAsMention(), user.getId()),
+						Optional.ofNullable(event.getJDA().getGuildById(data.getGuildId())).map(Guild::getName).orElse("-"),
+						"<@%s>".formatted(data.getModId()),
+						Optional.ofNullable(data.getReason()).map(v -> MessageUtil.limitString(v, 100)).orElse("-")
+					)).build()
 				);
 			}
 
 			if (embeds.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
-					.setDescription(lu.getText(event, path+".not_found").formatted(user.getAsMention()))
+					.setDescription(lu.getGuildText(event, path+".not_found", user.getAsMention()))
 					.build());
 			} else {
 				event.getHook().editOriginalEmbeds(embeds).queue();
@@ -162,7 +160,7 @@ public class BlacklistCmd extends SlashCommand {
 				bot.getGuildLogger().mod.onBlacklistRemoved(event.getUser(), user, groupId);
 				// Reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done_user").formatted(user.getAsMention(), user.getId(), groupId))
+					.setDescription(lu.getGuildText(event, path+".done_user", user.getAsMention(), user.getId(), groupId))
 					.build()
 				);
 			} else {

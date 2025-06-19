@@ -86,7 +86,7 @@ public class StrikeCmd extends SlashCommand {
 			if (lastUpdate != null && lastUpdate.plus(strikeCooldown).isAfter(Instant.now())) {
 				// Cooldown between strikes
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
-					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.after(strikeCooldown).toString()))
+					.setDescription(lu.getGuildText(event, path+".cooldown", TimeFormat.RELATIVE.after(strikeCooldown).toString()))
 					.build()
 				);
 				return;
@@ -110,7 +110,7 @@ public class StrikeCmd extends SlashCommand {
 		// inform
 		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
 		tm.getUser().openPrivateChannel().queue(pm -> {
-			Button button = Button.secondary("strikes:"+guild.getId(), lu.getLocalized(guild.getLocale(), "logger_embed.pm.button_strikes"));
+			Button button = Button.secondary("strikes:"+guild.getId(), lu.getGuildText(event, "logger_embed.pm.button_strikes"));
 			final String text = bot.getModerationUtil().getDmText(type, guild, reason, null, mod.getUser(), false);
 			if (text == null) return;
 			pm.sendMessage(text).setSuppressEmbeds(true)
@@ -157,7 +157,7 @@ public class StrikeCmd extends SlashCommand {
 		// add strikes
 		final Field action;
 		try {
-			action = executeStrike(guild.getLocale(), guild, tm, strikeAmount, caseData.getRowId());
+			action = executeStrike(event, guild, tm, strikeAmount, caseData.getRowId());
 		} catch (Exception e) {
 			editErrorOther(event, e.getMessage());
 			return;
@@ -167,7 +167,7 @@ public class StrikeCmd extends SlashCommand {
 			// Add log url to db
 			bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
 			// send reply
-			EmbedBuilder builder = bot.getModerationUtil().actionEmbed(guild.getLocale(), caseData.getLocalIdInt(),
+			EmbedBuilder builder = bot.getModerationUtil().actionEmbed(lu.getLocale(event), caseData.getLocalIdInt(),
 				path+".success", type.getPath(), tm.getUser(), mod.getUser(), reason, logUrl);
 			if (action != null) builder.addField(action);
 
@@ -175,7 +175,8 @@ public class StrikeCmd extends SlashCommand {
 		});
 	}
 
-	private Field executeStrike(DiscordLocale locale, Guild guild, Member target, int addAmount, int caseRowId) throws Exception {
+	private Field executeStrike(SlashCommandEvent event, Guild guild, Member target, int addAmount, int caseRowId) throws Exception {
+		final DiscordLocale locale = lu.getLocale(event);
 		// Add strike(-s) to DB
 		try {
 			bot.getDBUtil().strikes.addStrikes(guild.getIdLong(), target.getIdLong(),

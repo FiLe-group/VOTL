@@ -48,7 +48,7 @@ public class StrikesCmd extends SlashCommand {
 
 		Pair<Integer, String> strikeData = bot.getDBUtil().strikes.getData(event.getGuild().getIdLong(), tu.getIdLong());
 		if (strikeData == null) {
-			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".no_active")).build());
+			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getGuildText(event, path+".no_active")).build());
 			return;
 		}
 		String[] strikesInfoArray = strikeData.getRight().split(";");
@@ -73,7 +73,7 @@ public class StrikesCmd extends SlashCommand {
 		}
 
 		editEmbed(event, bot.getEmbedUtil().getEmbed()
-			.setTitle(lu.getText(event, path+".title").formatted(strikeData.getLeft(), tu.getName(), tu.getId()))
+			.setTitle(lu.getGuildText(event, path+".title", strikeData.getLeft(), tu.getName(), tu.getId()))
 			.setDescription(builder.toString())
 			.build()
 		);

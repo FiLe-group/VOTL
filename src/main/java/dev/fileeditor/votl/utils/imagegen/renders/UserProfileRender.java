@@ -21,6 +21,7 @@ import java.net.URLConnection;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
+@SuppressWarnings("UnusedReturnValue")
 public class UserProfileRender extends Renderer {
 	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -43,7 +44,7 @@ public class UserProfileRender extends Renderer {
 
 	private long globalExperience = -1;
 
-	private boolean minimized = true;
+	final private boolean minimized = true;
 
 	private LocaleUtil lu;
 	private DiscordLocale locale;

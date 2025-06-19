@@ -83,7 +83,7 @@ public class UnbanCmd extends SlashCommand {
 				}
 			}
 			Member mod = event.getMember();
-			final String reason = event.optString("reason", lu.getText(event, path+".no_reason"));
+			final String reason = event.optString("reason", lu.getGuildText(event, path+".no_reason"));
 
 			// perform unban
 			guild.unban(tu).reason(reason).queue(done -> {
@@ -104,7 +104,7 @@ public class UnbanCmd extends SlashCommand {
 				bot.getGuildLogger().mod.onNewCase(guild, tu, unbanData, banData != null ? banData.getReason() : ban.getReason()).thenAccept(logUrl -> {
 					// reply and ask for unban sync
 					event.getHook().editOriginalEmbeds(
-						bot.getModerationUtil().actionEmbed(guild.getLocale(), unbanData.getLocalIdInt(),
+						bot.getModerationUtil().actionEmbed(lu.getLocale(event), unbanData.getLocalIdInt(),
 							path+".success", tu, mod.getUser(), reason, logUrl)
 					).setActionRow(
 						Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
@@ -118,8 +118,7 @@ public class UnbanCmd extends SlashCommand {
 			// reply and ask for unban sync
 			event.getHook().editOriginalEmbeds(
 				bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
-					.setDescription(lu.getText(event, path+".no_ban")
-						.replace("{user_tag}", tu.getName()))
+					.setDescription(lu.getGuildText(event, path+".no_ban"))
 					.build()
 			).setActionRow(
 				Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))

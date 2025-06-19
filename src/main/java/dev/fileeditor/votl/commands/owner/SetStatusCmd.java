@@ -46,7 +46,7 @@ public class SetStatusCmd extends SlashCommand {
 		if (type == null) {
 			event.getJDA().getPresence().setActivity(null);
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".clear"))
+				.setDescription(lu.getGuildText(event, path+".clear"))
 				.build());
 			return;
 		}
@@ -56,7 +56,7 @@ public class SetStatusCmd extends SlashCommand {
 			case PLAYING, LISTENING, WATCHING, CUSTOM_STATUS -> {
 				event.getJDA().getPresence().setActivity(Activity.of(type, text));
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".set").formatted(activityString(type), text))
+					.setDescription(lu.getGuildText(event, path+".set", activityString(type), text))
 					.build());
 			}
 			case STREAMING -> {
@@ -67,7 +67,7 @@ public class SetStatusCmd extends SlashCommand {
 				}
 				event.getJDA().getPresence().setActivity(Activity.of(type, text, url));
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".set").formatted(activityString(type), text+"\n> URL: "+url ))
+					.setDescription(lu.getGuildText(event, path+".set", activityString(type), text+"\n> URL: "+url ))
 					.build());
 			}
 		}

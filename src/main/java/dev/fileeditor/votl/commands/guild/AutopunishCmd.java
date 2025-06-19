@@ -90,10 +90,10 @@ public class AutopunishCmd extends SlashCommand {
 			
 			List<PunishAction> actions = new ArrayList<>();
 			List<String> data = new ArrayList<>();
-			StringBuilder builder = new StringBuilder(lu.getText(event, path+".title").formatted(strikeCount));
+			StringBuilder builder = new StringBuilder(lu.getGuildText(event, path+".title", strikeCount));
 			if (event.optBoolean("kick", false)) {
 				actions.add(PunishAction.KICK);
-				builder.append(lu.getText(event, path+".vkick"));
+				builder.append(lu.getGuildText(event, path+".vkick"));
 			}
 			if (event.hasOption("mute")) {
 				Duration duration;
@@ -114,7 +114,7 @@ public class AutopunishCmd extends SlashCommand {
 
 				actions.add(PunishAction.MUTE);
 				data.add("t"+duration.getSeconds());
-				builder.append(lu.getText(event, path+".vmute").formatted(TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
+				builder.append(lu.getGuildText(event, path+".vmute").formatted(TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
 			}
 			if (event.hasOption("ban")) {
 				Duration duration;
@@ -131,9 +131,9 @@ public class AutopunishCmd extends SlashCommand {
 
 				actions.add(PunishAction.BAN);
 				data.add("t"+duration.getSeconds());
-				builder.append(lu.getText(event, path+".vban").formatted(duration.isZero() ?
-					lu.getText(event, "misc.permanently") :
-					lu.getText(event, path+".for")+" "+TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)
+				builder.append(lu.getGuildText(event, path+".vban", duration.isZero() ?
+					lu.getGuildText(event, "misc.permanently") :
+					lu.getGuildText(event, path+".for")+" "+TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)
 				));
 			}
 			if (event.hasOption("remove-role")) {
@@ -144,7 +144,7 @@ public class AutopunishCmd extends SlashCommand {
 				}
 				actions.add(PunishAction.REMOVE_ROLE);
 				data.add("rr"+role.getId());
-				builder.append(lu.getText(event, path+".vremove").formatted(role.getName()));
+				builder.append(lu.getGuildText(event, path+".vremove", role.getName()));
 			}
 			if (event.hasOption("add-role")) {
 				Role role = event.optRole("add-role");
@@ -154,7 +154,7 @@ public class AutopunishCmd extends SlashCommand {
 				}
 				actions.add(PunishAction.ADD_ROLE);
 				data.add("ar"+role.getId());
-				builder.append(lu.getText(event, path+".vadd").formatted(role.getName()));
+				builder.append(lu.getGuildText(event, path+".vadd", role.getName()));
 			}
 			if (event.hasOption("temp-role")) {
 				Role role = event.optRole("temp-role");
@@ -184,7 +184,9 @@ public class AutopunishCmd extends SlashCommand {
 
 				actions.add(PunishAction.TEMP_ROLE);
 				data.add("tr"+role.getId()+"-"+duration.getSeconds());
-				builder.append(lu.getText(event, path+".vtempadd").formatted(role.getName(), TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
+				builder.append(lu.getGuildText(event, path+".vtempadd",
+					role.getName(), TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)
+				));
 			}
 
 			if (actions.isEmpty()) {
@@ -228,13 +230,12 @@ public class AutopunishCmd extends SlashCommand {
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed()
 				.setColor(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(strikeCount))
+				.setDescription(lu.getGuildText(event, path+".done", strikeCount))
 				.build());
 		}
 	}
 
 	private class View extends SlashCommand {
-
 		public View() {
 			this.name = "view";
 			this.path = "bot.guild.autopunish.view";
@@ -267,7 +268,7 @@ public class AutopunishCmd extends SlashCommand {
 				builder.append("`%3s` ".formatted(prefix+strikeCount));
 				actions.forEach(action -> {
 					switch (action) {
-						case KICK -> builder.append(lu.getText(event, action.getPath()));
+						case KICK -> builder.append(lu.getGuildText(event, action.getPath()));
 						case MUTE, BAN -> {
 							Duration duration;
 							try {
@@ -276,10 +277,10 @@ public class AutopunishCmd extends SlashCommand {
 								break;
 							}
 							if (duration.isZero()) {
-								builder.append("%s %s".formatted(lu.getText(event, action.getPath()), lu.getText(event, "misc.permanently")));
+								builder.append("%s %s".formatted(lu.getGuildText(event, action.getPath()), lu.getGuildText(event, "misc.permanently")));
 							}
 							else
-								builder.append("%s (%s)".formatted(lu.getText(event, action.getPath()), TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
+								builder.append("%s (%s)".formatted(lu.getGuildText(event, action.getPath()), TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
 						}
 						case REMOVE_ROLE, ADD_ROLE -> {
 							long roleId;
@@ -288,7 +289,7 @@ public class AutopunishCmd extends SlashCommand {
 							} catch (NumberFormatException ex) {
 								break;
 							}
-							builder.append("%s (<@&%d>)".formatted(lu.getText(event, action.getPath()), roleId));
+							builder.append("%s (<@&%d>)".formatted(lu.getGuildText(event, action.getPath()), roleId));
 						}
 						case TEMP_ROLE -> {
 							long roleId;
@@ -303,7 +304,7 @@ public class AutopunishCmd extends SlashCommand {
 							} catch (NumberFormatException ex) {
 								break;
 							}
-							builder.append("%s (<@&%d> %s)".formatted(lu.getText(event, action.getPath()), roleId, TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
+							builder.append("%s (<@&%d> %s)".formatted(lu.getGuildText(event, action.getPath()), roleId, TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), duration)));
 						}
 					}
 					builder.append(" ");

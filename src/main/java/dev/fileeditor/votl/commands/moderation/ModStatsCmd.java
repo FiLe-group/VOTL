@@ -90,7 +90,7 @@ public class ModStatsCmd extends SlashCommand {
 		);
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneOffset.UTC);
-		String intervalText = "%s\n`%s` - `%s`".formatted(lu.getText(event, path+".title"), formatter.format(afterTime), formatter.format(beforeTime));
+		String intervalText = "%s\n`%s` - `%s`".formatted(lu.getGuildText(event, path+".title"), formatter.format(afterTime), formatter.format(beforeTime));
 		EmbedBuilder embedBuilder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 			.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())
 			.setTitle(intervalText)
@@ -98,14 +98,14 @@ public class ModStatsCmd extends SlashCommand {
 			.setTimestamp(Instant.now());
 
 		String builder = "```\n" +
-			buildLine(lu.getText(event, path + ".strikes"), countStrikes(countCases)) +
-			buildLine(lu.getText(event, path + ".game_strikes"), getCount(countCases, CaseType.GAME_STRIKE)) +
-			buildLine(lu.getText(event, path + ".mutes"), getCount(countCases, CaseType.MUTE)) +
-			buildLine(lu.getText(event, path + ".kicks"), getCount(countCases, CaseType.KICK)) +
-			buildLine(lu.getText(event, path + ".bans"), getCount(countCases, CaseType.BAN)) +
-			buildTotal(lu.getText(event, path + ".total"), getTotal(countCases)) +
+			buildLine(lu.getGuildText(event, path + ".strikes"), countStrikes(countCases)) +
+			buildLine(lu.getGuildText(event, path + ".game_strikes"), getCount(countCases, CaseType.GAME_STRIKE)) +
+			buildLine(lu.getGuildText(event, path + ".mutes"), getCount(countCases, CaseType.MUTE)) +
+			buildLine(lu.getGuildText(event, path + ".kicks"), getCount(countCases, CaseType.KICK)) +
+			buildLine(lu.getGuildText(event, path + ".bans"), getCount(countCases, CaseType.BAN)) +
+			buildTotal(lu.getGuildText(event, path + ".total"), getTotal(countCases)) +
 			"\n" +
-			buildLine(lu.getText(event, path + ".roles"), countRoles) +
+			buildLine(lu.getGuildText(event, path + ".roles"), countRoles) +
 			"```";
 
 		editEmbed(event, embedBuilder.setDescription(builder).build());
@@ -135,33 +135,33 @@ public class ModStatsCmd extends SlashCommand {
 			// As text
 			EmbedBuilder embedBuilder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 				.setAuthor(mod.getName(), null, mod.getEffectiveAvatarUrl())
-				.setTitle(lu.getText(event, path+".title"))
+				.setTitle(lu.getGuildText(event, path+".title"))
 				.setFooter("ID: "+mod.getId())
 				.setTimestamp(now);
 
-			final String sevenText = lu.getText(event, path+".seven");
-			final String thirtyText = lu.getText(event, path+".thirty");
+			final String sevenText = lu.getGuildText(event, path+".seven");
+			final String thirtyText = lu.getGuildText(event, path+".thirty");
 			StringBuilder builder = new StringBuilder("```\n#         ")
 				.append(sevenText).append(" | ")
 				.append(thirtyText).append(" | ")
-				.append(lu.getText(event, path+".all")).append("\n");
+				.append(lu.getGuildText(event, path+".all")).append("\n");
 			final int length7 = sevenText.length()-1;
 			final int length30 = thirtyText.length()-1;
 
-			builder.append(buildLine(lu.getText(event, path+".strikes"), countStrikes(count7), countStrikes(count30), countStrikes(countTotal), length7, length30))
-				.append(buildLine(lu.getText(event, path+".game_strikes"), getCount(count7, CaseType.GAME_STRIKE), getCount(count30, CaseType.GAME_STRIKE), getCount(countTotal, CaseType.GAME_STRIKE), length7, length30))
-				.append(buildLine(lu.getText(event, path+".mutes"), getCount(count7, CaseType.MUTE), getCount(count30, CaseType.MUTE), getCount(countTotal, CaseType.MUTE), length7, length30))
-				.append(buildLine(lu.getText(event, path+".kicks"), getCount(count7, CaseType.KICK), getCount(count30, CaseType.KICK), getCount(countTotal, CaseType.KICK), length7, length30))
-				.append(buildLine(lu.getText(event, path+".bans"), getCount(count7, CaseType.BAN), getCount(count30, CaseType.BAN), getCount(countTotal, CaseType.BAN), length7, length30))
-				.append(buildTotal(lu.getText(event, path+".total"), getTotal(count7), getTotal(count30), getTotal(countTotal), length7, length30))
+			builder.append(buildLine(lu.getGuildText(event, path+".strikes"), countStrikes(count7), countStrikes(count30), countStrikes(countTotal), length7, length30))
+				.append(buildLine(lu.getGuildText(event, path+".game_strikes"), getCount(count7, CaseType.GAME_STRIKE), getCount(count30, CaseType.GAME_STRIKE), getCount(countTotal, CaseType.GAME_STRIKE), length7, length30))
+				.append(buildLine(lu.getGuildText(event, path+".mutes"), getCount(count7, CaseType.MUTE), getCount(count30, CaseType.MUTE), getCount(countTotal, CaseType.MUTE), length7, length30))
+				.append(buildLine(lu.getGuildText(event, path+".kicks"), getCount(count7, CaseType.KICK), getCount(count30, CaseType.KICK), getCount(countTotal, CaseType.KICK), length7, length30))
+				.append(buildLine(lu.getGuildText(event, path+".bans"), getCount(count7, CaseType.BAN), getCount(count30, CaseType.BAN), getCount(countTotal, CaseType.BAN), length7, length30))
+				.append(buildTotal(lu.getGuildText(event, path+".total"), getTotal(count7), getTotal(count30), getTotal(countTotal), length7, length30))
 				.append("\n")
-				.append(buildLine(lu.getText(event, path+".roles"), roles7, roles30, rolesTotal, length7, length30))
+				.append(buildLine(lu.getGuildText(event, path+".roles"), roles7, roles30, rolesTotal, length7, length30))
 				.append("```");
 
 			editEmbed(event, embedBuilder.setDescription(builder.toString()).build());
 		} else {
 			// As image
-			ModStatsRender render = new ModStatsRender(event.getGuildLocale(), mod.getName(),
+			ModStatsRender render = new ModStatsRender(lu.getLocale(event), mod.getName(),
 				countTotal, count30, count7, rolesTotal, roles30, roles7);
 
 			final String attachmentName = EncodingUtil.encodeModstats(guildId, mod.getIdLong(), now.getEpochSecond());

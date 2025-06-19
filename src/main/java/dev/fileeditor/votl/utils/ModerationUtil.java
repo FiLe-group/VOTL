@@ -31,7 +31,7 @@ public class ModerationUtil {
 
 	@Nullable
 	public String getDmText(@NotNull CaseType type, Guild guild, String reason, Duration duration, User mod, boolean canAppeal) {
-		DiscordLocale locale = guild.getLocale();
+		final DiscordLocale locale = lu.getLocale(guild);
 		int level;
 		String text;
 		switch (type) {
@@ -86,7 +86,7 @@ public class ModerationUtil {
 	public String getGamestrikeDmText(@NotNull CaseType type, Guild guild, String reason, User mod, GuildChannel targetChannel, int count, int limit) {
 		if (type != CaseType.GAME_STRIKE) return null;
 
-		DiscordLocale locale = guild.getLocale();
+		final DiscordLocale locale = lu.getLocale(guild);
 		int level = dbUtil.getGuildSettings(guild).getInformStrike().getLevel();
 
 		String text = lu.getLocalized(locale, "logger_embed.pm.gamestrike")
@@ -111,7 +111,7 @@ public class ModerationUtil {
 
 	@Nullable
 	public MessageEmbed getDramaEmbed(@NotNull CaseType type, Guild guild, Member target, String reason, Duration duration, GuildChannel targetChannel) {
-		DiscordLocale locale = guild.getLocale();
+		final DiscordLocale locale = lu.getLocale(guild);
 		int level;
 		String text;
 		switch (type) {
@@ -149,14 +149,15 @@ public class ModerationUtil {
 	public MessageEmbed getDelstrikeEmbed(int amount, Guild guild, User mod) {
 		int level = dbUtil.getGuildSettings(guild).getInformDelstrike().getLevel();
 		if (level == 0) return null;
-		String text = lu.getLocalized(guild.getLocale(), "logger_embed.pm.delstrike").formatted(amount);
+		String text = lu.getLocalized(lu.getLocale(guild), "logger_embed.pm.delstrike").formatted(amount);
 		return new EmbedBuilder().setColor(Constants.COLOR_WARNING)
 				.setDescription(formatText(text, guild, null, null, level >= 3 ? mod : null))
 				.build();
 	}
 
 	@NotNull
-	public MessageEmbed getReasonUpdateEmbed(DiscordLocale locale, Guild guild, Instant timestamp, CaseType caseType, String oldReason, String newReason) {
+	public MessageEmbed getReasonUpdateEmbed(Guild guild, Instant timestamp, CaseType caseType, String oldReason, String newReason) {
+		final DiscordLocale locale = lu.getLocale(guild);
 		if (oldReason == null) oldReason = "-";
 		if (caseType.equals(CaseType.MUTE)) {
 			// if is mute
@@ -247,7 +248,7 @@ public class ModerationUtil {
 	public <T extends SlashCommand> String parseReasonMentions(SlashCommandEvent event, T command) {
 		OptionMapping option = event.getOption("reason");
 		if (option == null) {
-			return lu.getLocalized(event.getGuildLocale(), command.getPath()+".no_reason");
+			return lu.getText(event, command.getPath()+".no_reason");
 		}
 
 		String reason = option.getAsString();

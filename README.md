@@ -1,7 +1,13 @@
 # VOTL
 [![Build status](https://github.com/FileEditor97/VOTL/actions/workflows/build.yml/badge.svg)](https://github.com/FileEditor97/VOTL/actions/workflows/build.yml)  
-Voice of the Lord - discord bot written in Java using JDA library.  
-Functions: server moderation and sync blacklists, custom voice channels and verification, ticketing.
+[![Crowdin](https://badges.crowdin.net/voice-of-the-lord/localized.svg)](https://crowdin.com/project/voice-of-the-lord)  
+
+**Voice of the Lord** - discord bot written in Java using JDA library.  
+Functions:
+- Server moderation and sync blacklists;
+- Custom voice channels;
+- Simple verification with join roles;
+- Ticketing.
 
 Visit https://votl.fileeditor.dev/ to learn more about available commands and to view documentation.
 
@@ -23,7 +29,10 @@ Or Snapshot build [here](https://github.com/FileEditor97/VOTL/actions/workflows/
 
 #### Docker image:
     docker pull fileeditor/votl
-More at [Docker hub](https://hub.docker.com/r/fileeditor/votl)
+More at [Docker hub](https://hub.docker.com/r/fileeditor/votl).
+
+#### Watchdog service:
+Available [here](https://github.com/FiLe-group/VOTL-watchdog).
 
 ### Configuration
 After first bot launch, folders `data` and `logs` will be created at .jar file location (or other specified location).  

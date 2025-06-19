@@ -67,7 +67,7 @@ public class VerifyRoleCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(role.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention()))
 				.build());
 		}
 	}
@@ -118,8 +118,8 @@ public class VerifyRoleCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done")
-					.formatted(roles.stream().map(Role::getAsMention).collect(Collectors.joining(" ")))
+				.setDescription(lu.getGuildText(event, path+".done",
+					roles.stream().map(Role::getAsMention).collect(Collectors.joining(" ")))
 				).build());
 		}
 	}
@@ -139,7 +139,7 @@ public class VerifyRoleCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "Failed to update database");
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			);
 		}
@@ -158,7 +158,7 @@ public class VerifyRoleCmd extends SlashCommand {
 			Set<Long> roleIds = bot.getDBUtil().getVerifySettings(event.getGuild()).getAdditionalRoles();
 
 			if (roleIds.isEmpty()) {
-				editMsg(event, lu.getText(event, path+".no_roles"));
+				editMsg(event, lu.getGuildText(event, path+".no_roles"));
 			} else {
 				StringBuilder stringBuilder = new StringBuilder("**Roles:**");
 				for (Long roleId : roleIds) {

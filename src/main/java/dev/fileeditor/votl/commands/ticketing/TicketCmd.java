@@ -99,7 +99,7 @@ public class TicketCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(title, panelId))
+				.setDescription(lu.getGuildText(event, path+".done", title, panelId))
 				.build()
 			);
 		}
@@ -144,10 +144,10 @@ public class TicketCmd extends SlashCommand {
 			}
 			
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed();
-			if (title != null)			builder.addField(lu.getText(event, path+".changed_title"), title, true);
-			if (description != null)	builder.addField(lu.getText(event, path+".changed_description"), description, true);
-			if (image != null)			builder.addField(lu.getText(event, path+".changed_image"), image, true);
-			if (footer != null)			builder.addField(lu.getText(event, path+".changed_footer"), footer, true);
+			if (title != null)			builder.addField(lu.getGuildText(event, path+".changed_title"), title, true);
+			if (description != null)	builder.addField(lu.getGuildText(event, path+".changed_description"), description, true);
+			if (image != null)			builder.addField(lu.getGuildText(event, path+".changed_image"), image, true);
+			if (footer != null)			builder.addField(lu.getGuildText(event, path+".changed_footer"), footer, true);
 			
 			if (builder.getFields().isEmpty()) {
 				editError(event, path+".no_options");
@@ -160,7 +160,7 @@ public class TicketCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS)
-				.setTitle(lu.getText(event, path+".done"))
+				.setTitle(lu.getGuildText(event, path+".done"))
 				.build());
 		}
 	}
@@ -227,14 +227,14 @@ public class TicketCmd extends SlashCommand {
 			if (buttons.isEmpty()) {
 				channel.sendMessageEmbeds(buildPanelEmbed(event.getGuild(), panelId)).queue(done -> {
 					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
+						.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 						.build()
 					);
 				});
 			} else {
 				channel.sendMessageEmbeds(buildPanelEmbed(event.getGuild(), panelId)).setActionRow(buttons).queue(done -> {
 					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done").replace("{channel}", channel.getAsMention()))
+						.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 						.build()
 					);
 				},
@@ -272,7 +272,7 @@ public class TicketCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(panelId))
+				.setDescription(lu.getGuildText(event, path+".done", panelId))
 				.build()
 			);
 		}
@@ -354,7 +354,7 @@ public class TicketCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(tagId, panelId))
+				.setDescription(lu.getGuildText(event, path+".done", tagId, panelId))
 				.build()
 			);
 		}
@@ -421,15 +421,15 @@ public class TicketCmd extends SlashCommand {
 			}
 
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed();
-			if (buttonText != null)		builder.addField(lu.getText(event, path+".changed_text"), buttonText, true);
-			if (emoji != null)			builder.addField(lu.getText(event, path+".changed_emoji"), emoji, true);
-			if (buttonStyle != ButtonStyle.UNKNOWN)	builder.addField(lu.getText(event, path+".changed_style"), buttonStyle.toString(), true);
-			if (type != null)			builder.addField(lu.getText(event, path+".changed_type"), (type > 1 ? "Channel" : "Thread"), true);
-			if (ticketName != null)		builder.addField(lu.getText(event, path+".changed_name"), ticketName, true);
-			if (category != null)		builder.addField(lu.getText(event, path+".changed_location"), category.getAsMention(), true);
-			if (supportRoleIds != null)	builder.addField(lu.getText(event, path+".changed_roles"),
+			if (buttonText != null)		builder.addField(lu.getGuildText(event, path+".changed_text"), buttonText, true);
+			if (emoji != null)			builder.addField(lu.getGuildText(event, path+".changed_emoji"), emoji, true);
+			if (buttonStyle != ButtonStyle.UNKNOWN)	builder.addField(lu.getGuildText(event, path+".changed_style"), buttonStyle.toString(), true);
+			if (type != null)			builder.addField(lu.getGuildText(event, path+".changed_type"), (type > 1 ? "Channel" : "Thread"), true);
+			if (ticketName != null)		builder.addField(lu.getGuildText(event, path+".changed_name"), ticketName, true);
+			if (category != null)		builder.addField(lu.getGuildText(event, path+".changed_location"), category.getAsMention(), true);
+			if (supportRoleIds != null)	builder.addField(lu.getGuildText(event, path+".changed_roles"),
 				supportRoles.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), false);
-			if (message != null)		builder.addField(lu.getText(event, path+".changed_message"), message, false);
+			if (message != null)		builder.addField(lu.getGuildText(event, path+".changed_message"), message, false);
 			
 			if (builder.getFields().isEmpty()) {
 				editError(event, path+".no_options");
@@ -445,7 +445,7 @@ public class TicketCmd extends SlashCommand {
 					return;
 				}
 				editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS)
-					.setTitle(lu.getText(event, path+".done"))
+					.setTitle(lu.getGuildText(event, path+".done"))
 					.build()
 				);
 			}
@@ -479,18 +479,18 @@ public class TicketCmd extends SlashCommand {
 				return;
 			}
 
-			EmbedBuilder builder = tag.getPreviewEmbed((str) -> lu.getText(event, path+str), tagId);
+			EmbedBuilder builder = tag.getPreviewEmbed((str) -> lu.getGuildText(event, path+str), tagId);
 
-			String message = Optional.ofNullable(tag.getMessage()).orElse(lu.getText(event, path+".none"));
-			String category = Optional.ofNullable(tag.getLocation()).map(id -> event.getGuild().getCategoryById(id).getAsMention()).orElse(lu.getText(event, path+".none"));
+			String message = Optional.ofNullable(tag.getMessage()).orElse(lu.getGuildText(event, path+".none"));
+			String category = Optional.ofNullable(tag.getLocation()).map(id -> event.getGuild().getCategoryById(id).getAsMention()).orElse(lu.getGuildText(event, path+".none"));
 			String roles = Optional.of(tag.getSupportRoles())
 				.filter(l -> !l.isEmpty())
 				.map(ids -> ids.stream().map("<@&%s>"::formatted).collect(Collectors.joining(", ")))
-				.orElse(lu.getText(event, path+".none"));
+				.orElse(lu.getGuildText(event, path+".none"));
 			
-			builder.addField(lu.getText(event, path+".location"), category, true)
-				.addField(lu.getText(event, path+".roles"), roles, false)
-				.addField(lu.getText(event, path+".message"), message, false);
+			builder.addField(lu.getGuildText(event, path+".location"), category, true)
+				.addField(lu.getGuildText(event, path+".roles"), roles, false)
+				.addField(lu.getGuildText(event, path+".message"), message, false);
 			
 			event.getHook().editOriginalEmbeds(builder.build()).setActionRow(tag.previewButton()).queue();
 		}
@@ -524,7 +524,7 @@ public class TicketCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(tagId))
+				.setDescription(lu.getGuildText(event, path+".done", tagId))
 				.build()
 			);
 		}
@@ -558,7 +558,7 @@ public class TicketCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "set ticket autoclose time");
 					return;
 				}
-				response.append(lu.getText(event, path+".changed_autoclose").formatted(time));
+				response.append(lu.getGuildText(event, path+".changed_autoclose", time));
 			}
 			if (event.hasOption("author_left")) {
 				boolean left = event.optBoolean("author_left");
@@ -568,7 +568,7 @@ public class TicketCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "set ticket autoclose left");
 					return;
 				}
-				response.append(lu.getText(event, path+".changed_left").formatted(left ? Constants.SUCCESS : Constants.FAILURE));
+				response.append(lu.getGuildText(event, path+".changed_left", left?Constants.SUCCESS:Constants.FAILURE));
 			}
 			if (event.hasOption("reply_time")) {
 				int time = event.optInteger("reply_time");
@@ -578,14 +578,14 @@ public class TicketCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "set ticket time reply");
 					return;
 				}
-				response.append(lu.getText(event, path+".changed_reply").formatted(time));
+				response.append(lu.getGuildText(event, path+".changed_reply", time));
 			}
 			
 			if (response.isEmpty()) {
 				editError(event, path+".no_options");
 			} else {
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".embed_title"))
+					.setDescription(lu.getGuildText(event, path+".embed_title"))
 					.appendDescription(response.toString())
 					.build()
 				);
@@ -643,7 +643,7 @@ public class TicketCmd extends SlashCommand {
 					.append("**");
 
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
-					.setDescription(lu.getText(event, path+".embed_view"))
+					.setDescription(lu.getGuildText(event, path+".embed_view"))
 					.appendDescription(response.toString())
 					.build()
 				);
@@ -658,7 +658,7 @@ public class TicketCmd extends SlashCommand {
 						editErrorDatabase(event, ex, "ticket settings set delete pings");
 						return;
 					}
-					response.append(lu.getText(event, path+".changed_delete").formatted(deletePings ? Constants.SUCCESS : Constants.FAILURE));
+					response.append(lu.getGuildText(event, path+".changed_delete", deletePings?Constants.SUCCESS:Constants.FAILURE));
 				}
 				if (event.hasOption("other_roles")) {
 					final boolean otherRoles = event.optBoolean("other_roles");
@@ -669,7 +669,7 @@ public class TicketCmd extends SlashCommand {
 						editErrorDatabase(event, ex, "ticket settings set other roles");
 						return;
 					}
-					response.append(lu.getText(event, path+".changed_other").formatted(otherRoles ? Constants.SUCCESS : Constants.FAILURE));
+					response.append(lu.getGuildText(event, path+".changed_other", otherRoles?Constants.SUCCESS:Constants.FAILURE));
 				}
 				if (event.hasOption("role_tickets_support")) {
 					if (event.optString("role_tickets_support").equalsIgnoreCase("null")) {
@@ -681,7 +681,7 @@ public class TicketCmd extends SlashCommand {
 							return;
 						}
 
-						response.append(lu.getText(event, path+".cleared_support"));
+						response.append(lu.getGuildText(event, path+".cleared_support"));
 					} else {
 						// Set roles
 						List<Role> roles = event.optMentions("role_tickets_support").getRoles();
@@ -696,7 +696,7 @@ public class TicketCmd extends SlashCommand {
 							return;
 						}
 
-						response.append(lu.getText(event, path+".changed_support").formatted(roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "))));
+						response.append(lu.getGuildText(event, path+".changed_support", roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "))));
 					}
 				}
 				if (event.hasOption("allow_close")) {
@@ -708,7 +708,7 @@ public class TicketCmd extends SlashCommand {
 							editErrorDatabase(event, ex, "ticket settings set allow close");
 							return;
 						}
-						response.append(lu.getText(event, path+".changed_close").formatted(MessageUtil.capitalize(allowClose.name())));
+						response.append(lu.getGuildText(event, path+".changed_close", MessageUtil.capitalize(allowClose.name())));
 					}
 				}
 				if (event.hasOption("transcripts_mode")) {
@@ -720,7 +720,7 @@ public class TicketCmd extends SlashCommand {
 							editErrorDatabase(event, ex, "ticket settings set allow close");
 							return;
 						}
-						response.append(lu.getText(event, path+".changed_transcript").formatted(MessageUtil.capitalize(transcriptsMode.name()).replace("_", " ")));
+						response.append(lu.getGuildText(event, path+".changed_transcript", MessageUtil.capitalize(transcriptsMode.name()).replace("_", " ")));
 					}
 				}
 
@@ -728,7 +728,7 @@ public class TicketCmd extends SlashCommand {
 					editErrorUnknown(event, "Response for ticket settings is empty.");
 				} else {
 					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".embed_changes"))
+						.setDescription(lu.getGuildText(event, path+".embed_changes"))
 						.appendDescription(response.toString())
 						.build()
 					);

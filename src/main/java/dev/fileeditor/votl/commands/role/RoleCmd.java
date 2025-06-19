@@ -105,7 +105,7 @@ public class RoleCmd extends SlashCommand {
 				// Send reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setColor(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").replace("{roles}", rolesString).replace("{user}", member.getAsMention()))
+					.setDescription(lu.getGuildText(event, path+".done", rolesString, member.getAsMention()))
 					.build());
 			}, failure -> editError(event, path+".failed", failure.getMessage()));
 		}
@@ -172,7 +172,7 @@ public class RoleCmd extends SlashCommand {
 				bot.getGuildLogger().role.onRolesRemoved(guild, event.getUser(), member.getUser(), rolesString);
 				// Send reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").replace("{roles}", rolesString).replace("{user}", member.getAsMention()))
+					.setDescription(lu.getGuildText(event, path+".done", rolesString, member.getAsMention()))
 					.build());
 			}, failure -> editError(event, path+".failed", failure.getMessage()));
 		}
@@ -206,7 +206,7 @@ public class RoleCmd extends SlashCommand {
 				return;
 			}
 
-			EmbedBuilder builder = bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".started"));
+			EmbedBuilder builder = bot.getEmbedUtil().getEmbed().setDescription(lu.getGuildText(event, path+".started"));
 			editEmbed(event, builder.build());
 
 			event.getGuild().findMembersWithRoles(role).setTimeout(4, TimeUnit.SECONDS).onSuccess(members -> {
@@ -219,7 +219,7 @@ public class RoleCmd extends SlashCommand {
 					editErrorOther(event, "Amount of members to be processed reached maximum limit of **400**! Manually clear the selected role.");
 					return;
 				}
-				editEmbed(event, builder.appendDescription(lu.getText(event, path+".estimate").formatted(maxSize)).build());
+				editEmbed(event, builder.appendDescription(lu.getGuildText(event, path+".estimate", maxSize)).build());
 
 				String reason = "by "+event.getMember().getEffectiveName();
 				List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
@@ -239,8 +239,8 @@ public class RoleCmd extends SlashCommand {
 							// Log
 							bot.getGuildLogger().role.onRoleRemovedAll(guild, event.getUser(), role);
 							// Send reply
-							editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getText(event, path+".done")
-								.replace("{role}", role.getName()).replace("{count}", Integer.toString(removed)).replace("{max}", Integer.toString(maxSize))
+							editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getGuildText(event, path+".done",
+								role.getName(), Integer.toString(removed), Integer.toString(maxSize))
 							).build());
 						}
 					}).thenRun(guild::pruneMemberCache); // Prune member cache
@@ -317,7 +317,7 @@ public class RoleCmd extends SlashCommand {
 				editError(event, path+".no_roles");
 				return;
 			}
-			actionRows.add(ActionRow.of(Button.primary("role:manage-confirm:"+target.getId(), lu.getText(event, path+".button"))));
+			actionRows.add(ActionRow.of(Button.primary("role:manage-confirm:"+target.getId(), lu.getGuildText(event, path+".button"))));
 
 			try {
 				bot.getDBUtil().modifyRole.create(event.getGuild().getIdLong(), event.getMember().getIdLong(),
@@ -329,7 +329,7 @@ public class RoleCmd extends SlashCommand {
 
 			event.getHook()
 				.editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
-					.setDescription(lu.getText(event, path+".title").formatted(target.getAsMention()))
+					.setDescription(lu.getGuildText(event, path+".title", target.getAsMention()))
 					.build()
 				)
 				.setComponents(actionRows)

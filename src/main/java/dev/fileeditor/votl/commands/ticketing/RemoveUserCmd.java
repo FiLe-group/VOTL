@@ -53,7 +53,7 @@ public class RemoveUserCmd extends SlashCommand {
 			// Thread
 			event.getChannel().asThreadChannel().removeThreadMember(user).queue(done -> {
 				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").replace("{user}", user.getAsMention()))
+					.setDescription(lu.getGuildText(event, path+".done", user.getAsMention()))
 					.build()
 				).setAllowedMentions(Collections.emptyList()).queue();
 			},
@@ -64,7 +64,7 @@ public class RemoveUserCmd extends SlashCommand {
 				event.getChannel().asTextChannel().getManager()
 					.removePermissionOverride(user.getIdLong())
 					.queue(done -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done").replace("{user}", user.getAsMention()))
+						.setDescription(lu.getGuildText(event, path+".done", user.getAsMention()))
 						.build()
 					).setAllowedMentions(Collections.emptyList()).queue()
 				);

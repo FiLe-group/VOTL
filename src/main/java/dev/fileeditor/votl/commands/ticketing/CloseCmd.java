@@ -89,12 +89,12 @@ public class CloseCmd extends SlashCommand {
 		String reason = event.optString(
 			"reason",
 			isAuthor
-				? lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_author")
-				: lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support")
+				? lu.getGuildText(event, "bot.ticketing.listener.closed_author")
+				: lu.getGuildText(event, "bot.ticketing.listener.closed_support")
 		);
 
 		event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.delete_countdown"))
+			.setDescription(lu.getGuildText(event, "bot.ticketing.listener.delete_countdown"))
 			.build()
 		).queue(msg -> {
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {

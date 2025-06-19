@@ -57,8 +57,6 @@ public class HelpCmd extends SlashCommand {
 	}
 
 	private void sendCommandHelp(SlashCommandEvent event, String findCmd) {
-		DiscordLocale userLocale = event.getUserLocale();
-
 		SlashCommand command = null;
 		for (SlashCommand cmd : event.getClient().getSlashCommands()) {
 			if (cmd.getName().equals(findCmd)) {
@@ -71,22 +69,20 @@ public class HelpCmd extends SlashCommand {
 			editError(event, "bot.help.command_info.no_command", "Requested: "+findCmd);
 		} else {
 			EmbedBuilder builder = new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
-				.setTitle(lu.getLocalized(userLocale, "bot.help.command_info.title").formatted(command.getName()))
-				.setDescription(lu.getLocalized(userLocale, "bot.help.command_info.value")
-					.formatted(
-						lu.getLocalized(userLocale, "bot.help.command_menu.categories."+command.getCategory().name()),
-						MessageUtil.capitalize(command.getAccessLevel().getName()),
-						command.isGuildOnly() ? Emote.CROSS_C.getEmote() : Emote.CHECK_C.getEmote(),
-						Optional.ofNullable(command.getModule())
-							.map(mod -> lu.getLocalized(userLocale, mod.getPath()))
-							.orElse(Constants.NONE)
-					)
-				)
-				.addField(lu.getLocalized(userLocale, "bot.help.command_info.help_title"), lu.getLocalized(userLocale, command.getHelpPath()), false)
-				.setFooter(lu.getLocalized(userLocale, "bot.help.command_info.usage_subvalue"));
+				.setTitle(lu.getText(event, "bot.help.command_info.title", command.getName()))
+				.setDescription(lu.getText(event, "bot.help.command_info.value",
+					lu.getText(event, "bot.help.command_menu.categories."+command.getCategory().name()),
+					MessageUtil.capitalize(command.getAccessLevel().getName()),
+					command.isGuildOnly() ? Emote.CROSS_C.getEmote() : Emote.CHECK_C.getEmote(),
+					Optional.ofNullable(command.getModule())
+						.map(mod -> lu.getText(event, mod.getPath()))
+						.orElse(Constants.NONE)
+				))
+				.addField(lu.getText(event, "bot.help.command_info.help_title"), lu.getText(event, command.getHelpPath()), false)
+				.setFooter(lu.getText(event, "bot.help.command_info.usage_subvalue"));
 
-			List<String> v = getUsageText(userLocale, command);
-			builder.addField(lu.getLocalized(userLocale, "bot.help.command_info.usage_title"), v.getFirst(), false);
+			List<String> v = getUsageText(lu.getLocale(event), command);
+			builder.addField(lu.getText(event, "bot.help.command_info.usage_title"), v.getFirst(), false);
 			for (int i = 1; i < v.size(); i++) {
 				builder.addField("", v.get(i), false);
 			}
@@ -124,10 +120,9 @@ public class HelpCmd extends SlashCommand {
 	}
 
 	private void sendHelp(SlashCommandEvent event, String filCat) {
-		DiscordLocale userLocale = event.getUserLocale();
 		EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
-			.setTitle(lu.getLocalized(userLocale, "bot.help.command_menu.title"))
-			.setDescription(lu.getLocalized(userLocale, "bot.help.command_menu.description.command_value"));
+			.setTitle(lu.getText(event, "bot.help.command_menu.title"))
+			.setDescription(lu.getText(event, "bot.help.command_menu.description.command_value"));
 
 		Category category = null;
 		String fieldTitle = "";
@@ -146,10 +141,10 @@ public class HelpCmd extends SlashCommand {
 						builder.addField(fieldTitle, fieldValue.toString(), false);
 					}
 					category = command.getCategory();
-					fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.categories."+category.name());
+					fieldTitle = lu.getText(event, "bot.help.command_menu.categories."+category.name());
 					fieldValue = new StringBuilder();
 				}
-				fieldValue.append("`/%s` - %s\n".formatted(command.getName(), command.getDescriptionLocalization().get(userLocale)));
+				fieldValue.append("`/%s` - %s\n".formatted(command.getName(), command.getDescriptionLocalization().get(lu.getLocale(event))));
 			}
 		}
 		if (category != null) {
@@ -159,9 +154,9 @@ public class HelpCmd extends SlashCommand {
 		User owner = event.getJDA().getUserById(event.getClient().getOwnerIdLong());
 
 		if (owner != null) {
-			fieldTitle = lu.getLocalized(userLocale, "bot.help.command_menu.description.support_title");
+			fieldTitle = lu.getText(event, "bot.help.command_menu.description.support_title");
 			fieldValue = new StringBuilder()
-				.append(lu.getLocalized(userLocale, "bot.help.command_menu.description.support_value").formatted("@"+owner.getName()));
+				.append(lu.getText(event, "bot.help.command_menu.description.support_value", "@"+owner.getName()));
 			builder.addField(fieldTitle, fieldValue.toString(), false);
 		}
 

@@ -129,9 +129,9 @@ public class TempRoleCmd extends SlashCommand {
 				bot.getGuildLogger().role.onTempRoleAdded(guild, event.getUser(), member.getUser(), role, duration);
 				// Send reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()).replace("{user}", member.getAsMention())
-						.replace("{until}", TimeUtil.formatTime(until, true)))
-					.build()
+					.setDescription(lu.getGuildText(event, path+".done",
+						role.getAsMention(), member.getAsMention(), TimeUtil.formatTime(until, true)
+					)).build()
 				);
 			}, failure -> editErrorOther(event, failure.getMessage()));
 		}
@@ -180,7 +180,7 @@ public class TempRoleCmd extends SlashCommand {
 			bot.getGuildLogger().role.onTempRoleRemoved(event.getGuild(), event.getUser(), member.getUser(), role);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			);
 		}
@@ -243,8 +243,8 @@ public class TempRoleCmd extends SlashCommand {
 			bot.getGuildLogger().role.onTempRoleUpdated(event.getGuild(), event.getUser(), member.getUser(), role, newTime);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").replace("{role}", role.getAsMention()).replace("{user}", member.getAsMention())
-					.replace("{until}", TimeUtil.formatTime(newTime, true)))
+				.setDescription(lu.getGuildText(event, path+".done",
+					role.getAsMention(), member.getAsMention(), TimeUtil.formatTime(newTime, true)))
 				.build()
 			);
 		}
@@ -262,11 +262,11 @@ public class TempRoleCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 			List<Map<String, Object>> list = bot.getDBUtil().tempRoles.getAll(guild.getIdLong());
 			if (list.isEmpty()) {
-				editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".empty")).build());
+				editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getGuildText(event, path+".empty")).build());
 				return;
 			}
 
-			EmbedBuilder builder = bot.getEmbedUtil().getEmbed().setTitle(lu.getText(event, path+".title"));
+			EmbedBuilder builder = bot.getEmbedUtil().getEmbed().setTitle(lu.getGuildText(event, path+".title"));
 			StringBuffer buffer = new StringBuffer();
 
 			list.forEach(data -> {
