@@ -544,7 +544,7 @@ public class VoiceCmd extends SlashCommand {
 			VoiceChannel vc = guild.getVoiceChannelById(channelId);
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getGuildText(event, path+".embed.title", vc.getName()))
+				.setTitle(lu.getGuildText(event, path+".embed.title", vc.getAsMention()))
 				.setDescription(lu.getGuildText(event, path+".embed.field")+"\n\n");
 
 			//@Everyone

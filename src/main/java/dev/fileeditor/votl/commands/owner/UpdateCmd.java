@@ -16,8 +16,8 @@ import java.util.List;
 
 public class UpdateCmd extends SlashCommand {
 	public UpdateCmd() {
-		this.name = "shutdown";
-		this.path = "bot.owner.shutdown";
+		this.name = "update";
+		this.path = "bot.owner.update";
 		this.category = CmdCategory.OWNER;
 		this.accessLevel = CmdAccessLevel.DEV;
 		this.guildOnly = false;

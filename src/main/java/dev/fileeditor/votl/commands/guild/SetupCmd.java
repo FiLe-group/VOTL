@@ -665,7 +665,7 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done", locale.getNativeName()))
 				.build());
 		}
 	}
@@ -687,7 +687,7 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(path+".done"))
+				.setDescription(lu.getText(event, path+".done"))
 				.build());
 		}
 	}

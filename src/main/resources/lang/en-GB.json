@@ -12,8 +12,8 @@
 		"missing_perms": {
 			"self": "I lack the permission `%s` for this.",
 			"self_channel": "I lack the permission `%s` in the channel %s to do this.",
-			"other": "You lack the permission `%s` for this command.",
-			"other_channel": "You lack the permission `%s` in the channel %s to do this command."
+			"other": "You lack the permission `%s` for this.",
+			"other_channel": "You lack the permission `%s` in the channel %s to do this."
 		},
 		"no_send_perm": "I have no permission to send messages in your channel. Please, fix!",
 		"no_channel": "You don't own/has any voice channel.",
@@ -404,7 +404,7 @@
 					"name": "code",
 					"help": "Enter your code to evaluate, args - bot, event, jda, guild, client, helper"
 				},
-				"time": "Evaluated in %sms",
+				"time": "Evaluated in %s ms",
 				"input": "Input:",
 				"output": "Output:"
 			},
@@ -720,6 +720,24 @@
 					"bad_channel": "Bot can't access selected channel.",
 					"set_channel": "Drama channel: %s",
 					"view": "Drama settings"
+				},
+				"language": {
+					"help": "Manage server language settings",
+					"set": {
+						"help": "Set forced guild language",
+						"usage": "language set <lang>",
+						"forced_language": {
+							"name": "forced_language",
+							"help": "Select language"
+						},
+						"bad_input": "Bad language provided.",
+						"done": "Set forced language: **%s**"
+					},
+					"reset": {
+						"help": "Clear forced language",
+						"usage": "language reset",
+						"done": "Forced language cleared (will use English or community language)."
+					}
 				}
 			},
 			"module": {
@@ -1125,7 +1143,7 @@
 						"help": "View VC permissions",
 						"usage": "perms view",
 						"embed": {
-							"title": "Channel permissions for `%s`",
+							"title": "Channel permissions for %s",
 							"field": "**Can View | Can Join | Holder**",
 							"everyone": "Everyone",
 							"roles": "**Roles:**",

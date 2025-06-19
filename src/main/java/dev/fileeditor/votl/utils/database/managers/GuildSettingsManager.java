@@ -129,7 +129,7 @@ public class GuildSettingsManager extends LiteBase {
 
 	public void setLocale(long guildId, @Nullable DiscordLocale locale) throws SQLException {
 		invalidateCache(guildId);
-		execute("INSERT INTO %s(guildId, locale) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET locale=%<s".formatted(table, guildId, locale==null ? "NULL" : locale.getLocale()));
+		execute("INSERT INTO %s(guildId, locale) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET locale=%<s".formatted(table, guildId, locale==null ? "NULL" : quote(locale.getLocale())));
 	}
 
 
