@@ -71,7 +71,7 @@ public class PersistentRoleCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(role.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention()))
 				.build());
 		}
 	}
@@ -96,7 +96,7 @@ public class PersistentRoleCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(role.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention()))
 				.build());
 		}
 	}
@@ -113,7 +113,7 @@ public class PersistentRoleCmd extends SlashCommand {
 			final List<Long> roleIds = bot.getDBUtil().persistent.getRoles(event.getGuild().getIdLong());
 			if (roleIds.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
-					.setDescription(lu.getText(event, path+".empty"))
+					.setDescription(lu.getGuildText(event, path+".empty"))
 					.build());
 				return;
 			}
@@ -130,11 +130,11 @@ public class PersistentRoleCmd extends SlashCommand {
 
 			if (sb.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
-					.setDescription(lu.getText(event, path+".empty"))
+					.setDescription(lu.getGuildText(event, path+".empty"))
 					.build());
 			} else {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
-					.setTitle(lu.getText(event, path+".title"))
+					.setTitle(lu.getGuildText(event, path+".title"))
 					.setDescription(sb.toString())
 					.build());
 			}

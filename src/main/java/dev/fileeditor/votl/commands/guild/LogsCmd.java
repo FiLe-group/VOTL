@@ -81,7 +81,7 @@ public class LogsCmd extends SlashCommand {
 			}
 
 			LogType type = LogType.of(event.optString("type"));
-			String text = lu.getText(event, type.getNamePath());
+			String text = lu.getGuildText(event, type.getNamePath());
 
 			try {
 				WebhookData oldData = bot.getDBUtil().logs.getLogWebhook(event.getGuild().getIdLong(), type);
@@ -104,11 +104,11 @@ public class LogsCmd extends SlashCommand {
 					}
 					// Reply
 					webhook.sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getLocalized(event.getGuildLocale(), path+".as_log").formatted(text))
+						.setDescription(lu.getGuildText(event, path+".as_log", text))
 						.build()
 					).queue();
 					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention(), text))
+						.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention(), text))
 						.build()
 					);
 				});
@@ -153,7 +153,7 @@ public class LogsCmd extends SlashCommand {
 				}
 				// Reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done_all"))
+					.setDescription(lu.getGuildText(event, path+".done_all"))
 					.build()
 				);
 			} else {
@@ -170,7 +170,7 @@ public class LogsCmd extends SlashCommand {
 					return;
 				}
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").formatted(lu.getText(event, type.getNamePath())))
+					.setDescription(lu.getGuildText(event, path+".done", lu.getGuildText(event, type.getNamePath())))
 					.build()
 				);
 			}
@@ -190,12 +190,12 @@ public class LogsCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".title"));
+				.setTitle(lu.getGuildText(event, path+".title"));
 
 			LogSettings settings = bot.getDBUtil().getLogSettings(guild);
 			if (settings == null || settings.isEmpty()) {
 				editEmbed(event, builder
-					.setDescription(lu.getText(event, path+".none"))
+					.setDescription(lu.getGuildText(event, path+".none"))
 					.build()
 				);
 				return;
@@ -203,7 +203,7 @@ public class LogsCmd extends SlashCommand {
 
 			settings.getChannels().forEach((type, channelId) -> {
 				String text = Optional.ofNullable(channelId).map(guild::getTextChannelById).map(TextChannel::getAsMention).orElse(Constants.NONE);
-				builder.appendDescription("%s - %s\n".formatted(lu.getText(event, type.getNamePath()), text));
+				builder.appendDescription("%s - %s\n".formatted(lu.getGuildText(event, type.getNamePath()), text));
 			});
 
 			editEmbed(event, builder.build());
@@ -255,7 +255,7 @@ public class LogsCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(channelUnion.getName()))
+				.setDescription(lu.getGuildText(event, path+".done", channelUnion.getName()))
 				.build()
 			);
 		}
@@ -293,7 +293,7 @@ public class LogsCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted("'"+targetId+"'"))
+				.setDescription(lu.getGuildText(event, path+".done", targetId))
 				.build()
 			);
 		}
@@ -314,7 +314,7 @@ public class LogsCmd extends SlashCommand {
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(path+".title"));
 			if (targets.isEmpty()) {
-				builder.setDescription(lu.getText(event, path+".none"));
+				builder.setDescription(lu.getGuildText(event, path+".none"));
 			} else {
 				targets.forEach(id -> builder.appendDescription("<#%s> (%<s)\n".formatted(id)));
 			}

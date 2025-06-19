@@ -205,7 +205,7 @@ public class InteractionListener extends ListenerAdapter {
 			// Logs throwable and tries to respond to the user with the error
 			// Thrown errors are not user's error, but code's fault as such things should be caught earlier and replied properly
 			log.error("ButtonInteraction Exception", t);
-			bot.getEmbedUtil().sendUnknownError(event.getHook(), event.getUserLocale(), t.getMessage());
+			bot.getEmbedUtil().sendUnknownError(event.getHook(), lu.getLocale(event), t.getMessage());
 		}
 	}
 
@@ -280,7 +280,7 @@ public class InteractionListener extends ListenerAdapter {
 			ThreadChannel channel = guild.getThreadChannelById(channelId);
 			if (channel != null) {
 				event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_FAILURE)
-					.setDescription(lu.getText(event, "bot.ticketing.listener.ticket_exists").replace("{channel}", channel.getAsMention()))
+					.setDescription(lu.getGuildText(event, "bot.ticketing.listener.ticket_exists", channel.getAsMention()))
 					.build()
 				).setEphemeral(true).queue();
 				return;
@@ -297,14 +297,14 @@ public class InteractionListener extends ListenerAdapter {
 			}
 		}
 		if (db.getTicketSettings(guild).otherRoleEnabled()) {
-			actionRows.add(ActionRow.of(Button.secondary("role:other", lu.getText(event, "bot.ticketing.listener.request_other"))));
+			actionRows.add(ActionRow.of(Button.secondary("role:other", lu.getGuildText(event, "bot.ticketing.listener.request_other"))));
 		}
-		actionRows.add(ActionRow.of(Button.danger("role:clear", lu.getText(event, "bot.ticketing.listener.request_clear")),
-			Button.success("ticket:role_create", lu.getText(event, "bot.ticketing.listener.request_continue"))));
+		actionRows.add(ActionRow.of(Button.danger("role:clear", lu.getGuildText(event, "bot.ticketing.listener.request_clear")),
+			Button.success("ticket:role_create", lu.getGuildText(event, "bot.ticketing.listener.request_continue"))));
 
 		MessageEmbed embed = new EmbedBuilder()
 			.setColor(Constants.COLOR_DEFAULT)
-			.setDescription(lu.getText(event, "bot.ticketing.listener.request_title"))
+			.setDescription(lu.getGuildText(event, "bot.ticketing.listener.request_title"))
 			.build();
 
 		event.getHook().sendMessageEmbeds(embed).setComponents(actionRows).setEphemeral(true).queue();
@@ -339,7 +339,7 @@ public class InteractionListener extends ListenerAdapter {
 		
 		MessageEmbed embed = new EmbedBuilder(event.getMessage().getEmbeds().getFirst())
 			.clearFields()
-			.addField(lu.getText(event, "bot.ticketing.listener.request_selected"), selectedRolesString(roleIds, event.getUserLocale()), false)
+			.addField(lu.getGuildText(event, "bot.ticketing.listener.request_selected"), selectedRolesString(roleIds, lu.getLocale(event)), false)
 			.build();
 		event.getHook().editOriginalEmbeds(embed).queue();
 	}
@@ -347,7 +347,7 @@ public class InteractionListener extends ListenerAdapter {
 	private void buttonRoleSelectionClear(ButtonInteractionEvent event) {
 		MessageEmbed embed = new EmbedBuilder(event.getMessage().getEmbeds().getFirst())
 			.clearFields()
-			.addField(lu.getText(event, "bot.ticketing.listener.request_selected"), selectedRolesString(Collections.emptyList(), event.getUserLocale()), false)
+			.addField(lu.getGuildText(event, "bot.ticketing.listener.request_selected"), selectedRolesString(Collections.emptyList(), lu.getLocale(event)), false)
 			.build();
 		event.getHook().editOriginalEmbeds(embed).queue();
 	}
@@ -367,31 +367,38 @@ public class InteractionListener extends ListenerAdapter {
 
 		List<SelectOption> options = roles.stream().map(role -> SelectOption.of(role.getName(), role.getId())).toList();	
 		StringSelectMenu menu = StringSelectMenu.create("menu:role_remove")
-			.setPlaceholder(lu.getLocalized(event.getUserLocale(), "bot.ticketing.listener.request_template"))
+			.setPlaceholder(lu.getGuildText(event, "bot.ticketing.listener.request_template"))
 			.setMaxValues(options.size())
 			.addOptions(options)
 			.build();
-		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, "bot.ticketing.listener.remove_title")).build()).setActionRow(menu).setEphemeral(true).queue(msg ->
-			waiter.waitForEvent(
-				StringSelectInteractionEvent.class,
-				e -> e.getComponentId().equals("menu:role_remove"),
-				actionEvent -> {
-					List<Role> remove = actionEvent.getSelectedOptions().stream().map(option -> guild.getRoleById(option.getValue())).toList();
-					guild.modifyMemberRoles(event.getMember(), null, remove).reason("User request").queue(done -> {
-						msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed()
-							.setDescription(lu.getText(event, "bot.ticketing.listener.remove_done").replace("{roles}", remove.stream().map(Role::getAsMention).collect(Collectors.joining(", "))))
-							.setColor(Constants.COLOR_SUCCESS)
-							.build()
-						).setComponents().queue();
-					}, failure -> msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.remove_failed", failure.getMessage())).setComponents().queue());
-				},
-				40,
-				TimeUnit.SECONDS,
-				() -> msg.editMessageComponents(ActionRow.of(
-					menu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
-				).queue()
-			)
-		);
+		event.getHook()
+			.sendMessageEmbeds(bot.getEmbedUtil()
+				.getEmbed()
+				.setDescription(lu.getGuildText(event, "bot.ticketing.listener.remove_title"))
+				.build()
+			).setActionRow(menu)
+			.setEphemeral(true)
+			.queue(msg ->
+				waiter.waitForEvent(
+					StringSelectInteractionEvent.class,
+					e -> e.getComponentId().equals("menu:role_remove"),
+					actionEvent -> {
+						List<Role> remove = actionEvent.getSelectedOptions().stream().map(option -> guild.getRoleById(option.getValue())).toList();
+						guild.modifyMemberRoles(event.getMember(), null, remove).reason("User request").queue(done -> {
+							msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed()
+								.setDescription(lu.getGuildText(event, "bot.ticketing.listener.remove_done", remove.stream().map(Role::getAsMention).collect(Collectors.joining(", "))))
+								.setColor(Constants.COLOR_SUCCESS)
+								.build()
+							).setComponents().queue();
+						}, failure -> msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.remove_failed", failure.getMessage())).setComponents().queue());
+					},
+					40,
+					TimeUnit.SECONDS,
+					() -> msg.editMessageComponents(ActionRow.of(
+						menu.createCopy().setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
+					).queue()
+				)
+			);
 	}
 
 	private void buttonRoleToggle(ButtonInteractionEvent event) {
@@ -405,7 +412,7 @@ public class InteractionListener extends ListenerAdapter {
 		if (event.getMember().getRoles().contains(role)) {
 			event.getGuild().removeRoleFromMember(event.getMember(), role).queue(done -> {
 				event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed()
-					.setDescription(lu.getText(event, "bot.ticketing.listener.toggle_removed").replace("{role}", role.getAsMention()))
+					.setDescription(lu.getGuildText(event, "bot.ticketing.listener.toggle_removed", role.getAsMention()))
 					.setColor(Constants.COLOR_SUCCESS)
 					.build()
 				).setEphemeral(true).queue();
@@ -413,7 +420,7 @@ public class InteractionListener extends ListenerAdapter {
 		} else {
 			event.getGuild().addRoleToMember(event.getMember(), role).queue(done -> {
 				event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed()
-					.setDescription(lu.getText(event, "bot.ticketing.listener.toggle_added").replace("{role}", role.getAsMention()))
+					.setDescription(lu.getGuildText(event, "bot.ticketing.listener.toggle_added", role.getAsMention()))
 					.setColor(Constants.COLOR_SUCCESS)
 					.build()
 				).setEphemeral(true).queue();
@@ -456,7 +463,7 @@ public class InteractionListener extends ListenerAdapter {
 		});
 
 		int ticketId = 1 + db.tickets.lastIdByTag(guildId, 0);
-		event.getChannel().asTextChannel().createThreadChannel(lu.getLocalized(event.getGuildLocale(), "ticket.role")+"-"+ticketId, true).setInvitable(false).queue(
+		event.getChannel().asTextChannel().createThreadChannel(lu.getGuildText(event, "ticket.role")+"-"+ticketId, true).setInvitable(false).queue(
 			channel -> {
 				db.tickets.addRoleTicket(
 					ticketId, event.getMember().getIdLong(), guildId, channel.getIdLong(),
@@ -476,20 +483,20 @@ public class InteractionListener extends ListenerAdapter {
 						msg.delete().queueAfter(5, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
 				});
 				
-				String rolesString = String.join(" ", add.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), (otherRole ? lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.other") : ""));
+				String rolesString = String.join(" ", add.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), (otherRole ? lu.getGuildText(event, "bot.ticketing.embeds.other") : ""));
 				String proofString = add.stream().map(role -> db.roles.getDescription(role.getIdLong())).filter(Objects::nonNull).distinct().collect(Collectors.joining("\n- ", "- ", ""));
 				MessageEmbed embed = new EmbedBuilder().setColor(db.getGuildSettings(guild).getColor())
 					.setDescription(String.format("%s\n> %s\n\n%s, %s\n%s\n\n%s",
-						lu.getLocalized(event.getGuildLocale(), "ticket.role_title"),
+						lu.getGuildText(event, "ticket.role_title"),
 						rolesString,
 						event.getMember().getEffectiveName(),
-						lu.getLocalized(event.getGuildLocale(), "ticket.role_header"),
-						(proofString.length() < 3 ? lu.getLocalized(event.getGuildLocale(), "ticket.role_proof") : proofString),
-						lu.getLocalized(event.getGuildLocale(), "ticket.role_footer")
+						lu.getGuildText(event, "ticket.role_header"),
+						(proofString.length() < 3 ? lu.getGuildText(event, "ticket.role_proof") : proofString),
+						lu.getGuildText(event, "ticket.role_footer")
 					))
 					.build();
-				Button approve = Button.success("ticket:role_approve", lu.getLocalized(event.getGuildLocale(), "ticket.role_approve"));
-				Button close = Button.danger("ticket:close", lu.getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled();
+				Button approve = Button.success("ticket:role_approve", lu.getGuildText(event, "ticket.role_approve"));
+				Button close = Button.danger("ticket:close", lu.getGuildText(event, "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled();
 				channel.sendMessageEmbeds(embed).setAllowedMentions(Collections.emptyList()).addActionRow(approve, close).queue(msg -> {
 					msg.editMessageComponents(ActionRow.of(approve, close.asEnabled())).queueAfter(10, TimeUnit.SECONDS);
 				});
@@ -498,7 +505,7 @@ public class InteractionListener extends ListenerAdapter {
 				bot.getGuildLogger().ticket.onCreate(guild, channel, event.getUser());
 				// Send reply
 				event.getHook().editOriginalEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, "bot.ticketing.listener.created").replace("{channel}", channel.getAsMention()))
+					.setDescription(lu.getGuildText(event, "bot.ticketing.listener.created", channel.getAsMention()))
 					.build()
 				).setComponents().queue();
 			}, failure -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.cant_create", failure.getMessage())).setComponents().queue()
@@ -551,13 +558,13 @@ public class InteractionListener extends ListenerAdapter {
 						.build();
 					rows.add(ActionRow.of(input));
 				}
-				Modal modal = Modal.create("role_temp:"+channelId, lu.getText(event, "bot.ticketing.listener.temp_time"))
+				Modal modal = Modal.create("role_temp:"+channelId, lu.getGuildText(event, "bot.ticketing.listener.temp_time"))
 					.addComponents(rows)
 					.build();
 				String buttonUuid = UUID.randomUUID().toString();
 				Button continueButton = Button.success(buttonUuid, "Continue");
 				event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
-					.setDescription(lu.getText(event, "bot.ticketing.listener.temp_continue").formatted(rows.size()))
+					.setDescription(lu.getGuildText(event, "bot.ticketing.listener.temp_continue", rows.size()))
 					.build()
 				).setActionRow(continueButton).setEphemeral(true).queue(msg -> {
 					waiter.waitForEvent(
@@ -577,7 +584,7 @@ public class InteractionListener extends ListenerAdapter {
 			}
 			if (roles.isEmpty()) {
 				event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
-					.setDescription(lu.getText(event, "bot.ticketing.listener.role_none"))
+					.setDescription(lu.getGuildText(event, "bot.ticketing.listener.role_none"))
 					.setColor(Constants.COLOR_WARNING)
 					.build()
 				).setEphemeral(true).queue();
@@ -591,12 +598,12 @@ public class InteractionListener extends ListenerAdapter {
 					bot.getGuildLogger().role.onApproved(member, event.getMember(), guild, roles, ticketId);
 					db.tickets.setClaimed(channelId, event.getMember().getIdLong());
 					event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.role_added"))
+						.setDescription(lu.getGuildText(event, "bot.ticketing.listener.role_added"))
 						.setColor(Constants.COLOR_SUCCESS)
 						.build()
 					).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_WEBHOOK));
 					member.getUser().openPrivateChannel().queue(dm -> {
-						dm.sendMessage(lu.getLocalized(guild.getLocale(), "bot.ticketing.listener.role_dm")
+						dm.sendMessage(lu.getGuildText(event, "bot.ticketing.listener.role_dm")
 							.replace("{roles}", roles.stream().map(Role::getName).collect(Collectors.joining(" | ")))
 							.replace("{server}", guild.getName())
 							.replace("{id}", String.valueOf(ticketId))
@@ -657,11 +664,11 @@ public class InteractionListener extends ListenerAdapter {
 		}
 		// Close
 		String reason = isAuthor
-			? lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_author")
-			: lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.closed_support");
-		event.editButton(Button.danger("ticket:close", bot.getLocaleUtil().getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled()).queue();
+			? lu.getGuildText(event, "bot.ticketing.listener.closed_author")
+			: lu.getGuildText(event, "bot.ticketing.listener.closed_support");
+		event.editButton(Button.danger("ticket:close", bot.getLocaleUtil().getGuildText(event, "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled()).queue();
 		// Send message
-		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event).setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.delete_countdown")).build()).queue(msg -> {
+		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event).setDescription(lu.getGuildText(event, "bot.ticketing.listener.delete_countdown")).build()).queue(msg -> {
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason,
 				new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)
 					.andThen(t -> {
@@ -690,7 +697,7 @@ public class InteractionListener extends ListenerAdapter {
 		db.tickets.setRequestStatus(channelId, -1L);
 		MessageEmbed embed = new EmbedBuilder()
 			.setColor(db.getGuildSettings(guild).getColor())
-			.setDescription(bot.getLocaleUtil().getLocalized(guild.getLocale(), "ticket.autoclose_cancel"))
+			.setDescription(lu.getGuildText(event, "ticket.autoclose_cancel"))
 			.build();
 		event.getHook().editOriginalEmbeds(embed).setComponents().queue();
 	}
@@ -710,13 +717,13 @@ public class InteractionListener extends ListenerAdapter {
 
 		db.tickets.setClaimed(channelId, event.getUser().getIdLong());
 		event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.claimed").replace("{user}", event.getUser().getAsMention()))
+			.setDescription(lu.getGuildText(event, "bot.ticketing.listener.claimed").replace("{user}", event.getUser().getAsMention()))
 			.build()
 		).queue();
 
-		Button close = Button.danger("ticket:close", lu.getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒"));
-		Button claimed = Button.primary("ticket:claimed", lu.getLocalized(event.getGuildLocale(), "ticket.claimed").formatted(event.getUser().getName())).asDisabled();
-		Button unclaim = Button.primary("ticket:unclaim", lu.getLocalized(event.getGuildLocale(), "ticket.unclaim"));
+		Button close = Button.danger("ticket:close", lu.getGuildText(event, "ticket.close")).withEmoji(Emoji.fromUnicode("🔒"));
+		Button claimed = Button.primary("ticket:claimed", lu.getGuildText(event, "ticket.claimed", event.getUser().getName())).asDisabled();
+		Button unclaim = Button.primary("ticket:unclaim", lu.getGuildText(event, "ticket.unclaim"));
 		event.getMessage().editMessageComponents(ActionRow.of(close, claimed, unclaim)).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
 	}
 
@@ -734,12 +741,12 @@ public class InteractionListener extends ListenerAdapter {
 
 		db.tickets.setUnclaimed(channelId);
 		event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.unclaimed"))
+			.setDescription(lu.getGuildText(event, "bot.ticketing.listener.unclaimed"))
 			.build()
 		).queue();
 
-		Button close = Button.danger("ticket:close", lu.getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒"));
-		Button claim = Button.primary("ticket:claim", lu.getLocalized(event.getGuildLocale(), "ticket.claim"));
+		Button close = Button.danger("ticket:close", lu.getGuildText(event, "ticket.close")).withEmoji(Emoji.fromUnicode("🔒"));
+		Button claim = Button.primary("ticket:claim", lu.getGuildText(event, "ticket.claim"));
 		event.getMessage().editMessageComponents(ActionRow.of(close, claim)).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
 	}
 
@@ -753,7 +760,7 @@ public class InteractionListener extends ListenerAdapter {
 			GuildChannel channel = event.getGuild().getGuildChannelById(channelId);
 			if (channel != null) {
 				event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_FAILURE)
-					.setDescription(lu.getText(event, "bot.ticketing.listener.ticket_exists").replace("{channel}", channel.getAsMention()))
+					.setDescription(lu.getGuildText(event, "bot.ticketing.listener.ticket_exists", channel.getAsMention()))
 					.build()
 				).setEphemeral(true).queue();
 				return;
@@ -836,7 +843,7 @@ public class InteractionListener extends ListenerAdapter {
 		}
 		channel.deleteMessageById(messageId).reason("Deleted by %s".formatted(event.getMember().getEffectiveName())).queue(success ->
 			event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getLocalized(event.getGuildLocale(), "menus.report.deleted").replace("{name}", event.getMember().getAsMention()))
+				.setDescription(lu.getGuildText(event, "menus.report.deleted", event.getMember().getAsMention()))
 				.build()
 			).queue(),
 		failure -> event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getError(event, "misc.unknown", failure.getMessage())).queue()
@@ -925,20 +932,20 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private void buttonVoicePermit(ButtonInteractionEvent event) {
-		String text = lu.getText(event, "bot.voice.listener.panel.permit_label");
+		String text = lu.getGuildText(event, "bot.voice.listener.panel.permit_label");
 		event.getHook().sendMessage(text).addActionRow(EntitySelectMenu.create("voice:permit", SelectTarget.USER, SelectTarget.ROLE).setMaxValues(10).build()).setEphemeral(true).queue();
 	}
 
 	private void buttonVoiceReject(ButtonInteractionEvent event) {
-		String text = lu.getText(event, "bot.voice.listener.panel.reject_label");
+		String text = lu.getGuildText(event, "bot.voice.listener.panel.reject_label");
 		event.getHook().sendMessage(text).addActionRow(EntitySelectMenu.create("voice:reject", SelectTarget.USER, SelectTarget.ROLE).setMaxValues(10).build()).setEphemeral(true).queue();
 	}
 
 	private void buttonVoicePerms(ButtonInteractionEvent event, VoiceChannel vc) {
 		Guild guild = event.getGuild();
 		EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
-			.setTitle(lu.getText(event, "bot.voice.listener.panel.perms.title").replace("{channel}", vc.getName()))
-			.setDescription(lu.getText(event, "bot.voice.listener.panel.perms.field")+"\n\n");
+			.setTitle(lu.getGuildText(event, "bot.voice.listener.panel.perms.title", vc.getAsMention()))
+			.setDescription(lu.getGuildText(event, "bot.voice.listener.panel.perms.field")+"\n\n");
 
 		//@Everyone
 		PermissionOverride publicOverride = vc.getPermissionOverride(guild.getPublicRole());
@@ -946,8 +953,8 @@ public class InteractionListener extends ListenerAdapter {
 		String view = contains(publicOverride, Permission.VIEW_CHANNEL);
 		String join = contains(publicOverride, Permission.VOICE_CONNECT);
 
-		embedBuilder = embedBuilder.appendDescription("> %s | %s | `%s`\n\n%s\n".formatted(view, join, lu.getText(event, "bot.voice.listener.panel.perms.everyone"),
-			lu.getText(event, "bot.voice.listener.panel.perms.roles")));
+		embedBuilder = embedBuilder.appendDescription("> %s | %s | `%s`\n\n%s\n".formatted(view, join, lu.getGuildText(event, "bot.voice.listener.panel.perms.everyone"),
+			lu.getGuildText(event, "bot.voice.listener.panel.perms.roles")));
 
 		//Roles
 		List<PermissionOverride> overrides = new ArrayList<>(vc.getRolePermissionOverrides()); // cause given override list is immutable
@@ -959,7 +966,7 @@ public class InteractionListener extends ListenerAdapter {
 		}
 
 		if (overrides.isEmpty()) {
-			embedBuilder.appendDescription(lu.getText(event, "bot.voice.listener.panel.perms.none") + "\n");
+			embedBuilder.appendDescription(lu.getGuildText(event, "bot.voice.listener.panel.perms.none") + "\n");
 		} else {
 			for (PermissionOverride ov : overrides) {
 				view = contains(ov, Permission.VIEW_CHANNEL);
@@ -968,7 +975,7 @@ public class InteractionListener extends ListenerAdapter {
 				embedBuilder.appendDescription("> %s | %s | `%s`\n".formatted(view, join, ov.getRole().getName()));
 			}
 		}
-		embedBuilder.appendDescription("\n%s\n".formatted(lu.getText(event, "bot.voice.listener.panel.perms.members")));
+		embedBuilder.appendDescription("\n%s\n".formatted(lu.getGuildText(event, "bot.voice.listener.panel.perms.members")));
 
 		//Members
 		overrides = new ArrayList<>(vc.getMemberPermissionOverrides());
@@ -985,7 +992,7 @@ public class InteractionListener extends ListenerAdapter {
 		guild.retrieveMembersByIds(false, overrides.stream().map(PermissionOverride::getId).toArray(String[]::new)).onSuccess(
 			members -> {
 				if (members.isEmpty()) {
-					embedBuilder2.appendDescription(lu.getText(event, "bot.voice.listener.panel.perms.none") + "\n");
+					embedBuilder2.appendDescription(lu.getGuildText(event, "bot.voice.listener.panel.perms.none") + "\n");
 				} else {
 					for (PermissionOverride ov : ovs) {
 						String view2 = contains(ov, Permission.VIEW_CHANNEL);
@@ -1037,10 +1044,10 @@ public class InteractionListener extends ListenerAdapter {
 
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 			.setColor(Constants.COLOR_WARNING)
-			.setDescription(lu.getText(event, "bot.moderation.blacklist.title"))
+			.setDescription(lu.getGuildText(event, "bot.moderation.blacklist.title"))
 			.build();
 		StringSelectMenu menu = StringSelectMenu.create("groupId")
-			.setPlaceholder(lu.getText(event, "bot.moderation.blacklist.value"))
+			.setPlaceholder(lu.getGuildText(event, "bot.moderation.blacklist.value"))
 			.addOptions(groupIds.stream().map(groupId ->
 				SelectOption.of(bot.getDBUtil().group.getName(groupId), groupId.toString()).withDescription("ID: "+groupId)
 			).collect(Collectors.toList()))
@@ -1068,7 +1075,7 @@ public class InteractionListener extends ListenerAdapter {
 					// Reply
 					selectEvent.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 						.setColor(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, "bot.moderation.blacklist.done"))
+						.setDescription(lu.getGuildText(event, "bot.moderation.blacklist.done"))
 						.build())
 					.setComponents().queue();
 				},
@@ -1111,10 +1118,10 @@ public class InteractionListener extends ListenerAdapter {
 
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 			.setColor(Constants.COLOR_WARNING)
-			.setDescription(lu.getText(event, "bot.moderation.sync.ban.title"))
+			.setDescription(lu.getGuildText(event, "bot.moderation.sync.ban.title"))
 			.build();
 		StringSelectMenu menu = StringSelectMenu.create("groupId")
-			.setPlaceholder(lu.getText(event, "bot.moderation.sync.select"))
+			.setPlaceholder(lu.getGuildText(event, "bot.moderation.sync.select"))
 			.addOptions(groupIds.stream().map(groupId ->
 				SelectOption.of(bot.getDBUtil().group.getName(groupId), groupId.toString()).withDescription("ID: "+groupId)
 			).collect(Collectors.toList()))
@@ -1134,7 +1141,7 @@ public class InteractionListener extends ListenerAdapter {
 					selectEvent.getHook().editOriginalEmbeds(
 						bot.getEmbedUtil().getEmbed()
 							.setColor(Constants.COLOR_SUCCESS)
-							.setDescription(lu.getText(event, "bot.moderation.sync.ban.done"))
+							.setDescription(lu.getGuildText(event, "bot.moderation.sync.ban.done"))
 							.build())
 						.setComponents().queue();
 				},
@@ -1165,10 +1172,10 @@ public class InteractionListener extends ListenerAdapter {
 
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 			.setColor(Constants.COLOR_WARNING)
-			.setDescription(lu.getText(event, "bot.moderation.sync.unban.title"))
+			.setDescription(lu.getGuildText(event, "bot.moderation.sync.unban.title"))
 			.build();
 		StringSelectMenu menu = StringSelectMenu.create("groupId")
-			.setPlaceholder(lu.getText(event, "bot.moderation.sync.select"))
+			.setPlaceholder(lu.getGuildText(event, "bot.moderation.sync.select"))
 			.addOptions(groupIds.stream().map(groupId ->
 				SelectOption.of(bot.getDBUtil().group.getName(groupId), groupId.toString()).withDescription("ID: "+groupId)
 			).collect(Collectors.toList()))
@@ -1195,7 +1202,7 @@ public class InteractionListener extends ListenerAdapter {
 					// Reply
 					selectEvent.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 						.setColor(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, "bot.moderation.sync.unban.done"))
+						.setDescription(lu.getGuildText(event, "bot.moderation.sync.unban.done"))
 						.build())
 					.setComponents().queue();
 				},
@@ -1238,10 +1245,10 @@ public class InteractionListener extends ListenerAdapter {
 
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 			.setColor(Constants.COLOR_WARNING)
-			.setDescription(lu.getText(event, "bot.moderation.sync.kick.title"))
+			.setDescription(lu.getGuildText(event, "bot.moderation.sync.kick.title"))
 			.build();
 		StringSelectMenu menu = StringSelectMenu.create("groupId")
-			.setPlaceholder(lu.getText(event, "bot.moderation.sync.select"))
+			.setPlaceholder(lu.getGuildText(event, "bot.moderation.sync.select"))
 			.addOptions(groupIds.stream().map(groupId ->
 				SelectOption.of(bot.getDBUtil().group.getName(groupId), groupId.toString()).withDescription("ID: "+groupId)
 			).collect(Collectors.toList()))
@@ -1262,7 +1269,7 @@ public class InteractionListener extends ListenerAdapter {
 						selectEvent.getHook().editOriginalEmbeds(
 							bot.getEmbedUtil().getEmbed()
 								.setColor(Constants.COLOR_SUCCESS)
-								.setDescription(lu.getText(event, "bot.moderation.sync.kick.done"))
+								.setDescription(lu.getGuildText(event, "bot.moderation.sync.kick.done"))
 								.build())
 							.setComponents().queue();
 					},
@@ -1288,14 +1295,14 @@ public class InteractionListener extends ListenerAdapter {
 		Pair<Integer, Integer> strikeData = bot.getDBUtil().strikes.getDataCountAndDate(guildId, event.getUser().getIdLong());
 		if (strikeData == null) {
 			event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed()
-				.setDescription(lu.getText(event, "bot.moderation.no_strikes").formatted(guild.getName()))
+				.setDescription(lu.getText(event, "bot.moderation.no_strikes", guild.getName()))
 				.build()).queue();
 			return;
 		}
 
 		Instant time = Instant.ofEpochSecond(strikeData.getRight());
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed()
-			.setDescription(lu.getText(event, "bot.moderation.strikes_embed").formatted(strikeData.getLeft(), TimeFormat.RELATIVE.atInstant(time)))
+			.setDescription(lu.getText(event, "bot.moderation.strikes_embed", strikeData.getLeft(), TimeFormat.RELATIVE.atInstant(time)))
 			.build()
 		).setEphemeral(true).queue();
 	}
@@ -1350,7 +1357,7 @@ public class InteractionListener extends ListenerAdapter {
 				bot.getGuildLogger().role.onRolesModified(guild, event.getUser(), target.getUser(), rolesString);
 				// Send reply
 				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, "bot.roles.role.modify.done").formatted(target.getAsMention(), rolesString))
+					.setDescription(lu.getGuildText(event, "bot.roles.role.modify.done", target.getAsMention(), rolesString))
 					.build()
 				).setComponents().queue();
 			}, failure -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getError(event, "errors.error", "Unable to modify roles, User ID: "+targetId))
@@ -1394,7 +1401,7 @@ public class InteractionListener extends ListenerAdapter {
 		});
 		if (roles.isEmpty()) {
 			event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
-				.setDescription(lu.getText(event, "bot.ticketing.listener.role_none"))
+				.setDescription(lu.getGuildText(event, "bot.ticketing.listener.role_none"))
 				.setColor(Constants.COLOR_WARNING)
 				.build()
 			).setEphemeral(true).queue();
@@ -1445,12 +1452,12 @@ public class InteractionListener extends ListenerAdapter {
 					bot.getGuildLogger().role.onApproved(member, event.getMember(), guild, roles, ticketId);
 					// Reply and send DM to the target member
 					event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
-						.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.listener.role_added"))
+						.setDescription(lu.getGuildText(event, "bot.ticketing.listener.role_added"))
 						.setColor(Constants.COLOR_SUCCESS)
 						.build()
 					).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_WEBHOOK));
 					member.getUser().openPrivateChannel().queue(dm -> {
-						dm.sendMessage(lu.getLocalized(guild.getLocale(), "bot.ticketing.listener.role_dm")
+						dm.sendMessage(lu.getGuildText(event, "bot.ticketing.listener.role_dm")
 							.replace("{roles}", roles.stream().map(Role::getName).collect(Collectors.joining(" | ")))
 							.replace("{server}", guild.getName())
 							.replace("{id}", String.valueOf(ticketId))
@@ -1484,7 +1491,7 @@ public class InteractionListener extends ListenerAdapter {
 
 			MessageEmbed embed = new EmbedBuilder(event.getMessage().getEmbeds().getFirst())
 				.clearFields()
-				.addField(lu.getText(event, "bot.ticketing.listener.request_selected"), selectedRolesString(roleIds, event.getUserLocale()), false)
+				.addField(lu.getGuildText(event, "bot.ticketing.listener.request_selected"), selectedRolesString(roleIds, lu.getLocale(event)), false)
 				.build();
 			event.getHook().editOriginalEmbeds(embed).queue();
 		} else if (menuId.startsWith("role:manage-select")) {
@@ -1535,7 +1542,7 @@ public class InteractionListener extends ListenerAdapter {
 			// Log throwable and try to respond to the user with the error
 			// Thrown errors are not user's error, but code's fault as such things should be caught earlier and replied properly
 			log.error("Role modify Exception", t);
-			bot.getEmbedUtil().sendUnknownError(event.getHook(), event.getUserLocale(), t.getMessage());
+			bot.getEmbedUtil().sendUnknownError(event.getHook(), lu.getLocale(event), t.getMessage());
 		}
 	}
 

@@ -98,7 +98,7 @@ public class GroupCmd extends SlashCommand {
 			bot.getGuildLogger().group.onCreation(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(groupName, groupId))
+				.setDescription(lu.getGuildText(event, path+".done", groupName, groupId))
 				.build()
 			);
 		}
@@ -142,7 +142,7 @@ public class GroupCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(groupName, groupId))
+				.setDescription(lu.getGuildText(event, path+".done", groupName, groupId))
 				.build()
 			);
 		}
@@ -182,8 +182,8 @@ public class GroupCmd extends SlashCommand {
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".embed_title"))
-				.setDescription(lu.getText(event, path+".embed_value").formatted(groupName))
+				.setTitle(lu.getGuildText(event, path+".embed_title"))
+				.setDescription(lu.getGuildText(event, path+".embed_value", groupName))
 				.build();
 			
 			List<ActionRow> rows = new ArrayList<>();
@@ -229,7 +229,7 @@ public class GroupCmd extends SlashCommand {
 						bot.getGuildLogger().group.onGuildRemoved(event, targetGuild, groupId, groupName);
 
 					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done").formatted(Optional.ofNullable(targetGuild).map(Guild::getName).orElse("*Unknown*"), groupName))
+						.setDescription(lu.getGuildText(event, path+".done", Optional.ofNullable(targetGuild).map(Guild::getName).orElse("*Unknown*"), groupName))
 						.build()
 					).setComponents().queue();
 				},
@@ -237,7 +237,7 @@ public class GroupCmd extends SlashCommand {
 				TimeUnit.SECONDS,
 				() -> {
 					event.getHook().editOriginalComponents(
-						ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
+						ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
 					).queue();
 				}
 			));
@@ -278,7 +278,7 @@ public class GroupCmd extends SlashCommand {
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(groupName, newInvite))
+				.setDescription(lu.getGuildText(event, path+".done", groupName, newInvite))
 				.build()
 			);
 		}
@@ -325,7 +325,7 @@ public class GroupCmd extends SlashCommand {
 				}
 				bot.getGuildLogger().group.onRenamed(event, currentGroupName, groupId, newName);
 
-				builder.append(lu.getText(event, path+".changed_name").formatted(newName))
+				builder.append(lu.getGuildText(event, path+".changed_name", newName))
 					.append("\n");
 			}
 			if (event.hasOption("appeal_server")) {
@@ -349,19 +349,19 @@ public class GroupCmd extends SlashCommand {
 					return;
 				}
 
-				builder.append(lu.getText(event, path+".changed_appeal").formatted(appealGuildId))
+				builder.append(lu.getGuildText(event, path+".changed_appeal", appealGuildId))
 					.append("\n");
 			}
 
 			if (builder.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
-					.setDescription(lu.getText(event, path+".no_options"))
+					.setDescription(lu.getGuildText(event, path+".no_options"))
 					.setFooter("Group ID: `%s`".formatted(groupId))
 					.build()
 				);
 			} else {
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setTitle(lu.getText(event, path+".done_title").formatted(currentGroupName))
+					.setTitle(lu.getGuildText(event, path+".done_title", currentGroupName))
 					.setDescription(builder.toString())
 					.setFooter("Group ID: #%s".formatted(groupId))
 					.build()
@@ -407,8 +407,8 @@ public class GroupCmd extends SlashCommand {
 
 			String groupName = bot.getDBUtil().group.getName(groupId);
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".embed_title"))
-				.setDescription(lu.getText(event, path+".embed_value").formatted(groupName))
+				.setTitle(lu.getGuildText(event, path+".embed_title"))
+				.setDescription(lu.getGuildText(event, path+".embed_value", groupName))
 				.build();
 			
 			List<ActionRow> rows = new ArrayList<>();
@@ -444,8 +444,8 @@ public class GroupCmd extends SlashCommand {
 					long targetId = Long.parseLong(actionMenu.getSelectedOptions().getFirst().getValue());
 					Guild targetGuild = event.getJDA().getGuildById(targetId);
 
-					StringBuilder builder = new StringBuilder(lu.getText(event, path+".done")
-						.formatted(targetGuild.getName(), groupName));
+					StringBuilder builder = new StringBuilder(lu.getGuildText(event, path+".done",
+						targetGuild.getName(), groupName));
 
 					try {
 						bot.getDBUtil().group.setManage(groupId, targetId, canManage);
@@ -453,7 +453,8 @@ public class GroupCmd extends SlashCommand {
 						editErrorDatabase(event, ex, "set group manager");
 						return;
 					}
-					builder.append(lu.getText(event, path+".manage_change").formatted(canManage ? Constants.SUCCESS : Constants.FAILURE));
+					builder.append(lu.getGuildText(event, path+".manage_change",
+						canManage ? Constants.SUCCESS : Constants.FAILURE));
 
 					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(builder.toString())
@@ -464,7 +465,7 @@ public class GroupCmd extends SlashCommand {
 				TimeUnit.SECONDS,
 				() -> {
 					event.getHook().editOriginalComponents(
-						ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build())
+						ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
 					).queue();
 				}
 			));
@@ -521,7 +522,7 @@ public class GroupCmd extends SlashCommand {
 			bot.getGuildLogger().group.onGuildJoined(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(groupName))
+				.setDescription(lu.getGuildText(event, path+".done", groupName))
 				.build()
 			);
 		}		
@@ -557,7 +558,7 @@ public class GroupCmd extends SlashCommand {
 			bot.getGuildLogger().group.onGuildLeft(event, groupId, groupName);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(groupName))
+				.setDescription(lu.getGuildText(event, path+".done", groupName))
 				.build()
 			);
 		}
@@ -598,17 +599,17 @@ public class GroupCmd extends SlashCommand {
 				String invite = Optional.ofNullable(bot.getDBUtil().group.getInvite(groupId)).map(o -> "||`"+o+"`||").orElse("-");
 
 				EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
-					.setAuthor(lu.getText(event, path+".embed_title").formatted(
+					.setAuthor(lu.getGuildText(event, path+".embed_title",
 						groupName, groupId
 					))
-					.setDescription(lu.getText(event, path+".embed_full").formatted(
+					.setDescription(lu.getGuildText(event, path+".embed_full",
 						event.getGuild().getName(), event.getGuild().getId(), groupSize,
 						Optional.ofNullable(bot.getDBUtil().group.getAppealGuildId(groupId)).map(String::valueOf).orElse("-")
 					))
-					.addField(lu.getText(event, path+".embed_invite"), invite, false);
+					.addField(lu.getGuildText(event, path+".embed_invite"), invite, false);
 				
 				if (groupSize > 0) {
-					String fieldLabel = lu.getText(event, path+".embed_guilds");
+					String fieldLabel = lu.getGuildText(event, path+".embed_guilds");
 					StringBuilder stringBuilder = new StringBuilder();
 					String format = "%s | %s | `%s`";
 					for (Long memberId : memberIds) {
@@ -642,8 +643,9 @@ public class GroupCmd extends SlashCommand {
 				int groupSize = bot.getDBUtil().group.countMembers(groupId);
 
 				EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
-					.setAuthor(lu.getText(event, "logger.groups.title").formatted(groupName, groupId))
-					.setDescription(lu.getText(event, path+".embed_short").formatted(
+					.setAuthor(lu.getGuildText(event, "logger.groups.title",
+						groupName, groupId
+					)).setDescription(lu.getGuildText(event, path+".embed_short",
 						masterName, ownerId, groupSize
 					));
 				editEmbed(event, builder.build());
@@ -655,9 +657,9 @@ public class GroupCmd extends SlashCommand {
 				EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
 					.setDescription("Group name | #ID");
 				
-				String fieldLabel = lu.getText(event, path+".embed_owned");
+				String fieldLabel = lu.getGuildText(event, path+".embed_owned");
 				if (ownedGroups.isEmpty()) {
-					builder.addField(fieldLabel, lu.getText(event, path+".none"), false);
+					builder.addField(fieldLabel, lu.getGuildText(event, path+".none"), false);
 				} else {
 					StringBuilder stringBuilder = new StringBuilder();
 					for (Integer groupId : ownedGroups) {
@@ -666,9 +668,9 @@ public class GroupCmd extends SlashCommand {
 					builder.addField(fieldLabel, stringBuilder.toString(), false);
 				}
 
-				fieldLabel = lu.getText(event, path+".embed_member");
+				fieldLabel = lu.getGuildText(event, path+".embed_member");
 				if (joinedGroupIds.isEmpty()) {
-					builder.addField(fieldLabel, lu.getText(event, path+".none"), false);
+					builder.addField(fieldLabel, lu.getGuildText(event, path+".none"), false);
 				} else {
 					StringBuilder stringBuilder = new StringBuilder();
 					for (Integer groupId : joinedGroupIds) {

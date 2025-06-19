@@ -79,7 +79,7 @@ public class TicketUtil {
 		final Guild guild = channel.getGuild();
 		final String finalReason = reasonClosed==null ? "-" : (
 			reasonClosed.equals("activity") || reasonClosed.equals("time")
-				? bot.getLocaleUtil().getLocalized(guild.getLocale(), "logger.ticket.autoclosed")
+				? bot.getLocaleUtil().getLocalized(bot.getLocaleUtil().getLocale(guild), "logger.ticket.autoclosed")
 				: reasonClosed
 		);
 
@@ -99,7 +99,7 @@ public class TicketUtil {
 		final Guild guild = channel.getGuild();
 		final String finalReason = reasonClosed==null ? "-" : (
 			reasonClosed.equals("activity") || reasonClosed.equals("time")
-				? bot.getLocaleUtil().getLocalized(guild.getLocale(), "logger.ticket.autoclosed")
+				? bot.getLocaleUtil().getLocalized(App.getInstance().getLocaleUtil().getLocale(guild), "logger.ticket.autoclosed")
 				: reasonClosed
 		);
 
@@ -134,15 +134,15 @@ public class TicketUtil {
 		MessageEmbed embed = new EmbedBuilder().setColor(db.getGuildSettings(event.getGuild()).getColor())
 			.setDescription(message)
 			.build();
-		Button close = Button.danger("ticket:close", bot.getLocaleUtil().getLocalized(event.getGuildLocale(), "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled();
-		Button claim = Button.primary("ticket:claim", bot.getLocaleUtil().getLocalized(event.getGuildLocale(), "ticket.claim"));
+		Button close = Button.danger("ticket:close", bot.getLocaleUtil().getText(event, "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled();
+		Button claim = Button.primary("ticket:claim", bot.getLocaleUtil().getText(event, "ticket.claim"));
 		channel.sendMessageEmbeds(embed).setAllowedMentions(Collections.emptyList()).addActionRow(close, claim).queue(msg -> {
 			msg.editMessageComponents(ActionRow.of(close.asEnabled(), claim)).queueAfter(15, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
 		});
 
 		// Send reply
 		event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_SUCCESS)
-			.setDescription(bot.getLocaleUtil().getText(event, "bot.ticketing.listener.created").replace("{channel}", channel.getAsMention()))
+			.setDescription(bot.getLocaleUtil().getGuildText(event, "bot.ticketing.listener.created", channel.getAsMention()))
 			.build()
 		).setEphemeral(true).queue();
 		// Log

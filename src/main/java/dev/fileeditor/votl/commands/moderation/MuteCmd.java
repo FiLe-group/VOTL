@@ -97,8 +97,8 @@ public class MuteCmd extends SlashCommand {
 		if (tm.isTimedOut() && oldMuteData != null) {
 			// Case already exists, change duration
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
-				.setDescription(lu.getText(event, path+".already_muted").formatted(oldMuteData.getLocalId()))
-				.addField(lu.getText(event, "logger.moderation.mute.short_title"), lu.getText(event, "logger.moderation.mute.short_info")
+				.setDescription(lu.getGuildText(event, path+".already_muted", oldMuteData.getLocalId()))
+				.addField(lu.getGuildText(event, "logger.moderation.mute.short_title"), lu.getGuildText(event, "logger.moderation.mute.short_info")
 					.replace("{username}", tm.getAsMention())
 					.replace("{until}", TimeUtil.formatTime(tm.getTimeOutEnd(), false))
 					, false)
@@ -182,7 +182,7 @@ public class MuteCmd extends SlashCommand {
 					// Add log url to db
 					bot.getDBUtil().cases.setLogUrl(newMuteData.getRowId(), logUrl);
 					// send embed
-					editEmbed(event, bot.getModerationUtil().actionEmbed(guild.getLocale(), newMuteData.getLocalIdInt(),
+					editEmbed(event, bot.getModerationUtil().actionEmbed(lu.getLocale(event), newMuteData.getLocalIdInt(),
 						path+".success", tm.getUser(), mod.getUser(), reason, duration, logUrl)
 					);
 				});

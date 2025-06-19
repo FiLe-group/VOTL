@@ -88,9 +88,9 @@ public class CommandListener implements dev.fileeditor.votl.base.command.Command
 
 	private MessageEmbed getErrorEmbed(SlashCommandEvent event, Throwable t) {
 		return new EmbedBuilder().setColor(Constants.COLOR_FAILURE)
-			.setTitle(lu.getLocalized(event.getUserLocale(), "errors.title"))
-			.setDescription(lu.getLocalized(event.getUserLocale(), "errors.unknown"))
-			.addField(lu.getLocalized(event.getUserLocale(), "errors.additional"), MessageUtil.limitString(t.getMessage(), 1024), false)
+			.setTitle(lu.getText(event, "errors.title"))
+			.setDescription(lu.getText(event, "errors.unknown"))
+			.addField(lu.getText(event, "errors.additional"), MessageUtil.limitString(t.getMessage(), 1024), false)
 			.build();
 	}
 }

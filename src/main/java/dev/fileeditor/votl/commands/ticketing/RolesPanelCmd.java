@@ -75,9 +75,9 @@ public class RolesPanelCmd extends SlashCommand {
 			List<ActionRow> actionRows = new ArrayList<>();
 
 			if (assignRolesSize > 0) {
-				actionRows.add(ActionRow.of(Button.success("role:start_request", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.button_request"))));
+				actionRows.add(ActionRow.of(Button.success("role:start_request", lu.getGuildText(event, "bot.ticketing.embeds.button_request"))));
 			}
-			actionRows.add(ActionRow.of(Button.danger("role:remove", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.button_remove"))));
+			actionRows.add(ActionRow.of(Button.danger("role:remove", lu.getGuildText(event, "bot.ticketing.embeds.button_remove"))));
 			if (!toggleRoles.isEmpty()) {
 				List<Button> buttons = new ArrayList<>();
 				toggleRoles.forEach(data -> {
@@ -91,14 +91,14 @@ public class RolesPanelCmd extends SlashCommand {
 
 			MessageEmbed embed = new EmbedBuilder()
 				.setColor(bot.getDBUtil().getGuildSettings(guild).getColor())
-				.setTitle(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.role_title"))
-				.setDescription(lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.role_value"))
+				.setTitle(lu.getGuildText(event, "bot.ticketing.embeds.role_title"))
+				.setDescription(lu.getGuildText(event, "bot.ticketing.embeds.role_value"))
 				.setFooter(guild.getName(), guild.getIconUrl())
 				.build();
 
 			channel.sendMessageEmbeds(embed).addComponents(actionRows).queue(done -> {
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
+					.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 					.build()
 				);
 			});
@@ -148,9 +148,9 @@ public class RolesPanelCmd extends SlashCommand {
 					List<ActionRow> actionRows = new ArrayList<>();
 
 					if (assignRolesSize > 0) {
-						actionRows.add(ActionRow.of(Button.success("role:start_request", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.button_request"))));
+						actionRows.add(ActionRow.of(Button.success("role:start_request", lu.getGuildText(event, "bot.ticketing.embeds.button_request"))));
 					}
-					actionRows.add(ActionRow.of(Button.danger("role:remove", lu.getLocalized(event.getGuildLocale(), "bot.ticketing.embeds.button_remove"))));
+					actionRows.add(ActionRow.of(Button.danger("role:remove", lu.getGuildText(event, "bot.ticketing.embeds.button_remove"))));
 					if (!toggleRoles.isEmpty()) {
 						List<Button> buttons = new ArrayList<>();
 						toggleRoles.forEach(data -> {
@@ -164,7 +164,7 @@ public class RolesPanelCmd extends SlashCommand {
 
 					message.editMessageComponents(actionRows).queue(done -> {
 						editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-							.setDescription(lu.getText(event, path+".done").formatted(done.getJumpUrl()))
+							.setDescription(lu.getGuildText(event, path+".done", done.getJumpUrl()))
 							.build()
 						);
 					}, failure -> {
@@ -199,7 +199,7 @@ public class RolesPanelCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(row.toString(), text))
+				.setDescription(lu.getGuildText(event, path+".done", row, text))
 				.build());
 		}
 	}

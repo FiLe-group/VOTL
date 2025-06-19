@@ -68,7 +68,7 @@ public class UserProfileCmd extends SlashCommand {
 		long userId = target.getIdLong();
 
 		UserProfileRender render = new UserProfileRender(target)
-			.setLocale(bot.getLocaleUtil(), event.getUserLocale())
+			.setLocale(lu, lu.getLocale(event))
 			.setBackground(background);
 
 		// Experience

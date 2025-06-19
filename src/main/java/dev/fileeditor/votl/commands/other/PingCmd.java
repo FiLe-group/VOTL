@@ -16,14 +16,10 @@ public class PingCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		editMsg(event, lu.getText(event, path+".loading"));
+		editMsg(event, lu.getGuildText(event, path+".loading"));
 
 		event.getJDA().getRestPing().queue(time -> {
-			editMsg(event,
-				lu.getText(event, "bot.other.ping.info_full")
-					.replace("{websocket}", event.getJDA().getGatewayPing()+"")
-					.replace("{rest}", time+"")
-			);
+			editMsg(event, lu.getGuildText(event, "bot.other.ping.info_full", event.getJDA().getGatewayPing(), time));
 		});	
 	}
 

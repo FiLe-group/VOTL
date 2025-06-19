@@ -66,7 +66,7 @@ public class GameCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention(), maxStrikes))
+				.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention(), maxStrikes))
 				.build());
 		}
 	}
@@ -97,7 +97,7 @@ public class GameCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 				.build());
 		}
 	}
@@ -114,7 +114,7 @@ public class GameCmd extends SlashCommand {
 			List<Long> channels = bot.getDBUtil().games.getChannels(event.getGuild().getIdLong());
 			if (channels.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
-					.setDescription(lu.getText(event, path+".none"))
+					.setDescription(lu.getGuildText(event, path+".none"))
 					.build()
 				);
 				return;
@@ -126,7 +126,7 @@ public class GameCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setTitle(lu.getText(event, path+".embed_title"))
+				.setTitle(lu.getGuildText(event, path+".embed_title"))
 				.setDescription(builder.toString())
 				.build()
 			);
@@ -165,7 +165,7 @@ public class GameCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(user.getAsMention(), channel.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", user.getAsMention(), channel.getAsMention()))
 				.build());
 		}
 	}

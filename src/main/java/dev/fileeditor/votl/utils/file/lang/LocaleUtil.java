@@ -4,15 +4,13 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.Emote;
 
 import dev.fileeditor.votl.utils.message.MessageUtil;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class LocaleUtil {
@@ -96,17 +94,18 @@ public class LocaleUtil {
 	}
 
 	@NotNull
-	public String getUserText(@NotNull IReplyCallback replyCallback, @NotNull String path) {
-		return getLocalized(replyCallback.getUserLocale(), path);
+	public String getText(@NotNull IReplyCallback replyCallback, @NotNull String path, @Nullable Object... args) {
+		return new Formatter().format(getLocalized(getLocale(replyCallback), path), args).toString();
 	}
 
 	@NotNull
 	public String getGuildText(IReplyCallback replyCallback, @NotNull String path) {
-		DiscordLocale locale = App.getInstance().getDBUtil().getGuildSettings(replyCallback.getGuild()).getLocale();
-		if (locale == DiscordLocale.UNKNOWN)
-			locale = replyCallback.getGuildLocale();
+		return getLocalized(getLocale(replyCallback.getGuild()), path);
+	}
 
-		return getLocalized(locale, path);
+	@NotNull
+	public String getGuildText(IReplyCallback replyCallback, @NotNull String path, @Nullable Object... args) {
+		return new Formatter().format(getLocalized(getLocale(replyCallback.getGuild()), path), args).toString();
 	}
 
 
@@ -127,14 +126,19 @@ public class LocaleUtil {
 	@NotNull
 	public DiscordLocale getLocale(IReplyCallback replyCallback) {
 		if (replyCallback.isFromGuild()) {
-			DiscordLocale locale = App.getInstance().getDBUtil().getGuildSettings(replyCallback.getGuild()).getLocale();
-			if (locale == DiscordLocale.UNKNOWN) {
-				return replyCallback.getGuildLocale();
-			} else {
-				return locale;
-			}
+			return getLocale(replyCallback.getGuild());
 		} else {
 			return replyCallback.getUserLocale();
+		}
+	}
+
+	@NotNull
+	public DiscordLocale getLocale(Guild guild) {
+		DiscordLocale locale = App.getInstance().getDBUtil().getGuildSettings(guild).getLocale();
+		if (locale == DiscordLocale.UNKNOWN) {
+			return guild.getLocale();
+		} else {
+			return locale;
 		}
 	}
 

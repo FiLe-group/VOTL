@@ -22,7 +22,6 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
@@ -58,12 +57,11 @@ public class WebhookCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = Objects.requireNonNull(event.getGuild());
-			DiscordLocale userLocale = event.getUserLocale();
 
 			boolean listAll = event.optBoolean("all", false);
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getLocalized(userLocale, path+".embed.title"));
+				.setTitle(lu.getGuildText(event, path+".embed.title"));
 			
 			// Retrieves every webhook in server
 			guild.retrieveWebhooks().queue(webhooks -> {
@@ -80,10 +78,10 @@ public class WebhookCmd extends SlashCommand {
 
 				if (webhooks.isEmpty()) {
 					embedBuilder.setDescription(
-						lu.getLocalized(userLocale, (listAll ? path+".embed.none_found" : path+".embed.none_registered"))
+						lu.getGuildText(event, (listAll ? path+".embed.none_found" : path+".embed.none_registered"))
 					);
 				} else {
-					String title = lu.getLocalized(userLocale, path+".embed.value");
+					String title = lu.getGuildText(event, path+".embed.value");
 					StringBuilder text = new StringBuilder();
 					for (Webhook wh : webhooks) {
 						if (text.length() > 790) { // max characters for field value = 1024, and max for each line = ~226, so at least 4.5 lines fits in one field
@@ -141,7 +139,7 @@ public class WebhookCmd extends SlashCommand {
 							return;
 						}
 						editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-							.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
+							.setDescription(lu.getGuildText(event, path+".done", webhook.getName()))
 							.build()
 						);
 					}
@@ -185,7 +183,7 @@ public class WebhookCmd extends SlashCommand {
 								return;
 							}
 							editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-								.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
+								.setDescription(lu.getGuildText(event, path+".done", webhook.getName()))
 								.build()
 							);
 						}
@@ -230,7 +228,7 @@ public class WebhookCmd extends SlashCommand {
 									return;
 								}
 								editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-									.setDescription(lu.getText(event, path+".done").replace("{webhook_name}", webhook.getName()))
+									.setDescription(lu.getGuildText(event, path+".done", webhook.getName()))
 									.build()
 								);
 							} else {
@@ -288,10 +286,9 @@ public class WebhookCmd extends SlashCommand {
 						webhook.getManager().setChannel(textChannel).reason("By "+event.getUser().getName()).queue(
 							wm -> {
 								editEmbed(event,bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-									.setDescription(lu.getText(event, path+".done")
-										.replace("{webhook_name}", webhook.getName())
-										.replace("{channel}", channel.getName())
-									)
+									.setDescription(lu.getGuildText(event, path+".done",
+										webhook.getName(), channel.getAsMention()
+									))
 									.build()
 								);
 							},
@@ -334,10 +331,9 @@ public class WebhookCmd extends SlashCommand {
 						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).reason("By "+event.getUser().getName()).queue(
 							wm -> {
 								editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-									.setDescription(lu.getText(event, path+".done")
-										.replace("{webhook_name}", webhook.getName())
-										.replace("{channel}", channel.getName())
-									)
+									.setDescription(lu.getGuildText(event, path+".done",
+										webhook.getName(), channel.getAsMention()
+									))
 									.build()
 								);
 							},

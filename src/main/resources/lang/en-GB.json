@@ -10,10 +10,10 @@
 		"database": "{EMOTE_WARNING_C} Database error, changes were not recorded or only partially.",
 		"db_limit": "{EMOTE_WARNING_C} Limit reached, no more objects can be added/created.",
 		"missing_perms": {
-			"self": "I lack the permission `{permission}` for this.",
-			"self_channel": "I lack the permission `{permission}` in the channel {channel} to do this.",
-			"other": "You lack the permission `{permission}` for this command.",
-			"other_channel": "You lack the permission `{permission}` in the channel {channel} to do this command."
+			"self": "I lack the permission `%s` for this.",
+			"self_channel": "I lack the permission `%s` in the channel %s to do this.",
+			"other": "You lack the permission `%s` for this command.",
+			"other_channel": "You lack the permission `%s` in the channel %s to do this command."
 		},
 		"no_send_perm": "I have no permission to send messages in your channel. Please, fix!",
 		"no_channel": "You don't own/has any voice channel.",
@@ -404,7 +404,7 @@
 					"name": "code",
 					"help": "Enter your code to evaluate, args - bot, event, jda, guild, client, helper"
 				},
-				"time": "Evaluated in {time}ms",
+				"time": "Evaluated in %sms",
 				"input": "Input:",
 				"output": "Output:"
 			},
@@ -457,7 +457,7 @@
 					"help": "Grant the target selected access level"
 				},
 				"no_guild": "Selected server not found.",
-				"done": "Assigned {target} access {level}."
+				"done": "Assigned %s access %s."
 			},
 			"checkaccess": {
 				"help": "Check user's access in selected server",
@@ -567,7 +567,7 @@
 						"help": "Enter color, either hex (1234AC) or RGB (12,34,250)"
 					},
 					"no_color": "Incorrect color string provided, check `/help`",
-					"done": "Embed color updated to `{color}`"
+					"done": "Embed color updated to `%s`"
 				},
 				"appeal": {
 					"help": "Set appeal link, that will be send to users before getting banned/kicked",
@@ -577,7 +577,7 @@
 						"help": "Enter appeal URL link"
 					},
 					"not_valid": "Provided URL link is not valid.",
-					"done": "Appeal link set to `{link}`"
+					"done": "Appeal link set to `%s`"
 				},
 				"report": {
 					"help": "Assign channel for receiving user reports/complains",
@@ -597,7 +597,7 @@
 						"usage": "voice create",
 						"category_name": "Voice Channels",
 						"channel_name": "★ Join to create",
-						"done": "Successfully created channel {channel}!"
+						"done": "Successfully created channel %s!"
 					},
 					"select": {
 						"help": "Select channel to be used for custom vc creation",
@@ -607,7 +607,7 @@
 							"help": "Select voice channel"
 						},
 						"no_category": "Selected voice channel has no category.",
-						"done": "Successfully selected channel {channel}!"
+						"done": "Successfully selected channel %s!"
 					},
 					"panel": {
 						"help": "Create panel for controlling custom VoiceChannels",
@@ -627,8 +627,8 @@
 						"perms": "Permissions",
 						"delete": "Delete channel",
 						"embed_title": "Personal voice channels",
-						"embed_value": "To create your personal voice channel, join <#{id}>.\n\nYou can control your voice channel either by pressing buttons bellow or using my slash commands.",
-						"done": "Panel created in {channel}!"
+						"embed_value": "To create your personal voice channel, join <#%s>.\n\nYou can control your voice channel either by pressing buttons bellow or using my slash commands.",
+						"done": "Panel created in %s!"
 					},
 					"name": {
 						"help": "Sets default name for custom VoiceChannels",
@@ -638,7 +638,7 @@
 							"help": "Enter string 1 <> 100 symbols, supports '{name}'"
 						},
 						"invalid_range": "Channel name must be in range from 1 to 100 symbols and not blank.",
-						"done": "Successfully changed default VoiceChannels name to `{value}`!"
+						"done": "Successfully changed default VoiceChannels name to `%s`!"
 					},
 					"limit": {
 						"help": "Sets default user limit for custom VoiceChannels",
@@ -647,7 +647,7 @@
 							"name": "limit",
 							"help": "Enter integer 0 <> 99"
 						},
-						"done": "Successfully changed default VoiceChannels limit to `{value}`!"
+						"done": "Successfully changed default VoiceChannels limit to `%s`!"
 					}
 				},
 				"strikes": {
@@ -741,7 +741,7 @@
 					"select": "Select module",
 					"none": "__All modules are already disabled!__",
 					"already": "Module already disabled!",
-					"done": "Module {module} successfully disabled."
+					"done": "Module %s successfully disabled."
 				},
 				"enable": {
 					"help": "Enable module",
@@ -751,7 +751,7 @@
 					"select": "Select module",
 					"none": "__All modules are already enabled!__",
 					"already": "Module already enabled!",
-					"done": "Module {module} successfully enabled."
+					"done": "Module %s successfully enabled."
 				}
 			},
 			"access": {
@@ -770,7 +770,7 @@
 							"help": "Grant the role selected access level"
 						},
 						"already": "Role already has some access!",
-						"done": "Successfully assigned {role} access `{level}`!"
+						"done": "Successfully assigned %s access `%s`!"
 					},
 					"operator": {
 						"help": "Add Operator access to user",
@@ -779,7 +779,7 @@
 							"name": "user",
 							"help": "Mention server member"
 						},
-						"done": "Successfully assigned {user} Operator access!"
+						"done": "Successfully assigned %s Operator access!"
 					},
 					"no_role": "Role not found.",
 					"no_member": "Member not found.",
@@ -798,7 +798,7 @@
 							"help": "Mention role"
 						},
 						"no_access": "Selected role lacks any access level.",
-						"done": "Successfully removed from {role} access `{level}`!"
+						"done": "Successfully removed from %s access `%s`!"
 					},
 					"operator": {
 						"help": "Remove Operator access from user",
@@ -808,7 +808,7 @@
 							"help": "Mention user"
 						},
 						"not_operator": "Selected user has no Operator access",
-						"done": "Successfully removed from {user} Operator access!"
+						"done": "Successfully removed from %s Operator access!"
 					},
 					"no_role": "Role not found.",
 					"no_user": "User not found."
@@ -1025,7 +1025,7 @@
 					"reject_done": "Successfully rejected {targets} from connecting to your channel!",
 					"not_self": "You can't add/remove yourself or me.",
 					"perms": {
-						"title": "Channel permissions for `{channel}`",
+						"title": "Channel permissions for %s",
 						"field": "**Can View | Can Join | Holder**",
 						"everyone": "Everyone",
 						"roles": "**Roles:**",
@@ -1125,7 +1125,7 @@
 						"help": "View VC permissions",
 						"usage": "perms view",
 						"embed": {
-							"title": "Channel permissions for `{channel}`",
+							"title": "Channel permissions for `%s`",
 							"field": "**Can View | Can Join | Holder**",
 							"everyone": "Everyone",
 							"roles": "**Roles:**",
@@ -1171,7 +1171,7 @@
 				"error_not_registered": "Selected webhook is not registered.",
 				"error_not_found": "Couldn't find webhook by entered ID.",
 				"error_channel": "Couldn't move webhook to that channel.",
-				"done": "Successfully moved webhook `{webhook_name}` to channel `{channel}`!"
+				"done": "Successfully moved webhook `%s` to channel %s!"
 			},
 			"here": {
 				"help": "Move last used webhook to this channel",
@@ -1180,7 +1180,7 @@
 				"error_not_registered": "Selected webhook is not registered.",
 				"error_not_found": "Couldn't find webhook by entered ID.",
 				"error_channel": "Couldn't move webhook to that channel.",
-				"done": "Successfully moved webhook `{webhook_name}` to channel `{channel}`!"
+				"done": "Successfully moved webhook `%s` to channel %s!"
 			},
 			"add": {
 				"help": "Add webhook to the bot's DB",
@@ -1196,7 +1196,7 @@
 						"help": "Choose channel in which create webhook (default-this channel)"
 					},
 					"invalid_range": "Webhook's name must be in range from 2 to 100 symbols",
-					"done": "Successfully created webhook `{webhook_name}` and registered!"
+					"done": "Successfully created webhook `%s` and registered!"
 				},
 				"select": {
 					"help": "Select existing webhook to be registered",
@@ -1207,7 +1207,7 @@
 					},
 					"error_registered": "Selected webhook is already registered in bot's DB!",
 					"error_not_found": "Couldn't find webhook by entered ID.",
-					"done": "Successfully registered webhook `{webhook_name}`!"
+					"done": "Successfully registered webhook `%s`!"
 				}
 			},
 			"remove": {
@@ -1224,7 +1224,7 @@
 				"error_not_registered": "Selected webhook is not registered.",
 				"error_not_found": "Couldn't find webhook by entered ID.",
 				"error_not_guild": "Selected webhook is not from this server.",
-				"done": "Successfully removed webhook `{webhook_name}`!"
+				"done": "Successfully removed webhook `%s`!"
 			}
 		},
 		"moderation": {
@@ -1819,7 +1819,7 @@
 				"usage": "ping",
 				"loading": "{EMOTE_TYPING} Ping: ...",
 				"info": "{EMOTE_PING} Ping: {ping} ms",
-				"info_full": "{EMOTE_CLOUD} Websocket: {websocket} ms\n{EMOTE_DOWNLOAD} RestAction: {rest} ms"
+				"info_full": "{EMOTE_CLOUD} Websocket: %s ms\n{EMOTE_DOWNLOAD} RestAction: %s ms"
 			},
 			"about": {
 				"help": "Get basic information about the bot",
@@ -1939,7 +1939,7 @@
 					"no_channel": "Provided channel not found or is not of Text type.\nEither lack permission to view it or select another channel.",
 					"no_role": "Verification role is not set!\nUse `/verifyrole`",
 					"continue": "Continue",
-					"done": "Panel created in {channel}!"
+					"done": "Panel created in %s!"
 				},
 				"preview": {
 					"help": "Preview current panel messages",
@@ -2033,13 +2033,13 @@
 				"request_empty": "Can't request any selected role. You may already have those roles.",
 				"remove_title": "Select roles you want to remove.\n*You will not be able to assign some of the removed roles back.*",
 				"remove_failed": "Couldn't complete your role removal request. See message bellow.",
-				"remove_done": "Roles {roles} removed!",
+				"remove_done": "Roles %s removed!",
 				"toggle_failed": "Couldn't add/remove requested role. See message bellow and report it to the server Administration.",
-				"toggle_added": "Successfully assigned {role} to you.",
-				"toggle_removed": "Successfully removed {role} from you.",
-				"ticket_exists": "You already have an opened ticket, please refer to {channel}.",
+				"toggle_added": "Successfully assigned %s to you.",
+				"toggle_removed": "Successfully removed %s from you.",
+				"ticket_exists": "You already have an opened ticket, please refer to %s.",
 				"cant_create": "Failed to crate new ticket. Contact the server Administration.",
-				"created": "Ticket created {channel}.",
+				"created": "Ticket created %s.",
 				"close_failed": "Couldn't close this ticket. Report this to bot developer.",
 				"temp_continue": "**%s** requested role/-s require duration to be set. Continue?",
 				"temp_time": "Enter duration for temporal roles",
@@ -2119,7 +2119,7 @@
 				},
 				"failed_parse": "Failed to parse input date! Use format `day/month/year`.",
 				"wrong_date": "Wrong dates provided (before and after inputs).",
-				"done": "Moderator: {user} ({id})\nAccepted role tickets: `{roles}`\nClaimed tickets: `{other}`"
+				"done": "Moderator: %s (`%s`)\nAccepted role tickets: `%s`\nClaimed tickets: `%s`"
 			},
 			"rolesmanage": {
 				"help": "Manage assignable roles via ticket system",
@@ -2283,7 +2283,7 @@
 						},
 						"not_found": "Panel by the provided ID not found.",
 						"cant_send": "I cant send messages in selected channel! Check my permissions or select other channel.",
-						"done": "Panel created in {channel}!"
+						"done": "Panel created in %s!"
 					},
 					"delete": {
 						"help": "Delete panel",
@@ -2503,7 +2503,7 @@
 				"not_ticket": "This channel is not a ticket.",
 				"not_self": "You can't add yourself, ticket creator or me.",
 				"failed": "Unable to add selected user.",
-				"done": "Added {user} to this ticket."
+				"done": "Added {target} to this ticket."
 			},
 			"remove": {
 				"help": "Remove user from a ticket",
@@ -2515,7 +2515,7 @@
 				"not_ticket": "This channel is not a ticket.",
 				"not_self": "You can't remove yourself, ticket creator or me.",
 				"failed": "Unable to add selected user.",
-				"done": "Removed {user} from this ticket."
+				"done": "Removed {target} from this ticket."
 			}
 		},
 		"roles": {
@@ -2545,7 +2545,7 @@
 					"incorrect_role": "Selected roles can't be added.",
 					"not_whitelisted": "Selected role is not whitelisted! Ask Administrator to add it to the list.",
 					"no_member": "Member not found.",
-					"done": "Added roles {roles} to {user}.",
+					"done": "Added roles %s to %s.",
 					"failed": "Unable to add selected roles to the user."
 				},
 				"remove": {
@@ -2571,7 +2571,7 @@
 					"incorrect_role": "Selected roles can't be removed.",
 					"not_whitelisted": "Selected role is not whitelisted! Ask Administrator to add it to the list.",
 					"no_member": "Member not found.",
-					"done": "Removed roles {roles} from {user}.",
+					"done": "Removed roles %s from %s.",
 					"failed": "Unable to remove selected roles from the user."
 				},
 				"removeall": {
@@ -2586,7 +2586,7 @@
 					"started": "Role removal in progress... {EMOTE_LOADING}",
 					"estimate": "\n*Estimated time for completion `%d` seconds.*",
 					"empty": "No members has this role.",
-					"done": "Removed role `{role}` from {count}/{max} users."
+					"done": "Removed role `%s` from %d/%d users."
 				},
 				"modify": {
 					"help": "Modify user roles",
@@ -2634,7 +2634,7 @@
 					"incorrect_user": "Selected member can't be assigned role.",
 					"already_set": "Member already assigned this role.",
 					"time_limit": "Provided time must be between 10m <-> 400d.",
-					"done": "Temporary assigned user {user} role {role} until {until}."
+					"done": "Temporary assigned user %s role %s until %s."
 				},
 				"cancel": {
 					"help": "Remove temporary role from user",
@@ -2671,7 +2671,7 @@
 					"no_member": "Member not found.",
 					"not_found": "Selected role is not assigned temporary to this user.",
 					"time_limit": "Provided time must be between 10m <-> 400d.",
-					"done": "Extended temporary role {role} assignment for user {user} until {until}."
+					"done": "Extended temporary role %s assignment for user %s until %s."
 				},
 				"view": {
 					"help": "View all temporary assigned roles",
@@ -2871,7 +2871,7 @@
 			"content": "Content",
 			"link": "Open message",
 			"delete": "Delete message",
-			"deleted": "Message deleted by {name}!"
+			"deleted": "Message deleted by %s!"
 		},
 		"modlogs": {
 			"name": "Moderation logs",

@@ -75,8 +75,8 @@ public class ThrottleMiddleware extends Middleware {
 
 	private boolean cancelCommandThrottleRequest(GenericCommandInteractionEvent event, MiddlewareStack stack, ThrottleEntity entity) {
 		return runErrorCheck(event, () -> {
-			String throttleMessage = bot.getLocaleUtil().getText(event, "errors.throttle.command")
-				.formatted(TimeFormat.RELATIVE.format(entity.getTime()));
+			String throttleMessage = bot.getLocaleUtil().getText(event, "errors.throttle.command",
+				TimeFormat.RELATIVE.format(entity.getTime()));
 
 			ThrottleMessage annotation = stack.getInteraction().getClass().getAnnotation(ThrottleMessage.class);
 			if (annotation != null && !annotation.message().trim().isEmpty()) {
@@ -119,8 +119,8 @@ public class ThrottleMiddleware extends Middleware {
 					bot.getEmbedUtil()
 						.getEmbed(Constants.COLOR_WARNING)
 						.setDescription(
-							bot.getLocaleUtil().getText(event, "errors.throttle.pm_user")
-								.formatted(TimeFormat.RELATIVE.format(expiresIn))
+							bot.getLocaleUtil().getText(event, "errors.throttle.pm_user",
+								TimeFormat.RELATIVE.format(expiresIn))
 						)
 						.setTimestamp(Instant.now())
 						.build()
@@ -134,8 +134,8 @@ public class ThrottleMiddleware extends Middleware {
 			bot.getEmbedUtil()
 				.getEmbed(Constants.COLOR_WARNING)
 				.setDescription(
-					bot.getLocaleUtil().getText(event, "errors.throttle.pm_guild")
-						.formatted(TimeFormat.RELATIVE.format(expiresIn))
+					bot.getLocaleUtil().getText(event, "errors.throttle.pm_guild",
+						TimeFormat.RELATIVE.format(expiresIn))
 				)
 				.setTimestamp(Instant.now())
 				.build()

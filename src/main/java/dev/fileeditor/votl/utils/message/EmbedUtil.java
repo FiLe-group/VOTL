@@ -40,7 +40,7 @@ public class EmbedUtil {
 	public EmbedBuilder getEmbed(IReplyCallback replyCallback) {
 		return getEmbed()
 			.setFooter(
-				lu.getText(replyCallback, "embed.footer").formatted(replyCallback.getUser().getName()),
+				lu.getText(replyCallback, "embed.footer", replyCallback.getUser().getName()),
 				replyCallback.getUser().getEffectiveAvatarUrl()
 			);
 	}
@@ -63,21 +63,19 @@ public class EmbedUtil {
 		String msg;
 		if (self) {
 			if (channel == null) {
-				msg = lu.getText(replyCallback, "errors.missing_perms.self")
-					.replace("{permission}", perm.getName());
+				msg = lu.getText(replyCallback, "errors.missing_perms.self",
+					perm.getName());
 			} else {
-				msg = lu.getText(replyCallback, "errors.missing_perms.self_channel")
-					.replace("{permission}", perm.getName())
-					.replace("{channel}", channel.getAsMention());
+				msg = lu.getText(replyCallback, "errors.missing_perms.self_channel",
+					perm.getName(), channel.getAsMention());
 			}
 		} else {
 			if (channel == null) {
-				msg = lu.getText(replyCallback, "errors.missing_perms.other")
-					.replace("{permission}", perm.getName());
+				msg = lu.getText(replyCallback, "errors.missing_perms.other",
+					perm.getName());
 			} else {
-				msg = lu.getText(replyCallback, "errors.missing_perms.other_channel")
-					.replace("{permission}", perm.getName())
-					.replace("{channel}", channel.getAsMention());
+				msg = lu.getText(replyCallback, "errors.missing_perms.other_channel",
+					perm.getName(), channel.getAsMention());
 			}
 		}
 
@@ -116,14 +114,13 @@ public class EmbedUtil {
 		if (self && perm.equals(Permission.MESSAGE_EMBED_LINKS)) {
 			if (channel == null) {
 				mb.setContent(
-					lu.getText(replyCallback, "errors.missing_perms.self")
-						.replace("{permission}", perm.getName())
+					lu.getText(replyCallback, "errors.missing_perms.self",
+						perm.getName())
 				);
 			} else {
 				mb.setContent(
-					lu.getText(replyCallback, "errors.missing_perms.self_channel")
-						.replace("{permission}", perm.getName())
-						.replace("{channel}", channel.getAsMention())
+					lu.getText(replyCallback, "errors.missing_perms.self_channel",
+						perm.getName(), channel.getAsMention())
 				);
 			}
 		} else {

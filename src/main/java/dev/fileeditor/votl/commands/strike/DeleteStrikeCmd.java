@@ -68,7 +68,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 
 		Pair<Integer, String> strikeData = bot.getDBUtil().strikes.getData(event.getGuild().getIdLong(), tu.getIdLong());
 		if (strikeData == null) {
-			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getText(event, path+".no_strikes")).build());
+			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getGuildText(event, path+".no_strikes")).build());
 			return;
 		}
 		String[] cases = strikeData.getRight().split(";");
@@ -86,12 +86,12 @@ public class DeleteStrikeCmd extends SlashCommand {
 			return;
 		}
 		StringSelectMenu caseSelectMenu = StringSelectMenu.create("delete-strike")
-			.setPlaceholder(lu.getText(event, path+".select_strike"))
+			.setPlaceholder(lu.getGuildText(event, path+".select_strike"))
 			.addOptions(options)
 			.build();
 		event.getHook()
 			.editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".select_title").formatted(tu.getName(), strikeData.getLeft()))
+				.setTitle(lu.getGuildText(event, path+".select_title", tu.getName(), strikeData.getLeft()))
 				.setFooter("User ID: "+tu.getId())
 				.build()
 			)
@@ -103,7 +103,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 				60,
 				TimeUnit.SECONDS,
 				() -> msg.editMessageComponents(ActionRow.of(
-					caseSelectMenu.createCopy().setPlaceholder(lu.getText(event, "errors.timed_out")).setDisabled(true).build()
+					caseSelectMenu.createCopy().setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build()
 				)).queue()
 			));
 	}
@@ -155,7 +155,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 				}
 			
 			msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done_one").formatted(caseData.getReason(), tu.getName()))
+				.setDescription(lu.getGuildText(event, path+".done_one", caseData.getReason(), tu.getName()))
 				.build()
 			).setComponents().queue();
 		} else {
@@ -166,7 +166,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 				buttons.add(Button.secondary(caseRowId+"-"+i, getSquares(activeAmount, i, max)));
 			}
 			buttons.add(Button.secondary(caseRowId+"-"+activeAmount,
-				lu.getText(event, path+".button_all")+" "+getSquares(activeAmount, activeAmount, max)));
+				lu.getGuildText(event, path+".button_all")+" "+getSquares(activeAmount, activeAmount, max)));
 
 			// Send dm
 			tu.openPrivateChannel().queue(pm -> {
@@ -178,7 +178,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 			bot.getGuildLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseData.getLocalIdInt(), 1, activeAmount);
 			// Reply
 			msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".button_title"))
+				.setTitle(lu.getGuildText(event, path+".button_title"))
 				.build()
 			).setActionRow(buttons).queue(msgN -> waiter.waitForEvent(
 				ButtonInteractionEvent.class,
@@ -186,7 +186,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 				buttonAction -> buttonPressed(buttonAction, msgN, strikesInfo, tu, activeAmount),
 				30,
 				TimeUnit.SECONDS,
-				() -> msg.editMessageEmbeds(new EmbedBuilder(msgN.getEmbeds().getFirst()).appendDescription("\n\n"+lu.getText(event, "errors.timed_out")).build())
+				() -> msg.editMessageEmbeds(new EmbedBuilder(msgN.getEmbeds().getFirst()).appendDescription("\n\n"+lu.getGuildText(event, "errors.timed_out")).build())
 					.setComponents().queue()
 			));
 		}
@@ -257,7 +257,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 		bot.getGuildLogger().mod.onStrikeDeleted(event.getGuild(), tu, event.getUser(), caseData.getLocalIdInt(), removeAmount, activeAmount);
 		// Reply
 		msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, path+".done").formatted(removeAmount, activeAmount, caseData.getReason(), tu.getName()))
+			.setDescription(lu.getGuildText(event, path+".done", removeAmount, activeAmount, caseData.getReason(), tu.getName()))
 			.build()
 		).setComponents().queue();
 	}

@@ -76,7 +76,7 @@ public class LevelRolesCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(role.getAsMention(), level))
+				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention(), level))
 				.build()
 			);
 		}
@@ -108,7 +108,7 @@ public class LevelRolesCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(level))
+				.setDescription(lu.getGuildText(event, path+".done", level))
 				.build()
 			);
 		}
@@ -151,7 +151,7 @@ public class LevelRolesCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getText(event, path+".title"))
+				.setTitle(lu.getGuildText(event, path+".title"))
 				.setDescription(response.toString())
 				.build()
 			);

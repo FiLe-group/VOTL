@@ -73,7 +73,7 @@ public class LevelExemptCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 				.build()
 			);
 		}
@@ -121,7 +121,7 @@ public class LevelExemptCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done").formatted(channel!=null ? channel.getAsMention() : channelId))
+				.setDescription(lu.getGuildText(event, path+".done", channel!=null ? channel.getAsMention() : channelId))
 				.build()
 			);
 		}
@@ -142,7 +142,7 @@ public class LevelExemptCmd extends SlashCommand {
 				return;
 			}
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
+				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			);
 		}
@@ -161,7 +161,7 @@ public class LevelExemptCmd extends SlashCommand {
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(path+".title"));
 			if (channelIds.isEmpty()) {
-				builder.setDescription(lu.getText(event, path+".empty"));
+				builder.setDescription(lu.getGuildText(event, path+".empty"));
 			} else {
 				channelIds.forEach(id -> builder.appendDescription("<#%s> (%<s)\n".formatted(id)));
 			}

@@ -38,7 +38,7 @@ public class RemoveExpiredCases implements Task {
 					continue;
 				}
 				guild.unban(UserSnowflake.fromId(caseData.getTargetId()))
-					.reason(bot.getLocaleUtil().getLocalized(guild.getLocale(), "misc.ban_expired"))
+					.reason(bot.getLocaleUtil().getLocalized(bot.getLocaleUtil().getLocale(guild), "misc.ban_expired"))
 					.queue(
 						v -> bot.getGuildLogger().mod.onAutoUnban(caseData, guild),
 						f -> LOG.warn("Failed to unban user {}, case '{}'", caseData.getTargetId(), caseData.getRowId(), f)

@@ -55,7 +55,7 @@ public class AddUserCmd extends SlashCommand {
 			// Thread
 			event.getChannel().asThreadChannel().addThreadMember(user).queue(done -> {
 				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done").replace("{user}", user.getAsMention()))
+					.setDescription(lu.getTargetText(event, path+".done", user.getAsMention()))
 					.build()
 				).setAllowedMentions(Collections.emptyList()).queue();
 			},
@@ -66,7 +66,7 @@ public class AddUserCmd extends SlashCommand {
 				event.getChannel().asTextChannel().getManager()
 					.putMemberPermissionOverride(user.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), null)
 					.queue(done -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done").replace("{user}", user.getAsMention()))
+						.setDescription(lu.getTargetText(event, path+".done", user.getAsMention()))
 						.build()
 					).setAllowedMentions(Collections.emptyList()).queue()
 				);

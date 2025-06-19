@@ -60,7 +60,7 @@ public class PurgeCmd extends SlashCommand {
 					bot.getGuildLogger().mod.onMessagePurge(event.getUser(), null, toDelete, event.getGuildChannel());
 					// Reply
 					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getText(event, path+".done").formatted(toDelete))
+						.setDescription(lu.getGuildText(event, path+".done", toDelete))
 						.build()
 					).queue(msg -> msg.delete().queueAfter(4, TimeUnit.SECONDS, null, ignoreRest));
 				}, ignoreRest);
@@ -79,7 +79,7 @@ public class PurgeCmd extends SlashCommand {
 				bot.getGuildLogger().mod.onMessagePurge(event.getUser(), target, toDelete, event.getGuildChannel());
 				// Reply
 				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getText(event, path+".done_user").formatted(toDelete, target.getEffectiveName()))
+					.setDescription(lu.getGuildText(event, path+".done_user", toDelete, target.getEffectiveName()))
 					.build()
 				).queue(msg -> msg.delete().queueAfter(4, TimeUnit.SECONDS, null, ignoreRest));
 			}, ignoreRest);
@@ -88,8 +88,8 @@ public class PurgeCmd extends SlashCommand {
 
 	private void sendNoMessages(SlashCommandEvent event, User target) {
 		String text = target==null ?
-			lu.getText(event, path+".empty") :
-			lu.getText(event, path+".empty_user").formatted(target.getEffectiveName());
+			lu.getGuildText(event, path+".empty") :
+			lu.getGuildText(event, path+".empty_user", target.getEffectiveName());
 
 		event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
 			.setDescription(text)

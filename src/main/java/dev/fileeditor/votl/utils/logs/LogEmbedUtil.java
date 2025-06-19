@@ -1131,12 +1131,12 @@ public class LogEmbedUtil {
 			String key = change.getKey();
 			switch (key) {
 				case "$add" -> {
-					String text = lu.getLocalizedNullable(locale, "logger.keys.add_roles");
+					String text = lu.getLocalized(locale, "logger.keys.add_roles");
 					builder.append("**").append(text).append("**: ").append(formatValue(key, change.getNewValue())).append("\n");
 					continue;
 				}
 				case "$remove" -> {
-					String text = lu.getLocalizedNullable(locale, "logger.keys.remove_roles");
+					String text = lu.getLocalized(locale, "logger.keys.remove_roles");
 					builder.append("**").append(text).append("**: ").append(formatValue(key, change.getNewValue())).append("\n");
 					continue;
 				}

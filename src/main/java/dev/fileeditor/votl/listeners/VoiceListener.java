@@ -121,7 +121,7 @@ public class VoiceListener extends ListenerAdapter {
 	private void handleVoiceCreate(Guild guild, Member member) {
 		if (!member.getVoiceState().inAudioChannel()) return;
 		final long userId = member.getIdLong();
-		final DiscordLocale guildLocale = guild.getLocale();
+		final DiscordLocale guildLocale = App.getInstance().getLocaleUtil().getLocale(guild);
 
 		// Check for existing channel
 		if (db.voice.existsUser(userId)) {

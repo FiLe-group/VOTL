@@ -78,7 +78,7 @@ public class GameStrikeCmd extends SlashCommand {
 			if (lastUpdate != null && lastUpdate.plus(strikeCooldown).isAfter(Instant.now())) {
 				// Cooldown between strikes
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
-					.setDescription(lu.getText(event, path+".cooldown").formatted(TimeFormat.RELATIVE.after(strikeCooldown).toString()))
+					.setDescription(lu.getGuildText(event, path+".cooldown", TimeFormat.RELATIVE.after(strikeCooldown)))
 					.build()
 				);
 				return;
@@ -159,7 +159,7 @@ public class GameStrikeCmd extends SlashCommand {
 
 		// Reply
 		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getText(event, path+".done").formatted(tm.getAsMention(), channel.getAsMention()))
+			.setDescription(lu.getGuildText(event, path+".done", tm.getAsMention(), channel.getAsMention()))
 			.setFooter("#"+strikeData.getLocalId())
 			.build());
 	}
