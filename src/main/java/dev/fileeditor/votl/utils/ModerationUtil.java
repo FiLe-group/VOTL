@@ -2,6 +2,7 @@ package dev.fileeditor.votl.utils;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -30,7 +31,7 @@ public class ModerationUtil {
 	}
 
 	@Nullable
-	public String getDmText(@NotNull CaseType type, Guild guild, String reason, Duration duration, User mod, boolean canAppeal) {
+	public String getDmText(@NotNull CaseType type, @NotNull Guild guild, @Nullable String reason, @Nullable Duration duration, @Nullable User mod, boolean canAppeal) {
 		final DiscordLocale locale = lu.getLocale(guild);
 		int level;
 		String text;
@@ -38,11 +39,12 @@ public class ModerationUtil {
 			case BAN -> {
 				level = dbUtil.getGuildSettings(guild).getInformBan().getLevel();
 				if (level == 0) return null;
-				if (level >= 2)
+				if (level >= 2) {
+					Objects.requireNonNull(duration);
 					text = duration.isZero() ?
 						lu.getLocalized(locale, "logger_embed.pm.banned_perm") :
 						lu.getLocalized(locale, "logger_embed.pm.banned_temp");
-				else
+				} else
 					text = lu.getLocalized(locale, "logger_embed.pm.banned");
 			}
 			case KICK -> {
@@ -83,7 +85,7 @@ public class ModerationUtil {
 	}
 
 	@Nullable
-	public String getGamestrikeDmText(@NotNull CaseType type, Guild guild, String reason, User mod, GuildChannel targetChannel, int count, int limit) {
+	public String getGamestrikeDmText(@NotNull CaseType type, @NotNull Guild guild, @Nullable String reason, @NotNull User mod, @NotNull GuildChannel targetChannel, int count, int limit) {
 		if (type != CaseType.GAME_STRIKE) return null;
 
 		final DiscordLocale locale = lu.getLocale(guild);
@@ -105,12 +107,12 @@ public class ModerationUtil {
 	}
 
 	@Nullable
-	public MessageEmbed getDramaEmbed(@NotNull CaseType type, Guild guild, Member target, String reason, Duration duration) {
+	public MessageEmbed getDramaEmbed(@NotNull CaseType type, @NotNull Guild guild, @NotNull Member target, @Nullable String reason, @Nullable Duration duration) {
 		return getDramaEmbed(type, guild, target, reason, duration, null);
 	}
 
 	@Nullable
-	public MessageEmbed getDramaEmbed(@NotNull CaseType type, Guild guild, Member target, String reason, Duration duration, GuildChannel targetChannel) {
+	public MessageEmbed getDramaEmbed(@NotNull CaseType type, @NotNull Guild guild, @NotNull Member target, @Nullable String reason, @Nullable Duration duration, @Nullable GuildChannel targetChannel) {
 		final DiscordLocale locale = lu.getLocale(guild);
 		int level;
 		String text;
@@ -125,6 +127,7 @@ public class ModerationUtil {
 			}
 			case GAME_STRIKE -> {
 				level = dbUtil.getGuildSettings(guild).getInformStrike().getLevel();
+				Objects.requireNonNull(targetChannel);
 				text = lu.getLocalized(locale, "logger_embed.drama.gamestrike")
 					.formatted(targetChannel.getName(), targetChannel.getJumpUrl());
 			}
@@ -146,7 +149,7 @@ public class ModerationUtil {
 	}
 
 	@Nullable
-	public MessageEmbed getDelstrikeEmbed(int amount, Guild guild, User mod) {
+	public MessageEmbed getDelstrikeEmbed(int amount, @NotNull Guild guild, @NotNull User mod) {
 		int level = dbUtil.getGuildSettings(guild).getInformDelstrike().getLevel();
 		if (level == 0) return null;
 		String text = lu.getLocalized(lu.getLocale(guild), "logger_embed.pm.delstrike").formatted(amount);
@@ -156,7 +159,7 @@ public class ModerationUtil {
 	}
 
 	@NotNull
-	public MessageEmbed getReasonUpdateEmbed(Guild guild, Instant timestamp, CaseType caseType, String oldReason, String newReason) {
+	public MessageEmbed getReasonUpdateEmbed(@NotNull Guild guild, @NotNull Instant timestamp, @NotNull CaseType caseType, @Nullable String oldReason, @NotNull String newReason) {
 		final DiscordLocale locale = lu.getLocale(guild);
 		if (oldReason == null) oldReason = "-";
 		if (caseType.equals(CaseType.MUTE)) {
@@ -179,7 +182,7 @@ public class ModerationUtil {
 	}
 
 	@NotNull
-	private String formatText(final String text, Guild guild, String reason, Duration duration, User mod) {
+	private String formatText(@NotNull final String text, @NotNull Guild guild, @Nullable String reason, @Nullable Duration duration, @Nullable User mod) {
 		String newText = (duration == null) ? text : text.replace("{time}", TimeUtil.durationToLocalizedString(lu, guild.getLocale(), duration));
 		StringBuilder builder = new StringBuilder(newText.replace("{guild}", guild.getName()));
 		if (reason != null) builder.append("\n> ").append(reason);
@@ -187,14 +190,16 @@ public class ModerationUtil {
 		return builder.toString();
 	}
 
-	public MessageEmbed actionEmbed(DiscordLocale locale, int localCaseId, String actionPath, User target, User mod, String reason, String logUrl) {
+	@NotNull
+	public MessageEmbed actionEmbed(@NotNull DiscordLocale locale, int localCaseId, @NotNull String actionPath, @NotNull User target, @NotNull User mod, @NotNull String reason, @NotNull String logUrl) {
 		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
 			.setDescription(lu.getLocalized(locale, actionPath))
 			.addLink(logUrl)
 			.build();
 	}
 
-	public MessageEmbed actionEmbed(DiscordLocale locale, int localCaseId, String actionPath, User target, User mod, String reason, Duration duration, String logUrl) {
+	@NotNull
+	public MessageEmbed actionEmbed(@NotNull DiscordLocale locale, int localCaseId, @NotNull String actionPath, @NotNull User target, @NotNull User mod, String reason, @NotNull Duration duration, @NotNull String logUrl) {
 		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
 			.setDescription(lu.getLocalized(locale, actionPath)
 				.formatted(TimeUtil.formatDuration(lu, locale, Instant.now(), duration)))
@@ -202,7 +207,8 @@ public class ModerationUtil {
 			.build();
 	}
 
-	public EmbedBuilder actionEmbed(DiscordLocale locale, int localCaseId, String actionPath, String typePath, User target, User mod, String reason, String logUrl) {
+	@NotNull
+	public EmbedBuilder actionEmbed(@NotNull DiscordLocale locale, int localCaseId, @NotNull String actionPath, @NotNull String typePath, @NotNull User target, @NotNull User mod, @NotNull String reason, @NotNull String logUrl) {
 		return new ActionEmbedBuilder(locale, localCaseId, target, mod, reason)
 			.setDescription(lu.getLocalized(locale, actionPath)
 				.formatted(lu.getLocalized(locale, typePath)))
@@ -214,7 +220,7 @@ public class ModerationUtil {
 		private final DiscordLocale locale;
 		private final EmbedBuilder embedBuilder = new EmbedBuilder();
 
-		public ActionEmbedBuilder(DiscordLocale locale, int caseLocalId, User target, User mod, String reason) {
+		public ActionEmbedBuilder(@NotNull DiscordLocale locale, int caseLocalId, @NotNull User target, @NotNull User mod, @NotNull String reason) {
 			embedBuilder.setColor(Constants.COLOR_SUCCESS)
 				.addField(lu.getLocalized(locale, "logger.user"), "%s (%s)".formatted(target.getName(), target.getAsMention()), true)
 				.addField(lu.getLocalized(locale, "logger.reason"), reason, true)
@@ -224,28 +230,32 @@ public class ModerationUtil {
 			this.locale = locale;
 		}
 
-		public ActionEmbedBuilder setDescription(String text) {
+		@NotNull
+		public ActionEmbedBuilder setDescription(@NotNull String text) {
 			embedBuilder.setDescription(text);
 			return this;
 		}
 
-		public ActionEmbedBuilder addLink(String logUrl) {
-			if (logUrl!=null)
+		@NotNull
+		public ActionEmbedBuilder addLink(@Nullable String logUrl) {
+			if (logUrl != null)
 				embedBuilder.appendDescription(lu.getLocalized(locale, "logger.moderation.log_url").formatted(logUrl));
 			return this;
 		}
 
+		@NotNull
 		public EmbedBuilder getBuilder() {
 			return embedBuilder;
 		}
 
+		@NotNull
 		public MessageEmbed build() {
 			return embedBuilder.build();
 		}
 	}
 
 	@NotNull
-	public <T extends SlashCommand> String parseReasonMentions(SlashCommandEvent event, T command) {
+	public <T extends SlashCommand> String parseReasonMentions(@NotNull SlashCommandEvent event, @NotNull T command) {
 		OptionMapping option = event.getOption("reason");
 		if (option == null) {
 			return lu.getText(event, command.getPath()+".no_reason");

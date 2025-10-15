@@ -3,11 +3,16 @@ package dev.fileeditor.votl.utils;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.utils.exception.AttachmentParseException;
 import net.dv8tion.jda.api.entities.Message;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CaseProofUtil {
+
 	private static final int MAX_FILE_SIZE = 4; // MiB
 	private static final double BYTES_TO_MIB = 1_048_576; // Bytes = 1 MiB
-	public static ProofData getData(SlashCommandEvent event) throws AttachmentParseException {
+
+	@Nullable
+	public static ProofData getData(@NotNull SlashCommandEvent event) throws AttachmentParseException {
 		// Get image
 		Message.Attachment proof = event.optAttachment("proof");
 		if (proof != null) {
@@ -25,13 +30,16 @@ public class CaseProofUtil {
 			return null;
 		}
 	}
+
 	public static class ProofData {
 		public final String proxyUrl, extension;
 		public String fileName;
-		public ProofData(Message.Attachment proof) {
+
+		public ProofData(@NotNull Message.Attachment proof) {
 			this.proxyUrl = proof.getProxyUrl();
 			this.extension = proof.getFileExtension();
 		}
+
 		/**
 		 * @param caseRowId Case rowId
 		 * @return fileName like proof_CASEID.png
@@ -41,4 +49,5 @@ public class CaseProofUtil {
 			return fileName;
 		}
 	}
+
 }

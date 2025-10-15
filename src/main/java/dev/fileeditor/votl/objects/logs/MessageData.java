@@ -63,8 +63,8 @@ public class MessageData {
 			.inlineDiffByWord(true)
 			.ignoreWhiteSpaces(true)
 			.lineNormalizer(f -> f)
-			.newTag(f -> "")
-			.oldTag(f -> "")
+			.newTag(_ -> "")
+			.oldTag(_ -> "")
 			.build();
 		List<DiffRow> rows = generator.generateDiffRows(
 			List.of(oldContent.split("\\n")),

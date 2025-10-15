@@ -29,15 +29,16 @@ public class CheckUtil {
 		this.ownerId = ownerId;
 	}
 
-	public boolean isDeveloper(UserSnowflake user) {
+	public boolean isDeveloper(@NotNull UserSnowflake user) {
 		return user.getIdLong() == Constants.DEVELOPER_ID;
 	}
 
-	public boolean isBotOwner(UserSnowflake user) {
+	public boolean isBotOwner(@NotNull UserSnowflake user) {
 		return user.getIdLong() == ownerId;
 	}
 
-	public CmdAccessLevel getAccessLevel(Member member) {
+	@NotNull
+	public CmdAccessLevel getAccessLevel(@NotNull Member member) {
 		// Is bot developer
 		if (isDeveloper(member) || isBotOwner(member))
 			return CmdAccessLevel.DEV;
@@ -66,7 +67,7 @@ public class CheckUtil {
 			.orElse(CmdAccessLevel.ALL);
 	}
 
-	public boolean isOperatorPlus(Guild guild, UserSnowflake user) {
+	public boolean isOperatorPlus(@NotNull Guild guild, @NotNull UserSnowflake user) {
 		// Is bot developer
 		if (isDeveloper(user) || isBotOwner(user))
 			return true;
@@ -79,16 +80,17 @@ public class CheckUtil {
 		return bot.getDBUtil().access.isOperator(guild.getIdLong(), user.getIdLong());
 	}
 
-	public boolean hasHigherAccess(Member who, Member than) {
+	public boolean hasHigherAccess(@NotNull Member who, @NotNull Member than) {
 		return getAccessLevel(who).isHigherThan(getAccessLevel(than));
 	}
 
-	public boolean hasAccess(Member member, CmdAccessLevel accessLevel) {
+	public boolean hasAccess(@NotNull Member member, @NotNull CmdAccessLevel accessLevel) {
 		if (accessLevel.equals(CmdAccessLevel.ALL)) return true;
 		return getAccessLevel(member).satisfies(accessLevel);
 	}
 
-	public CheckUtil moduleEnabled(IReplyCallback replyCallback, Guild guild, CmdModule module) throws CheckException {
+	@NotNull
+	public CheckUtil moduleEnabled(@NotNull IReplyCallback replyCallback, @NotNull Guild guild, @Nullable CmdModule module) throws CheckException {
 		if (module == null)
 			return this;
 		if (bot.getDBUtil().getGuildSettings(guild).isDisabled(module)) 
@@ -96,22 +98,27 @@ public class CheckUtil {
 		return this;
 	}
 
-	public CheckUtil hasPermissions(IReplyCallback replyCallback, Permission[] permissions) throws CheckException {
+	@NotNull
+	public CheckUtil hasPermissions(@NotNull IReplyCallback replyCallback, @NotNull Permission[] permissions) throws CheckException {
 		return hasPermissions(replyCallback, permissions, null, null, true);
 	}
 
-	public CheckUtil hasPermissions(IReplyCallback replyCallback, Permission[] permissions, @NotNull Member member) throws CheckException {
+	@NotNull
+	public CheckUtil hasPermissions(@NotNull IReplyCallback replyCallback, @NotNull Permission[] permissions, @NotNull Member member) throws CheckException {
 		return hasPermissions(replyCallback, permissions, null, member, false);
 	}
 
-	public CheckUtil hasPermissions(IReplyCallback replyCallback, Permission[] permissions, GuildChannel channel) throws CheckException {
+	@NotNull
+	public CheckUtil hasPermissions(@NotNull IReplyCallback replyCallback, @NotNull Permission[] permissions, @NotNull GuildChannel channel) throws CheckException {
 		return hasPermissions(replyCallback, permissions, channel, null, true);
 	}
 
-	public CheckUtil hasPermissions(IReplyCallback replyCallback, Permission[] permissions, GuildChannel channel, Member member) throws CheckException {
+	@NotNull
+	public CheckUtil hasPermissions(@NotNull IReplyCallback replyCallback, @NotNull Permission[] permissions, @NotNull GuildChannel channel, @NotNull Member member) throws CheckException {
 		return hasPermissions(replyCallback, permissions, channel, member, false);
 	}
 
+	@NotNull
 	public CheckUtil hasPermissions(@NotNull IReplyCallback replyCallback, @Nullable Permission[] permissions, @Nullable GuildChannel channel, @Nullable Member member, boolean isSelf) throws CheckException {
 		if (permissions == null || permissions.length == 0)
 			return this;

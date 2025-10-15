@@ -3,6 +3,7 @@ package dev.fileeditor.votl.utils;
 import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.contracts.reflection.Reflectional;
+import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +16,11 @@ public class AutoloaderUtil {
 
 	private final static Logger LOG = (Logger) LoggerFactory.getLogger(AutoloaderUtil.class);
 
-	public static void load(String path, Consumer<Reflectional> callback) {
+	public static void load(@NotNull String path, @NotNull Consumer<Reflectional> callback) {
 		load(path, callback, true);
 	}
 
-	public static void load(String path, Consumer<Reflectional> callback, boolean parseAppInstance) {
+	public static void load(@NotNull String path, Consumer<Reflectional> callback, boolean parseAppInstance) {
 		Set<Class<? extends Reflectional>> types = new Reflections(path).getSubTypesOf(Reflectional.class);
 
 		for (Class<? extends Reflectional> reflectionClass : types) {
@@ -43,11 +44,11 @@ public class AutoloaderUtil {
 					Class[] arguments = new Class[1];
 					arguments[0] = App.class;
 
-					callback.accept(reflectionClass.getDeclaredConstructor(arguments).newInstance(
-						App.getInstance()
-					));
+					callback.accept(reflectionClass.getDeclaredConstructor(arguments)
+						.newInstance(App.getInstance()));
 				} else {
-					callback.accept(reflectionClass.getDeclaredConstructor().newInstance());
+					callback.accept(reflectionClass.getDeclaredConstructor()
+						.newInstance());
 				}
 			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 				LOG.error("Failed to create new instance of {}", reflectionClass.getName(), e);

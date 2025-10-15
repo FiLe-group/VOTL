@@ -319,7 +319,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 			// Upsert the commands + their privileges
 			server.updateCommands().addCommands(data)
 				.queue(
-					done -> LOG.debug("Successfully added {} slash commands and {} menus to server {}", slashCommands.size(), contextMenus.size(), server.getName()),
+					_ -> LOG.debug("Successfully added {} slash commands and {} menus to server {}", slashCommands.size(), contextMenus.size(), server.getName()),
 					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?", error)
 				);
 		}
@@ -364,7 +364,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 			// Upsert the commands + their privileges
 			guild.updateCommands().addCommands(dataDev)
 				.queue(
-					done -> LOG.debug("Successfully added {} slash commands to server {}", dataDev.size(), guild.getName()),
+					_ -> LOG.debug("Successfully added {} slash commands to server {}", dataDev.size(), guild.getName()),
 					error -> LOG.error("Could not upsert commands! Does the bot have the applications.commands scope?", error)
 				);
 		}

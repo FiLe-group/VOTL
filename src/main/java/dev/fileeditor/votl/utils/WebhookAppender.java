@@ -58,7 +58,7 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 		lastSend = event.getTimeStamp();
 	}
 
-	private void send(String message) {
+	private void send(@NotNull String message) {
 		// Replace json variables
 		String json = "{\"embeds\": [{\"color\": 16711680, \"description\": {message}}]}";
 		String payload = json.replace("{message}", JSONObject.quote(message));
@@ -95,7 +95,7 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 		return url;
 	}
 
-	public void setUrl(String url) {
+	public void setUrl(@NotNull String url) {
 		this.url = url;
 	}
 

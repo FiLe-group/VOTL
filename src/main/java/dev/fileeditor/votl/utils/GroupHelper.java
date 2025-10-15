@@ -27,7 +27,7 @@ public class GroupHelper {
 		this.db = bot.getDBUtil();
 	}
 
-	private void banUser(int groupId, Guild executedGuild, User target, String reason, String modName) {
+	private void banUser(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull String modName) {
 		final List<Long> guildIds = new ArrayList<>();
 		for (long guildId : db.group.getGroupManagers(groupId)) {
 			for (int subGroupId : db.group.getOwnedGroups(guildId)) {
@@ -50,17 +50,17 @@ public class GroupHelper {
 		}
 
 		CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
-			.whenComplete((done, exception) -> {
+			.whenComplete((_, _) -> {
 				int banned = 0;
 				for (CompletableFuture<Void> future : completableFutures) {
 					if (!future.isCompletedExceptionally()) banned++;
 				}
 				// Log in server where 
-				logger.mod.onHelperSyncBan(groupId, executedGuild, target, reason, banned, maxCount);
+				logger.mod.onHelperSyncBan(groupId, master, target, reason, banned, maxCount);
 			});
 	}
 
-	private void unbanUser(int groupId, Guild master, User target, String reason, String modName) {
+	private void unbanUser(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull String modName) {
 		final List<Long> guildIds = new ArrayList<>();
 		for (long guildId : db.group.getGroupManagers(groupId)) {
 			for (int subGroupId : db.group.getOwnedGroups(guildId)) {
@@ -83,7 +83,7 @@ public class GroupHelper {
 		}
 
 		CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
-			.whenComplete((done, exception) -> {
+			.whenComplete((_, _) -> {
 				int unbanned = 0;
 				for (CompletableFuture<Void> future : completableFutures) {
 					if (!future.isCompletedExceptionally()) unbanned++;
@@ -92,7 +92,7 @@ public class GroupHelper {
 			});
 	}
 
-	private void kickUser(int groupId, Guild master, User target, String reason, String modName) {
+	private void kickUser(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull String modName) {
 		final List<Long> guildIds = new ArrayList<>();
 		for (long guildId : db.group.getGroupManagers(groupId)) {
 			for (int subGroupId : db.group.getOwnedGroups(guildId)) {
@@ -113,7 +113,7 @@ public class GroupHelper {
 		}
 
 		CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
-			.whenComplete((done, exception) -> {
+			.whenComplete((_, _) -> {
 				int kicked = 0;
 				for (CompletableFuture<Void> future : completableFutures) {
 					if (!future.isCompletedExceptionally()) kicked++;
@@ -122,21 +122,15 @@ public class GroupHelper {
 			});
 	}
 
-	public void runBan(int groupId, Guild executedGuild, User user, @NotNull String reason, User mod) {
-		CompletableFuture.runAsync(() -> {
-			banUser(groupId, executedGuild, user, reason, mod.getName());
-		});
+	public void runBan(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull User mod) {
+		CompletableFuture.runAsync(() -> banUser(groupId, master, target, reason, mod.getName()));
 	}
 
-	public void runUnban(int groupId, Guild master, User user, @NotNull String reason, User mod) {
-		CompletableFuture.runAsync(() -> {
-			unbanUser(groupId, master, user, reason, mod.getName());
-		});
+	public void runUnban(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull User mod) {
+		CompletableFuture.runAsync(() -> unbanUser(groupId, master, target, reason, mod.getName()));
 	}
 
-	public void runKick(int groupId, Guild master, User user, @NotNull String reason, User mod) {
-		CompletableFuture.runAsync(() -> {
-			kickUser(groupId, master, user, reason, mod.getName());
-		});
+	public void runKick(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull User mod) {
+		CompletableFuture.runAsync(() -> kickUser(groupId, master, target, reason, mod.getName()));
 	}
 }

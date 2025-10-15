@@ -124,7 +124,7 @@ public class LocaleUtil {
 
 
 	@NotNull
-	public DiscordLocale getLocale(IReplyCallback replyCallback) {
+	public DiscordLocale getLocale(@NotNull IReplyCallback replyCallback) {
 		if (replyCallback.isFromGuild()) {
 			return getLocale(replyCallback.getGuild());
 		} else {
@@ -133,7 +133,8 @@ public class LocaleUtil {
 	}
 
 	@NotNull
-	public DiscordLocale getLocale(Guild guild) {
+	public DiscordLocale getLocale(@Nullable Guild guild) {
+		if (guild == null) return DEFAULT_LOCALE;
 		DiscordLocale locale = App.getInstance().getDBUtil().getGuildSettings(guild).getLocale();
 		if (locale == DiscordLocale.UNKNOWN) {
 			return guild.getLocale();
