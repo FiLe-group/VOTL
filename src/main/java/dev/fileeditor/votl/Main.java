@@ -3,12 +3,16 @@ package dev.fileeditor.votl;
 import ch.qos.logback.classic.ClassicConstants;
 import dev.fileeditor.votl.objects.ExitCodes;
 import dev.fileeditor.votl.utils.ConsoleColor;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.help.*;
 
 import java.io.IOException;
 
 public class Main {
-	public static void main(String[] args) throws IOException {
+	void main(String[] args) throws IOException {
 		Options options = new Options()
 			.addOption("h", "help", false, "Displays this help menu.")
 			.addOption("v", "version", false, "Displays the current version of the application.")
@@ -18,7 +22,7 @@ public class Main {
 			.addOption("d", "debug", false, "Enables debugging mode, this will log extra information to the terminal.");
 
 		DefaultParser parser = new DefaultParser();
-		HelpFormatter formatter = new HelpFormatter();
+		HelpFormatter formatter = HelpFormatter.builder().get();
 
 		try {
 			CommandLine cmd = parser.parse(options, args);
@@ -34,7 +38,7 @@ public class Main {
 			}
 
 			if (cmd.hasOption("help")) {
-				formatter.printHelp("Help menu", options);
+				formatter.printHelp("java --jar VOTL.jar", "Help menu", options, null, true);
 				System.exit(ExitCodes.NORMAL.code);
 			} else if (cmd.hasOption("version")) {
 				System.out.println(AppInfo.getVersionInfo());
@@ -44,7 +48,7 @@ public class Main {
 			App.instance = new App(settings);
 		} catch (ParseException e) {
 			System.err.println(e.getMessage());
-			formatter.printHelp("", options);
+			formatter.printHelp("java --jar VOTL.jar", null, options, null, true);
 
 			System.exit(ExitCodes.NORMAL.code);
 		}

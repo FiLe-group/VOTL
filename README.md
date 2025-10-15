@@ -16,7 +16,7 @@ Visit https://votl.fileeditor.dev/ to learn more about available commands and to
 - [Suggest changes to the documentation](https://github.com/FileEditor97/VOTL-docs)
 
 ## Installation
-Requirements: Java JDK/JRE 21
+Requirements: Java JDK/JRE 25
 #### From source:
 1. `git clone https://github.com/FiLe-group/VOTL.git`
 2. `cd VOTL`
