@@ -30,6 +30,7 @@ public class AutopunishManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 
+	@Nullable
 	public Pair<Integer, String> getAction(long guildId, int atStrikeCount) {
 		Map<String, Object> data = selectOne("SELECT actions, data FROM %s WHERE (guildId=%d AND strike=%d) ORDER BY strike DESC"
 			.formatted(table, guildId, atStrikeCount), Set.of("actions", "data"));
@@ -37,6 +38,7 @@ public class AutopunishManager extends LiteBase {
 		return Pair.of((Integer) data.get("actions"), (String) data.getOrDefault("data", ""));
 	}
 
+	@Nullable
 	public Pair<Integer, String> getTopAction(long guildId, int minStrikeCount) {
 		Map<String, Object> data = selectOne("SELECT actions, data FROM %s WHERE (guildId=%d AND strike<=%d) ORDER BY strike DESC"
 			.formatted(table, guildId, minStrikeCount), Set.of("actions", "data"));

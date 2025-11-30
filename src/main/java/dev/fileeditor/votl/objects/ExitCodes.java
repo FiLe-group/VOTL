@@ -6,10 +6,10 @@ public enum ExitCodes {
 	RESTART(10),
 	UPDATE(11);
 
-	public final int code;
+	public final int v;
 
 	ExitCodes(int i) {
-		this.code = i;
+		this.v = i;
 	}
 
 	public static ExitCodes fromInt(int i) {

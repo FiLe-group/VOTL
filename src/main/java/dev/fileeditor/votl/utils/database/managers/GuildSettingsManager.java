@@ -30,6 +30,7 @@ public class GuildSettingsManager extends LiteBase {
 	);
 
 	// Cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, GuildSettings> cache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();

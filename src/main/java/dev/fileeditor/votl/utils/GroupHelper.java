@@ -133,4 +133,5 @@ public class GroupHelper {
 	public void runKick(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull User mod) {
 		CompletableFuture.runAsync(() -> kickUser(groupId, master, target, reason, mod.getName()));
 	}
+	
 }

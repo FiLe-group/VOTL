@@ -22,6 +22,7 @@ public class Ratelimit {
 
 	static final long hitTime = 30 * 1000; // 30 seconds
 
+	@SuppressWarnings("NullableProblems")
 	public static final LoadingCache<Long, Rate> cache = Caffeine.newBuilder()
 		.expireAfterWrite(hitTime, TimeUnit.MILLISECONDS)
 		.build(Rate::new);

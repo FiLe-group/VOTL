@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.utils;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +14,7 @@ public class CastUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
+	@Contract("!null, _ -> !null; null, null -> null; null, !null -> !null")
 	public static <T> T getOrDefault(@Nullable Object obj, @Nullable T defaultObj) {
 		if (obj == null) return defaultObj;
 		if (obj instanceof Long || defaultObj instanceof Long) {
@@ -32,7 +33,7 @@ public class CastUtil {
 		return (T) obj;
 	}
 
-	@Nullable
+	@Contract("!null, _, _ -> param3; null, _, null -> null; null, _, !null -> !null")
 	public static <T> T resolveOrDefault(@Nullable Object obj, @NotNull Function<Object, T> resolver, @Nullable T defaultObj) {
 		if (obj == null) return defaultObj;
 		return resolver.apply(obj);

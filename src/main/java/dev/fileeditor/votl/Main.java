@@ -39,10 +39,10 @@ public class Main {
 
 			if (cmd.hasOption("help")) {
 				formatter.printHelp("java --jar VOTL.jar", "Help menu", options, null, true);
-				System.exit(ExitCodes.NORMAL.code);
+				System.exit(ExitCodes.NORMAL.v);
 			} else if (cmd.hasOption("version")) {
 				System.out.println(AppInfo.getVersionInfo());
-				System.exit(ExitCodes.NORMAL.code);
+				System.exit(ExitCodes.NORMAL.v);
 			}
 
 			App.instance = new App(settings);
@@ -50,7 +50,7 @@ public class Main {
 			System.err.println(e.getMessage());
 			formatter.printHelp("java --jar VOTL.jar", null, options, null, true);
 
-			System.exit(ExitCodes.NORMAL.code);
+			System.exit(ExitCodes.NORMAL.v);
 		}
 	}
 }

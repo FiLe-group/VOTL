@@ -29,10 +29,12 @@ public class LevelUtil {
 
 	// Cache
 	// player - boolean(filler)
+	@SuppressWarnings("NullableProblems")
 	public static final Cache<PlayerObject, Boolean> messageCache = Caffeine.newBuilder()
 		.expireAfterWrite(60, TimeUnit.SECONDS)
 		.build();
 	// Voice exp: player - start time
+	@SuppressWarnings("NullableProblems")
 	private final Cache<PlayerObject, Long> voiceCache = Caffeine.newBuilder()
 		.expireAfterAccess(10, TimeUnit.MINUTES)
 		.build();
@@ -89,6 +91,7 @@ public class LevelUtil {
 		}
 
 		// If in cache - skip, else give exp and add to it
+		assert event.getMember() != null;
 		PlayerObject player = new PlayerObject(event.getMember());
 		if (messageCache.getIfPresent(player) == null) {
 			giveExperience(event.getMember(), RandomUtil.getInteger(maxRandomExperience)+maxGuaranteeMessageExperience, ExpType.TEXT);
@@ -195,7 +198,7 @@ public class LevelUtil {
 	}
 
 	public void processVoiceCache() {
-		voiceCache.asMap().forEach((player, joinTime) -> {
+		voiceCache.asMap().forEach((player, _) -> {
 			Member member = Optional.ofNullable(bot.JDA.getGuildById(player.guildId))
 				.map(g -> g.getMemberById(player.userId))
 				.orElse(null);
@@ -209,6 +212,7 @@ public class LevelUtil {
 			if (state != null && state.inAudioChannel()) {
 				// In voice - check if not muted/deafened/AFK
 				if (!state.isMuted() && !state.isDeafened() && !state.isSuppressed()) {
+					assert state.getChannel() != null;
 					bot.getLevelUtil().rewardVoicePlayer(member, state.getChannel());
 				}
 			} else {

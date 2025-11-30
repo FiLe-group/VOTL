@@ -23,9 +23,11 @@ public class PersistentManager extends LiteBase {
 	private final String table_return = "returnRole";
 
 	// Cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, List<Long>> roleCache = Caffeine.newBuilder() // Guild - Roles
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, Map<Long, List<Long>>> returnCache = Caffeine.newBuilder() // Guild - User and Roles
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();

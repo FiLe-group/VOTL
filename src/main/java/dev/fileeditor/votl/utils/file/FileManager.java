@@ -211,7 +211,7 @@ public class FileManager {
 		return Collections.emptyList();
 	}
 
-	@NotNull
+	@Nullable
 	public JSONObject getJsonObject(String name){
 		File file = files.get(name);
 

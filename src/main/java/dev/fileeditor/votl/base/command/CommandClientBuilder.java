@@ -34,7 +34,7 @@ import net.dv8tion.jda.api.entities.Activity;
  *
  * @author John Grosh (jagrosh)
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class CommandClientBuilder {
 	private Activity activity = Activity.playing("default");
 	private OnlineStatus status = OnlineStatus.ONLINE;

@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-@SuppressWarnings("SqlSourceToSinkFlow")
 public class LiteBase {
 
 	private final ConnectionUtil util;
@@ -178,7 +177,7 @@ public class LiteBase {
 	}
 
 	@Nullable
-	protected <T, V> T applyOrDefault(V obj, @NotNull Function<V, T> function, @Nullable T defaultValue) {
+	protected <T, V> T applyOrDefault(@Nullable V obj, @NotNull Function<V, T> function, @Nullable T defaultValue) {
 		return (obj != null) ? function.apply(obj) : defaultValue;
 	}
 

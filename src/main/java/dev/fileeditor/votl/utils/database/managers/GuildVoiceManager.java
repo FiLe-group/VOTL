@@ -18,6 +18,7 @@ public class GuildVoiceManager extends LiteBase {
 		"categoryId", "channelId", "defaultName", "defaultLimit"
 	);
 	// Cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, VoiceSettings> cache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();

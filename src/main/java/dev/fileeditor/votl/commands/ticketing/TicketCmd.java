@@ -21,6 +21,9 @@ import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Mentions;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -32,9 +35,6 @@ import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class TicketCmd extends SlashCommand {
 	
@@ -232,7 +232,7 @@ public class TicketCmd extends SlashCommand {
 					);
 				});
 			} else {
-				channel.sendMessageEmbeds(buildPanelEmbed(event.getGuild(), panelId)).setActionRow(buttons).queue(done -> {
+				channel.sendMessageEmbeds(buildPanelEmbed(event.getGuild(), panelId)).setComponents(ActionRow.of(buttons)).queue(done -> {
 					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 						.build()
@@ -492,11 +492,11 @@ public class TicketCmd extends SlashCommand {
 				.addField(lu.getGuildText(event, path+".roles"), roles, false)
 				.addField(lu.getGuildText(event, path+".message"), message, false);
 			
-			event.getHook().editOriginalEmbeds(builder.build()).setActionRow(tag.previewButton()).queue();
+			event.getHook().editOriginalEmbeds(builder.build()).setComponents(ActionRow.of(tag.previewButton())).queue();
 		}
 	}
 
-	private class DeleteTag extends SlashCommand {
+	private static class DeleteTag extends SlashCommand {
 		public DeleteTag() {
 			this.name = "delete";
 			this.path = "bot.ticketing.ticket.tags.delete";

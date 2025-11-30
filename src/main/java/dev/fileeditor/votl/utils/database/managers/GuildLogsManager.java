@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 public class GuildLogsManager extends LiteBase {
 
 	// Cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, LogSettings> cache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.expireAfterAccess(1, TimeUnit.HOURS)

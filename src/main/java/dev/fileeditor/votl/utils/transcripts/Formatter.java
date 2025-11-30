@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
  * Twitter: @Ryzeon_ 😎
  * GitHub: github.ryzeon.me
  */
+@SuppressWarnings("SpellCheckingInspection")
 public class Formatter {
 
     private Formatter() {

@@ -43,7 +43,6 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
-import net.dv8tion.jda.internal.utils.Checks;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -96,8 +95,16 @@ public class App {
 			.addLang("en-GB")
 			.addLang("ru");
 
-		Checks.notBlank(fileManager.getNullableString("config", "bot-token"), "Token inside config.example.json");
-		final long ownerId = parseLong(fileManager.getNullableString("config", "owner-id"));
+		if (fileManager.getNullableString("config", "bot-token") == null) {
+			LOG.error("Bot token not set inside config.json");
+			System.exit(ExitCodes.ERROR.v);
+		}
+		String ownerIdString = fileManager.getNullableString("config", "owner-id");
+		if (ownerIdString == null) {
+			LOG.error("Owner ID not set inside config.json");
+			System.exit(ExitCodes.ERROR.v);
+		}
+		final long ownerId = parseLong(ownerIdString);
 		
 		// Define for default
 		dbUtil		= new DBUtil(getFileManager());
@@ -203,7 +210,7 @@ public class App {
 				break;
 			} catch (IllegalArgumentException | InvalidTokenException ex) {
 				LOG.error("Login failed due to Token", ex);
-				System.exit(ExitCodes.ERROR.code);
+				System.exit(ExitCodes.ERROR.v);
 			} catch (ErrorResponseException ex) { // Tries to reconnect to discord x times with some delay, else exits
 				if (retries > 0) {
 					retries--;
@@ -216,7 +223,7 @@ public class App {
 					cooldown*=2;
 				} else {
 					LOG.error("No network connection or couldn't connect to DNS", ex);
-					System.exit(ExitCodes.ERROR.code);
+					System.exit(ExitCodes.ERROR.v);
 				}
 			}
 		}
@@ -322,7 +329,7 @@ public class App {
 	}
 
 	public void shutdown(ExitCodes exitCode) {
-		getLogger().info("Shutting down instance with exit code {}", exitCode.code);
+		getLogger().info("Shutting down instance with exit code {}", exitCode.v);
 
 		JDA.shutdown();
 
@@ -342,7 +349,7 @@ public class App {
 			future.cancel(true);
 		}
 
-		System.exit(exitCode.code);
+		System.exit(exitCode.v);
 	}
 
 	private void createWebhookAppender() {

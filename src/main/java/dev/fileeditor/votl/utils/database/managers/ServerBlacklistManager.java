@@ -35,6 +35,7 @@ public class ServerBlacklistManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (groupId=%d AND userId=%d)".formatted(table, groupId, userId));
 	}
 
+	@Nullable
 	public BlacklistData getInfo(int groupId, long userId) {
 		Map<String, Object> data = selectOne("SELECT * FROM %s WHERE (groupId=%d AND userId=%d)"
 			.formatted(table, groupId, userId), Set.of("guildId", "reason", "modId"));
@@ -61,7 +62,7 @@ public class ServerBlacklistManager extends LiteBase {
 		return count("SELECT COUNT(*) FROM %s WHERE (groupId=%d)".formatted(table, groupId));
 	}
 
-	public class BlacklistData {
+	public static class BlacklistData {
 		private final long guildId, modId;
 		private final Long userId;
 		private final Integer groupId;

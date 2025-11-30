@@ -16,10 +16,10 @@ import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.internal.interactions.component.ButtonImpl;
+import net.dv8tion.jda.internal.components.buttons.ButtonImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,6 +113,7 @@ public class TicketTagManager extends LiteBase {
 		return data.stream().map(Tag::createButton).toList();
 	}
 
+	@Nullable
 	public Tag getTagFull(int tagId) {
 		Map<String, Object> data = selectOne("SELECT * FROM %s WHERE (tagId=%s)".formatted(table, tagId),
 			Set.of("buttonText", "buttonStyle", "emoji", "tagType", "location", "message", "supportRoles", "ticketName")
@@ -121,6 +122,7 @@ public class TicketTagManager extends LiteBase {
 		return new Tag(data, true);
 	}
 
+	@Nullable
 	public Tag getTagInfo(int tagId) {
 		Map<String, Object> data = selectOne("SELECT * FROM %s WHERE (tagId=%s)".formatted(table, tagId),
 			Set.of("tagType", "location", "message", "supportRoles", "ticketName")
@@ -163,6 +165,7 @@ public class TicketTagManager extends LiteBase {
 			}
 		}
 		
+		@Nullable
 		private String setNewline(String text) {
 			if (text==null) return null;
 			return text.replaceAll("<br>", "\n");

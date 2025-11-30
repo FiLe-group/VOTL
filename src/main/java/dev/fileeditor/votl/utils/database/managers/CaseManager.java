@@ -48,7 +48,6 @@ public class CaseManager extends LiteBase {
 			);
 
 		final int rowId, localId;
-		//noinspection SqlSourceToSinkFlow
 		try (
 			Connection conn = DriverManager.getConnection(getUrl());
 			ResultSet rs = conn.prepareStatement(sql).executeQuery()
@@ -98,12 +97,14 @@ public class CaseManager extends LiteBase {
 	}
 
 	// get case info by row
+	@Nullable
 	public CaseData getInfo(int rowId) {
 		Map<String, Object> data = selectOne("SELECT * FROM %s WHERE (rowId=%d)".formatted(table, rowId), fullCaseKeys);
 		if (data == null) return null;
 		return new CaseData(data);
 	}
 	// get case info for guild
+	@Nullable
 	public CaseData getInfo(long guildId, int localId) {
 		Map<String, Object> data = selectOne("SELECT * FROM %s WHERE (guildId=%d AND localId=%d)".formatted(table, guildId, localId), fullCaseKeys);
 		if (data == null) return null;
@@ -127,6 +128,7 @@ public class CaseManager extends LiteBase {
 	}
 
 	// get user active temporary cases data
+	@Nullable
 	public CaseData getMemberActive(long userId, long guildId, CaseType type) {
 		Map<String, Object> data = selectOne("SELECT * FROM %s WHERE (guildId=%d AND targetId=%d AND type=%d AND active=1)"
 			.formatted(table, guildId, userId, type.getValue()), fullCaseKeys);

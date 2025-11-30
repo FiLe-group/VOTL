@@ -1,6 +1,7 @@
 package dev.fileeditor.votl.utils.imagegen;
 
 import dev.fileeditor.votl.utils.ColorUtil;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 
 import java.awt.*;
@@ -40,6 +41,7 @@ public class UserBackgroundLoader {
 	// Formats
 	//  #ffffff - without alpha
 	//  #ffffffa5 - with alpha a5
+	@Nullable
 	private Color loadColorFromString(String key) {
 		if (!colorData.has(key))
 			return null;

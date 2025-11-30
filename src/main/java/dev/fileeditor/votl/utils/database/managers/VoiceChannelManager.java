@@ -16,6 +16,7 @@ public class VoiceChannelManager extends LiteBase {
 
 	// Cache
 	// user - channel
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, Long> cache = Caffeine.newBuilder()
 		.build();
 
@@ -89,7 +90,7 @@ public class VoiceChannelManager extends LiteBase {
 	}
 
 	public void checkCache(JDA jda) {
-		cache.asMap().forEach((userId, channelId) -> {
+		cache.asMap().forEach((_, channelId) -> {
 			VoiceChannel voiceChannel = jda.getVoiceChannelById(channelId);
 			if (voiceChannel == null) {
 				remove(channelId);

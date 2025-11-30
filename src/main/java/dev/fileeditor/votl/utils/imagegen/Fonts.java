@@ -38,16 +38,19 @@ public class Fonts {
 	}
 
 	private static Font loadFont(String resourceName) {
-		try {
-			return Font.createFont(
-				Font.TRUETYPE_FONT,
-				Fonts.class.getClassLoader()
-					.getResourceAsStream("fonts/" + resourceName)
-			);
+		try (var stream = Fonts.class.getClassLoader().getResourceAsStream("fonts/" + resourceName)) {
+			if (stream == null) {
+				System.err.println("Could not load font: fonts/" + resourceName);
+				return Font.decode(null);
+			}
+
+			return Font.createFont(Font.TRUETYPE_FONT, stream);
 		} catch (FontFormatException | IOException e) {
-			throw new FailedToLoadResourceException(String.format("Failed to load the font resource %s",
-				resourceName
-			), e);
+			throw new FailedToLoadResourceException(
+				String.format("Failed to load the font resource %s", resourceName),
+				e
+			);
 		}
 	}
+
 }

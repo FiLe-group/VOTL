@@ -20,6 +20,7 @@ import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
 
 public class LevelRolesManager extends LiteBase {
 	// cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, LevelRoleData> cache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();
@@ -45,7 +46,8 @@ public class LevelRolesManager extends LiteBase {
 	}
 
 	public Set<Long> getRoles(long guildId, int level, ExpType expType) {
-		return getAllLevels(guildId).getRoles(expType, level);
+		var allLevels = getAllLevels(guildId);
+		return allLevels==null ? Set.of() : allLevels.getRoles(expType, level);
 	}
 
 	@Nullable
@@ -60,14 +62,15 @@ public class LevelRolesManager extends LiteBase {
 	}
 
 	public int countLevels(long guildId) {
-		return getAllLevels(guildId).size();
+		var allLevels = getAllLevels(guildId);
+		return allLevels==null ? 0 : allLevels.size();
 	}
 
 	private void invalidateCache(long guildId) {
 		cache.invalidate(guildId);
 	}
 
-	public class LevelRoleData {
+	public static class LevelRoleData {
 		private final Map<Integer, Set<Long>> textRoles = new HashMap<>();
 		private final Map<Integer, Set<Long>> voiceRoles = new HashMap<>();
 

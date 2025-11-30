@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 import net.dv8tion.jda.api.entities.User;
+import org.jetbrains.annotations.Nullable;
 
 public class MessageUtil {
 	private static final DecimalFormat decimalFormat = new DecimalFormat("# ### ###");
@@ -39,6 +40,7 @@ public class MessageUtil {
 		return ids;
 	}
 
+	@Nullable
 	public static Color getColor(String input) {
 		input = input.toLowerCase();
 		if (!input.equals("random") && !(input.length() == 6 || input.contains(",")))

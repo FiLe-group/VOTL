@@ -80,16 +80,21 @@ public class GuildLogger {
 		webhookUtil.sendMessageEmbed(guild, type, embedSupplier);
 	}
 
+	@SuppressWarnings("ReturnOfNull")
 	private CompletableFuture<String> submitLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed) {
-		return webhookClient.sendMessageEmbeds(embed).submit()
-			.exceptionally(ex -> null)
+		return webhookClient.sendMessageEmbeds(embed)
+			.submit()
+			.exceptionally(_ -> null)
 			.thenApply(msg -> msg==null ? null : msg.getJumpUrl());
 	}
 
+	@SuppressWarnings("ReturnOfNull")
 	private CompletableFuture<String> submitLog(@NotNull IncomingWebhookClientImpl webhookClient, MessageEmbed embed, CaseProofUtil.ProofData proofData) {
 		try (final InputStream is = new AttachmentProxy(proofData.proxyUrl).download().join()) {
-			return webhookClient.sendMessageEmbeds(embed).addFiles(FileUpload.fromData(is.readAllBytes(), proofData.fileName)).submit()
-				.exceptionally(ex -> null)
+			return webhookClient.sendMessageEmbeds(embed)
+				.addFiles(FileUpload.fromData(is.readAllBytes(), proofData.fileName))
+				.submit()
+				.exceptionally(_ -> null)
 				.thenApply(msg -> msg==null ? null : msg.getJumpUrl());
 		} catch (IOException e) {
 			log.error("Exception at log submission.", e);
@@ -327,12 +332,16 @@ public class GuildLogger {
 		private final LogType type = LogType.GROUP;
 
 		public void onCreation(SlashCommandEvent event, Integer groupId, String name) {
+			assert event.getGuild() != null;
+			assert event.getMember() != null;
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(event);
 			sendLog(event.getGuild(), type, () -> logUtil.groupCreatedEmbed(locale, event.getMember().getAsMention(), event.getGuild().getIdLong(),
 				event.getGuild().getIconUrl(), groupId, name));
 		}
 
 		public void onDeletion(SlashCommandEvent event, Integer groupId, String name) {
+			assert event.getGuild() != null;
+			assert event.getMember() != null;
 			long ownerId = event.getGuild().getIdLong();
 			String ownerIcon = event.getGuild().getIconUrl();
 
@@ -366,7 +375,11 @@ public class GuildLogger {
 		public void onGuildJoined(SlashCommandEvent event, Integer groupId, String name) {
 			long ownerId = db.group.getOwner(groupId);
 			Guild owner = JDA.getGuildById(ownerId);
+			if (owner == null) return;
 			String ownerIcon = owner.getIconUrl();
+
+			assert event.getGuild() != null;
+			assert event.getMember() != null;
 
 			// Send log to added server
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(event);
@@ -380,7 +393,11 @@ public class GuildLogger {
 		public void onGuildLeft(SlashCommandEvent event, Integer groupId, String name) {
 			long ownerId = db.group.getOwner(groupId);
 			Guild owner = JDA.getGuildById(ownerId);
+			if (owner == null) return;
 			String ownerIcon = owner.getIconUrl();
+
+			assert event.getGuild() != null;
+			assert event.getMember() != null;
 
 			// Send log to removed server
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(event);
@@ -394,6 +411,7 @@ public class GuildLogger {
 		public void onGuildLeft(Guild target, int groupId) {
 			long ownerId = db.group.getOwner(groupId);
 			Guild owner = JDA.getGuildById(ownerId);
+			if (owner == null) return;
 			String ownerIcon = owner.getIconUrl();
 
 			String groupName = db.group.getName(groupId);
@@ -404,6 +422,8 @@ public class GuildLogger {
 		}
 
 		public void onGuildRemoved(SlashCommandEvent event, Guild target, Integer groupId, String name) {
+			assert event.getGuild() != null;
+			assert event.getMember() != null;
 			long ownerId = event.getGuild().getIdLong();
 			String ownerIcon = event.getGuild().getIconUrl();
 
@@ -417,6 +437,8 @@ public class GuildLogger {
 		}
 
 		public void onRenamed(SlashCommandEvent event, String oldName, Integer groupId, String newName) {
+			assert event.getGuild() != null;
+			assert event.getMember() != null;
 			long ownerId = event.getGuild().getIdLong();
 			String ownerIcon = event.getGuild().getIconUrl();
 
@@ -532,7 +554,8 @@ public class GuildLogger {
 		public void onRoleCreate(AuditLogEntry entry) {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
-			final String name = entry.getChangeByKey(AuditLogKey.ROLE_NAME).getNewValue();
+			var change = entry.getChangeByKey(AuditLogKey.ROLE_NAME); assert change != null;
+			final String name = change.getNewValue();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
 			sendLog(guild, type, () -> logUtil.roleCreated(locale, id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
@@ -541,7 +564,8 @@ public class GuildLogger {
 		public void onRoleDelete(AuditLogEntry entry) {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
-			final String name = entry.getChangeByKey(AuditLogKey.ROLE_NAME).getOldValue();
+			var change = entry.getChangeByKey(AuditLogKey.ROLE_NAME); assert change != null;
+			final String name = change.getOldValue();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
 			sendLog(guild, type, () -> logUtil.roleDeleted(locale, id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
@@ -550,7 +574,9 @@ public class GuildLogger {
 		public void onRoleUpdate(AuditLogEntry entry) {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
-			final String name = guild.getRoleById(id).getName();
+			var role = guild.getRoleById(id);
+			if (role == null) return;
+			final String name = role.getName();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
 			sendLog(guild, type, () -> logUtil.roleUpdate(locale, id, name, entry.getChanges().values(), entry.getUserIdLong()));
@@ -565,7 +591,8 @@ public class GuildLogger {
 		public void onChannelCreate(AuditLogEntry entry) {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
-			final String name = entry.getChangeByKey(AuditLogKey.CHANNEL_NAME).getNewValue();
+			var change = entry.getChangeByKey(AuditLogKey.CHANNEL_NAME); assert change != null;
+			final String name = change.getNewValue();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
 			sendLog(guild, type, () -> logUtil.channelCreated(locale, id, name, entry.getChanges().values(), entry.getUserIdLong()));
@@ -574,7 +601,8 @@ public class GuildLogger {
 		public void onChannelDelete(AuditLogEntry entry) {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
-			final String name = entry.getChangeByKey(AuditLogKey.CHANNEL_NAME).getOldValue();
+			var change = entry.getChangeByKey(AuditLogKey.CHANNEL_NAME); assert change != null;
+			final String name = change.getOldValue();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
 			sendLog(guild, type, () -> logUtil.channelDeleted(locale, id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
@@ -583,7 +611,9 @@ public class GuildLogger {
 		public void onChannelUpdate(AuditLogEntry entry) {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
-			final String name = guild.getGuildChannelById(id).getName();
+			var channel = guild.getGuildChannelById(id);
+			if (channel == null) return;
+			final String name = channel.getName();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
 			sendLog(guild, type, () -> logUtil.channelUpdate(locale, id, name, entry.getChanges().values(), entry.getUserIdLong()));
@@ -728,6 +758,7 @@ public class GuildLogger {
 			client.sendMessageEmbeds(logUtil.messageBulkDelete(locale, channel.getIdLong(), count, modId)).queue();
 		}
 
+		@Nullable
 		private FileUpload uploadContentUpdate(MessageData oldData, MessageData newData, long messageId) {
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -745,8 +776,9 @@ public class GuildLogger {
 			}
 		}
 
-		private FileUpload uploadContent(MessageData data, long messageId) {
-			if (data.getContent().length() < 1000) return null;
+		@Nullable
+		private FileUpload uploadContent(@Nullable MessageData data, long messageId) {
+			if (data == null || data.getContent().length() < 1000) return null;
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				baos.write("[%s (%s)]\n".formatted(data.getAuthorName(), data.getAuthorId()).getBytes());
@@ -761,6 +793,7 @@ public class GuildLogger {
 			}
 		}
 
+		@Nullable
 		private FileUpload uploadContentBulk(List<MessageData> messages, long channelId) {
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();

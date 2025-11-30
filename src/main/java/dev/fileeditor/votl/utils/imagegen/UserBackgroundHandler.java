@@ -72,7 +72,7 @@ public class UserBackgroundHandler {
 			backgrounds.addAll(userBackgrounds);
 		} catch (IOException e) {
 			log.error("Failed to load backgrounds: {}", e.getMessage(), e);
-			System.exit(ExitCodes.ERROR.code);
+			System.exit(ExitCodes.ERROR.v);
 		}
 	}
 
@@ -82,8 +82,13 @@ public class UserBackgroundHandler {
 			for (String fileName : resourceFiles) {
 				if (!isValidBackgroundImage(fileName)) continue;
 				log.debug("Copying background image file: backgrounds/{}", fileName);
+
 				InputStream inputStream = App.class.getClassLoader().getResourceAsStream("backgrounds/"+fileName);
-				Files.copy(inputStream, Paths.get(backgroundsDirectory+Constants.SEPAR+fileName), StandardCopyOption.REPLACE_EXISTING);
+				if (inputStream == null) {
+					log.error("Could not load background file: backgrounds/{}", fileName);
+				} else {
+					Files.copy(inputStream, Paths.get(backgroundsDirectory+Constants.SEPAR+fileName), StandardCopyOption.REPLACE_EXISTING);
+				}
 			}
 		} catch (IOException e) {
 			log.error("Failed to copy over user backgrounds files: {}", e.getMessage(), e);
@@ -98,6 +103,7 @@ public class UserBackgroundHandler {
 		List<UserBackground> localBackgrounds = new ArrayList<>();
 
 		JSONObject jsonData = App.getInstance().getFileManager().getJsonObject("backgrounds");
+		if (jsonData == null) return localBackgrounds;
 		JSONArray jsonArray = jsonData.getJSONArray("themes");
 
 		for (Object o : jsonArray) {

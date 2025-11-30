@@ -27,9 +27,11 @@ public class LevelManager extends LiteBase {
 	private final String TABLE_PLAYERS = "levelPlayers";
 
 	// cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<String, PlayerData> playersCache = Caffeine.newBuilder()
 		.expireAfterAccess(5, TimeUnit.MINUTES)
 		.build();
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, LevelSettings> settingsCache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();
@@ -46,7 +48,8 @@ public class LevelManager extends LiteBase {
 
 	@NotNull
 	public LevelSettings getSettings(long guildId) {
-		return settingsCache.get(guildId, id -> applyOrDefault(getSettingsData(id), LevelSettings::new, blankSettings));
+		var settings = settingsCache.get(guildId, id -> applyOrDefault(getSettingsData(id), LevelSettings::new, blankSettings));
+		return settings== null ? blankSettings : settings;
 	}
 
 	private Map<String, Object> getSettingsData(long guildId) {
@@ -81,7 +84,8 @@ public class LevelManager extends LiteBase {
 	@NotNull
 	public PlayerData getPlayer(long guildId, long userId) {
 		String key = PlayerObject.asKey(guildId, userId);
-		return playersCache.get(key, (k) -> new PlayerData(getPlayerData(guildId, userId)));
+		//noinspection DataFlowIssue
+		return playersCache.get(key, _ -> getPlayerData(guildId, userId));
 	}
 
 	@Nullable
@@ -89,8 +93,9 @@ public class LevelManager extends LiteBase {
 		return playersCache.getIfPresent(player.asKey());
 	}
 
-	private Map<String, Object> getPlayerData(long guildId, long userId) {
-		return selectOne("SELECT * FROM %s WHERE (guildId=%d AND userId=%d)".formatted(TABLE_PLAYERS, guildId, userId), Set.of("textExp", "voiceExp", "lastUpdate"));
+	@NotNull
+	private PlayerData getPlayerData(long guildId, long userId) {
+		return new PlayerData(selectOne("SELECT * FROM %s WHERE (guildId=%d AND userId=%d)".formatted(TABLE_PLAYERS, guildId, userId), Set.of("textExp", "voiceExp", "lastUpdate")));
 	}
 
 	public void updatePlayer(PlayerObject player, PlayerData playerData) throws SQLException {

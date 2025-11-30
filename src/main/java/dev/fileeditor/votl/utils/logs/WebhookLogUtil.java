@@ -41,6 +41,7 @@ public class WebhookLogUtil {
 		sendMessageEmbed(guild.getJDA(), guild.getIdLong(), type, embedSupplier);
 	}
 
+	@Nullable
 	public IncomingWebhookClientImpl getWebhookClient(@Nullable Guild guild, LogType type) {
 		if (guild == null) return null;
 		WebhookData data = db.logs.getLogWebhook(guild.getIdLong(), type);

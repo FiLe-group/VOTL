@@ -21,6 +21,7 @@ public class VerifySettingsManager extends LiteBase {
 	private final Set<String> columns = Set.of("roleId", "panelText", "panelImage", "additionalRoles");
 
 	// Cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, VerifySettings> cache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();

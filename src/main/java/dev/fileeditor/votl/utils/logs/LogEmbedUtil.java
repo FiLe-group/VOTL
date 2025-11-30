@@ -1,16 +1,13 @@
 package dev.fileeditor.votl.utils.logs;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
+import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
 import static dev.fileeditor.votl.utils.message.TimeUtil.formatTime;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.App;
@@ -843,12 +840,16 @@ public class LogEmbedUtil {
 
 	@NotNull
 	public MessageEmbed overrideUpdate(DiscordLocale locale, long channelId, AuditLogEntry entry, long userId, String guildId) {
-		String id = entry.getOption(AuditLogOption.ID).toString();
+		var option = entry.getOption(AuditLogOption.ID); assert option != null;
+		String id = option.toString();
+
 		String text;
 		if (id.equals(guildId))
 			text = "@everyone";
-		else
-			text = "%s%s>".formatted(entry.getOption(AuditLogOption.TYPE).toString().equals("0") ? "Role <@&" : "Member <@", id); 
+		else {
+			option = entry.getOption(AuditLogOption.TYPE); assert option != null;
+			text = "%s%s>".formatted(option.toString().equals("0") ? "Role <@&" : "Member <@", id);
+		}
 		
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader(LogEvent.CHANNEL_OVERRIDE_UPDATE)
@@ -1173,7 +1174,8 @@ public class LogEmbedUtil {
 	private final String guildIconLink = "[Image](https://cdn.discordapp.com/icons/{guild}/%s.png)";
 	private final String guildSplashLink = "[Image](https://cdn.discordapp.com/splashes/{guild}/%s.png)";
 
-	private String formatValue(String key, @NotNull Object object) {
+	private String formatValue(String key, @Nullable Object object) {
+		if (object == null) return "";
 		switch (object) {
 			case Boolean value -> {
 				return value ? Constants.SUCCESS : Constants.FAILURE;
@@ -1265,18 +1267,25 @@ public class LogEmbedUtil {
 		switch (entry.getType()) {
 			case CHANNEL_OVERRIDE_CREATE -> {
 				StringBuilder builder = new StringBuilder();
-				String id = entry.getChangeByKey("id").getNewValue();
-				int type = entry.getChangeByKey("type").getNewValue();
+
+				var change = entry.getChangeByKey("id"); assert change != null;
+				String id = change.getNewValue();
+
+				change = entry.getChangeByKey("type"); assert change != null;
+				int type = Objects.requireNonNull(change.getNewValue());
+
 				builder.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
 
-				long permsLong = castLong(entry.getChangeByKey("allow").getNewValue());
+				change = entry.getChangeByKey("allow"); assert change != null;
+				long permsLong = requireNonNull(change.getNewValue());
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.allow")).append(": `");
 					builder.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
 					builder.append("`\n");
 				}
-				permsLong = castLong(entry.getChangeByKey("deny").getNewValue());
+				change = entry.getChangeByKey("deny"); assert change != null;
+				permsLong = requireNonNull(change.getNewValue());
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.deny")).append(": `");
@@ -1288,18 +1297,24 @@ public class LogEmbedUtil {
 			}
 			case CHANNEL_OVERRIDE_DELETE -> {
 				StringBuilder builder = new StringBuilder();
-				String id = entry.getChangeByKey("id").getOldValue();
-				int type = entry.getChangeByKey("type").getOldValue();
+
+				var change = entry.getChangeByKey("id"); assert change != null;
+				String id = change.getOldValue();
+
+				change = entry.getChangeByKey("type"); assert change != null;
+				int type = Objects.requireNonNull(change.getOldValue());
 				builder.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
 
-				long permsLong = castLong(entry.getChangeByKey("allow").getOldValue());
+				change = entry.getChangeByKey("allow"); assert change != null;
+				long permsLong = requireNonNull(change.getOldValue());
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.allow")).append(": `");
 					builder.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
 					builder.append("`\n");
 				}
-				permsLong = castLong(entry.getChangeByKey("deny").getOldValue());
+				change = entry.getChangeByKey("deny"); assert change != null;
+				permsLong = requireNonNull(change.getOldValue());
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.deny")).append(": `");
@@ -1336,6 +1351,7 @@ public class LogEmbedUtil {
 	}
 
 	// removed - added
+	@Nullable
 	private Pair<EnumSet<Permission>, EnumSet<Permission>> getChangedPerms(AuditLogChange change) {
 		if (change == null) return null;
 		if (change.getOldValue() == null | change.getNewValue() == null) return null;

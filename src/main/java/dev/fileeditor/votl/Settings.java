@@ -8,6 +8,7 @@ import java.lang.management.RuntimeMXBean;
 import java.util.Arrays;
 import java.util.List;
 
+@SuppressWarnings("SameParameterValue")
 public class Settings {
 
 	private final int shardCount;

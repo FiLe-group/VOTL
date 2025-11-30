@@ -132,6 +132,7 @@ public abstract class Interaction extends Reflectionable {
 		return middlewares;
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	protected boolean hasMiddleware(@NotNull Class<? extends Middleware> clazz) {
 		String key = MiddlewareHandler.getName(clazz);
 		if (key == null) {

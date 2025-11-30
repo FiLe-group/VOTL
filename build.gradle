@@ -19,33 +19,33 @@ repositories {
 dependencies {
 	// JDA library and additions
 	// https://mvnrepository.com/artifact/net.dv8tion/JDA
-	implementation('net.dv8tion:JDA:6.0.0') {						// JDA library
+	implementation('net.dv8tion:JDA:6.1.2') {						// JDA library
 		exclude module: 'opus-java'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-	implementation 'ch.qos.logback:logback-classic:1.5.19'			// Logging (required by JDA)
+	implementation 'ch.qos.logback:logback-classic:1.5.21'			// Logging (required by JDA)
 
 	// Tools
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
-	implementation 'com.jayway.jsonpath:json-path:2.9.0'			// json path-er
+	implementation 'com.jayway.jsonpath:json-path:2.10.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.50.3.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.51.0.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
-	implementation 'org.jsoup:jsoup:1.22.2'							// HTML tools
+	implementation 'org.jsoup:jsoup:1.21.2'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
 	implementation 'io.github.java-diff-utils:java-diff-utils:4.16'	// Diff finder
 	// https://mvnrepository.com/artifact/org.json/json
 	implementation 'org.json:json:20250517'							// JsonObject
 	// https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
-	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.2'	// Cache
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.3'	// Cache
 	// https://mvnrepository.com/artifact/org.reflections/reflections
 	implementation 'org.reflections:reflections:0.10.2'				// Reflections for auto-load
 	// https://mvnrepository.com/artifact/commons-cli/commons-cli
-	implementation 'commons-cli:commons-cli:1.10.0'					// CLI arguments
+	implementation 'commons-cli:commons-cli:1.11.0'					// CLI arguments
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
-	implementation 'org.apache.groovy:groovy:5.0.1'			    	// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:5.0.2'			    	// Groovy - code evaluation
 }
 
 java {

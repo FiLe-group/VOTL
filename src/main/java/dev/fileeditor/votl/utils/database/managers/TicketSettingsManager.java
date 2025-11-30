@@ -26,6 +26,7 @@ public class TicketSettingsManager extends LiteBase {
 	);
 
 	// Cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, TicketSettings> cache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();

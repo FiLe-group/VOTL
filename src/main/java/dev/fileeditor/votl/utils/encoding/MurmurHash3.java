@@ -127,16 +127,16 @@ public final class MurmurHash3 {
 			}
 
 			// Main processing of blocks of 4 bytes
-			final int nblocks = newLength >> 2;
+			final int nBlocks = newLength >> 2;
 
-			for (int i = 0; i < nblocks; i++) {
+			for (int i = 0; i < nBlocks; i++) {
 				final int index = newOffset + (i << 2);
 				final int k = getLittleEndianInt(data, index);
 				hash = mix32(k, hash);
 			}
 
 			// Save left-over unprocessed bytes
-			final int consumed = nblocks << 2;
+			final int consumed = nBlocks << 2;
 			unprocessedLength = newLength - consumed;
 			if (unprocessedLength != 0) {
 				System.arraycopy(data, newOffset + consumed, unprocessed, 0, unprocessedLength);
@@ -336,10 +336,10 @@ public final class MurmurHash3 {
 	private static long[] hash128x64Internal(final byte[] data, final int offset, final int length, final long seed) {
 		long h1 = seed;
 		long h2 = seed;
-		final int nblocks = length >> 4;
+		final int nBlocks = length >> 4;
 
 		// body
-		for (int i = 0; i < nblocks; i++) {
+		for (int i = 0; i < nBlocks; i++) {
 			final int index = offset + (i << 4);
 			long k1 = getLittleEndianLong(data, index);
 			long k2 = getLittleEndianLong(data, index + 8);
@@ -366,7 +366,7 @@ public final class MurmurHash3 {
 		// tail
 		long k1 = 0;
 		long k2 = 0;
-		final int index = offset + (nblocks << 4);
+		final int index = offset + (nBlocks << 4);
 		switch (offset + length - index) {
 			case 15:
 				k2 ^= ((long) data[index + 14] & 0xff) << 48;
@@ -558,17 +558,17 @@ public final class MurmurHash3 {
 	 */
 	public static int hash32x86(final byte[] data, final int offset, final int length, final int seed) {
 		int hash = seed;
-		final int nblocks = length >> 2;
+		final int nBlocks = length >> 2;
 
 		// body
-		for (int i = 0; i < nblocks; i++) {
+		for (int i = 0; i < nBlocks; i++) {
 			final int index = offset + (i << 2);
 			final int k = getLittleEndianInt(data, index);
 			hash = mix32(k, hash);
 		}
 
 		// tail
-		final int index = offset + (nblocks << 2);
+		final int index = offset + (nBlocks << 2);
 		int k1 = 0;
 		switch (offset + length - index) {
 			case 3:

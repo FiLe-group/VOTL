@@ -12,6 +12,7 @@ import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import org.jetbrains.annotations.Nullable;
 
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
@@ -71,6 +72,7 @@ public class TicketPanelManager extends LiteBase {
 			execute("UPDATE %s SET %s WHERE (panelId=%d)".formatted(table, String.join(", ", values), panelId));
 	}
 
+	@Nullable
 	public Panel getPanel(int panelId) {
 		Map<String, Object> data = selectOne("SELECT * FROM %s WHERE (panelId=%d)".formatted(table, panelId),
 			Set.of("title", "description", "image", "footer"));
@@ -107,6 +109,7 @@ public class TicketPanelManager extends LiteBase {
 			this.footer = setNewline(getOrDefault(map.get("footer"), null));
 		}
 		
+		@Nullable
 		private String setNewline(String text) {
 			if (text==null) return null;
 			return text.replaceAll("<br>", "\n");

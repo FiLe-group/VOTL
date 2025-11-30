@@ -8,6 +8,7 @@ import java.util.Set;
 
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.Nullable;
 
 public class TempRoleManager extends LiteBase {
 	
@@ -38,6 +39,7 @@ public class TempRoleManager extends LiteBase {
 		execute("UPDATE %s SET expiresAt=%s WHERE (roleId=%s AND userId=%s)".formatted(table, expiresAt.getEpochSecond(), roleId, userId));
 	}
 
+	@Nullable
 	public Instant expireAt(long roleId, long userId) {
 		Integer data = selectOne("SELECT expiresAt FROM %s WHERE (roleId=%s AND userId=%s)".formatted(table, roleId, userId), "expiresAt", Integer.class);
 		if (data == null) return null;

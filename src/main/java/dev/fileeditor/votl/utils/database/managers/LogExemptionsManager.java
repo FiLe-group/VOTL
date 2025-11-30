@@ -14,6 +14,7 @@ import dev.fileeditor.votl.utils.database.LiteBase;
 public class LogExemptionsManager extends LiteBase {
 
 	// Cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, Set<Long>> cache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();

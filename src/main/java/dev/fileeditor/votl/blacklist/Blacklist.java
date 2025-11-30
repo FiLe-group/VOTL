@@ -34,7 +34,7 @@ public class Blacklist {
 	}
 
 	public boolean isBlacklisted(GenericInteractionCreateEvent event) {
-		return isBlacklisted(event.getUser()) || (event.isFromGuild() && isBlacklisted(event.getGuild()));
+		return isBlacklisted(event.getUser()) || (event.getGuild()!=null && isBlacklisted(event.getGuild()));
 	}
 
 	public boolean isBlacklisted(@NotNull UserSnowflake user) {

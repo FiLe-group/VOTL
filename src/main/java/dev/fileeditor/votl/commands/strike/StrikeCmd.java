@@ -239,9 +239,8 @@ public class StrikeCmd extends SlashCommand {
 							guild.getIdLong(), reason, null
 						);
 						// log case
-						bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
-							bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
-						});
+						bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData)
+							.thenAccept(logUrl -> bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl));
 					} catch (SQLException ignored) {}
 				}, failure ->
 					App.getLogger().error("Strike punishment execution, Kick member", failure)

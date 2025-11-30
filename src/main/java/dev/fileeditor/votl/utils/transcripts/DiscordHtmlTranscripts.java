@@ -9,6 +9,9 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import dev.fileeditor.votl.utils.encoding.EncodingUtil;
+import net.dv8tion.jda.api.components.Component;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.selections.SelectMenu;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -18,10 +21,6 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Component;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import org.jetbrains.annotations.NotNull;
@@ -108,11 +107,11 @@ public class DiscordHtmlTranscripts {
 
         Document document = Jsoup.parse(htmlTemplate, "UTF-8", "template.html");
         document.outputSettings().indentAmount(0).prettyPrint(true);
-        document.getElementsByClass("preamble__guild-icon").first().attr("src", channel.getGuild().getIconUrl()); // set guild icon
+		Objects.requireNonNull(document.getElementsByClass("preamble__guild-icon").first()).attr("src", Objects.requireNonNullElse(channel.getGuild().getIconUrl(), "")); // set guild icon
 
-        document.getElementById("transcriptTitle").text("#" + channel.getName() + " | " + messages.size() + " messages"); // set title
-        document.getElementById("guildname").text(channel.getGuild().getName()); // set guild name
-        document.getElementById("ticketname").text("#" + channel.getName()); // set channel name
+        Objects.requireNonNull(document.getElementById("transcriptTitle")).text("#" + channel.getName() + " | " + messages.size() + " messages"); // set title
+		Objects.requireNonNull(document.getElementById("guildname")).text(channel.getGuild().getName()); // set guild name
+		Objects.requireNonNull(document.getElementById("ticketname")).text("#" + channel.getName()); // set channel name
 
         Element chatLog = document.getElementById("chatlog"); // chat log
         if (chatLog == null) {
@@ -316,6 +315,7 @@ public class DiscordHtmlTranscripts {
         Element embedFooter = document.createElement("div");
         embedFooter.addClass("chatlog__embed-footer");
 
+		assert embed.getFooter() != null;
         if (embed.getFooter().getIconUrl() != null) {
             Element embedFooterIcon = document.createElement("img");
             embedFooterIcon.addClass("chatlog__embed-footer-icon");
@@ -326,14 +326,16 @@ public class DiscordHtmlTranscripts {
             embedFooter.appendChild(embedFooterIcon);
         }
 
-        Element embedFooterText = document.createElement("span");
-        embedFooterText.addClass("chatlog__embed-footer-text");
-        embedFooterText.text(embed.getTimestamp() != null
-                ? embed.getFooter().getText() + " • " + embed.getTimestamp()
-                .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))
-                : embed.getFooter().getText());
+		if (embed.getFooter().getText() != null) {
+			Element embedFooterText = document.createElement("span");
+			embedFooterText.addClass("chatlog__embed-footer-text");
+			embedFooterText.text(embed.getTimestamp() != null
+				? embed.getFooter().getText() + " • " + embed.getTimestamp()
+				.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))
+				: embed.getFooter().getText());
 
-        embedFooter.appendChild(embedFooterText);
+			embedFooter.appendChild(embedFooterText);
+		}
 
         embedContentContainer.appendChild(embedFooter);
     }
@@ -342,6 +344,7 @@ public class DiscordHtmlTranscripts {
         Element embedImage = document.createElement("div");
         embedImage.addClass("chatlog__embed-image-container");
 
+		assert embed.getImage() != null && embed.getImage().getUrl() != null;
         Element embedImageLink = document.createElement("a");
         embedImageLink.addClass("chatlog__embed-image-link");
         embedImageLink.attr("href", embed.getImage().getUrl());
@@ -362,6 +365,7 @@ public class DiscordHtmlTranscripts {
         Element embedThumbnail = document.createElement("div");
         embedThumbnail.addClass("chatlog__embed-thumbnail-container");
 
+		assert embed.getThumbnail() != null && embed.getThumbnail().getUrl() != null;
         Element embedThumbnailLink = document.createElement("a");
         embedThumbnailLink.addClass("chatlog__embed-thumbnail-link");
         embedThumbnailLink.attr("href", embed.getThumbnail().getUrl());
@@ -390,6 +394,7 @@ public class DiscordHtmlTranscripts {
             Element embedFieldName = document.createElement("div");
             embedFieldName.addClass("chatlog__embed-field-name");
 
+			assert field.getName() != null;
             Element embedFieldNameMarkdown = document.createElement("div");
             embedFieldNameMarkdown.addClass("markdown preserve-whitespace");
             embedFieldNameMarkdown.html(field.getName());
@@ -458,6 +463,7 @@ public class DiscordHtmlTranscripts {
         Element embedAuthor = document.createElement("div");
         embedAuthor.addClass("chatlog__embed-author");
 
+		assert embed.getAuthor() != null && embed.getAuthor().getName() != null;
         if (embed.getAuthor().getIconUrl() != null) {
             Element embedAuthorIcon = document.createElement("img");
             embedAuthorIcon.addClass("chatlog__embed-author-icon");
@@ -560,6 +566,7 @@ public class DiscordHtmlTranscripts {
     private static void handleMessageReferences(Document document, Message message, Element messageGroup) {
         // Referenced message
         var referenceMessage = message.getReferencedMessage();
+		assert referenceMessage != null;
 
         // create symbol
         Element referenceSymbol = document.createElement("div");
@@ -609,7 +616,8 @@ public class DiscordHtmlTranscripts {
 
     private static void handleSlashCommands(Document document, Message message, Element messageGroup) {
         // Referenced message
-        var interaction = message.getInteraction(); // TODO(change)
+        @SuppressWarnings("deprecation") var interaction = message.getInteraction(); // TODO(change)
+		assert interaction != null;
 
         // create symbol
         Element referenceSymbol = document.createElement("div");
@@ -641,11 +649,14 @@ public class DiscordHtmlTranscripts {
     }
 
     private static void handleInteractionComponents(Document document, Message message, Element messageGroup) {
-        for (ActionRow row : message.getActionRows()) {
+        for (var topComponent : message.getComponents()) {
             Element components = document.createElement("div");
             components.attr("style", "flex-direction: row; display: flex; margin-top: .5em");
 
-            for (Component component : row.getComponents()) {
+			// We back up only action rows with buttons and select menus
+			if (!topComponent.getType().equals(Component.Type.ACTION_ROW)) continue;
+
+            for (Component component : topComponent.asActionRow().getComponents()) {
 
                 // Buttons
                 if (component instanceof Button button) {

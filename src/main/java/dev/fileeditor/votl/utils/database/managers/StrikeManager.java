@@ -31,12 +31,14 @@ public class StrikeManager extends LiteBase {
 		return select("SELECT * FROM %s WHERE (expiresAt<%d)".formatted(table, Instant.now().getEpochSecond()), Set.of("guildId", "userId", "count", "data"));
 	}
 
+	@Nullable
 	public Pair<Integer, String> getData(long guildId, long userId) {
 		Map<String, Object> data = selectOne("SELECT count, data FROM %s WHERE (guildId=%d AND userId=%d)".formatted(table, guildId, userId), Set.of("count", "data"));
 		if (data == null || data.isEmpty()) return null;
 		return Pair.of((Integer) data.get("count"), String.valueOf(data.getOrDefault("data", "")));
 	}
 
+	@Nullable
 	public Pair<Integer, Integer> getDataCountAndDate(long guildId, long userId) {
 		Map<String, Object> data = selectOne("SELECT count, expiresAt FROM %s WHERE (guildId=%d AND userId=%d)".formatted(table, guildId, userId), Set.of("count", "expiresAt"));
 		if (data == null || data.isEmpty()) return null;

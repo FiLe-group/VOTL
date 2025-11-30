@@ -10,6 +10,7 @@ import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jetbrains.annotations.Nullable;
 
 public class RoleManager extends LiteBase {
 	
@@ -68,6 +69,7 @@ public class RoleManager extends LiteBase {
 		return count("SELECT COUNT(*) FROM %s WHERE (guildId=%s AND type=%d)".formatted(table, guildId, type.getType()));
 	}
 
+	@Nullable
 	public RoleType getType(long roleId) {
 		Integer data = selectOne("SELECT type FROM %s WHERE (roleId=%s)".formatted(table, roleId), "type", Integer.class);
 		if (data == null) return null;

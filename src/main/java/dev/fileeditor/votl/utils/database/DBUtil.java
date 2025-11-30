@@ -70,7 +70,7 @@ public class DBUtil {
 			Class.forName("org.sqlite.JDBC").getDeclaredConstructor().newInstance();
 		} catch (Exception ex) {
 			log.error("SQLite: Exiting!\nSQLite java client driver not found.\nPossibly, this OS/architecture is not supported or Driver has problems.", ex);
-			System.exit(ExitCodes.ERROR.code);
+			System.exit(ExitCodes.ERROR.v);
 		}
 
 		this.fileManager = fileManager;

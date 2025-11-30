@@ -13,6 +13,7 @@ import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
@@ -23,9 +24,11 @@ public class AccessManager extends LiteBase {
 	private final String table_user = "accessUser";
 
 	// Cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, Map<Long, CmdAccessLevel>> roleCache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, List<Long>> operatorCache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.build();
@@ -66,6 +69,7 @@ public class AccessManager extends LiteBase {
 		return CmdAccessLevel.byLevel(data);
 	}
 
+	@Nullable
 	public CmdAccessLevel getUserLevel(long guildId, long userId) {
 		Integer data = selectOne("SELECT level FROM %s WHERE (guildId=%s AND userId=%s)".formatted(table_user, guildId, userId), "level", Integer.class);
 		if (data == null) return null;
@@ -74,7 +78,8 @@ public class AccessManager extends LiteBase {
 
 	@NotNull
 	public Map<Long, CmdAccessLevel> getAllRoles(long guildId) {
-		return roleCache.get(guildId, id -> applyOrDefault(getRoleData(id), this::parseRoleData, Map.of()));
+		var roles = roleCache.get(guildId, id -> applyOrDefault(getRoleData(id), this::parseRoleData, Map.of()));
+		return roles==null ? Map.of() : roles;
 	}
 
 	public List<Long> getRoles(long guildId, CmdAccessLevel level) {
@@ -110,6 +115,7 @@ public class AccessManager extends LiteBase {
 		operatorCache.invalidate(guildId);
 	}
 
+	@NotNull
 	public Map<Long, CmdAccessLevel> parseRoleData(List<Map<String, Object>> data) {
 		if (data == null || data.isEmpty()) return Map.of();
 		return data.stream().collect(Collectors.toMap(k-> castLong(k.get("roleId")), k-> CmdAccessLevel.byLevel((int) k.get("level"))));
