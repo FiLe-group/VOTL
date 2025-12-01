@@ -33,14 +33,14 @@ public class RestartCmd extends SlashCommand {
 			// Reply
 			event.getHook().editOriginal("Restarting...")
 				.submit()
-				.whenComplete((v,e) -> bot.shutdown(exitCode));
+				.whenComplete((_, _) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Restarting..."));
 		} else {
 			// Reply
 			event.getHook().editOriginal("Restarting in 3 minutes.")
 				.submit()
-				.whenComplete((v,e) -> bot.shutdown(exitCode));
+				.whenComplete((_, _) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Preparing to restart"));
 

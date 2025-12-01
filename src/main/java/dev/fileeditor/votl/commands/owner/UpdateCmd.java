@@ -33,14 +33,14 @@ public class UpdateCmd extends SlashCommand {
 			// Reply
 			event.getHook().editOriginal("Updating...")
 				.submit()
-				.whenComplete((v,e) -> bot.shutdown(exitCode));
+				.whenComplete((_, _) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Restarting..."));
 		} else {
 			// Reply
 			event.getHook().editOriginal("Updating in 3 minutes.")
 				.submit()
-				.whenComplete((v,e) -> bot.shutdown(exitCode));
+				.whenComplete((_, _) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Preparing to restart"));
 

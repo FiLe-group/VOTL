@@ -29,6 +29,7 @@ public class MessageListener extends ListenerAdapter {
 	private final Logger log = (Logger) LoggerFactory.getLogger(MessageListener.class);
 
 	// Cache
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, MessageData> cache = Caffeine.newBuilder()
 		.expireAfterWrite(5, TimeUnit.DAYS)
 		.maximumSize(5000)

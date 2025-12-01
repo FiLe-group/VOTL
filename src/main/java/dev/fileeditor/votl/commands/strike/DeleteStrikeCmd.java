@@ -20,6 +20,10 @@ import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.selections.SelectOption;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
@@ -28,10 +32,6 @@ import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionE
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
@@ -95,7 +95,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 				.setFooter("User ID: "+tu.getId())
 				.build()
 			)
-			.setActionRow(caseSelectMenu)
+			.setComponents(ActionRow.of(caseSelectMenu))
 			.queue(msg -> waiter.waitForEvent(
 				StringSelectInteractionEvent.class,
 				e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
@@ -180,7 +180,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 			msg.editMessageEmbeds(bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getGuildText(event, path+".button_title"))
 				.build()
-			).setActionRow(buttons).queue(msgN -> waiter.waitForEvent(
+			).setComponents(ActionRow.of(buttons)).queue(msgN -> waiter.waitForEvent(
 				ButtonInteractionEvent.class,
 				e -> e.getMessageId().equals(msg.getId()) && e.getUser().equals(event.getUser()),
 				buttonAction -> buttonPressed(buttonAction, msgN, strikesInfo, tu, activeAmount),

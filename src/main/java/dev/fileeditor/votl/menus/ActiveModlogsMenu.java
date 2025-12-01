@@ -27,6 +27,7 @@ public class ActiveModlogsMenu extends UserContextMenu {
 	protected void execute(UserContextMenuEvent event) {
 		User user = event.getTarget();
 
+		assert event.getGuild() != null;
 		long guildId = event.getGuild().getIdLong();
 		long userId = user.getIdLong();
 		final List<CaseManager.CaseData> cases = bot.getDBUtil().cases.getGuildUser(guildId, userId, 1, true);

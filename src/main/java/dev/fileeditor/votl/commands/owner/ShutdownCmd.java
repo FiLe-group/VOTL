@@ -34,14 +34,14 @@ public class ShutdownCmd extends SlashCommand {
 			// Reply
 			event.getHook().editOriginal("Shutting down...")
 				.submit()
-				.whenComplete((v,e) -> bot.shutdown(exitCode));
+				.whenComplete((_, _) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Shutting down..."));
 		} else {
 			// Reply
 			event.getHook().editOriginal("Shutting down in 3 minutes.")
 				.submit()
-				.whenComplete((v,e) -> bot.shutdown(exitCode));
+				.whenComplete((_, _) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Preparing to shut down"));
 

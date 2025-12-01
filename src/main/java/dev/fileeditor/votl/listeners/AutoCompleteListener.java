@@ -17,12 +17,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class AutoCompleteListener extends ListenerAdapter {
 
-	private final List<SlashCommand> cmds;
+	private final List<SlashCommand> commands;
 
 	private final DBUtil db;
 
 	public AutoCompleteListener(CommandClient cc, DBUtil dbutil) {
-		cmds = cc.getSlashCommands();
+		commands = cc.getSlashCommands();
 		db = dbutil;
 	}
 		
@@ -32,7 +32,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 		String focusedOption = event.getFocusedOption().getName();
 		if (cmdName.equals("help") && focusedOption.equals("command")) {
 			String value = event.getFocusedOption().getValue().toLowerCase().split(" ")[0];
-			List<Choice> choices = cmds.stream()
+			List<Choice> choices = commands.stream()
 				.filter(cmd -> cmd.getName().contains(value))
 				.map(cmd -> new Choice(cmd.getName(), cmd.getName()))
 				.collect(Collectors.toList());
@@ -42,6 +42,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 			event.replyChoices(choices).queue();
 		}
 		else if (focusedOption.equals("group_owned")) {
+			assert event.getGuild() != null;
 			List<Integer> groupIds = db.group.getOwnedGroups(event.getGuild().getIdLong());
 			if (groupIds.isEmpty()) {
 				event.replyChoices(Collections.emptyList()).queue();
@@ -56,6 +57,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 			}
 		}
 		else if (focusedOption.equals("group_joined")) {
+			assert event.getGuild() != null;
 			List<Integer> groupIds = db.group.getGuildGroups(event.getGuild().getIdLong());
 			if (groupIds.isEmpty()) {
 				event.replyChoices(Collections.emptyList()).queue();
@@ -70,6 +72,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 			}
 		}
 		else if (focusedOption.equals("group")) {
+			assert event.getGuild() != null;
 			List<Integer> groupIds = new ArrayList<>();
 			groupIds.addAll(db.group.getOwnedGroups(event.getGuild().getIdLong()));
 			groupIds.addAll(db.group.getManagedGroups(event.getGuild().getIdLong()));
@@ -86,6 +89,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 			}
 		}
 		else if (focusedOption.equals("panel_id")) {
+			assert event.getGuild() != null;
 			String value = event.getFocusedOption().getValue();
 			long guildId = event.getGuild().getIdLong();
 			if (value.isBlank()) {
@@ -113,6 +117,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 			event.replyChoices(Collections.emptyList()).queue();
 		}
 		else if (focusedOption.equals("tag_id")) {
+			assert event.getGuild() != null;
 			String value = event.getFocusedOption().getValue();
 			long guildId = event.getGuild().getIdLong();
 			if (value.isBlank()) {

@@ -196,8 +196,7 @@ public class TicketTagManager extends LiteBase {
 			return ticketName;
 		}
 
-		@Nullable
-		public Integer getTagType() {
+		public int getTagType() {
 			return tagType;
 		}
 

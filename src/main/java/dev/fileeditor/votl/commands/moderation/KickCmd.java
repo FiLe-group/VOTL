@@ -18,6 +18,8 @@ import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
 import dev.fileeditor.votl.utils.exception.AttachmentParseException;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -26,7 +28,6 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
 public class KickCmd extends SlashCommand {
@@ -144,9 +145,9 @@ public class KickCmd extends SlashCommand {
 				event.getHook().editOriginalEmbeds(
 					bot.getModerationUtil().actionEmbed(lu.getLocale(event), kickData.getLocalIdInt(),
 						path+".success", tm.getUser(), mod.getUser(), reason, logUrl)
-				).setActionRow(
+				).setComponents(ActionRow.of(
 					Button.primary("sync_kick:"+tm.getId(), "Sync kick").withEmoji(Emoji.fromUnicode("🆑"))
-				).queue();
+				)).queue();
 			});
 		},
 		failure -> editErrorOther(event, failure.getMessage()));

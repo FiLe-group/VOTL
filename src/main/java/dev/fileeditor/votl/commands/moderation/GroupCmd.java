@@ -19,14 +19,14 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.selections.SelectOption;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 public class GroupCmd extends SlashCommand {
 	
@@ -235,11 +235,9 @@ public class GroupCmd extends SlashCommand {
 				},
 				30,
 				TimeUnit.SECONDS,
-				() -> {
-					event.getHook().editOriginalComponents(
-						ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
-					).queue();
-				}
+				() -> event.getHook().editOriginalComponents(
+					ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
+				).queue()
 			));
 		}
 	}

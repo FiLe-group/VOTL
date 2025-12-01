@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public class SetStatusCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		ActivityType type = parseType(event.optString("type"));
+		ActivityType type = parseType(event.optString("type", ""));
 		if (type == null) {
 			event.getJDA().getPresence().setActivity(null);
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
@@ -50,7 +51,7 @@ public class SetStatusCmd extends SlashCommand {
 				.build());
 			return;
 		}
-		String text = event.optString("text");
+		String text = event.optString("text", "");
 
 		switch (type) {
 			case PLAYING, LISTENING, WATCHING, CUSTOM_STATUS -> {
@@ -73,7 +74,8 @@ public class SetStatusCmd extends SlashCommand {
 		}
 	}
 
-	private ActivityType parseType(@Nullable String type) {
+	@Nullable
+	private ActivityType parseType(@NotNull String type) {
 		return switch (type) {
 			case "playing" -> ActivityType.PLAYING;
 			case "streaming" -> ActivityType.STREAMING;
@@ -84,7 +86,8 @@ public class SetStatusCmd extends SlashCommand {
 		};
 	}
 
-	private String activityString(@Nullable ActivityType type) {
+	@Nullable
+	private String activityString(@NotNull ActivityType type) {
 		return switch (type) {
 			case PLAYING -> "Playing";
 			case STREAMING -> "Streaming";

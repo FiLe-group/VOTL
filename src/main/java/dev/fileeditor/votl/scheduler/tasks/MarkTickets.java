@@ -3,13 +3,14 @@ package dev.fileeditor.votl.scheduler.tasks;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.contracts.scheduler.Task;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.TimeUtil;
 
@@ -52,7 +53,10 @@ public class MarkTickets implements Task {
 				Button cancel = Button.secondary("ticket:cancel", bot.getLocaleUtil().getLocalized(locale, "ticket.cancel"));
 
 				bot.getDBUtil().tickets.setRequestStatus(channelId, closeTime.getEpochSecond());
-				channel.sendMessage("||%s||".formatted(user.getAsMention())).addEmbeds(embed).addActionRow(close, cancel).queue();
+				channel.sendMessage("||%s||".formatted(user.getAsMention()))
+					.addEmbeds(embed)
+					.addComponents(ActionRow.of(close, cancel))
+					.queue();
 			}
 		});
 	}

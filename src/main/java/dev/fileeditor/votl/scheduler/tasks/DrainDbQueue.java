@@ -41,4 +41,5 @@ public class DrainDbQueue implements Task {
 			LOG.debug("Updated data for {} players", updated);
 		}
 	}
+
 }

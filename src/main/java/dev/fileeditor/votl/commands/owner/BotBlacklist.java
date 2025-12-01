@@ -32,6 +32,7 @@ public class BotBlacklist extends SlashCommand {
 
 		if (event.optBoolean("add")) {
 			Scope scope = Scope.fromId(event.optInteger("type", 0));
+			assert scope != null;
 			String reason = event.optString("reason");
 			bot.getBlacklist().addToBlacklist(scope, id, reason);
 			editMsg(event, "Added %s `%s` to blacklist.\n> %s".formatted(scope.getName(), id, reason == null ? "-None-" : reason));

@@ -21,6 +21,8 @@ import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
@@ -33,8 +35,6 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class SetupCmd extends SlashCommand {
 
@@ -311,11 +311,13 @@ public class SetupCmd extends SlashCommand {
 
 			Long channelId = bot.getDBUtil().getVoiceSettings(event.getGuild()).getChannelId();
 			channel.sendMessageEmbeds(new EmbedBuilder()
-				.setColor(Constants.COLOR_DEFAULT)
-				.setTitle(lu.getGuildText(event, path+".embed_title"))
-				.setDescription(lu.getGuildText(event, path+".embed_value", channelId))
-				.build()
-			).addComponents(row1, row2, row4, row5).queue();
+					.setColor(Constants.COLOR_DEFAULT)
+					.setTitle(lu.getGuildText(event, path+".embed_title"))
+					.setDescription(lu.getGuildText(event, path+".embed_value", channelId))
+					.build()
+				)
+				.setComponents(row1, row2, row4, row5)
+				.queue();
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))

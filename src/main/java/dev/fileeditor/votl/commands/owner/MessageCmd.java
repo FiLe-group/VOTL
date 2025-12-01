@@ -28,13 +28,14 @@ public class MessageCmd extends SlashCommand {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		String channelId = event.optString("channel_id");
+		assert channelId != null;
 		GuildMessageChannel channel = event.getJDA().getChannelById(GuildMessageChannel.class, channelId);
 		if (channel == null) {
 			editMsg(event, Constants.FAILURE+" Channel not found.");
 			return;
 		}
 
-		channel.sendMessage(event.optString("content")).queue();
+		channel.sendMessage(event.optString("content", "TEST")).queue();
 		editMsg(event, Constants.SUCCESS);
 	}
 }

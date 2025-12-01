@@ -17,6 +17,8 @@ import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.exception.CheckException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -25,7 +27,6 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class VerifyPanelCmd extends SlashCommand {
 
@@ -90,7 +91,7 @@ public class VerifyPanelCmd extends SlashCommand {
 				.setImage(bot.getDBUtil().getVerifySettings(guild).getPanelImageUrl())
 				.setFooter(event.getGuild().getName(), event.getGuild().getIconUrl())
 				.build()
-			).addActionRow(next).queue();
+			).setComponents(ActionRow.of(next)).queue();
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", tc.getAsMention()))

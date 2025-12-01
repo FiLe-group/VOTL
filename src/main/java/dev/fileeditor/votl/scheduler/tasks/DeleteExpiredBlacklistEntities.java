@@ -4,6 +4,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.contracts.scheduler.Task;
 
 public class DeleteExpiredBlacklistEntities implements Task {
+
 	@Override
 	public void handle(App bot) {
 		if (bot.getBlacklist() == null) return;
@@ -15,4 +16,5 @@ public class DeleteExpiredBlacklistEntities implements Task {
 				.removeIf(e -> !e.getValue().isBlacklisted());
 		}
 	}
+
 }

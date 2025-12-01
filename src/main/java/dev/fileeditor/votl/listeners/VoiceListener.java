@@ -36,6 +36,7 @@ public class VoiceListener extends ListenerAdapter {
 	);
 
 	private final int CHANNEL_LIMIT_SECONDS = 60;
+	@SuppressWarnings("NullableProblems")
 	private final Cache<Long, Long> channelCreationLimit = Caffeine.newBuilder()
 		.expireAfterWrite(CHANNEL_LIMIT_SECONDS, TimeUnit.SECONDS)
 		.build();
@@ -119,7 +120,7 @@ public class VoiceListener extends ListenerAdapter {
 	}
 
 	private void handleVoiceCreate(Guild guild, Member member) {
-		if (!member.getVoiceState().inAudioChannel()) return;
+		if (member.getVoiceState() == null && !member.getVoiceState().inAudioChannel()) return;
 		final long userId = member.getIdLong();
 		final DiscordLocale guildLocale = App.getInstance().getLocaleUtil().getLocale(guild);
 
@@ -171,15 +172,14 @@ public class VoiceListener extends ListenerAdapter {
 						guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS, null, new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED));
 					} catch (Throwable ignored) {}
 				},
-				failure -> {
-					member.getUser().openPrivateChannel()
-						.flatMap(channel ->
-							channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.failed")
-								.formatted(failure.getMessage())
-							)
+				failure -> member.getUser()
+					.openPrivateChannel()
+					.flatMap(channel ->
+						channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.failed")
+							.formatted(failure.getMessage())
 						)
-						.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
-				}
+					)
+					.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
 			);
 	}
 

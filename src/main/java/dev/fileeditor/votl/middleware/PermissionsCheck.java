@@ -18,6 +18,7 @@ public class PermissionsCheck extends Middleware {
 			return stack.next();
 		}
 
+		assert event.getMember() != null;
 		try {
 			bot.getCheckUtil()
 				.hasPermissions(event, stack.getInteraction().getBotPermissions())

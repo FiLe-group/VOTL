@@ -82,4 +82,5 @@ public class MiddlewareStack {
 	public GenericCommandInteractionEvent getEvent() {
 		return event;
 	}
+
 }

@@ -8,10 +8,11 @@ import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class ReportMenu extends MessageContextMenu {
 	public ReportMenu() {
@@ -26,6 +27,7 @@ public class ReportMenu extends MessageContextMenu {
 
 	@Override
 	protected void execute(MessageContextMenuEvent event) {
+		assert event.getGuild() != null;
 		event.getGuild().retrieveMember(event.getTarget().getAuthor()).queue(member -> {
 			Long channelId = bot.getDBUtil().getGuildSettings(event.getGuild()).getReportChannelId();
 			if (channelId == null || member.getUser().isBot() || member.hasPermission(Permission.ADMINISTRATOR)) {
@@ -41,17 +43,20 @@ public class ReportMenu extends MessageContextMenu {
 			MessageEmbed reportEmbed = getReportEmbed(event);
 			Button delete = Button.danger("delete:%s:%s".formatted(event.getMessageChannel().getId(), event.getTarget().getId()), lu.getGuildText(event, path+".delete")).withEmoji(Emoji.fromUnicode("🗑️"));
 			Button link = Button.link(event.getTarget().getJumpUrl(), lu.getGuildText(event, path+".link"));
-			channel.sendMessageEmbeds(reportEmbed).addActionRow(link, delete).queue();
+			channel.sendMessageEmbeds(reportEmbed)
+				.setComponents(ActionRow.of(link, delete))
+				.queue();
 
 			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
 				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()
 			).queue();
-		}, failure -> event.getHook().editOriginal(Constants.FAILURE).queue());
+		}, _ -> event.getHook().editOriginal(Constants.FAILURE).queue());
 		
 	}
 
 	private MessageEmbed getReportEmbed(MessageContextMenuEvent event) {
+		assert event.getMember() != null;
 		String content = MessageUtil.limitString(event.getTarget().getContentStripped(), 1024);
 		return new EmbedBuilder().setColor(Constants.COLOR_WARNING)
 			.setTitle(lu.getGuildText(event, path+".title"))

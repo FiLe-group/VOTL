@@ -14,10 +14,11 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class RcloseCmd extends SlashCommand {
 	
@@ -109,7 +110,7 @@ public class RcloseCmd extends SlashCommand {
 		Button close = Button.primary("ticket:close", lu.getGuildText(event, "ticket.close"));
 		Button cancel = Button.secondary("ticket:cancel", lu.getGuildText(event, "ticket.cancel"));
 		
-		event.getHook().editOriginal("||%s||".formatted(user.getAsMention())).setEmbeds(embed).setActionRow(close, cancel).queue();
+		event.getHook().editOriginal("||%s||".formatted(user.getAsMention())).setEmbeds(embed).setComponents(ActionRow.of(close, cancel)).queue();
 		bot.getDBUtil().tickets.setRequestStatus(
 			channelId, closeTime.getEpochSecond(),
 			event.optString("reason", lu.getGuildText(event, "bot.ticketing.listener.closed_support"))

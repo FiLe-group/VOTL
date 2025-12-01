@@ -38,7 +38,7 @@ public class ModerationListener extends ListenerAdapter {
 			.queue(list -> {
 				if (list.isEmpty()) return;
 				AuditLogEntry entry = list.getFirst();
-				if (entry.getUser().equals(event.getJDA().getSelfUser())) return;  // Ignore self
+				if (entry.getUserIdLong() == event.getJDA().getSelfUser().getIdLong()) return;  // Ignore self
 				bot.getGuildLogger().mod.onUserBan(entry, event.getUser());
 			});
 	}
@@ -59,7 +59,7 @@ public class ModerationListener extends ListenerAdapter {
 			.queue(list -> {
 				if (list.isEmpty()) return;
 				AuditLogEntry entry = list.getFirst();
-				if (entry.getUser().equals(event.getJDA().getSelfUser())) return;  // Ignore self
+				if (entry.getUserIdLong() == event.getJDA().getSelfUser().getIdLong()) return;  // Ignore self
 				bot.getGuildLogger().mod.onUserUnban(entry, event.getUser());
 			});
 	}

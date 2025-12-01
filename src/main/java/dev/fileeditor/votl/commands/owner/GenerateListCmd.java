@@ -82,7 +82,7 @@ public class GenerateListCmd extends SlashCommand {
 			writer.close();
 			//noinspection ResultOfMethodCallIgnored
 			event.getHook().editOriginalAttachments(FileUpload.fromData(file, "commands.json"))
-				.queue(hook -> file.delete());
+				.queue(_ -> file.delete());
 		} catch (IOException | UncheckedIOException ex) {
 			editError(event, path+".error", ex.getMessage());
 		}

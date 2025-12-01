@@ -21,6 +21,7 @@ public class HasAccess extends Middleware {
 			return stack.next();
 		}
 
+		assert event.getMember() != null;
 		if (bot.getCheckUtil().getAccessLevel(event.getMember()).isLowerThan(stack.getInteraction().getAccessLevel())) {
 			return runErrorCheck(event, () -> {
 				sendError(event, "errors.interaction.no_access", "Required access: "+stack.getInteraction().getAccessLevel().getName());

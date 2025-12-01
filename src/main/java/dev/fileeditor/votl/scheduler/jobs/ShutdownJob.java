@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 public class ShutdownJob extends Job {
+
 	public ShutdownJob(App bot) {
 		super(bot, 20, 20, TimeUnit.SECONDS);
 	}
@@ -19,4 +20,5 @@ public class ShutdownJob extends Job {
 
 		bot.shutdown(bot.getShutdownCode());
 	}
+
 }

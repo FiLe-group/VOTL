@@ -24,6 +24,8 @@ import dev.fileeditor.votl.utils.message.TimeUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.entities.Member;
@@ -32,7 +34,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
 public class BanCmd extends SlashCommand {
@@ -127,11 +128,11 @@ public class BanCmd extends SlashCommand {
 						event.getHook().editOriginalEmbeds(
 							bot.getModerationUtil().actionEmbed(lu.getLocale(event), newBanData.getLocalIdInt(),
 								path+".success", tu, mod.getUser(), reason, duration, logUrl)
-						).setActionRow(
+						).setComponents(ActionRow.of(
 							Button.danger("blacklist:"+ban.getUser().getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨")),
 							Button.secondary("sync_ban:"+tu.getId(), "Group ban"),
 							Button.secondary("sync_kick:"+tu.getId(), "Group kick")
-						).queue();
+						)).queue();
 					});
 				} else {
 					// already has temporal ban (return case ID and use /duration to change time)
@@ -170,11 +171,14 @@ public class BanCmd extends SlashCommand {
 					if (logUrl != null)
 						embedBuilder.addField("", lu.getGuildText(event, "logger.moderation.log_url", logUrl), false);
 					// reply and add blacklist button
-					event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRow(
-						Button.danger("blacklist:"+ban.getUser().getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨")),
-						Button.secondary("sync_ban:"+tu.getId(), "Group ban"),
-						Button.secondary("sync_kick:"+tu.getId(), "Group kick")
-					).queue();
+					event.getHook()
+						.editOriginalEmbeds(embedBuilder.build())
+						.setComponents(ActionRow.of(
+							Button.danger("blacklist:"+ban.getUser().getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨")),
+							Button.secondary("sync_ban:"+tu.getId(), "Group ban"),
+							Button.secondary("sync_kick:"+tu.getId(), "Group kick")
+						))
+						.queue();
 				});
 			}
 		},
@@ -210,7 +214,7 @@ public class BanCmd extends SlashCommand {
 					.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 			});
 
-			guild.ban(tu, (event.optBoolean("delete", true) ? 10 : 0), TimeUnit.HOURS).reason(reason).queueAfter(3, TimeUnit.SECONDS, done -> {
+			guild.ban(tu, (event.optBoolean("delete", true) ? 10 : 0), TimeUnit.HOURS).reason(reason).queueAfter(3, TimeUnit.SECONDS, _ -> {
 				// fail-safe check if user has temporal ban (to prevent auto unban)
 				CaseData oldBanData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 				if (oldBanData != null) {
@@ -237,11 +241,14 @@ public class BanCmd extends SlashCommand {
 						path+".success", tu, mod.getUser(), reason, duration, logUrl);
 					// if permanent - add button to blacklist target
 					if (duration.isZero())
-						event.getHook().editOriginalEmbeds(embed).setActionRow(
-							Button.danger("blacklist:"+tu.getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨")),
-							Button.secondary("sync_ban:"+tu.getId(), "Group ban"),
-							Button.secondary("sync_kick:"+tu.getId(), "Group kick")
-						).queue();
+						event.getHook()
+							.editOriginalEmbeds(embed)
+							.setComponents(ActionRow.of(
+								Button.danger("blacklist:"+tu.getId(), "Blacklist").withEmoji(Emoji.fromUnicode("🔨")),
+								Button.secondary("sync_ban:"+tu.getId(), "Group ban"),
+								Button.secondary("sync_kick:"+tu.getId(), "Group kick")
+							))
+							.queue();
 					else
 						event.getHook().editOriginalEmbeds(embed).queue();
 				});

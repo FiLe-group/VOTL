@@ -15,8 +15,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@SuppressWarnings("SameParameterValue")
 public abstract class Middleware {
 
+	@SuppressWarnings("NullableProblems")
 	private static final Cache<Long, Boolean> errorCache = Caffeine.newBuilder()
 		.expireAfterWrite(2000, TimeUnit.MILLISECONDS)
 		.build();
@@ -30,7 +32,9 @@ public abstract class Middleware {
 	public abstract boolean handle(@NotNull GenericCommandInteractionEvent event, @NotNull MiddlewareStack stack, String... args);
 
 	protected boolean runErrorCheck(@NotNull GenericCommandInteractionEvent event, @NotNull Supplier<Boolean> callback) {
-		return errorCache.get(event.getUser().getIdLong(), id -> Objects.requireNonNullElse(callback.get(), false));
+		return Objects.requireNonNull(
+			errorCache.get(event.getUser().getIdLong(), _ -> Objects.requireNonNullElse(callback.get(), false))
+		);
 	}
 
 	// Send Error

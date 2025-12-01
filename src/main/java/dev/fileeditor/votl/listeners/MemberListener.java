@@ -87,14 +87,17 @@ public class MemberListener extends ListenerAdapter {
 	public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
 		// Log
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
-			event.getGuild().retrieveAuditLogs()
+			event.getGuild()
+				.retrieveAuditLogs()
 				.type(ActionType.KICK)
 				.limit(1)
 				.queue(list -> {
 					if (!list.isEmpty()) {
 						AuditLogEntry entry = list.getFirst();
-						if (!entry.getUser().equals(event.getJDA().getSelfUser()) && entry.getTargetIdLong() == event.getUser().getIdLong()
-							&& entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
+						if (entry.getUserIdLong() != event.getJDA().getSelfUser().getIdLong()
+							&& entry.getTargetIdLong() == event.getUser().getIdLong()
+							&& entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))
+						) {
 							bot.getGuildLogger().mod.onUserKick(entry, event.getUser());
 						}
 					}

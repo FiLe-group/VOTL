@@ -26,7 +26,7 @@ public class CheckAccessCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Guild guild = event.getJDA().getGuildById(event.optString("server"));
+		Guild guild = event.getJDA().getGuildById(event.optString("server", "0"));
 		if (guild == null) {
 			editError(event, path+".no_guild");
 			return;
@@ -41,8 +41,6 @@ public class CheckAccessCmd extends SlashCommand {
 		guild.retrieveMember(user).queue(member -> {
 			CmdAccessLevel level = bot.getCheckUtil().getAccessLevel(member);
 			editMsg(event, "%s(%s) - %s".formatted(member.getAsMention(), member.getEffectiveName(), level.getName()));
-		}, failure -> {
-			editError(event, failure.getMessage());
-		});
+		}, failure -> editError(event, failure.getMessage()));
 	}
 }

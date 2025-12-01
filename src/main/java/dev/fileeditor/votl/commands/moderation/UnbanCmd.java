@@ -14,13 +14,14 @@ import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class UnbanCmd extends SlashCommand {
 	
@@ -106,9 +107,9 @@ public class UnbanCmd extends SlashCommand {
 					event.getHook().editOriginalEmbeds(
 						bot.getModerationUtil().actionEmbed(lu.getLocale(event), unbanData.getLocalIdInt(),
 							path+".success", tu, mod.getUser(), reason, logUrl)
-					).setActionRow(
+					).setComponents(ActionRow.of(
 						Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
-					).queue();
+					)).queue();
 				});
 			}, failure -> {
 				editErrorOther(event, "Failed to unban user.\n> "+failure.getMessage());
@@ -120,9 +121,9 @@ public class UnbanCmd extends SlashCommand {
 				bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
 					.setDescription(lu.getGuildText(event, path+".no_ban"))
 					.build()
-			).setActionRow(
+			).setComponents(ActionRow.of(
 				Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
-			).queue();
+			)).queue();
 		});
 	}
 

@@ -15,11 +15,11 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.selections.SelectOption;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleCmd extends SlashCommand {
@@ -104,7 +104,7 @@ public class ModuleCmd extends SlashCommand {
 				)
 				.build();
 
-			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(msg -> waiter.waitForEvent(
+			hook.editOriginalEmbeds(embed.build()).setComponents(ActionRow.of(menu)).queue(msg -> waiter.waitForEvent(
 				StringSelectInteractionEvent.class,
 				e -> e.getComponentId().equals("disable-module") && e.getMessageId().equals(msg.getId()) && event.getUser().getIdLong() == e.getUser().getIdLong(),
 				actionEvent -> {
@@ -171,11 +171,11 @@ public class ModuleCmd extends SlashCommand {
 					.toList())
 				.build();
 
-			hook.editOriginalEmbeds(embed.build()).setActionRow(menu).queue(msg -> waiter.waitForEvent(
+			hook.editOriginalEmbeds(embed.build()).setComponents(ActionRow.of(menu)).queue(msg -> waiter.waitForEvent(
 				StringSelectInteractionEvent.class,
 				e -> e.getComponentId().equals("enable-module") && e.getMessageId().equals(msg.getId()) && event.getUser().getIdLong() == e.getUser().getIdLong(),
 				actionEvent -> actionEvent.deferEdit().queue(
-					actionHook -> {
+					_ -> {
 						CmdModule sModule = CmdModule.valueOf(actionEvent.getSelectedOptions().getFirst().getValue());
 						if (!bot.getDBUtil().getGuildSettings(guildId).isDisabled(sModule)) {
 							hook.editOriginalEmbeds(bot.getEmbedUtil().getError(event, path+".already")).setComponents().queue();

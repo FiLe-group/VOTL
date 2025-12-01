@@ -26,4 +26,5 @@ public class RegularJobs extends Job {
 			deleteExpiredBlacklistEntities
 		);
 	}
+
 }

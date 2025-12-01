@@ -22,6 +22,7 @@ public class IsModuleEnabled extends Middleware {
 			return stack.next();
 		}
 
+		assert event.getGuild() != null;
 		if (bot.getDBUtil().getGuildSettings(event.getGuild()).isDisabled(stack.getInteraction().getModule())) {
 			return runErrorCheck(event, () -> {
 				sendError(event, "modules.module_disabled");

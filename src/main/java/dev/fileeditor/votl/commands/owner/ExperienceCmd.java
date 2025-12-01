@@ -84,9 +84,7 @@ public class ExperienceCmd extends SlashCommand {
 							editMsg(event, "Removed `%s` %s exp from user `%s` in guild `%s`".formatted(amount, expType.name(), userId, guildId));
 						}
 					}
-				}, failure -> {
-					editErrorOther(event, "Member not found");
-				});
+				}, _ -> editErrorOther(event, "Member not found"));
 			}
 			case 4 -> {
 				// Clear text+voice exp for guild user
@@ -107,9 +105,7 @@ public class ExperienceCmd extends SlashCommand {
 					bot.getLevelUtil().clearExperience(member);
 
 					editMsg(event, "Removed all (text and voice) exp from user `%s` in guild `%s`".formatted(userId, guildId));
-				}, failure -> {
-					editErrorOther(event, "Member not found");
-				});
+				}, _ -> editErrorOther(event, "Member not found"));
 			}
 			case 5 -> {
 				// Delete guild user

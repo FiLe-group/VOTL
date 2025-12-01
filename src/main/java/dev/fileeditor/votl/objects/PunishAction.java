@@ -1,5 +1,7 @@
 package dev.fileeditor.votl.objects;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -57,12 +59,14 @@ public enum PunishAction {
 		return data;
 	}
 
+	@Nullable
 	public String getMatchedValue(String data) {
 		Matcher matcher = getPattern().matcher(data);
 		if (!matcher.find()) return null;
 		return matcher.group(1);
 	}
 
+	@Nullable
 	public String getMatchedValue(String data, int group) {
 		Matcher matcher = getPattern().matcher(data);
 		if (!matcher.find()) return null;

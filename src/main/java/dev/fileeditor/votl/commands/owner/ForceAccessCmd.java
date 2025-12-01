@@ -35,7 +35,7 @@ public class ForceAccessCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Guild guild = event.getJDA().getGuildById(event.optString("server"));
+		Guild guild = event.getJDA().getGuildById(event.optString("server", "0"));
 		if (guild == null) {
 			editError(event, path+".no_guild");
 			return;

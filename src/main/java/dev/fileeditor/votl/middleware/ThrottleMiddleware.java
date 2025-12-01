@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ThrottleMiddleware extends Middleware {
 
+	@SuppressWarnings("NullableProblems")
 	public static final Cache<String, ThrottleEntity> cache = Caffeine.newBuilder()
 		.expireAfterWrite(60, TimeUnit.SECONDS)
 		.build();
@@ -94,7 +95,8 @@ public class ThrottleMiddleware extends Middleware {
 	}
 
 	private ThrottleEntity getEntityFromCache(@NotNull String key, int maxAttempts, int decaySeconds) {
-		ThrottleEntity entity = cache.get(key, (v) -> new ThrottleEntity(maxAttempts, decaySeconds));
+		ThrottleEntity entity = cache.get(key, (_) -> new ThrottleEntity(maxAttempts, decaySeconds));
+		assert entity != null;
 
 		if (entity.hasExpired()) {
 			cache.invalidate(key);

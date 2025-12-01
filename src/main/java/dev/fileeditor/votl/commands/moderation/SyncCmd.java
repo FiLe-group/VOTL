@@ -14,13 +14,12 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class SyncCmd extends SlashCommand {
 
@@ -79,31 +78,35 @@ public class SyncCmd extends SlashCommand {
 			}
 
 			ActionRow button = ActionRow.of(
-				Button.of(ButtonStyle.PRIMARY, "button:confirm", lu.getGuildText(event, path+".button_confirm"))
+				Button.primary("button:confirm", lu.getGuildText(event, path+".button_confirm"))
 			);
-			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed()
-				.setDescription(lu.getGuildText(event, path+".embed_title"))
-				.build()
-			).setComponents(button).queue(msg -> waiter.waitForEvent(
-				ButtonInteractionEvent.class,
-				e -> msg.getId().equals(e.getMessageId()) && e.getComponentId().equals("button:confirm") && e.getUser().getIdLong() == event.getUser().getIdLong(),
-				action -> {
-					if (bot.getDBUtil().group.countMembers(groupId) < 1) {
-						editError(event, path+".no_guilds");
-						return;
-					}
+			event.getHook()
+				.editOriginalEmbeds(bot.getEmbedUtil()
+					.getEmbed()
+					.setDescription(lu.getGuildText(event, path+".embed_title"))
+					.build()
+				)
+				.setComponents(button)
+				.queue(msg -> waiter.waitForEvent(
+					ButtonInteractionEvent.class,
+					e -> msg.getId().equals(e.getMessageId()) && e.getComponentId().equals("button:confirm") && e.getUser().getIdLong() == event.getUser().getIdLong(),
+					action -> {
+						if (bot.getDBUtil().group.countMembers(groupId) < 1) {
+							editError(event, path+".no_guilds");
+							return;
+						}
 
-					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getGuildText(event, path+".done"))
-						.build()
-					).setComponents().queue();
-					// Perform action using Helper bot
-					Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), target, "Manual kick", event.getUser()));
-				},
-				20,
-				TimeUnit.SECONDS,
-				() -> event.getHook().editOriginalComponents(ActionRow.of(Button.of(ButtonStyle.SECONDARY, "timed_out", "Timed out").asDisabled())).queue()
-			));
+						event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+							.setDescription(lu.getGuildText(event, path+".done"))
+							.build()
+						).setComponents().queue();
+						// Perform action using Helper bot
+						Optional.ofNullable(bot.getHelper()).ifPresent(helper -> helper.runKick(groupId, event.getGuild(), target, "Manual kick", event.getUser()));
+					},
+					20,
+					TimeUnit.SECONDS,
+					() -> event.getHook().editOriginalComponents(ActionRow.of(Button.secondary("timed_out", "Timed out").asDisabled())).queue()
+				));
 		}
 	}
 
