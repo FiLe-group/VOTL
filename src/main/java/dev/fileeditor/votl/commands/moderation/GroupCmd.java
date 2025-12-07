@@ -54,7 +54,7 @@ public class GroupCmd extends SlashCommand {
 			this.path = "bot.moderation.group.create";
 			this.options = List.of(
 				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true)
-					.setMaxLength(100),
+					.setMaxLength(80),
 				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help"))
 					.setRequiredLength(12, 20)
 			);
@@ -294,7 +294,7 @@ public class GroupCmd extends SlashCommand {
 				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
 					.setMinValue(1),
 				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"))
-					.setMaxLength(100),
+					.setMaxLength(80),
 				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help"))
 					.setRequiredLength(12, 20)
 			);

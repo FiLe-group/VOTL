@@ -84,7 +84,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 						String groupName = db.group.getName(groupId);
 						return new Choice("%s (ID: %s)".formatted(groupName, groupId), groupId);
 					})
-					.collect(Collectors.toList());
+					.toList();
 				event.replyChoices(choices).queue();
 			}
 		}
@@ -94,9 +94,11 @@ public class AutoCompleteListener extends ListenerAdapter {
 			long guildId = event.getGuild().getIdLong();
 			if (value.isBlank()) {
 				// if input is blank, show max 25 choices
-				List<Choice> choices = db.ticketPanels.getPanelsText(guildId).entrySet().stream()
-					.map(panel -> new Choice("%s | %s".formatted(panel.getKey(), panel.getValue()), panel.getKey()))
-					.collect(Collectors.toList());
+				List<Choice> choices = db.ticketPanels.getPanelsText(guildId)
+					.entrySet()
+					.stream()
+					.map(panel -> new Choice("%s | %s".formatted(panel.getKey(), MessageUtil.limitString(panel.getValue(), 90)), panel.getKey()))
+					.toList();
 				event.replyChoices(choices).queue();
 				return;
 			}

@@ -383,18 +383,22 @@ public class InteractionListener extends ListenerAdapter {
 					StringSelectInteractionEvent.class,
 					e -> e.getComponentId().equals("menu:role_remove"),
 					actionEvent -> {
-						List<Role> remove = actionEvent.getSelectedOptions().stream().map(option -> guild.getRoleById(option.getValue())).toList();
-						guild.modifyMemberRoles(event.getMember(), null, remove).reason("User request").queue(_ -> msg.editMessageEmbeds(bot.getEmbedUtil()
-									.getEmbed()
-									.setDescription(lu.getGuildText(event, "bot.ticketing.listener.remove_done", remove.stream().map(Role::getAsMention).collect(Collectors.joining(", "))))
-									.setColor(Constants.COLOR_SUCCESS)
-									.build()
-								)
-								.setComponents()
-								.queue(),
-							failure -> msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.remove_failed", failure.getMessage()))
-								.setComponents()
-								.queue()
+						List<Role> remove = actionEvent.getSelectedOptions().stream()
+							.map(option -> guild.getRoleById(option.getValue()))
+							.filter(Objects::nonNull)
+							.toList();
+						guild.modifyMemberRoles(event.getMember(), null, remove).reason("User request").queue(_ ->
+							msg.editMessageEmbeds(bot.getEmbedUtil()
+								.getEmbed()
+								.setDescription(lu.getGuildText(event, "bot.ticketing.listener.remove_done", remove.stream().map(Role::getAsMention).collect(Collectors.joining(", "))))
+								.setColor(Constants.COLOR_SUCCESS)
+								.build()
+							)
+							.setComponents()
+							.queue(),
+						failure -> msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.remove_failed", failure.getMessage()))
+							.setComponents()
+							.queue()
 						);
 					},
 					40,
@@ -669,6 +673,7 @@ public class InteractionListener extends ListenerAdapter {
 					} else {
 						// Standard ticket
 						final List<Long> supportRoleIds = Stream.of(db.ticketTags.getSupportRolesString(tagId).split(";"))
+							.filter(v -> !v.isBlank())
 							.map(Long::parseLong)
 							.toList();
 						// Check

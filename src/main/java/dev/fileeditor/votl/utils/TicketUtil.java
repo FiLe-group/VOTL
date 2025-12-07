@@ -79,15 +79,18 @@ public class TicketUtil {
 				: reasonClosed
 		);
 
-		channel.delete().reason(finalReason).queueAfter(4, TimeUnit.SECONDS, _ -> {
-			try{
-				db.tickets.closeTicket(now, channel.getIdLong(), finalReason);
-			} catch (SQLException ignored) {}
+		channel.delete().reason(finalReason).queueAfter(4, TimeUnit.SECONDS, _ ->
+			{
+				try	{
+					db.tickets.closeTicket(now, channel.getIdLong(), finalReason);
+				} catch (SQLException ignored) {}
 
-			long authorId = db.tickets.getUserId(channel.getIdLong());
+				long authorId = db.tickets.getUserId(channel.getIdLong());
 
-			bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
-		}, failureHandler);
+				bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
+			},
+			failureHandler
+		);
 	}
 
 	private void closeTicketStandard(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable FileUpload file) {
@@ -99,24 +102,27 @@ public class TicketUtil {
 				: reasonClosed
 		);
 
-		channel.delete().reason(finalReason).queueAfter(4, TimeUnit.SECONDS, _ -> {
-			try {
-				db.tickets.closeTicket(now, channel.getIdLong(), finalReason);
-			} catch (SQLException ignored) {}
+		channel.delete().reason(finalReason).queueAfter(4, TimeUnit.SECONDS, _ ->
+			{
+				try {
+					db.tickets.closeTicket(now, channel.getIdLong(), finalReason);
+				} catch (SQLException ignored) {}
 
-			long authorId = db.tickets.getUserId(channel.getIdLong());
+				long authorId = db.tickets.getUserId(channel.getIdLong());
 
-			bot.JDA.retrieveUserById(authorId).queue(user -> user.openPrivateChannel().queue(pm -> {
-				MessageEmbed embed = bot.getLogEmbedUtil().ticketClosedPmEmbed(guild.getLocale(), channel, now, userClosed, finalReason);
-				if (file == null) {
-					pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
-				} else {
-					pm.sendMessageEmbeds(embed).setFiles(file).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
-				}
-			}));
+				bot.JDA.retrieveUserById(authorId).queue(user -> user.openPrivateChannel().queue(pm -> {
+					MessageEmbed embed = bot.getLogEmbedUtil().ticketClosedPmEmbed(guild.getLocale(), channel, now, userClosed, finalReason);
+					if (file == null) {
+						pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+					} else {
+						pm.sendMessageEmbeds(embed).setFiles(file).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+					}
+				}));
 
-			bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
-		}, failureHandler);
+				bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
+			},
+			failureHandler
+		);
 	}
 
 	public void createTicket(@NotNull ButtonInteractionEvent event, @NotNull GuildMessageChannel channel, @NotNull String mentions, @Nullable String message) {

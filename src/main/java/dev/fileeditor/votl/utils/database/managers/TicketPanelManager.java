@@ -87,7 +87,9 @@ public class TicketPanelManager extends LiteBase {
 	public Map<Integer, String> getPanelsText(long guildId) {
 		List<Map<String, Object>> data = select("SELECT panelId, title FROM %s WHERE (guildId=%s)".formatted(table, guildId), Set.of("panelId", "title"));
 		if (data.isEmpty()) return Collections.emptyMap();
-		return data.stream().limit(25).collect(Collectors.toMap(s -> (Integer) s.get("panelId"), s -> (String) s.get("title")));
+		return data.stream()
+			.limit(25)
+			.collect(Collectors.toMap(s -> (Integer) s.get("panelId"), s -> (String) s.get("title")));
 	}
 
 	public int countPanels(long guildId) {

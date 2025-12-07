@@ -1014,8 +1014,10 @@ public class LogEmbedUtil {
 			.setDescription("<@%s>".formatted(user.getId()))
 			.setId(user.getId());
 		if (!roles.isEmpty()) {
-			String text = roles.stream().map(Role::getName).collect(Collectors.joining(", "));
-			builder.addField("member.roles", text);
+			String text = roles.stream()
+				.map(Role::getName)
+				.collect(Collectors.joining(", "));
+			builder.addField("member.roles", MessageUtil.limitString(text, 1024));
 		}
 		if (cachedMember != null) {
 			builder.addField("member.joined_at", formatTime(cachedMember.getTimeJoined(), false));

@@ -87,7 +87,8 @@ public class RolesPanelCmd extends SlashCommand {
 					if (role == null) return;
 					buttons.add(Button.primary("role:toggle:"+role.getId(), MessageUtil.limitString(data.getDescription("-"), 80)));
 				});
-				actionRows.add(ActionRow.of(buttons));
+				if (!buttons.isEmpty())
+					actionRows.add(ActionRow.of(buttons));
 			}
 
 			MessageEmbed embed = new EmbedBuilder()

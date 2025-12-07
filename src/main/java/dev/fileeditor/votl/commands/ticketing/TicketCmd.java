@@ -194,9 +194,9 @@ public class TicketCmd extends SlashCommand {
 			if (buttons.isEmpty())
 				editEmbed(event, buildPanelEmbed(event.getGuild(), panelId));
 			else
-				event.getHook().editOriginalEmbeds(buildPanelEmbed(event.getGuild(), panelId)).setComponents(ActionRow.of(buttons).asDisabled()).queue(null,
-					failure -> editErrorOther(event, failure.getMessage())
-				);
+				event.getHook().editOriginalEmbeds(buildPanelEmbed(event.getGuild(), panelId))
+					.setComponents(ActionRow.of(buttons).asDisabled())
+					.queue(null, failure -> editErrorOther(event, failure.getMessage()));
 		}
 	}
 

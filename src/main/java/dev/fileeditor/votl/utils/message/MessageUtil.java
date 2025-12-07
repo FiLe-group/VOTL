@@ -62,13 +62,15 @@ public class MessageUtil {
 			} catch (NumberFormatException ignored) {
 				return null;
 			}
-		} else {
+		} else if (input.contains(",")) {
 			String[] rgb = Arrays.copyOf(input.split(","), 3);
 			try {
 				color = new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2]));
 			} catch (NumberFormatException ignored) {
 				return null;
 			}
+		} else {
+			return null;
 		}
 
 		return color;
