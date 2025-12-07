@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ShutdownCmd extends SlashCommand {
 	public ShutdownCmd() {
@@ -29,19 +30,18 @@ public class ShutdownCmd extends SlashCommand {
 	
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		ExitCodes exitCode = ExitCodes.fromInt(event.optInteger("status", 0));
+		ExitCodes exitCode = ExitCodes.NORMAL;
 		if (event.optBoolean("now", false)) {
 			// Reply
 			event.getHook().editOriginal("Shutting down...")
-				.submit()
+				.submitAfter(5, TimeUnit.SECONDS)
 				.whenComplete((_, _) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Shutting down..."));
 		} else {
 			// Reply
 			event.getHook().editOriginal("Shutting down in 3 minutes.")
-				.submit()
-				.whenComplete((_, _) -> bot.shutdown(exitCode));
+				.queue();
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Preparing to shut down"));
 

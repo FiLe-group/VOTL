@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class RestartCmd extends SlashCommand {
 	public RestartCmd() {
@@ -28,19 +29,18 @@ public class RestartCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		ExitCodes exitCode = ExitCodes.fromInt(event.optInteger("status", 0));
+		ExitCodes exitCode = ExitCodes.RESTART;
 		if (event.optBoolean("now", false)) {
 			// Reply
 			event.getHook().editOriginal("Restarting...")
-				.submit()
+				.submitAfter(5, TimeUnit.SECONDS)
 				.whenComplete((_, _) -> bot.shutdown(exitCode));
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Restarting..."));
 		} else {
 			// Reply
 			event.getHook().editOriginal("Restarting in 3 minutes.")
-				.submit()
-				.whenComplete((_, _) -> bot.shutdown(exitCode));
+				.queue();
 			// Update presence
 			event.getJDA().getPresence().setPresence(OnlineStatus.IDLE, Activity.competing("Preparing to restart"));
 
