@@ -1,6 +1,7 @@
 package dev.fileeditor.votl.utils.imagegen.renders;
 
 import dev.fileeditor.votl.utils.exception.RenderNotReadyYetException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
@@ -36,10 +37,10 @@ public abstract class Renderer {
 	 * Renders the image to build the buffered image object,
 	 * then converts it to a byte stream.
 	 *
-	 * @return The generated image as an array of bytes, or <code>NULL</code>.
+	 * @return The generated image as an array of bytes.
 	 * @throws IOException Thrown when underlying render throws an IOException.
 	 */
-	@Nullable
+	@NotNull
 	public byte[] renderToBytes() throws IOException {
 		if (!canRender()) {
 			throw new RenderNotReadyYetException("One or more required arguments for the renderer have not been setup yet.");
@@ -47,7 +48,7 @@ public abstract class Renderer {
 
 		final BufferedImage bufferedImage = handleRender();
 		if (bufferedImage == null) {
-			return null;
+			throw new RenderNotReadyYetException("Image failed to render.");
 		}
 
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();

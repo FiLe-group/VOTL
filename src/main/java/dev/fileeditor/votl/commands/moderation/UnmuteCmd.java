@@ -1,7 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 
 import java.util.List;
-import java.util.Objects;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -45,7 +44,8 @@ public class UnmuteCmd extends SlashCommand {
 			return;
 		}
 
-		Guild guild = Objects.requireNonNull(event.getGuild());
+		Guild guild = event.getGuild();
+		assert guild != null;
 		String reason = event.optString("reason", lu.getGuildText(event, path+".no_reason"));
 		
 		CaseData muteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
@@ -54,8 +54,9 @@ public class UnmuteCmd extends SlashCommand {
 		}
 
 		if (tm.isTimedOut()) {
-			tm.removeTimeout().reason(reason).queue(done -> {
+			tm.removeTimeout().reason(reason).queue(_ -> {
 				Member mod = event.getMember();
+				assert mod != null;
 				// add info to db
 				CaseData unmuteData;
 				try {

@@ -58,6 +58,7 @@ public class ModStatsCmd extends SlashCommand {
 
 	private void returnIntervalStats(SlashCommandEvent event) {
 		User mod = event.optUser("user", event.getUser());
+		assert event.getGuild() != null;
 		long guildId = event.getGuild().getIdLong();
 
 		String afterDate = event.optString("start_date");
@@ -113,6 +114,7 @@ public class ModStatsCmd extends SlashCommand {
 
 	private void returnFullStats(SlashCommandEvent event) {
 		User mod = event.optUser("user", event.getUser());
+		assert event.getGuild() != null;
 		long guildId = event.getGuild().getIdLong();
 		long modId = mod.getIdLong();
 

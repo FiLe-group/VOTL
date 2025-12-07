@@ -22,6 +22,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ModReportCmd extends SlashCommand {
@@ -73,7 +74,8 @@ public class ModReportCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			List<Role> roles = event.optMentions("roles").getRoles();
+			assert event.getGuild() != null;
+			List<Role> roles = Objects.requireNonNull(event.optMentions("roles")).getRoles();
 			if (roles.isEmpty() || roles.size()>4) {
 				editError(event, path+".no_roles");
 				return;
@@ -84,6 +86,7 @@ public class ModReportCmd extends SlashCommand {
 			LocalDateTime firstReport;
 			if (event.hasOption("first_report")) {
 				String input = event.optString("first_report");
+				assert input != null;
 				try {
 					firstReport = LocalDateTime.parse(input, DATE_TIME_FORMAT);
 				} catch (DateTimeParseException ex) {
@@ -103,6 +106,7 @@ public class ModReportCmd extends SlashCommand {
 			}
 
 			GuildChannel channel = event.optGuildChannel("channel");
+			assert channel != null;
 
 			String roleIds = roles.stream()
 				.map(Role::getId)
@@ -111,8 +115,8 @@ public class ModReportCmd extends SlashCommand {
 			// Add to DB
 			try {
 				bot.getDBUtil().modReport.setup(
-					event.getGuild().getIdLong(), channel.getIdLong(), roleIds,
-					firstReport, interval
+					event.getGuild().getIdLong(), channel.getIdLong(),
+					roleIds, firstReport, interval
 				);
 			} catch (SQLException ex) {
 				editErrorDatabase(event, ex, "setup mod report");
@@ -136,6 +140,7 @@ public class ModReportCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			try {
 				bot.getDBUtil().modReport.removeGuild(event.getGuild().getIdLong());
 			} catch (SQLException ex) {

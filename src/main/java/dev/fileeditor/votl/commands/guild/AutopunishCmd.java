@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -61,6 +62,7 @@ public class AutopunishCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			if (bot.getDBUtil().autopunish.countActions(event.getGuild().getIdLong()) >= Limits.AUTOPUNISHMENTS) {
 				editErrorLimit(event, "autopunish actions", Limits.AUTOPUNISHMENTS);
 				return;
@@ -77,8 +79,9 @@ public class AutopunishCmd extends SlashCommand {
 				editError(event, path+".ban_kick_role");
 				return;
 			}
-			if (event.hasOption("remove-role") && (event.hasOption("add-role") || event.hasOption("temp-role"))
-				&& event.optRole("remove-role").equals(Optional.ofNullable(event.optRole("add-role")).orElse(event.optRole("temp-role")))) {
+			if (event.hasOption("remove-role")
+				&& (event.hasOption("add-role") || event.hasOption("temp-role"))
+				&& Objects.equals(Optional.ofNullable(event.optRole("add-role")).orElse(event.optRole("temp-role")), event.optRole("remove-role"))) {
 				editError(event, path+".same_role");
 				return;
 			}
@@ -138,6 +141,7 @@ public class AutopunishCmd extends SlashCommand {
 			}
 			if (event.hasOption("remove-role")) {
 				Role role = event.optRole("remove-role");
+				assert role != null;
 				if (!event.getGuild().getSelfMember().canInteract(role)) {
 					editError(event, path+".incorrect_role");
 					return;
@@ -148,6 +152,7 @@ public class AutopunishCmd extends SlashCommand {
 			}
 			if (event.hasOption("add-role")) {
 				Role role = event.optRole("add-role");
+				assert role != null;
 				if (!event.getGuild().getSelfMember().canInteract(role)) {
 					editError(event, path+".incorrect_role");
 					return;
@@ -158,6 +163,7 @@ public class AutopunishCmd extends SlashCommand {
 			}
 			if (event.hasOption("temp-role")) {
 				Role role = event.optRole("temp-role");
+				assert role != null;
 				if (!event.getGuild().getSelfMember().canInteract(role)) {
 					editError(event, path+".incorrect_role");
 					return;
@@ -215,6 +221,7 @@ public class AutopunishCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			Integer strikeCount = event.optInteger("strike-count");
 
 			if (bot.getDBUtil().autopunish.getAction(event.getGuild().getIdLong(), strikeCount) == null) {
@@ -244,6 +251,7 @@ public class AutopunishCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			List<AutopunishManager.Autopunish> list = bot.getDBUtil().autopunish.getAllActions(event.getGuild().getIdLong());
 			if (list.isEmpty()) {
 				editError(event, path+".empty");
@@ -272,7 +280,9 @@ public class AutopunishCmd extends SlashCommand {
 						case MUTE, BAN -> {
 							Duration duration;
 							try {
-								duration = Duration.ofSeconds(Long.parseLong(action.getMatchedValue(data)));
+								var matched = action.getMatchedValue(data);
+								if (matched == null) return;
+								duration = Duration.ofSeconds(Long.parseLong(matched));
 							} catch (NumberFormatException ex) {
 								break;
 							}
@@ -285,7 +295,9 @@ public class AutopunishCmd extends SlashCommand {
 						case REMOVE_ROLE, ADD_ROLE -> {
 							long roleId;
 							try {
-								roleId = Long.parseLong(action.getMatchedValue(data));
+								var matched = action.getMatchedValue(data);
+								if (matched == null) return;
+								roleId = Long.parseLong(matched);
 							} catch (NumberFormatException ex) {
 								break;
 							}
@@ -294,13 +306,17 @@ public class AutopunishCmd extends SlashCommand {
 						case TEMP_ROLE -> {
 							long roleId;
 							try {
-								roleId = Long.parseLong(action.getMatchedValue(data, 1));
+								var matched = action.getMatchedValue(data, 1);
+								if (matched == null) return;
+								roleId = Long.parseLong(matched);
 							} catch (NumberFormatException ex) {
 								break;
 							}
 							Duration duration;
 							try {
-								duration = Duration.ofSeconds(Long.parseLong(action.getMatchedValue(data, 2)));
+								var matched = action.getMatchedValue(data, 2);
+								if (matched == null) return;
+								duration = Duration.ofSeconds(Long.parseLong(matched));
 							} catch (NumberFormatException ex) {
 								break;
 							}

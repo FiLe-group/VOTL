@@ -3,10 +3,7 @@ package dev.fileeditor.votl.commands.guild;
 import java.awt.Color;
 import java.net.URI;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -68,6 +65,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			String text = event.optString("color");
 
@@ -101,6 +99,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			String text = event.optString("link");
 
@@ -143,9 +142,11 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			if (event.hasOption("channel")) {
 				MessageChannel channel = event.optMessageChannel("channel");
+				assert channel != null;
 
 				if (!channel.canTalk()) {
 					editError(event, path+".cant_send");
@@ -192,11 +193,12 @@ public class SetupCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
 			long guildId = guild.getIdLong();
 
 			try {
 				guild.createCategory(lu.getGuildText(event, path+".category_name"))
-					.addPermissionOverride(guild.getBotRole(), Arrays.asList(getBotPermissions()), null)
+					.addPermissionOverride(Objects.requireNonNull(guild.getBotRole()), Arrays.asList(getBotPermissions()), null)
 					.queue(
 						category -> {
 							try {
@@ -245,9 +247,11 @@ public class SetupCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
 			long guildId = guild.getIdLong();
 
 			VoiceChannel channel = (VoiceChannel) event.optGuildChannel("channel");
+			assert channel != null;
 			Category category = channel.getParentCategory();
 			if (category == null) {
 				editError(event, path+".no_category");
@@ -255,8 +259,8 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			try {
-				category.upsertPermissionOverride(guild.getBotRole()).grant(getBotPermissions()).queue(doneCategory ->
-					channel.upsertPermissionOverride(guild.getPublicRole()).deny(Permission.VOICE_SPEAK).queue(doneChannel -> {
+				category.upsertPermissionOverride(Objects.requireNonNull(guild.getBotRole())).grant(getBotPermissions()).queue(_ ->
+					channel.upsertPermissionOverride(guild.getPublicRole()).deny(Permission.VOICE_SPEAK).queue(_ -> {
 						try {
 							bot.getDBUtil().guildVoice.setup(guildId, category.getIdLong(), channel.getIdLong());
 						} catch (SQLException ex) {
@@ -289,6 +293,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			MessageChannel channel = event.optMessageChannel("channel");
 			if (channel == null || !channel.canTalk()) {
 				editError(event, path+".no_channel", "Received: "+(channel == null ? "No channel" : channel.getAsMention()));
@@ -339,6 +344,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			String filName = event.optString("name", lu.getGuildText(event, "bot.voice.listener.default_name"));
 
 			if (filName.isBlank()) {
@@ -373,6 +379,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			Integer filLimit = event.optInteger("limit");
 
 			try {
@@ -403,6 +410,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			if (event.getOptions().size() < 2) {
 				editError(event, path+".no_options");
 				return;
@@ -454,9 +462,11 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 
 			String action = event.optString("action");
+			assert action != null;
 			var informLevel = GuildSettingsManager.ModerationInformLevel.byLevel(event.optInteger("level"));
 			try {
 				switch (action) {
@@ -491,6 +501,7 @@ public class SetupCmd extends SlashCommand {
 		}
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			boolean enabled = event.optBoolean("enable");
 			// DB
 			try {
@@ -518,6 +529,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			StringBuilder response = new StringBuilder();
 
 			if (event.getOptions().isEmpty()) {
@@ -586,6 +598,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			StringBuilder builder = new StringBuilder();
 			if (event.hasOption("level")) {
 				var level = GuildSettingsManager.DramaLevel.byLevel(event.optInteger("level"));
@@ -602,6 +615,7 @@ public class SetupCmd extends SlashCommand {
 			}
 			if (event.hasOption("channel")) {
 				TextChannel channel = (TextChannel) event.optGuildChannel("channel");
+				assert channel != null;
 
 				if (!channel.canTalk()) {
 					editError(event, path+".bad_channel");
@@ -653,6 +667,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			DiscordLocale locale = DiscordLocale.from(event.optString("forced_language", ""));
 			if (locale == DiscordLocale.UNKNOWN || !LangUtil.locales.contains(locale)) {
 				editError(event, path+".bad_input", "Input: "+locale.getLanguageName());
@@ -681,6 +696,7 @@ public class SetupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			try {
 				bot.getDBUtil().guildSettings.setLocale(event.getGuild().getIdLong(), null);
 			} catch (SQLException e) {

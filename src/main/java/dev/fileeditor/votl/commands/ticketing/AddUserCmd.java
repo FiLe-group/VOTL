@@ -46,6 +46,7 @@ public class AddUserCmd extends SlashCommand {
 			return;
 		}
 		User user = event.optUser("user");
+		assert user != null;
 		if (user.equals(event.getUser()) || user.equals(event.getJDA().getSelfUser()) || authorId.equals(user.getIdLong())) {
 			editError(event, path+".not_self");
 			return;
@@ -53,19 +54,20 @@ public class AddUserCmd extends SlashCommand {
 
 		if (event.getChannelType().equals(ChannelType.GUILD_PRIVATE_THREAD)) {
 			// Thread
-			event.getChannel().asThreadChannel().addThreadMember(user).queue(done -> {
+			event.getChannel().asThreadChannel().addThreadMember(user).queue(_ ->
 				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getTargetText(event, path+".done", user.getAsMention()))
-					.build()
-				).setAllowedMentions(Collections.emptyList()).queue();
-			},
+						.setDescription(lu.getTargetText(event, path+".done", user.getAsMention()))
+						.build()
+					)
+					.setAllowedMentions(Collections.emptyList())
+					.queue(),
 				failure -> editError(event, path+".failed", failure.getMessage()));
 		} else {
 			// TextChannel
 			try {
 				event.getChannel().asTextChannel().getManager()
 					.putMemberPermissionOverride(user.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), null)
-					.queue(done -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.queue(_ -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getTargetText(event, path+".done", user.getAsMention()))
 						.build()
 					).setAllowedMentions(Collections.emptyList()).queue()

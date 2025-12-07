@@ -43,6 +43,7 @@ public class ClearStrikesCmd extends SlashCommand {
 			return;
 		}
 
+		assert event.getGuild() != null;
 		long guildId = event.getGuild().getIdLong();
 		Pair<Integer, String> strikeData = bot.getDBUtil().strikes.getData(guildId, tu.getIdLong());
 		if (strikeData == null) {

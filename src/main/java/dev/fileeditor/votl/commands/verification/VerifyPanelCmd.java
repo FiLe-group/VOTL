@@ -61,6 +61,7 @@ public class VerifyPanelCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (channel == null ) {
 				editError(event, path+".no_channel", "Received: No channel");
@@ -110,12 +111,14 @@ public class VerifyPanelCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
 			int color = bot.getDBUtil().getGuildSettings(guild).getColor();
 			
-			MessageEmbed main = new EmbedBuilder().setColor(color)
+			MessageEmbed main = new EmbedBuilder()
+				.setColor(color)
 				.setDescription(bot.getDBUtil().getVerifySettings(guild).getPanelText())
 				.setImage(bot.getDBUtil().getVerifySettings(guild).getPanelImageUrl())
-				.setFooter(event.getGuild().getName(), event.getGuild().getIconUrl())
+				.setFooter(guild.getName(), guild.getIconUrl())
 				.build();
 
 			editEmbed(event, main);
@@ -133,6 +136,7 @@ public class VerifyPanelCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			editMsg(event, lu.getGuildText(event, path+".send_text"));
 
 			waiter.waitForEvent(
@@ -189,7 +193,9 @@ public class VerifyPanelCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			String imageUrl = event.optString("image_url");
+			assert imageUrl != null;
 
 			if (!imageUrl.equals("NULL") && !URL_PATTERN.matcher(imageUrl).matches()) {
 				editError(event, path+".unknown_url", "URL: "+imageUrl);

@@ -3,7 +3,6 @@ package dev.fileeditor.votl.utils;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -125,7 +124,8 @@ public class TicketUtil {
 			if (db.getTicketSettings(channel.getGuild()).deletePingsEnabled())
 				msg.delete().queueAfter(5, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
 		});
-		Guild guild = Objects.requireNonNull(event.getGuild());
+		Guild guild = event.getGuild();
+		assert guild != null;
 
 		MessageEmbed embed = new EmbedBuilder().setColor(db.getGuildSettings(guild).getColor())
 			.setDescription(message)

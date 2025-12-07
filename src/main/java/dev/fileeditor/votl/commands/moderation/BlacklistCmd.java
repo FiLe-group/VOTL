@@ -49,6 +49,7 @@ public class BlacklistCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Integer groupId = event.optInteger("group");
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			if ( !(bot.getDBUtil().group.isOwner(groupId, guildId) || bot.getDBUtil().group.canManage(groupId, guildId)) ) {
 				// Is not group's owner or manager
@@ -94,6 +95,7 @@ public class BlacklistCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			final List<Integer> groupIds = new ArrayList<>();
 			groupIds.addAll(bot.getDBUtil().group.getOwnedGroups(guildId));
@@ -104,6 +106,7 @@ public class BlacklistCmd extends SlashCommand {
 			}
 
 			User user = event.optUser("user");
+			assert user != null;
 
 			List<MessageEmbed> embeds = new ArrayList<>();
 			for (ServerBlacklistManager.BlacklistData data : bot.getDBUtil().serverBlacklist.searchUserId(user.getIdLong())) {
@@ -141,6 +144,7 @@ public class BlacklistCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Integer groupId = event.optInteger("group");
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			if ( !(bot.getDBUtil().group.isOwner(groupId, guildId) || bot.getDBUtil().group.canManage(groupId, guildId)) ) {
 				// Is not group's owner or manager
@@ -149,6 +153,7 @@ public class BlacklistCmd extends SlashCommand {
 			}
 
 			User user = event.optUser("user");
+			assert user != null;
 			if (bot.getDBUtil().serverBlacklist.inGroupUser(groupId, user.getIdLong())) {
 				try {
 					bot.getDBUtil().serverBlacklist.removeUser(groupId, user.getIdLong());

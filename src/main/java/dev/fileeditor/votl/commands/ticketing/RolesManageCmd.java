@@ -69,6 +69,7 @@ public class RolesManageCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			
 			Role role = event.optRole("role");
@@ -87,6 +88,7 @@ public class RolesManageCmd extends SlashCommand {
 			}
 			
 			String type = event.optString("type");
+			assert type != null;
 			if (type.equals(RoleType.ASSIGN.toString())) {
 				int row = event.optInteger("row", 0);
 				if (row == 0) {
@@ -182,6 +184,10 @@ public class RolesManageCmd extends SlashCommand {
 				return;
 			}
 			final RoleType roleType = bot.getDBUtil().roles.getType(roleId);
+			if (roleType == null) {
+				editErrorUnknown(event, "Role type not found");
+				return;
+			}
 
 			StringBuffer response = new StringBuffer();
 
@@ -256,7 +262,7 @@ public class RolesManageCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			String input = event.optString("id").trim();
+			String input = event.optString("id", "").trim();
 
 			Matcher matcher = rolePattern.matcher(input);
 			String roleId = matcher.find() ? matcher.group(1) : input;
@@ -294,6 +300,7 @@ public class RolesManageCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
 			long guildId = guild.getIdLong();
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getGuildText(event, path+".title"));

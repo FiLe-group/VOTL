@@ -56,7 +56,8 @@ public class WebhookCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
+			Guild guild = event.getGuild();
+			assert guild != null;
 
 			boolean listAll = event.optBoolean("all", false);
 
@@ -115,6 +116,7 @@ public class WebhookCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			if (bot.getDBUtil().webhook.countWebhooks(event.getGuild().getIdLong()) >= Limits.WEBHOOKS) {
 				editErrorLimit(event, "webhooks", Limits.WEBHOOKS);
 				return;
@@ -130,7 +132,12 @@ public class WebhookCmd extends SlashCommand {
 
 			try {
 				// DYK, guildChannel doesn't have WebhookContainer! no shit
-				event.getGuild().getTextChannelById(channel.getId()).createWebhook(setName).reason("By "+event.getUser().getName()).queue(
+				var tc = event.getGuild().getTextChannelById(channel.getId());
+				if (tc == null) {
+					editErrorUnknown(event, "Channel not found!? How?");
+					return;
+				}
+				tc.createWebhook(setName).reason("By "+event.getUser().getName()).queue(
 					webhook -> {
 						try {
 							bot.getDBUtil().webhook.add(webhook.getIdLong(), webhook.getGuild().getIdLong(), webhook.getToken());
@@ -163,12 +170,13 @@ public class WebhookCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			if (bot.getDBUtil().webhook.countWebhooks(event.getGuild().getIdLong()) >= Limits.WEBHOOKS) {
 				editErrorLimit(event, "webhooks", Limits.WEBHOOKS);
 				return;
 			}
 
-			long webhookId = Long.parseLong(event.optString("id"));
+			long webhookId = Long.parseLong(Objects.requireNonNull(event.optString("id")));
 
 			try {
 				event.getJDA().retrieveWebhookById(webhookId).queue(
@@ -208,7 +216,7 @@ public class WebhookCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			long webhookId = Long.parseLong(event.optString("id"));
+			long webhookId = Long.parseLong(Objects.requireNonNull(event.optString("id")));
 			boolean delete = event.optBoolean("delete", false);
 
 			try {
@@ -219,7 +227,9 @@ public class WebhookCmd extends SlashCommand {
 						} else {
 							if (webhook.getGuild().equals(event.getGuild())) {
 								if (delete) {
-									webhook.delete(webhook.getToken()).reason("By "+event.getUser().getName()).queue();
+									webhook.delete(Objects.requireNonNull(webhook.getToken()))
+										.reason("By "+event.getUser().getName())
+										.queue();
 								}
 								try {
 									bot.getDBUtil().webhook.remove(webhookId);
@@ -260,8 +270,10 @@ public class WebhookCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
-			long webhookId = Long.parseLong(event.optString("id"));
+			assert guild != null;
+			long webhookId = Long.parseLong(Objects.requireNonNull(event.optString("id")));
 			GuildChannel channel = event.optGuildChannel("channel");
+			assert channel != null;
 
 			if (!channel.getType().equals(ChannelType.TEXT)) {
 				editError(event, path+".error_channel", "Selected channel is not Text Channel.");
@@ -284,14 +296,13 @@ public class WebhookCmd extends SlashCommand {
 							return;
 						}
 						webhook.getManager().setChannel(textChannel).reason("By "+event.getUser().getName()).queue(
-							wm -> {
+							_ ->
 								editEmbed(event,bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-									.setDescription(lu.getGuildText(event, path+".done",
-										webhook.getName(), channel.getAsMention()
+									.setDescription(lu.getGuildText(
+										event, path+".done", webhook.getName(), channel.getAsMention()
 									))
 									.build()
-								);
-							},
+								),
 							failure -> editErrorOther(event, failure.getMessage())
 						);
 					} else {
@@ -312,6 +323,7 @@ public class WebhookCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
 
 			Long webhookId = bot.getDBUtil().getGuildSettings(guild).getLastWebhookId();
 			if (webhookId == null) {
@@ -328,15 +340,19 @@ public class WebhookCmd extends SlashCommand {
 			event.getJDA().retrieveWebhookById(webhookId).queue(
 				webhook -> {
 					if (bot.getDBUtil().webhook.exists(webhookId)) {
-						webhook.getManager().setChannel(guild.getTextChannelById(channel.getId())).reason("By "+event.getUser().getName()).queue(
-							wm -> {
+						var tc = guild.getTextChannelById(channel.getId());
+						if (tc == null) {
+							editErrorUnknown(event, "Channel not found!? How?");
+							return;
+						}
+						webhook.getManager().setChannel(tc).reason("By "+event.getUser().getName()).queue(
+							_ ->
 								editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-									.setDescription(lu.getGuildText(event, path+".done",
-										webhook.getName(), channel.getAsMention()
+									.setDescription(lu.getGuildText(
+										event, path+".done", webhook.getName(), channel.getAsMention()
 									))
 									.build()
-								);
-							},
+								),
 							failure -> editErrorOther(event, failure.getMessage())
 						);
 					} else {

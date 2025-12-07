@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -59,7 +58,8 @@ public class TempRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
+			Guild guild = event.getGuild();
+			assert guild != null && event.getMember() != null;
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -118,7 +118,7 @@ public class TempRoleCmd extends SlashCommand {
 			}
 			Instant until = Instant.now().plus(duration);
 
-			guild.addRoleToMember(member, role).reason("Assigned temporary role | by %s".formatted(event.getMember().getEffectiveName())).queue(done -> {
+			guild.addRoleToMember(member, role).reason("Assigned temporary role | by %s".formatted(event.getMember().getEffectiveName())).queue(_ -> {
 				try {
 					bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, userId, delete, until);
 				} catch (SQLException ex) {
@@ -149,6 +149,7 @@ public class TempRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null && event.getMember() != null;
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -260,6 +261,8 @@ public class TempRoleCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
+
 			List<Map<String, Object>> list = bot.getDBUtil().tempRoles.getAll(guild.getIdLong());
 			if (list.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getGuildText(event, path+".empty")).build());

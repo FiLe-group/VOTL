@@ -1,7 +1,6 @@
 package dev.fileeditor.votl.commands.moderation;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -53,13 +52,15 @@ public class KickCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Guild guild = Objects.requireNonNull(event.getGuild());
+		Guild guild = event.getGuild();
+		assert guild != null;
 
 		Member tm = event.optMember("member");
 		if (tm == null) {
 			editError(event, path+".not_found");
 			return;
 		}
+		assert event.getMember() != null;
 		if (event.getMember().equals(tm) || guild.getSelfMember().equals(tm)) {
 			editError(event, path+".not_self");
 			return;
@@ -96,7 +97,7 @@ public class KickCmd extends SlashCommand {
 				final String text = bot.getModerationUtil().getDmText(CaseType.KICK, guild, reason, null, mod.getUser(), false);
 				if (text == null) return;
 				pm.sendMessage(text).setSuppressEmbeds(true)
-					.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, (failure) -> {
+					.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, _ -> {
 						if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
 							TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
 								.map(event.getJDA()::getTextChannelById)
@@ -113,6 +114,7 @@ public class KickCmd extends SlashCommand {
 			});
 		}
 		if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ALL)) {
+			assert event.getGuild() != null;
 			TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
 				.map(event.getJDA()::getTextChannelById)
 				.orElse(null);
@@ -124,7 +126,7 @@ public class KickCmd extends SlashCommand {
 			}
 		}
 
-		tm.kick().reason(reason).queueAfter(2, TimeUnit.SECONDS, done -> {
+		tm.kick().reason(reason).queueAfter(2, TimeUnit.SECONDS, _ -> {
 			// add info to db
 			CaseData kickData;
 			try {

@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.moderation;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -90,7 +89,8 @@ public class MuteCmd extends SlashCommand {
 			return;
 		}
 
-		Guild guild = Objects.requireNonNull(event.getGuild());
+		Guild guild = event.getGuild();
+		assert guild != null;
 		String reason = bot.getModerationUtil().parseReasonMentions(event, this);
 		CaseData oldMuteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 
@@ -108,6 +108,7 @@ public class MuteCmd extends SlashCommand {
 			// No case -> override current timeout
 			// No case and not timed out -> timeout
 			Member mod = event.getMember();
+			assert mod != null;
 			if (!guild.getSelfMember().canInteract(tm)) {
 				editError(event, path+".abort", "Bot can't interact with target member.");
 				return;
@@ -122,14 +123,14 @@ public class MuteCmd extends SlashCommand {
 			}
 
 			// timeout
-			tm.timeoutFor(duration).reason(reason).queue(done -> {
+			tm.timeoutFor(duration).reason(reason).queue(_ -> {
 				// inform
 				final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
 				tm.getUser().openPrivateChannel().queue(pm -> {
 					final String text = bot.getModerationUtil().getDmText(CaseType.MUTE, guild, reason, duration, mod.getUser(), false);
 					if (text == null) return;
 					pm.sendMessage(text).setSuppressEmbeds(true)
-						.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, (failure) -> {
+						.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, _ -> {
 							if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
 								TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
 									.map(event.getJDA()::getTextChannelById)
@@ -145,6 +146,7 @@ public class MuteCmd extends SlashCommand {
 						}));
 				});
 				if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ALL)) {
+					assert event.getGuild() != null;
 					TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
 						.map(event.getJDA()::getTextChannelById)
 						.orElse(null);

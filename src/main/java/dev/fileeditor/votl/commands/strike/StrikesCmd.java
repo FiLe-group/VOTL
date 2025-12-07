@@ -35,6 +35,7 @@ public class StrikesCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		assert event.getGuild() != null && event.getMember() != null;
 		User tu;
 		if (event.hasOption("user")) {
 			tu = event.optUser("user", event.getUser());
@@ -63,6 +64,7 @@ public class StrikesCmd extends SlashCommand {
 			final int caseRowId = Integer.parseInt(args[0]);
 			int strikeAmount = Integer.parseInt(args[1]);
 			CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
+			if (caseData == null) continue;
 			builder.append("`%4d` %s | %s - %s\nBy: %s\n".formatted(
 				caseData.getLocalIdInt(),
 				getSquares(strikeAmount, caseData.getType().getValue()-20),

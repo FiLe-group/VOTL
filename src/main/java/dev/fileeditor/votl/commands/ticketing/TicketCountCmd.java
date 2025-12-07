@@ -34,6 +34,7 @@ public class TicketCountCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		assert event.getGuild() != null;
 		String afterDate = event.optString("start_date");
 		String beforeDate = event.optString("end_date");
 		Instant afterTime = null;
@@ -56,6 +57,7 @@ public class TicketCountCmd extends SlashCommand {
 		}
 
 		User user = event.optUser("user");
+		assert user != null;
 		int countRoles = bot.getDBUtil().tickets.countTicketsByMod(
 			event.getGuild().getIdLong(), user.getIdLong(), afterTime.getEpochSecond(), beforeTime.getEpochSecond(), true
 		);

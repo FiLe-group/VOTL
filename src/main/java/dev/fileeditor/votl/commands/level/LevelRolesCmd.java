@@ -50,6 +50,7 @@ public class LevelRolesCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null && event.getMember() != null;
 			int level = event.optInteger("level");
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -94,6 +95,7 @@ public class LevelRolesCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			int level = event.optInteger("level");
 
 			if (!bot.getDBUtil().levelRoles.getAllLevels(event.getGuild().getIdLong()).existsAtLevel(level)) {
@@ -123,6 +125,7 @@ public class LevelRolesCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			LevelRolesManager.LevelRoleData data = bot.getDBUtil().levelRoles.getAllLevels(event.getGuild().getIdLong());
 			if (data.isEmpty()) {
 				editError(event, path+".empty");
@@ -134,20 +137,20 @@ public class LevelRolesCmd extends SlashCommand {
 			if (allRoles.isEmpty()) {
 				response.append("\n*none*");
 			} else {
-				allRoles.forEach((level, roles) -> {
+				allRoles.forEach((level, roles) ->
 					response.append("\n> `%5d` - ".formatted(level))
-						.append(roles.stream().map("<@&%s>"::formatted).collect(Collectors.joining(", ")));
-				});
+						.append(roles.stream().map("<@&%s>"::formatted).collect(Collectors.joining(", ")))
+				);
 			}
 			response.append("\n\n**Voice:**");
 			allRoles = data.getAllRoles(ExpType.VOICE);
 			if (allRoles.isEmpty()) {
 				response.append("\n*none*");
 			} else {
-				allRoles.forEach((level, roles) -> {
+				allRoles.forEach((level, roles) ->
 					response.append("\n> `%5d` - ".formatted(level))
-						.append(roles.stream().map("<@&%s>"::formatted).collect(Collectors.joining(", ")));
-				});
+						.append(roles.stream().map("<@&%s>"::formatted).collect(Collectors.joining(", ")))
+				);
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed()

@@ -49,16 +49,19 @@ public class PersistentRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			if (bot.getDBUtil().persistent.countRoles(event.getGuild().getIdLong()) >= Limits.PERSISTENT_ROLES) {
 				editErrorLimit(event, "roles", Limits.PERSISTENT_ROLES);
 				return;
 			}
 
 			final Role role = event.optRole("role");
+			assert role != null;
 			// Check roles
 			final Role publicRole = event.getGuild().getPublicRole();
 			EnumSet<Permission> rolePerms = EnumSet.copyOf(role.getPermissions());
 			rolePerms.retainAll(managerPerms);
+			assert event.getMember() != null;
 			if (role.equals(publicRole) || role.isManaged() || !event.getMember().canInteract(role) || !event.getGuild().getSelfMember().canInteract(role) || !rolePerms.isEmpty()) {
 				editError(event, path+".incorrect_role", "Role: "+role.getAsMention());
 				return;
@@ -87,7 +90,9 @@ public class PersistentRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			Role role = event.optRole("role");
+			assert role != null;
 
 			try {
 				bot.getDBUtil().persistent.removeRole(event.getGuild().getIdLong(), role.getIdLong());
@@ -110,6 +115,7 @@ public class PersistentRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			final List<Long> roleIds = bot.getDBUtil().persistent.getRoles(event.getGuild().getIdLong());
 			if (roleIds.isEmpty()) {
 				editEmbed(event, bot.getEmbedUtil().getEmbed()

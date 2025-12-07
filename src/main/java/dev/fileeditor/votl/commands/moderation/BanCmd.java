@@ -3,7 +3,6 @@ package dev.fileeditor.votl.commands.moderation;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -62,7 +61,8 @@ public class BanCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Guild guild = Objects.requireNonNull(event.getGuild());
+		Guild guild = event.getGuild();
+		assert guild != null;
 
 		// Resolve user and check permission
 		User tu = event.optUser("user");
@@ -108,6 +108,7 @@ public class BanCmd extends SlashCommand {
 					}
 					// Create new data
 					Member mod = event.getMember();
+					assert mod != null;
 					CaseData newBanData;
 					try {
 						newBanData = bot.getDBUtil().cases.add(
@@ -145,6 +146,7 @@ public class BanCmd extends SlashCommand {
 				// user has permanent ban, but not in DB
 				// create new case for manual ban (that is not in DB)
 				Member mod = event.getMember();
+				assert mod != null;
 				CaseData newBanData;
 				try {
 					newBanData = bot.getDBUtil().cases.add(
@@ -192,6 +194,7 @@ public class BanCmd extends SlashCommand {
 
 			Member tm = event.optMember("user");
 			Member mod = event.getMember();
+			assert mod != null;
 			if (tm != null) {
 				if (!guild.getSelfMember().canInteract(tm)) {
 					editError(event, path+".ban_abort", "Bot can't interact with target member.");

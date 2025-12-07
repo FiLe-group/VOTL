@@ -39,6 +39,7 @@ public class RcloseCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		assert event.getGuild() != null & event.getMember() != null;
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 

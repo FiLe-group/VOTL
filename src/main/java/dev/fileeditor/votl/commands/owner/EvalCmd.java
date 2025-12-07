@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.owner;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -51,7 +50,7 @@ public class EvalCmd extends SlashCommand {
 			"bot", bot,
 			"event", event,
 			"jda", event.getJDA(),
-			"guild", (event.isFromGuild() ? Objects.requireNonNull(event.getGuild()) : "null"),
+			"guild", (event.getGuild() != null ? event.getGuild() : "null"),
 			"client", event.getClient()
 		);
 

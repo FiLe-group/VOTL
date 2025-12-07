@@ -4,6 +4,7 @@ import java.net.URI;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -75,6 +76,7 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			if (bot.getDBUtil().ticketPanels.countPanels(event.getGuild().getIdLong()) >= Limits.TICKET_PANELS) {
 				editErrorLimit(event, "panels", Limits.TICKET_PANELS);
 				return;
@@ -128,6 +130,7 @@ public class TicketCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
+			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
 				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
 				return;
@@ -181,6 +184,7 @@ public class TicketCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
+			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
 				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
 				return;
@@ -213,11 +217,13 @@ public class TicketCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
+			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
 				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
 				return;
 			}
 			TextChannel channel = (TextChannel) event.optGuildChannel("channel");
+			assert channel != null;
 			if (!channel.canTalk()) {
 				editError(event, path+".cant_send", "Channel: %s".formatted(channel.getAsMention()));
 				return;
@@ -225,21 +231,23 @@ public class TicketCmd extends SlashCommand {
 
 			List<Button> buttons = bot.getDBUtil().ticketTags.getPanelTags(panelId);
 			if (buttons.isEmpty()) {
-				channel.sendMessageEmbeds(buildPanelEmbed(event.getGuild(), panelId)).queue(done -> {
-					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				channel.sendMessageEmbeds(buildPanelEmbed(event.getGuild(), panelId)).queue(_ ->
+					editEmbed(event, bot.getEmbedUtil()
+						.getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 						.build()
-					);
-				});
-			} else {
-				channel.sendMessageEmbeds(buildPanelEmbed(event.getGuild(), panelId)).setComponents(ActionRow.of(buttons)).queue(done -> {
-					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
-						.build()
-					);
-				},
-					failure -> editErrorOther(event, failure.getMessage())
+					)
 				);
+			} else {
+				channel.sendMessageEmbeds(buildPanelEmbed(event.getGuild(), panelId))
+					.setComponents(ActionRow.of(buttons))
+					.queue(_ -> editEmbed(event, bot.getEmbedUtil()
+							.getEmbed(Constants.COLOR_SUCCESS)
+							.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
+							.build()
+						),
+						failure -> editErrorOther(event, failure.getMessage())
+					);
 			}
 		}
 	}
@@ -259,6 +267,7 @@ public class TicketCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
+			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
 				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
 				return;
@@ -317,6 +326,7 @@ public class TicketCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer panelId = event.optInteger("panel_id");
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
+			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
 				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
 				return;
@@ -397,6 +407,7 @@ public class TicketCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer tagId = event.optInteger("tag_id");
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
+			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
 				editError(event, path+".not_found", "Received ID: %s".formatted(tagId));
 				return;
@@ -468,6 +479,7 @@ public class TicketCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer tagId = event.optInteger("tag_id");
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
+			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
 				editError(event, path+".not_found", "Received ID: %s".formatted(tagId));
 				return;
@@ -481,8 +493,12 @@ public class TicketCmd extends SlashCommand {
 
 			EmbedBuilder builder = tag.getPreviewEmbed((str) -> lu.getGuildText(event, path+str), tagId);
 
-			String message = Optional.ofNullable(tag.getMessage()).orElse(lu.getGuildText(event, path+".none"));
-			String category = Optional.ofNullable(tag.getLocation()).map(id -> event.getGuild().getCategoryById(id).getAsMention()).orElse(lu.getGuildText(event, path+".none"));
+			String message = Optional.ofNullable(tag.getMessage())
+				.orElse(lu.getGuildText(event, path+".none"));
+			String category = Optional.ofNullable(tag.getLocation())
+				.map(id -> Objects.requireNonNull(event.getGuild().getCategoryById(id)).getAsMention())
+				.orElse(lu.getGuildText(event, path+".none"));
+
 			String roles = Optional.of(tag.getSupportRoles())
 				.filter(l -> !l.isEmpty())
 				.map(ids -> ids.stream().map("<@&%s>"::formatted).collect(Collectors.joining(", ")))
@@ -511,6 +527,7 @@ public class TicketCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer tagId = event.optInteger("tag_id");
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
+			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
 				editError(event, path+".not_found", "Received ID: %s".formatted(tagId));
 				return;
@@ -547,6 +564,7 @@ public class TicketCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			
 			StringBuilder response = new StringBuilder();
@@ -616,6 +634,7 @@ public class TicketCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			StringBuilder response = new StringBuilder();
+			assert event.getGuild() != null;
 
 			if (event.getOptions().isEmpty()) {
 				// Return overview
@@ -672,7 +691,7 @@ public class TicketCmd extends SlashCommand {
 					response.append(lu.getGuildText(event, path+".changed_other", otherRoles?Constants.SUCCESS:Constants.FAILURE));
 				}
 				if (event.hasOption("role_tickets_support")) {
-					if (event.optString("role_tickets_support").equalsIgnoreCase("null")) {
+					if (event.optString("role_tickets_support", "").equalsIgnoreCase("null")) {
 						// Clear roles
 						try {
 							bot.getDBUtil().ticketSettings.setSupportRoles(event.getGuild().getIdLong(), List.of());
@@ -684,7 +703,7 @@ public class TicketCmd extends SlashCommand {
 						response.append(lu.getGuildText(event, path+".cleared_support"));
 					} else {
 						// Set roles
-						List<Role> roles = event.optMentions("role_tickets_support").getRoles();
+						List<Role> roles = Objects.requireNonNull(event.optMentions("role_tickets_support")).getRoles();
 						if (roles.isEmpty() || roles.size()>3) {
 							editError(event, path+".bad_roles");
 							return;
@@ -749,6 +768,7 @@ public class TicketCmd extends SlashCommand {
 
 	private MessageEmbed buildPanelEmbed(Guild guild, Integer panelId) {
 		Panel panel = bot.getDBUtil().ticketPanels.getPanel(panelId);
+		if (panel == null) throw new NullPointerException("Panel data not found");
 		return panel.getFilledEmbed(bot.getDBUtil().getGuildSettings(guild).getColor()).build();
 	}
 	

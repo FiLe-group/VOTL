@@ -2,7 +2,6 @@ package dev.fileeditor.votl.commands.guild;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
@@ -48,7 +47,8 @@ public class AccessCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
+			Guild guild = event.getGuild();
+			assert guild != null;
 			long guildId = guild.getIdLong();
 
 			List<Long> exemptIds = bot.getDBUtil().access.getRoles(guildId, CmdAccessLevel.EXEMPT);
@@ -131,6 +131,7 @@ public class AccessCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			if (bot.getDBUtil().access.countRoles(event.getGuild().getIdLong()) >= Limits.ACCESS_ROLES) {
 				editErrorLimit(event, "roles", Limits.ACCESS_ROLES);
 				return;
@@ -198,6 +199,7 @@ public class AccessCmd extends SlashCommand {
 			}
 
 			try {
+				assert event.getGuild() != null;
 				bot.getDBUtil().access.removeRole(event.getGuild().getIdLong(), roleId);
 			} catch (SQLException ex) {
 				editErrorDatabase(event, ex, "remove role");
@@ -227,6 +229,7 @@ public class AccessCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			if (bot.getDBUtil().access.countRoles(event.getGuild().getIdLong()) >= Limits.ACCESS_USERS) {
 				editErrorLimit(event, "operators", Limits.ACCESS_USERS);
 				return;
@@ -286,6 +289,7 @@ public class AccessCmd extends SlashCommand {
 			}
 
 			long userId = user.getIdLong();
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			if (!bot.getDBUtil().access.isOperator(guildId, userId)) {
 				editError(event, "bot.guild.access.remove.operator.not_operator");

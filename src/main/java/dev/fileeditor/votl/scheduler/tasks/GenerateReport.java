@@ -99,10 +99,8 @@ public class GenerateReport implements Task {
 				final String attachmentName = EncodingUtil.encodeModreport(guild.getIdLong(), now.toEpochSecond(ZoneOffset.UTC));
 
 				try {
-					var bytes = render.renderToBytes();
-					if (bytes == null) return;
 					channel.sendFiles(FileUpload.fromData(
-						new ByteArrayInputStream(bytes),
+						new ByteArrayInputStream(render.renderToBytes()),
 						attachmentName
 					)).queue();
 				} catch (IOException e) {

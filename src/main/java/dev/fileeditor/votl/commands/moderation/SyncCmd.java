@@ -65,6 +65,7 @@ public class SyncCmd extends SlashCommand {
 				editError(event, path+".not_self");
 				return;
 			}
+			assert event.getGuild() != null;
 			if (event.getGuild().isMember(target)) {
 				editError(event, path+".is_member");
 				return;
@@ -90,7 +91,7 @@ public class SyncCmd extends SlashCommand {
 				.queue(msg -> waiter.waitForEvent(
 					ButtonInteractionEvent.class,
 					e -> msg.getId().equals(e.getMessageId()) && e.getComponentId().equals("button:confirm") && e.getUser().getIdLong() == event.getUser().getIdLong(),
-					action -> {
+					_ -> {
 						if (bot.getDBUtil().group.countMembers(groupId) < 1) {
 							editError(event, path+".no_guilds");
 							return;

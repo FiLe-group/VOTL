@@ -58,7 +58,8 @@ public class RoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
+			Guild guild = event.getGuild();
+			assert guild != null && event.getMember() != null;
 
 			// Get roles
 			List<Role> roles = new ArrayList<>(3);
@@ -98,7 +99,7 @@ public class RoleCmd extends SlashCommand {
 			List<Role> finalRoles = new ArrayList<>(member.getRoles());
 			finalRoles.addAll(roles);
 
-			guild.modifyMemberRoles(member, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(done -> {
+			guild.modifyMemberRoles(member, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(_ -> {
 				String rolesString = roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "));
 				// Log
 				bot.getGuildLogger().role.onRolesAdded(guild, event.getUser(), member.getUser(), rolesString);
@@ -125,7 +126,8 @@ public class RoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
+			Guild guild = event.getGuild();
+			assert guild != null && event.getMember() != null;
 
 			// Get roles
 			List<Role> roles = new ArrayList<>(3);
@@ -166,7 +168,7 @@ public class RoleCmd extends SlashCommand {
 			List<Role> finalRoles = new ArrayList<>(member.getRoles());
 			finalRoles.removeAll(roles);
 
-			guild.modifyMemberRoles(member, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(done -> {
+			guild.modifyMemberRoles(member, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(_ -> {
 				String rolesString = roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "));
 				// Log
 				bot.getGuildLogger().role.onRolesRemoved(guild, event.getUser(), member.getUser(), rolesString);
@@ -193,7 +195,9 @@ public class RoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
+			Guild guild = event.getGuild();
+			assert guild != null && event.getMember() != null;
+
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -224,11 +228,11 @@ public class RoleCmd extends SlashCommand {
 				String reason = "by "+event.getMember().getEffectiveName();
 				List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 				for (Member member : members) {
-					completableFutures.add(guild.removeRoleFromMember(member, role).reason(reason).submit().exceptionally(ex -> null));
+					completableFutures.add(guild.removeRoleFromMember(member, role).reason(reason).submit().exceptionally(_ -> null));
 				}
 
 				CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
-					.whenComplete((done, exception) -> {
+					.whenComplete((_, exception) -> {
 						if (exception != null) {
 							editErrorUnknown(event, exception.getMessage());
 						} else {
@@ -268,6 +272,7 @@ public class RoleCmd extends SlashCommand {
 				editError(event, path+".no_user");
 				return;
 			}
+			assert event.getGuild() != null && event.getMember() != null;
 			if (!event.getMember().canInteract(target) || target.getUser().isBot()) {
 				editError(event, path+".incorrect_user");
 				return;

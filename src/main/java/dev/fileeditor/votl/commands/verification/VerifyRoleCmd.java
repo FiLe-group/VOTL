@@ -47,13 +47,14 @@ public class VerifyRoleCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null & event.getMember() != null;
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, path+".no_role");
 				return;
 			}
-			String denyReason = bot.getCheckUtil().denyRole(role, event.getGuild(), event.getMember(), true);
+			String denyReason = bot.getCheckUtil().denyRole(role, guild, event.getMember(), true);
 			if (denyReason != null) {
 				editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
 				return;
@@ -86,7 +87,8 @@ public class VerifyRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			Guild guild = Objects.requireNonNull(event.getGuild());
+			Guild guild = event.getGuild();
+			assert guild != null & event.getMember() != null;
 
 			// Get roles
 			List<Role> roles = new ArrayList<>(3);
@@ -102,7 +104,7 @@ public class VerifyRoleCmd extends SlashCommand {
 
 			// Check roles
 			for (Role r : roles) {
-				String denyReason = bot.getCheckUtil().denyRole(r, event.getGuild(), event.getMember(), true);
+				String denyReason = bot.getCheckUtil().denyRole(r, guild, event.getMember(), true);
 				if (denyReason != null) {
 					editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
 					return;
@@ -133,6 +135,7 @@ public class VerifyRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			try {
 				bot.getDBUtil().verifySettings.setAdditionalRoles(event.getGuild().getIdLong(), null);
 			} catch (SQLException ex) {
@@ -155,6 +158,7 @@ public class VerifyRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			Set<Long> roleIds = bot.getDBUtil().getVerifySettings(event.getGuild()).getAdditionalRoles();
 
 			if (roleIds.isEmpty()) {

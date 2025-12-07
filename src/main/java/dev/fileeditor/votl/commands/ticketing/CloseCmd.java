@@ -32,6 +32,7 @@ public class CloseCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		assert event.getGuild() != null && event.getMember() != null;
 		long channelId = event.getChannel().getIdLong();
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 
@@ -96,13 +97,13 @@ public class CloseCmd extends SlashCommand {
 		event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getGuildText(event, "bot.ticketing.listener.delete_countdown"))
 			.build()
-		).queue(msg -> {
+		).queue(msg ->
 			bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
 				if (ErrorResponse.UNKNOWN_MESSAGE.test(failure) || ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
 				msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed")).queue();
 				App.getLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
-			});
-		});
+			}
+		));
 	}
 
 	private boolean denyCloseSupport(List<Long> supportRoleIds, Member member) {

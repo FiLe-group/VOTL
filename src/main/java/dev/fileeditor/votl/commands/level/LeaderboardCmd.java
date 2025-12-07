@@ -30,6 +30,7 @@ public class LeaderboardCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		assert event.getGuild() != null;
 		long authorId = event.getUser().getIdLong();
 
 		ExpType expType = ExpType.values()[event.optInteger("type", 0)];

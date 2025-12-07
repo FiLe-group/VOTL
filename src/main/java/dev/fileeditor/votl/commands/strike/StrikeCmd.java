@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +40,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
+import org.jetbrains.annotations.Nullable;
 
 public class StrikeCmd extends SlashCommand {
 
@@ -80,7 +80,8 @@ public class StrikeCmd extends SlashCommand {
 		}
 
 		// Check if target has strike cooldown
-		Guild guild = Objects.requireNonNull(event.getGuild());
+		Guild guild = event.getGuild();
+		assert guild != null;
 		Duration strikeCooldown = bot.getDBUtil().getGuildSettings(event.getGuild()).getStrikeCooldown();
 		if (strikeCooldown.isPositive()) {
 			Instant lastUpdate = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), tm.getIdLong());
@@ -108,6 +109,7 @@ public class StrikeCmd extends SlashCommand {
 		CaseType type = CaseType.byType(20 + strikeAmount);
 
 		Member mod = event.getMember();
+		assert mod != null;
 		// inform
 		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
 		tm.getUser().openPrivateChannel().queue(pm -> {
@@ -116,7 +118,7 @@ public class StrikeCmd extends SlashCommand {
 			if (text == null) return;
 			pm.sendMessage(text).setSuppressEmbeds(true)
 				.setComponents(ActionRow.of(button))
-				.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, (failure) -> {
+				.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, _ -> {
 					if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
 						TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
 							.map(event.getJDA()::getTextChannelById)
@@ -132,6 +134,7 @@ public class StrikeCmd extends SlashCommand {
 				}));
 		});
 		if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ALL)) {
+			assert event.getGuild() != null;
 			TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
 				.map(event.getJDA()::getTextChannelById)
 				.orElse(null);
@@ -176,6 +179,7 @@ public class StrikeCmd extends SlashCommand {
 		});
 	}
 
+	@Nullable
 	private Field executeStrike(SlashCommandEvent event, Guild guild, Member target, int addAmount, int caseRowId) throws Exception {
 		final DiscordLocale locale = lu.getLocale(event);
 		// Add strike(-s) to DB
@@ -231,7 +235,7 @@ public class StrikeCmd extends SlashCommand {
 						.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 				});
 
-				guild.kick(target).reason(reason).queueAfter(3, TimeUnit.SECONDS, done -> {
+				guild.kick(target).reason(reason).queueAfter(3, TimeUnit.SECONDS, _ -> {
 					// add case to DB
 					try {
 						CaseData caseData = bot.getDBUtil().cases.add(
@@ -256,7 +260,9 @@ public class StrikeCmd extends SlashCommand {
 					.append("\n");
 			} else {
 				try {
-					Duration duration = Duration.ofSeconds(Long.parseLong(PunishAction.BAN.getMatchedValue(data)));
+					var matched = PunishAction.BAN.getMatchedValue(data);
+					if (matched == null) throw new NumberFormatException("Matched value not found");
+					Duration duration = Duration.ofSeconds(Long.parseLong(matched));
 
 					// Send PM to user
 					target.getUser().openPrivateChannel().queue(pm -> {
@@ -266,7 +272,7 @@ public class StrikeCmd extends SlashCommand {
 							.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 					});
 
-					guild.ban(target, 0, TimeUnit.SECONDS).reason(reason).queue(done -> {
+					guild.ban(target, 0, TimeUnit.SECONDS).reason(reason).queue(_ -> {
 						// add case to DB
 						try {
 							CaseData caseData = bot.getDBUtil().cases.add(
@@ -275,9 +281,8 @@ public class StrikeCmd extends SlashCommand {
 								guild.getIdLong(), reason, duration
 							);
 							// log case
-							bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
-								bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
-							});
+							bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData)
+								.thenAccept(logUrl -> bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl));
 						} catch (SQLException ignored) {}
 					}, failure ->
 						App.getLogger().error("Strike punishment execution, Ban member", failure)
@@ -292,13 +297,15 @@ public class StrikeCmd extends SlashCommand {
 		if (actions.contains(PunishAction.REMOVE_ROLE)) {
 			Long roleId = null;
 			try {
-				roleId = Long.valueOf(PunishAction.REMOVE_ROLE.getMatchedValue(data));
+				var matched = PunishAction.REMOVE_ROLE.getMatchedValue(data);
+				if (matched == null) throw new NumberFormatException("Matched value not found");
+				roleId = Long.valueOf(matched);
 			} catch (NumberFormatException ignored) {}
 			if (roleId != null) {
 				Role role = guild.getRoleById(roleId);
 				if (role != null && guild.getSelfMember().canInteract(role)) {
 					// Apply action, result will be in logs
-					guild.removeRoleFromMember(target, role).reason(reason).queueAfter(5, TimeUnit.SECONDS, done -> {
+					guild.removeRoleFromMember(target, role).reason(reason).queueAfter(5, TimeUnit.SECONDS, _ -> {
 							// log action
 							bot.getGuildLogger().role.onRoleRemoved(guild, bot.JDA.getSelfUser(), target.getUser(), role);
 						},
@@ -312,13 +319,15 @@ public class StrikeCmd extends SlashCommand {
 		if (actions.contains(PunishAction.ADD_ROLE)) {
 			Long roleId = null;
 			try {
-				roleId = Long.valueOf(PunishAction.ADD_ROLE.getMatchedValue(data));
+				var matched = PunishAction.ADD_ROLE.getMatchedValue(data);
+				if (matched == null) throw new NumberFormatException("Matched value not found");
+				roleId = Long.valueOf(matched);
 			} catch (NumberFormatException ignored) {}
 			if (roleId != null) {
 				Role role = guild.getRoleById(roleId);
 				if (role != null && guild.getSelfMember().canInteract(role)) {
 					// Apply action, result will be in logs
-					guild.addRoleToMember(target, role).reason(reason).queueAfter(5, TimeUnit.SECONDS, done -> {
+					guild.addRoleToMember(target, role).reason(reason).queueAfter(5, TimeUnit.SECONDS, _ -> {
 							// log action
 							bot.getGuildLogger().role.onRoleAdded(guild, bot.JDA.getSelfUser(), target.getUser(), role);
 						},
@@ -331,13 +340,17 @@ public class StrikeCmd extends SlashCommand {
 		}
 		if (actions.contains(PunishAction.TEMP_ROLE)) {
 			try {
-				final long roleId = Long.parseLong(PunishAction.TEMP_ROLE.getMatchedValue(data, 1));
-				final Duration duration = Duration.ofSeconds(Long.parseLong(PunishAction.TEMP_ROLE.getMatchedValue(data, 2)));
+				var matched = PunishAction.TEMP_ROLE.getMatchedValue(data, 1);
+				if (matched == null) throw new NumberFormatException("Matched value not found");
+				final long roleId = Long.parseLong(matched);
+				matched = PunishAction.TEMP_ROLE.getMatchedValue(data, 2);
+				if (matched == null) throw new NumberFormatException("Matched value not found");
+				final Duration duration = Duration.ofSeconds(Long.parseLong(matched));
 
 				Role role = guild.getRoleById(roleId);
 				if (role != null && guild.getSelfMember().canInteract(role)) {
 					// Apply action, result will be in logs
-					guild.addRoleToMember(target, role).reason(reason).queueAfter(5, TimeUnit.SECONDS, done -> {
+					guild.addRoleToMember(target, role).reason(reason).queueAfter(5, TimeUnit.SECONDS, _ -> {
 						// Add temp
 						try {
 							bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, target.getIdLong(), false, Instant.now().plus(duration));
@@ -356,7 +369,9 @@ public class StrikeCmd extends SlashCommand {
 		}
 		if (actions.contains(PunishAction.MUTE)) {
 			try {
-				final Duration duration = Optional.of(Duration.ofSeconds(Long.parseLong(PunishAction.MUTE.getMatchedValue(data))))
+				var matched = PunishAction.MUTE.getMatchedValue(data);
+				if (matched == null) throw new NumberFormatException("Matched value not found");
+				final Duration duration = Optional.of(Duration.ofSeconds(Long.parseLong(matched)))
 					.filter(d -> d.toDaysPart() <= 28)
 					.orElse(Duration.ofDays(28));
 				if (!duration.isZero()) {
@@ -368,7 +383,7 @@ public class StrikeCmd extends SlashCommand {
 							.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 					});
 
-					guild.timeoutFor(target, duration).reason(reason).queue(done -> {
+					guild.timeoutFor(target, duration).reason(reason).queue(_ -> {
 						try {
 							// add case to DB
 							CaseData caseData = bot.getDBUtil().cases.add(
@@ -377,9 +392,8 @@ public class StrikeCmd extends SlashCommand {
 								guild.getIdLong(), reason, duration
 							);
 							// log case
-							bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData).thenAccept(logUrl -> {
-								bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
-							});
+							bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData)
+								.thenAccept(logUrl -> bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl));
 						} catch (SQLException ignored) {}
 					}, failure ->
 						App.getLogger().error("Strike punishment execution, Mute member", failure)

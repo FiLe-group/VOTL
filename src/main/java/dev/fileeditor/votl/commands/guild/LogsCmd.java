@@ -84,6 +84,7 @@ public class LogsCmd extends SlashCommand {
 			String text = lu.getGuildText(event, type.getNamePath());
 
 			try {
+				assert event.getGuild() != null;
 				WebhookData oldData = bot.getDBUtil().logs.getLogWebhook(event.getGuild().getIdLong(), type);
 				if (oldData != null) {
 					event.getJDA().retrieveWebhookById(oldData.getWebhookId())
@@ -132,9 +133,11 @@ public class LogsCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 
 			String input = event.optString("type");
+			assert input != null;
 			if (input.equals("all")) {
 				// Delete all logging webhooks
 				LogSettings settings = bot.getDBUtil().logs.getSettings(guildId);
@@ -188,6 +191,7 @@ public class LogsCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
 
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getGuildText(event, path+".title"));
@@ -223,12 +227,14 @@ public class LogsCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			if (bot.getDBUtil().logExemptions.countExemptions(event.getGuild().getIdLong()) >= Limits.LOG_EXEMPTIONS) {
 				editErrorLimit(event, "exemptions", Limits.LOG_EXEMPTIONS);
 				return;
 			}
 
 			GuildChannelUnion channelUnion = event.optChannel("target");
+			assert channelUnion != null;
 			long guildId = event.getGuild().getIdLong();
 			switch (channelUnion.getType()) {
 				case TEXT -> {
@@ -281,6 +287,7 @@ public class LogsCmd extends SlashCommand {
 				editError(event, path+".not_found", ex.getMessage());
 				return;
 			}
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			if (!bot.getDBUtil().logExemptions.isExemption(event.getGuild().getIdLong(), targetId)) {
 				editError(event, path+".not_found", "Provided ID: "+targetId);
@@ -309,6 +316,7 @@ public class LogsCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			Set<Long> targets = bot.getDBUtil().logExemptions.getExemptions(event.getGuild().getIdLong());
 
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()

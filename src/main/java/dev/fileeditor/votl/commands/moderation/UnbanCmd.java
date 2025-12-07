@@ -45,6 +45,7 @@ public class UnbanCmd extends SlashCommand {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		Guild guild = event.getGuild();
+		assert guild != null && event.getMember() != null;
 		User tu = event.optUser("user");
 
 		if (tu == null) {
@@ -87,7 +88,7 @@ public class UnbanCmd extends SlashCommand {
 			final String reason = event.optString("reason", lu.getGuildText(event, path+".no_reason"));
 
 			// perform unban
-			guild.unban(tu).reason(reason).queue(done -> {
+			guild.unban(tu).reason(reason).queue(_ -> {
 				// add info to db
 				CaseData unbanData;
 				try {
@@ -111,11 +112,9 @@ public class UnbanCmd extends SlashCommand {
 						Button.primary("sync_unban:"+tu.getId(), "Sync unban").withEmoji(Emoji.fromUnicode("🆑"))
 					)).queue();
 				});
-			}, failure -> {
-				editErrorOther(event, "Failed to unban user.\n> "+failure.getMessage());
-			});
+			}, failure -> editErrorOther(event, "Failed to unban user.\n> "+failure.getMessage()));
 		},
-		failure -> {
+			_ -> {
 			// reply and ask for unban sync
 			event.getHook().editOriginalEmbeds(
 				bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)

@@ -39,9 +39,11 @@ public class ModLogsCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		assert event.getGuild() != null && event.getMember() != null;
 		User tu;
 		if (event.hasOption("user")) {
 			tu = event.optUser("user");
+			assert tu != null;
 			if (!tu.equals(event.getUser()) && !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.MOD)) {
 				editError(event, path+".no_perms");
 				return;

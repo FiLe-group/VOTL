@@ -55,7 +55,7 @@ public class PurgeCmd extends SlashCommand {
 					return;
 				}
 
-				deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(avoid -> {
+				deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(_ -> {
 					// Log
 					bot.getGuildLogger().mod.onMessagePurge(event.getUser(), null, toDelete, event.getGuildChannel());
 					// Reply
@@ -74,7 +74,7 @@ public class PurgeCmd extends SlashCommand {
 				return;
 			}
 
-			deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(avoid -> {
+			deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(_ -> {
 				// Log
 				bot.getGuildLogger().mod.onMessagePurge(event.getUser(), target, toDelete, event.getGuildChannel());
 				// Reply

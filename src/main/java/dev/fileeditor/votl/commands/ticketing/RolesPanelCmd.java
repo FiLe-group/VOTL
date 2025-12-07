@@ -58,6 +58,7 @@ public class RolesPanelCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
 			long guildId = guild.getIdLong();
 
 			TextChannel channel = (TextChannel) event.optGuildChannel("channel");
@@ -96,12 +97,13 @@ public class RolesPanelCmd extends SlashCommand {
 				.setFooter(guild.getName(), guild.getIconUrl())
 				.build();
 
-			channel.sendMessageEmbeds(embed).addComponents(actionRows).queue(done -> {
-				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			channel.sendMessageEmbeds(embed).addComponents(actionRows).queue(_ ->
+				editEmbed(event, bot.getEmbedUtil()
+					.getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
 					.build()
-				);
-			});
+				)
+			);
 		}
 	}
 
@@ -118,7 +120,9 @@ public class RolesPanelCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
+			assert guild != null;
 			long guildId = guild.getIdLong();
+
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (channel == null) {
 				editError(event, path+".no_channel", "Received: No channel");
@@ -162,14 +166,14 @@ public class RolesPanelCmd extends SlashCommand {
 						actionRows.add(ActionRow.of(buttons));
 					}
 
-					message.editMessageComponents(actionRows).queue(done -> {
-						editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					message.editMessageComponents(actionRows).queue(done ->
+						editEmbed(event, bot.getEmbedUtil()
+							.getEmbed(Constants.COLOR_SUCCESS)
 							.setDescription(lu.getGuildText(event, path+".done", done.getJumpUrl()))
 							.build()
-						);
-					}, failure -> {
-						editErrorOther(event, "Failed to update message.\n"+failure.getMessage());
-					});
+						),
+						failure -> editErrorOther(event, "Failed to update message.\n"+failure.getMessage())
+					);
 				});
 		}
 	}
@@ -191,6 +195,7 @@ public class RolesPanelCmd extends SlashCommand {
 			Integer row = event.optInteger("row");
 			String text = event.optString("text");
 
+			assert event.getGuild() != null;
 			try {
 				bot.getDBUtil().ticketSettings.setRowText(event.getGuild().getIdLong(), row, text);
 			} catch (SQLException ex) {

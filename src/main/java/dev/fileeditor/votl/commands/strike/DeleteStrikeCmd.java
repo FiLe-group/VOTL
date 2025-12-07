@@ -66,6 +66,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 			return;
 		}
 
+		assert event.getGuild() != null;
 		Pair<Integer, String> strikeData = bot.getDBUtil().strikes.getData(event.getGuild().getIdLong(), tu.getIdLong());
 		if (strikeData == null) {
 			editEmbed(event, bot.getEmbedUtil().getEmbed().setDescription(lu.getGuildText(event, path+".no_strikes")).build());
@@ -116,6 +117,11 @@ public class DeleteStrikeCmd extends SlashCommand {
 		final int caseRowId = Integer.parseInt(selected[0]);
 		
 		final CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
+		if (caseData == null) {
+			msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "errors.unknown", "Case not found by ID"))
+				.setComponents().queue();
+			return;
+		}
 		if (!caseData.isActive()) {
 			msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "errors.unknown", "Case is not active (strike can't be removed)"))
 				.setComponents().queue();
@@ -125,6 +131,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 
 		final int activeAmount = Integer.parseInt(selected[1]);
 		if (activeAmount == 1) {
+			assert event.getGuild() != null;
 			final long guildId = event.getGuild().getIdLong();
 			// As only one strike remains - delete case from strikes data and set case inactive
 			
@@ -169,6 +176,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 				lu.getGuildText(event, path+".button_all")+" "+getSquares(activeAmount, activeAmount, max)));
 
 			// Send dm
+			assert event.getGuild() != null;
 			tu.openPrivateChannel().queue(pm -> {
 				MessageEmbed embed = bot.getModerationUtil().getDelstrikeEmbed(1, event.getGuild(), event.getUser());
 				if (embed == null) return;
@@ -198,6 +206,11 @@ public class DeleteStrikeCmd extends SlashCommand {
 		final int caseRowId = Integer.parseInt(value[0]);
 
 		final CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
+		if (caseData == null) {
+			msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "errors.unknown", "Case not found by ID"))
+				.setComponents().queue();
+			return;
+		}
 		if (!caseData.isActive()) {
 			msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "errors.unknown", "Case is not active (strike can't be removed)"))
 				.setComponents().queue();
@@ -205,6 +218,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 			return;
 		}
 
+		assert event.getGuild() != null;
 		final long guildId = event.getGuild().getIdLong();
 		final int removeAmount = Integer.parseInt(value[1]);
 		if (removeAmount == activeAmount) {
@@ -269,6 +283,7 @@ public class DeleteStrikeCmd extends SlashCommand {
 			final int caseRowId = Integer.parseInt(args[0]);
 			final int strikeAmount = Integer.parseInt(args[1]);
 			final CaseData caseData = bot.getDBUtil().cases.getInfo(caseRowId);
+			assert caseData != null;
 			options.add(SelectOption.of(
 				"%s | %s".formatted(getSquares(strikeAmount, caseData.getType().getValue()-20), MessageUtil.limitString(caseData.getReason(), 50)),
 				caseRowId+"-"+strikeAmount

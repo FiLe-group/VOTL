@@ -6,13 +6,10 @@ import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,13 +43,12 @@ public class LevelRolesManager extends LiteBase {
 	}
 
 	public Set<Long> getRoles(long guildId, int level, ExpType expType) {
-		var allLevels = getAllLevels(guildId);
-		return allLevels==null ? Set.of() : allLevels.getRoles(expType, level);
+		return getAllLevels(guildId).getRoles(expType, level);
 	}
 
-	@Nullable
+	@NotNull
 	public LevelRoleData getAllLevels(long guildId) {
-		return cache.get(guildId, this::getData);
+		return Objects.requireNonNullElse(cache.get(guildId, this::getData), new LevelRoleData());
 	}
 
 	private LevelRoleData getData(long guildId) {
@@ -62,8 +58,7 @@ public class LevelRolesManager extends LiteBase {
 	}
 
 	public int countLevels(long guildId) {
-		var allLevels = getAllLevels(guildId);
-		return allLevels==null ? 0 : allLevels.size();
+		return getAllLevels(guildId).size();
 	}
 
 	private void invalidateCache(long guildId) {
@@ -95,6 +90,7 @@ public class LevelRolesManager extends LiteBase {
 		}
 
 		public Set<Long> getRoles(ExpType expType, int level) {
+			if (size() == 0) return Set.of();
 			return getAllRoles(expType).getOrDefault(level, Set.of());
 		}
 

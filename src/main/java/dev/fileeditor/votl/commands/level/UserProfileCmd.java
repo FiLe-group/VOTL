@@ -108,6 +108,7 @@ public class UserProfileCmd extends SlashCommand {
 		// Send
 		final String attachmentName = EncodingUtil.encodeProfile(guildId, userId);
 
+		assert event.getGuild() != null;
 		EmbedBuilder embed = new EmbedBuilder()
 			.setImage("attachment://" + attachmentName)
 			.setColor(bot.getDBUtil().getGuildSettings(event.getGuild()).getColor());

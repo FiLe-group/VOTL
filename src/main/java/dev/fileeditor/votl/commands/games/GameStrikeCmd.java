@@ -57,7 +57,9 @@ public class GameStrikeCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		assert event.getGuild() != null;
 		GuildChannel channel = event.optGuildChannel("channel");
+		assert channel != null;
 		if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
 			editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
 			return;
@@ -130,7 +132,7 @@ public class GameStrikeCmd extends SlashCommand {
 			if (text == null) return;
 
 			pm.sendMessage(text).setSuppressEmbeds(true)
-				.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, (failure) -> {
+				.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, _ -> {
 					if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
 						TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
 							.map(event.getJDA()::getTextChannelById)
@@ -146,6 +148,7 @@ public class GameStrikeCmd extends SlashCommand {
 				}));
 		});
 		if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ALL)) {
+			assert event.getGuild() != null;
 			TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
 				.map(event.getJDA()::getTextChannelById)
 				.orElse(null);

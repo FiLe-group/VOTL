@@ -49,6 +49,7 @@ public class ModuleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 
 			StringBuilder builder = new StringBuilder();
@@ -81,6 +82,7 @@ public class ModuleCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			InteractionHook hook = event.getHook();
 
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
@@ -149,6 +151,7 @@ public class ModuleCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			InteractionHook hook = event.getHook();
 
+			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed()

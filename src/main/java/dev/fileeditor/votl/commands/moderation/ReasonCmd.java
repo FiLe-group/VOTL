@@ -36,6 +36,7 @@ public class ReasonCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
+		assert event.getGuild() != null;
 		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
 		if (caseData == null) {
 			editError(event, path+".not_found");
@@ -47,6 +48,7 @@ public class ReasonCmd extends SlashCommand {
 		}
 
 		String newReason = event.optString("reason");
+		assert newReason != null;
 		try {
 			bot.getDBUtil().cases.updateReason(caseData.getRowId(), newReason);
 		} catch (SQLException ex) {
@@ -64,23 +66,23 @@ public class ReasonCmd extends SlashCommand {
 				// Check if inform with reason is disabled
 				if (bot.getDBUtil().getGuildSettings(event.getGuild()).getInformMute().getLevel() < 2) break;
 				// Retrieve user by guild and send dm
-				event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(member -> {
+				event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(member ->
 					member.getUser().openPrivateChannel().queue(pm -> {
 						MessageEmbed embed = bot.getModerationUtil().getReasonUpdateEmbed(event.getGuild(), caseData.getTimeStart(), caseData.getType(), caseData.getReason(), newReason);
 						pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
-					});
-				}, failure -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER));
+					}), _ -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER)
+				);
 			}
 			case STRIKE_1, STRIKE_2, STRIKE_3 -> {
 				// Check if inform with reason is disabled
 				if (bot.getDBUtil().getGuildSettings(event.getGuild()).getInformStrike().getLevel() < 2) break;
 				// Retrieve user by guild and send dm
-				event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(member -> {
+				event.getGuild().retrieveMemberById(caseData.getTargetId()).queue(member ->
 					member.getUser().openPrivateChannel().queue(pm -> {
 						MessageEmbed embed = bot.getModerationUtil().getReasonUpdateEmbed(event.getGuild(), caseData.getTimeStart(), caseData.getType(), caseData.getReason(), newReason);
 						pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
-					});
-				}, failure -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER));
+					}), _ -> new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER)
+				);
 			}
 			default -> {}
 		}

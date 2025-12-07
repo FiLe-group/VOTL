@@ -44,6 +44,7 @@ public class RemoveUserCmd extends SlashCommand {
 			return;
 		}
 		User user = event.optUser("user");
+		assert user != null;
 		if (user.equals(event.getUser()) || user.equals(event.getJDA().getSelfUser()) || authorId.equals(user.getIdLong())) {
 			editError(event, path+".not_self");
 			return;
@@ -51,19 +52,21 @@ public class RemoveUserCmd extends SlashCommand {
 
 		if (event.getChannelType().equals(ChannelType.GUILD_PRIVATE_THREAD)) {
 			// Thread
-			event.getChannel().asThreadChannel().removeThreadMember(user).queue(done -> {
-				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getGuildText(event, path+".done", user.getAsMention()))
-					.build()
-				).setAllowedMentions(Collections.emptyList()).queue();
-			},
-				failure -> editError(event, path+".failed", failure.getMessage()));
+			event.getChannel().asThreadChannel().removeThreadMember(user).queue(_ ->
+					event.getHook().editOriginalEmbeds(bot.getEmbedUtil()
+						.getEmbed(Constants.COLOR_SUCCESS)
+						.setDescription(lu.getGuildText(event, path+".done", user.getAsMention()))
+						.build()
+					)
+					.setAllowedMentions(Collections.emptyList()).queue(),
+				failure -> editError(event, path+".failed", failure.getMessage())
+			);
 		} else {
 			// TextChannel
 			try {
 				event.getChannel().asTextChannel().getManager()
 					.removePermissionOverride(user.getIdLong())
-					.queue(done -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.queue(_ -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getGuildText(event, path+".done", user.getAsMention()))
 						.build()
 					).setAllowedMentions(Collections.emptyList()).queue()

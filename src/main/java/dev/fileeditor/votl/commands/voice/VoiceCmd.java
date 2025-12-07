@@ -55,6 +55,7 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null & event.getMember() != null;
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -65,6 +66,10 @@ public class VoiceCmd extends SlashCommand {
 			Long verifyRoleId = bot.getDBUtil().getVerifySettings(event.getGuild()).getRoleId();
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
+			if (vc == null) {
+				editError(event, "errors.no_channel");
+				return;
+			}
 			try {
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
@@ -95,6 +100,7 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null & event.getMember() != null;
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -105,6 +111,10 @@ public class VoiceCmd extends SlashCommand {
 			Long verifyRoleId = bot.getDBUtil().getVerifySettings(event.getGuild()).getRoleId();
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
+			if (vc == null) {
+				editError(event, "errors.no_channel");
+				return;
+			}
 			try {
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
@@ -135,6 +145,7 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null & event.getMember() != null;
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -145,6 +156,10 @@ public class VoiceCmd extends SlashCommand {
 			Long verifyRoleId = bot.getDBUtil().getVerifySettings(event.getGuild()).getRoleId();
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
+			if (vc == null) {
+				editError(event, "errors.no_channel");
+				return;
+			}
 			try {
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
@@ -175,6 +190,7 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null & event.getMember() != null;
 			Long channelId = bot.getDBUtil().voice.getChannel(event.getMember().getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -185,6 +201,10 @@ public class VoiceCmd extends SlashCommand {
 			Long verifyRoleId = bot.getDBUtil().getVerifySettings(event.getGuild()).getRoleId();
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
+			if (vc == null) {
+				editError(event, "errors.no_channel");
+				return;
+			}
 			try {
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
@@ -235,6 +255,7 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			String name = Optional
 				.ofNullable(bot.getDBUtil().getVoiceSettings(event.getGuild()).getDefaultName())
 				.orElse(lu.getGuildText(event, "bot.voice.listener.default_name"));
@@ -243,6 +264,7 @@ public class VoiceCmd extends SlashCommand {
 	}
 
 	private void sendNameReply(SlashCommandEvent event, String name) {
+		assert event.getGuild() != null & event.getMember() != null;
 		long userId = event.getMember().getIdLong();
 		Long channelId = bot.getDBUtil().voice.getChannel(userId);
 		if (channelId == null) {
@@ -251,7 +273,13 @@ public class VoiceCmd extends SlashCommand {
 		}
 
 		name = name.replace("{user}", event.getMember().getEffectiveName());
-		event.getGuild().getVoiceChannelById(channelId).getManager().setName(name.substring(0, Math.min(100, name.length()))).queue();
+
+		var vc = event.getGuild().getVoiceChannelById(channelId);
+		if (vc == null) {
+			editError(event, "errors.no_channel");
+			return;
+		}
+		vc.getManager().setName(name.substring(0, Math.min(100, name.length()))).queue();
 
 		try {
 			bot.getDBUtil().user.setName(userId, name);
@@ -295,6 +323,7 @@ public class VoiceCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			Integer limit = Optional
 				.ofNullable(bot.getDBUtil().getVoiceSettings(event.getGuild()).getDefaultLimit())
 				.orElse(0);
@@ -303,6 +332,7 @@ public class VoiceCmd extends SlashCommand {
 	}
 
 	private void sendLimitReply(SlashCommandEvent event, Integer limit) {
+		assert event.getGuild() != null & event.getMember() != null;
 		long userId = event.getMember().getIdLong();
 		Long channelId = bot.getDBUtil().voice.getChannel(userId);
 		if (channelId == null) {
@@ -310,7 +340,12 @@ public class VoiceCmd extends SlashCommand {
 			return;
 		}
 
-		event.getGuild().getVoiceChannelById(channelId).getManager().setUserLimit(limit).queue();
+		var vc = event.getGuild().getVoiceChannelById(channelId);
+		if (vc == null) {
+			editError(event, "errors.no_channel");
+			return;
+		}
+		vc.getManager().setUserLimit(limit).queue();
 
 		try {
 			bot.getDBUtil().user.setLimit(userId, limit);
@@ -334,8 +369,9 @@ public class VoiceCmd extends SlashCommand {
 
 		protected void execute(SlashCommandEvent event) {
 			Member author = event.getMember();
+			assert event.getGuild() != null & author != null;
 
-			if (!author.getVoiceState().inAudioChannel()) {
+			if (author.getVoiceState() == null || !author.getVoiceState().inAudioChannel()) {
 				editError(event, "bot.voice.listener.not_in_voice");
 				return;
 			}
@@ -344,7 +380,7 @@ public class VoiceCmd extends SlashCommand {
 				return;
 			}
 
-			VoiceChannel vc = author.getVoiceState().getChannel().asVoiceChannel();
+			VoiceChannel vc = Objects.requireNonNull(author.getVoiceState().getChannel()).asVoiceChannel();
 			Long ownerId = bot.getDBUtil().voice.getUser(vc.getIdLong());
 			if (ownerId == null) {
 				editError(event, path+".not_custom");
@@ -400,6 +436,7 @@ public class VoiceCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Member author = event.getMember();
+			assert event.getGuild() != null & author != null;
 
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
 			if (channelId == null) {
@@ -426,6 +463,10 @@ public class VoiceCmd extends SlashCommand {
 
 			List<String> mentionStrings = new ArrayList<>();
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
+			if (vc == null) {
+				editError(event, "errors.no_channel");
+				return;
+			}
 			VoiceChannelManager vcManager = vc.getManager();
 
 			for (Member member : members) {
@@ -442,12 +483,13 @@ public class VoiceCmd extends SlashCommand {
 				}
 			}
 
-			vcManager.queue(done -> {
+			vcManager.queue(_ ->
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getTargetText(event, path+".done", mentionStrings))
 					.build()
-				);
-			}, failure -> editPermError(event, Permission.MANAGE_PERMISSIONS, true));
+				),
+				_ -> editPermError(event, Permission.MANAGE_PERMISSIONS, true)
+			);
 		}
 
 	}
@@ -468,6 +510,7 @@ public class VoiceCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Member author = event.getMember();
+			assert event.getGuild() != null & author != null;
 
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
 			if (channelId == null) {
@@ -494,6 +537,10 @@ public class VoiceCmd extends SlashCommand {
 
 			List<String> mentionStrings = new ArrayList<>();
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
+			if (vc == null) {
+				editError(event, "errors.no_channel");
+				return;
+			}
 			VoiceChannelManager vcManager = vc.getManager();
 
 			for (Member member : members) {
@@ -513,12 +560,13 @@ public class VoiceCmd extends SlashCommand {
 				}
 			}
 
-			vcManager.queue(done -> {
+			vcManager.queue(_ ->
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getTargetText(event, path+".done", mentionStrings))
 					.build()
-				);
-			}, failure -> editPermError(event, Permission.MANAGE_PERMISSIONS, true));
+				),
+				_ -> editPermError(event, Permission.MANAGE_PERMISSIONS, true)
+			);
 		}
 	}
 
@@ -533,6 +581,7 @@ public class VoiceCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Member author = event.getMember();
+			assert event.getGuild() != null & author != null;
 
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
 			if (channelId == null) {
@@ -542,6 +591,10 @@ public class VoiceCmd extends SlashCommand {
 
 			Guild guild = event.getGuild();
 			VoiceChannel vc = guild.getVoiceChannelById(channelId);
+			if (vc == null) {
+				editError(event, "errors.no_channel");
+				return;
+			}
 
 			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getGuildText(event, path+".embed.title", vc.getAsMention()))
@@ -559,7 +612,7 @@ public class VoiceCmd extends SlashCommand {
 			//Roles
 			List<PermissionOverride> overrides = new ArrayList<>(vc.getRolePermissionOverrides()); // cause given override list is immutable
 			try {
-				overrides.remove(vc.getPermissionOverride(guild.getBotRole())); // removes bot's role
+				overrides.remove(vc.getPermissionOverride(Objects.requireNonNull(guild.getBotRole()))); // removes bot's role
 				overrides.remove(vc.getPermissionOverride(guild.getPublicRole())); // removes @everyone role
 			} catch (NullPointerException ex) {
 				App.getLogger().warn("PermsCmd null pointer at role override remove");
@@ -572,7 +625,9 @@ public class VoiceCmd extends SlashCommand {
 					view = contains(ov, Permission.VIEW_CHANNEL);
 					join = contains(ov, Permission.VOICE_CONNECT);
 
-					embedBuilder.appendDescription(formatHolder(ov.getRole().getName(), view, join) + "\n");
+					var name = ov.getRole() != null ? ov.getRole().getName() :
+						ov.getMember() != null ? ov.getMember().getAsMention() : "-UNKNOWN-";
+					embedBuilder.appendDescription(formatHolder(name, view, join) + "\n");
 				}
 			}
 			embedBuilder.appendDescription("\n" + lu.getGuildText(event, path+".embed.members") + "\n");
@@ -639,6 +694,8 @@ public class VoiceCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Member author = event.getMember();
+			assert event.getGuild() != null & author != null;
+
 			Long channelId = bot.getDBUtil().voice.getChannel(author.getIdLong());
 			if (channelId == null) {
 				editError(event, "errors.no_channel");
@@ -646,6 +703,10 @@ public class VoiceCmd extends SlashCommand {
 			}
 
 			VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
+			if (vc == null) {
+				editError(event, "errors.no_channel");
+				return;
+			}
 			try {
 				vc.getManager()
 					.sync()

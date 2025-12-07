@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,7 @@ public class LevelExemptCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (channel == null) {
 				editError(event, path+".invalid_args");
@@ -90,10 +92,11 @@ public class LevelExemptCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			GuildChannel channel = null;
 			long channelId;
 			try {
-				channel = event.optMentions("channel").getChannels().getFirst();
+				channel = Objects.requireNonNull(event.optMentions("channel")).getChannels().getFirst();
 				channelId = channel.getIdLong();
 			} catch (Exception ex) {
 				try {
@@ -135,6 +138,7 @@ public class LevelExemptCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			try {
 				bot.getDBUtil().levels.setExemptChannels(event.getGuild().getIdLong(), null);
 			} catch (SQLException ex) {
@@ -157,6 +161,7 @@ public class LevelExemptCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			assert event.getGuild() != null;
 			Set<Long> channelIds = bot.getDBUtil().levels.getSettings(event.getGuild()).getExemptChannels();
 			EmbedBuilder builder = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(path+".title"));
