@@ -37,7 +37,7 @@ set Looping=True
 goto START_BOT
 
 :START_BOT
-java -Dfile.encoding=UTF-8 -jar VOTL.jar --no-colors
+java --enable-native-access=ALL-UNNAMED -Dfile.encoding=UTF-8 -jar VOTL.jar --no-colors
 if !Looping! == False (
     goto START
 )

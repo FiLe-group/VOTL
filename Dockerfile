@@ -34,4 +34,4 @@ USER votl
 
 COPY --from=build /app/VOTL.jar /bin/
 
-CMD ["java","-jar","/bin/VOTL.jar"]
+CMD ["java","--enable-native-access=ALL-UNNAMED","-jar","/bin/VOTL.jar"]

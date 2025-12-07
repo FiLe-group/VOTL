@@ -40,7 +40,7 @@ startLoop() {
 }
 
 startApplication() {
-    java -jar VOTL.jar
+    java --enable-native-access=ALL-UNNAMED -jar VOTL.jar
 
     if [ "$1" != "false" ]; then
         welcome
