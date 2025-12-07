@@ -16,7 +16,7 @@ RUN ./gradlew build --no-daemon
 
 # Run container
 
-FROM eclipse-temurin:21-alpine AS runtime
+FROM eclipse-temurin:25-alpine AS runtime
 
 WORKDIR /opt/votl
 
