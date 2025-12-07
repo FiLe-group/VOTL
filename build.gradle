@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	// ShadowJar
 	// https://mvnrepository.com/artifact/com.gradleup.shadow/shadow-gradle-plugin
-	id 'com.gradleup.shadow' version '9.2.2'
+	id 'com.gradleup.shadow' version '9.3.0'
 }
 
 // Getting version
@@ -29,7 +29,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:2.10.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.51.0.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.51.1.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
 	implementation 'org.jsoup:jsoup:1.21.2'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
@@ -45,7 +45,7 @@ dependencies {
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
-	implementation 'org.apache.groovy:groovy:5.0.2'			    	// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:5.0.3'			    	// Groovy - code evaluation
 }
 
 java {
