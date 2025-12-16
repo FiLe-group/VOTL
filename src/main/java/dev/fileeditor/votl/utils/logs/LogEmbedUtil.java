@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.ExpType;
@@ -40,9 +41,12 @@ import net.dv8tion.jda.internal.utils.tuple.Pair;
 import com.jayway.jsonpath.JsonPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings({"FieldCanBeLocal", "UnusedReturnValue"})
 public class LogEmbedUtil {
+
+	private final static Logger LOG = (Logger) LoggerFactory.getLogger(LogEmbedUtil.class);
 
 	private final @NotNull LocaleUtil lu;
 
@@ -1153,7 +1157,10 @@ public class LogEmbedUtil {
 				default -> {}
 			}
 			String text = lu.getLocalizedNullable(locale, "logger.keys."+key);
-			if (text == null) continue;
+			if (text == null) {
+				LOG.info("Missing audit log change key: {}", key);
+				continue;
+			}
 			Object oldValue = change.getOldValue();
 			Object newValue = change.getNewValue();
 			if (oldValue == null) {
@@ -1206,6 +1213,7 @@ public class LogEmbedUtil {
 			case List<?> values -> {
 				if (values.isEmpty()) return "";
 				if (values.getFirst() instanceof HashMap) {
+					// TODO not sure what this formats
 					return values.stream()
 						.map(v -> (String) JsonPath.read(v, "$.id"))
 						.collect(Collectors.joining(">, <@&", "<@&", ">"));
