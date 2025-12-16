@@ -34,7 +34,12 @@ public class DrainDbQueue implements Task {
 				continue;
 			}
 
-			it.remove();
+			try {
+				it.remove();
+			} catch (Exception e) {
+				LOG.error("Failed to remove value from queue: {}", player, e);
+				continue;
+			}
 			updated++;
 		}
 		if (updated>0) {

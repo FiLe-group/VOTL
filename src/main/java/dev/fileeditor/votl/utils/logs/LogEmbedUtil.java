@@ -1,7 +1,6 @@
 package dev.fileeditor.votl.utils.logs;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
-import static dev.fileeditor.votl.utils.CastUtil.requireNonNull;
 import static dev.fileeditor.votl.utils.message.TimeUtil.formatTime;
 
 import java.time.Duration;
@@ -1279,7 +1278,7 @@ public class LogEmbedUtil {
 				builder.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
 
 				change = entry.getChangeByKey("allow"); assert change != null;
-				long permsLong = requireNonNull(change.getNewValue());
+				long permsLong = Long.parseLong(String.valueOf(Objects.requireNonNull(change.getNewValue())));
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.allow")).append(": `");
@@ -1287,7 +1286,7 @@ public class LogEmbedUtil {
 					builder.append("`\n");
 				}
 				change = entry.getChangeByKey("deny"); assert change != null;
-				permsLong = requireNonNull(change.getNewValue());
+				permsLong = Long.parseLong(String.valueOf(Objects.requireNonNull(change.getNewValue())));
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.deny")).append(": `");
@@ -1308,7 +1307,7 @@ public class LogEmbedUtil {
 				builder.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
 
 				change = entry.getChangeByKey("allow"); assert change != null;
-				long permsLong = requireNonNull(change.getOldValue());
+				long permsLong = Long.parseLong(String.valueOf(Objects.requireNonNull(change.getOldValue())));
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.allow")).append(": `");
@@ -1316,7 +1315,7 @@ public class LogEmbedUtil {
 					builder.append("`\n");
 				}
 				change = entry.getChangeByKey("deny"); assert change != null;
-				permsLong = requireNonNull(change.getOldValue());
+				permsLong = Long.parseLong(String.valueOf(Objects.requireNonNull(change.getOldValue())));
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.deny")).append(": `");
