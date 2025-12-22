@@ -27,7 +27,7 @@ public class Main {
 		try {
 			CommandLine cmd = parser.parse(options, args);
 
-			Settings settings = new Settings(cmd, args);
+			CliSettings settings = new CliSettings(cmd, args);
 			ConsoleColor.setSettings(settings);
 			if (!settings.useColors()) {
 				System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "logback_nocolor.xml" + (

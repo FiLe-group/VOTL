@@ -53,7 +53,7 @@ import static java.lang.Long.parseLong;
 
 public class App {
 	protected static App instance;
-	private final Settings settings;
+	private final CliSettings settings;
 	
 	private static final Logger LOG = (Logger) LoggerFactory.getLogger(App.class);
 
@@ -81,7 +81,7 @@ public class App {
 	private ExitCodes shutdownCode = ExitCodes.RESTART;
 
 	@SuppressWarnings("BusyWait")
-	public App(Settings settings) throws IOException {
+	public App(CliSettings settings) throws IOException {
 		App.instance = this;
 		this.settings = settings;
 
@@ -247,7 +247,7 @@ public class App {
 		return instance;
 	}
 
-	public Settings getSettings() {
+	public CliSettings getSettings() {
 		return settings;
 	}
 

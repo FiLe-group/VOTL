@@ -1,5 +1,6 @@
 package dev.fileeditor.votl;
 
+import dev.fileeditor.votl.objects.ExitCodes;
 import org.apache.commons.cli.CommandLine;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("SameParameterValue")
-public class Settings {
+public class CliSettings {
 
 	private final int shardCount;
 	private final int[] shards;
@@ -19,9 +20,13 @@ public class Settings {
 	private final List<String> jarArgs;
 	private final List<String> runtimeArgs;
 
-	Settings(CommandLine cmd, String[] args) {
+	CliSettings(CommandLine cmd, String[] args) {
 		shardCount = Integer.parseInt(cmd.getOptionValue("shardCount", "0"));
-		shards = parseShardIds(cmd);
+		var t = parseShardIds(cmd);
+		if (t == null) {
+			System.exit(ExitCodes.ERROR.v);
+		}
+		shards = t;
 		useColors = !cmd.hasOption("no-colors");
 		useDebugging = cmd.hasOption("debug");
 
@@ -55,6 +60,7 @@ public class Settings {
 		return runtimeArgs;
 	}
 
+	@Nullable
 	private int[] parseShardIds(CommandLine cmd) {
 		if (getShardCount() == -1 || !cmd.hasOption("shards")) {
 			return null;

@@ -1,6 +1,6 @@
 package dev.fileeditor.votl.utils;
 
-import dev.fileeditor.votl.Settings;
+import dev.fileeditor.votl.CliSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +25,7 @@ public enum ConsoleColor {
 	YELLOW("\u001B[33m", "yellow"),
 	YELLOW_BACKGROUND("\u001B[43m", "yellowBg");
 
-	private static Settings settings;
+	private static CliSettings settings;
 
 	private final String color;
 	private final String format;
@@ -51,7 +51,7 @@ public enum ConsoleColor {
 		return string;
 	}
 
-	public static void setSettings(@NotNull Settings settings) {
+	public static void setSettings(@NotNull CliSettings settings) {
 		ConsoleColor.settings = settings;
 	}
 
