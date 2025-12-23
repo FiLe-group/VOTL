@@ -3,6 +3,7 @@ package dev.fileeditor.votl.metrics;
 import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.metrics.core.Counter;
 import dev.fileeditor.votl.metrics.core.Histogram;
+import dev.fileeditor.votl.metrics.timeseries.PingData;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -11,6 +12,12 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Modifier;
 
 public class Metrics {
+
+	// PING
+
+	public static final int TIMESERIES_INTERVAL = 5; // in Minutes
+
+	public static final PingData pingDataStore = new PingData();
 
 	// GLOBAL
 

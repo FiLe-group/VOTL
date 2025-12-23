@@ -3,12 +3,10 @@ package dev.fileeditor.votl.scheduler.jobs;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.contracts.scheduler.Job;
 
-import java.util.concurrent.TimeUnit;
-
 public class ProcessVoiceExperience extends Job {
 
 	public ProcessVoiceExperience(App bot) {
-		super(bot, 2, 2, TimeUnit.MINUTES);
+		super(bot, 2, 2);
 	}
 
 	@Override

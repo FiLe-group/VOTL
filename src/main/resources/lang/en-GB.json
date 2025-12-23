@@ -555,6 +555,32 @@
 					"name": "amount",
 					"help": "Enter exp amount to add/remove"
 				}
+			},
+			"metrics": {
+				"help": "Different metrics",
+				"usage": "metrics",
+				"command": {
+					"help": "Information about command usage",
+					"usage": "command <full name>",
+					"command-name": {
+						"name": "command-name",
+						"help": "Enter full command name (ex. 'access add role')"
+					},
+					"not_found": "Command not found or has no information."
+				},
+				"command-stats": {
+					"help": "View command use",
+					"usage": "command-stats"
+				},
+				"button-stats": {
+					"help": "View button/interaction use",
+					"usage": "button-stats"
+				},
+				"ping": {
+					"help": "View ping chart for the last 24 hours",
+					"usage": "ping",
+					"failed": "Failed to generate or upload chart."
+				}
 			}
 		},
 		"guild": {
