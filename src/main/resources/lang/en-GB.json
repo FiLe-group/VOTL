@@ -1879,7 +1879,10 @@
 					"stats" : {
 						"guilds": "%s Servers",
 						"shard": "Shard %s/%s",
-						"memory": "Memory: %sMb / %sMb"
+						"memory": "Memory: %sMb / %sMb",
+						"events": "Events received: %s",
+						"commands": "Commands run: %s",
+						"messages": "Messages received: %s"
 					},
 					"shard_title": "This shard",
 					"shard": {

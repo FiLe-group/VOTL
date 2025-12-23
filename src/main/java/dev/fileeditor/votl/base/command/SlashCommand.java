@@ -20,6 +20,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import dev.fileeditor.votl.metrics.Metrics;
+import dev.fileeditor.votl.metrics.datapoints.Timer;
 import dev.fileeditor.votl.objects.CmdAccessLevel;
 
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -197,8 +199,10 @@ public abstract class SlashCommand extends Interaction {
 		// client 
 		final CommandClient client = event.getClient();
 
+		// Metrics
+		Metrics.commandsExecuted.labelValue(event.getFullCommandName()).inc();
 		// execute
-		try {
+		try (Timer ignored = Metrics.executionTime.labelValue(event.getFullCommandName()).startTimer()) {
 			execute(event);
 		} catch (Throwable t) {
 			if (client.getListener() != null) {

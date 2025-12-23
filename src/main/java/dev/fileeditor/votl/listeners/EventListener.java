@@ -1,7 +1,9 @@
 package dev.fileeditor.votl.listeners;
 
 import ch.qos.logback.classic.Logger;
+import dev.fileeditor.votl.metrics.Metrics;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +17,11 @@ public class EventListener extends ListenerAdapter {
 
 	public EventListener(DBUtil db) {
 		this.db = db;
+	}
+
+	@Override
+	public void onGenericEvent(@NotNull GenericEvent event) {
+		Metrics.jdaEvents.labelValue(event.getClass().getSimpleName()).inc();
 	}
 
 	@Override
