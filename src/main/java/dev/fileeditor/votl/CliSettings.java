@@ -1,6 +1,5 @@
 package dev.fileeditor.votl;
 
-import dev.fileeditor.votl.objects.ExitCodes;
 import org.apache.commons.cli.CommandLine;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,11 +21,7 @@ public class CliSettings {
 
 	CliSettings(CommandLine cmd, String[] args) {
 		shardCount = Integer.parseInt(cmd.getOptionValue("shardCount", "0"));
-		var t = parseShardIds(cmd);
-		if (t == null) {
-			System.exit(ExitCodes.ERROR.v);
-		}
-		shards = t;
+		shards = parseShardIds(cmd);
 		useColors = !cmd.hasOption("no-colors");
 		useDebugging = cmd.hasOption("debug");
 
