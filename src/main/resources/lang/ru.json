@@ -374,7 +374,7 @@
 			"afk_channel_id": "AFK канал",
 			"afk_timeout": "Тайм-аут AFK",
 			"explicit_content_filter": "Фильтр откровенного содержимого",
-			"icon_hash": "Иконка сервера",
+			"icon_hash": "Иконка",
 			"mfa_level": "Уровень MFA",
 			"default_message_notifications": "Уведомления",
 			"owner_id": "Разработка",
@@ -392,7 +392,8 @@
 			"allow": "Разрешено",
 			"deny": "Запрещено",
 			"communication_disabled_until": "Тайм-аут",
-			"preferred_locale": "Язык сообщества"
+			"preferred_locale": "Язык сообщества",
+			"colors": "Градиентные цвета"
 		}
 	},
 	"bot": {
@@ -553,6 +554,32 @@
 				"amount": {
 					"name": "количество",
 					"help": "Введите количество опыта для добавления/удаления"
+				}
+			},
+			"metrics": {
+				"help": "Различные метрики",
+				"usage": "metrics",
+				"command": {
+					"help": "Информация об использовании команд",
+					"usage": "command <полное название>",
+					"command-name": {
+						"name": "название-команды",
+						"help": "Введите полное название команды (напр. 'access add role')"
+					},
+					"not_found": "Команда не найдена или не имеет информации."
+				},
+				"command-stats": {
+					"help": "Просмотр использование команд",
+					"usage": "command-stats"
+				},
+				"button-stats": {
+					"help": "Просмотр использования кнопок/взаимодействий",
+					"usage": "button-stats"
+				},
+				"ping": {
+					"help": "Просмотр графика пинга за последние 24 часа",
+					"usage": "ping",
+					"failed": "Не удалось создать или загрузить график."
 				}
 			}
 		},
@@ -1878,7 +1905,10 @@
 					"stats": {
 						"guilds": "%s серверов",
 						"shard": "Шард %s/%s",
-						"memory": "Память: %sMb / %sMb"
+						"memory": "Память: %sMb / %sMb",
+						"events": "Получено событий: %s",
+						"commands": "Выполнено команд: %s",
+						"messages": "Получено сообщений: %s"
 					},
 					"shard_title": "Этот Шард",
 					"shard": {
