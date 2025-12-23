@@ -374,7 +374,7 @@
 			"afk_channel_id": "AFK channel",
 			"afk_timeout": "AFK timeout",
 			"explicit_content_filter": "Explicit content filter",
-			"icon_hash": "Server icon",
+			"icon_hash": "Icon",
 			"mfa_level": "MFA level",
 			"default_message_notifications": "Message notifications",
 			"owner_id": "Owner",
@@ -392,7 +392,8 @@
 			"allow": "Allowed",
 			"deny": "Denied",
 			"communication_disabled_until": "Timeout",
-			"preferred_locale": "Community language"
+			"preferred_locale": "Community language",
+			"colors": "Gradient colors"
 		}
 	},
 	"bot": {

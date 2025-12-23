@@ -1223,8 +1223,29 @@ public class LogEmbedUtil {
 						.collect(Collectors.joining(", "));
 				}
 			}
+			case Map<?, ?> values -> {
+				if (values.isEmpty()) return "";
+				// role colors
+				if (key.equals("colors")) {
+					if (values.get("tertiary_color") != null) {
+						// holographic
+						return "holographic";
+					} else if (values.get("secondary_color") != null) {
+						// gradient
+						return "`#%s`-`#%s`".formatted(Integer.toHexString((int) values.get("primary_color")), Integer.toHexString((int) values.get("secondary_color")));
+					} else if (values.get("primary_color").equals(0)) {
+						// transparent
+						return "none";
+					} else {
+						// one color
+						return "`#%s`".formatted(Integer.toHexString((int) values.get("primary_color")));
+					}
+				} else {
+					return "";
+				}
+			}
 			default -> {
-				return String.format("`%s`", object);
+				return "`%s`".formatted(object);
 			}
 		}
 	}
@@ -1286,15 +1307,18 @@ public class LogEmbedUtil {
 				builder.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
 
 				change = entry.getChangeByKey("allow"); assert change != null;
-				long permsLong = Long.parseLong(String.valueOf(Objects.requireNonNull(change.getNewValue())));
+				var t = change.getNewValue();
+				long permsLong = Long.parseLong(String.valueOf(t));
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.allow")).append(": `");
 					builder.append(perms.stream().map(Permission::getName).collect(Collectors.joining(", ")));
 					builder.append("`\n");
 				}
+
 				change = entry.getChangeByKey("deny"); assert change != null;
-				permsLong = Long.parseLong(String.valueOf(Objects.requireNonNull(change.getNewValue())));
+				t = change.getNewValue();
+				permsLong = Long.parseLong(String.valueOf(t));
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.deny")).append(": `");
@@ -1315,7 +1339,8 @@ public class LogEmbedUtil {
 				builder.append("> %s%s>\n".formatted(type==0?"Role <@&":"Member <@", id));
 
 				change = entry.getChangeByKey("allow"); assert change != null;
-				long permsLong = Long.parseLong(String.valueOf(Objects.requireNonNull(change.getOldValue())));
+				var t = change.getOldValue();
+				long permsLong = Long.parseLong(String.valueOf(t));
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.allow")).append(": `");
@@ -1323,7 +1348,8 @@ public class LogEmbedUtil {
 					builder.append("`\n");
 				}
 				change = entry.getChangeByKey("deny"); assert change != null;
-				permsLong = Long.parseLong(String.valueOf(Objects.requireNonNull(change.getOldValue())));
+				t = change.getOldValue();
+				permsLong = Long.parseLong(String.valueOf(t));
 				if (permsLong != 0) {
 					EnumSet<Permission> perms = Permission.getPermissions(permsLong);
 					builder.append(lu.getLocalized(locale, "logger.keys.deny")).append(": `");
