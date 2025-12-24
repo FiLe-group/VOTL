@@ -15,7 +15,7 @@ welcome() {
     read -r option
 
     if [ 1 -eq "$option" ]; then
-        echo "Nornal start has been selected, starting the bot..."
+        echo "Normal start has been selected, starting the bot..."
         echo ""
 
         startApplication

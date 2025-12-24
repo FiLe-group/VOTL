@@ -81,7 +81,7 @@ public class App {
 	private ExitCodes shutdownCode = ExitCodes.RESTART;
 
 	@SuppressWarnings("BusyWait")
-	public App(CliSettings settings) throws IOException {
+	public App(CliSettings settings) {
 		App.instance = this;
 		this.settings = settings;
 
@@ -89,11 +89,16 @@ public class App {
 
 		LOG.debug("Starting VOTL instance with debug logging enabled!\n");
 
-		fileManager.addFile("config", "/config.example.json", Constants.DATA_PATH + "config.json")
-			.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
-			.addFileUpdate("backgrounds", "/backgrounds/index.json", Constants.DATA_PATH + "backgrounds" + Constants.SEPAR + "main.json")
-			.addLang("en-GB")
-			.addLang("ru");
+		try {
+			fileManager.addFile("config", "/config.example.json", Constants.DATA_PATH + "config.json")
+				.addFile("database", "/server.db", Constants.DATA_PATH + "server.db")
+				.addFileUpdate("backgrounds", "/backgrounds/index.json", Constants.DATA_PATH + "backgrounds" + Constants.SEPAR + "main.json")
+				.addLang("en-GB")
+				.addLang("ru");
+		} catch (IOException e) {
+			LOG.error("File manager encountered an exception. Exiting!", e);
+			System.exit(ExitCodes.ERROR.v);
+		}
 
 		if (fileManager.getNullableString("config", "bot-token") == null) {
 			LOG.error("Bot token not set inside config.json");
@@ -107,19 +112,19 @@ public class App {
 		final long ownerId = parseLong(ownerIdString);
 		
 		// Define for default
-		dbUtil		= new DBUtil(getFileManager());
-		localeUtil	= new LocaleUtil(this);
-		embedUtil	= new EmbedUtil(localeUtil);
-		checkUtil	= new CheckUtil(this, ownerId);
-		ticketUtil	= new TicketUtil(this);
-		moderationUtil = new ModerationUtil(dbUtil, localeUtil);
-		levelUtil	= new LevelUtil(this);
+		dbUtil			= new DBUtil(fileManager);
+		localeUtil		= new LocaleUtil(this);
+		embedUtil		= new EmbedUtil(localeUtil);
+		checkUtil		= new CheckUtil(this, ownerId);
+		ticketUtil		= new TicketUtil(this);
+		moderationUtil	= new ModerationUtil(dbUtil, localeUtil);
+		levelUtil		= new LevelUtil(this);
 
 		logEmbedUtil	= new LogEmbedUtil();
 		guildLogger		= new GuildLogger(this, logEmbedUtil);
 		groupHelper		= new GroupHelper(this);
 
-		eventWaiter = new EventWaiter();
+		eventWaiter		= new EventWaiter();
 
 		CommandListener commandListener = new CommandListener(localeUtil);
 		InteractionListener interactionListener = new InteractionListener(this, eventWaiter);
