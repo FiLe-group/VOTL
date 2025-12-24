@@ -14,6 +14,7 @@ import dev.fileeditor.votl.listeners.*;
 import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
+import dev.fileeditor.votl.metrics.Metrics;
 import dev.fileeditor.votl.middleware.MiddlewareHandler;
 import dev.fileeditor.votl.middleware.PermissionsCheck;
 import dev.fileeditor.votl.middleware.ThrottleMiddleware;
@@ -241,6 +242,9 @@ public class App {
 
 		AutoloaderUtil.load(Names.PACKAGE_JOB_PATH, job -> ScheduleHandler.registerJob((Job) job));
 		LOG.info("Registered {} jobs successfully!", ScheduleHandler.entrySet().size());
+
+		LOG.info("Preparing and setting up metrics.");
+		Metrics.setup();
 
 		LOG.info("Loading user backgrounds");
 		UserBackgroundHandler.getInstance().start();
