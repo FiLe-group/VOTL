@@ -123,7 +123,7 @@ public class GuildLogger {
 			if (client == null) return CompletableFuture.completedFuture(null);
 
 			String proofFileName = proofData==null ? null : proofData.setFileName(caseData.getRowId());
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			MessageEmbed embed = switch (caseData.getType()) {
 				case BAN ->
 					logUtil.banEmbed(locale, caseData, target.getEffectiveAvatarUrl(), proofFileName);
@@ -147,17 +147,17 @@ public class GuildLogger {
 		}
 
 		public void onStrikesCleared(Guild guild, User target, User mod) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.strikesClearedEmbed(locale, target.getName(), target.getIdLong(), mod.getIdLong()));
 		}
 
 		public void onStrikeDeleted(Guild guild, User target, User mod, int caseLocalId, int deletedAmount, int maxAmount) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.strikeDeletedEmbed(locale, target.getName(), target.getIdLong(), mod.getIdLong(), caseLocalId, deletedAmount, maxAmount));
 		}
 
 		public void onAutoUnban(CaseData caseData, Guild guild) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.autoUnbanEmbed(locale, caseData));
 		}
 
@@ -167,7 +167,7 @@ public class GuildLogger {
 				return;
 			}
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.reasonChangedEmbed(locale, caseData, moderator.getIdLong(), newReason));
 		}
 
@@ -177,22 +177,22 @@ public class GuildLogger {
 				return;
 			}
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.durationChangedEmbed(locale, caseData, moderator.getIdLong(), newTime));
 		}
 
 		public void onHelperSyncBan(int groupId, Guild guild, User target, String reason, int success, int max) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.helperBanEmbed(locale, groupId, target, reason, success, max));
 		}
 
 		public void onHelperSyncUnban(int groupId, Guild guild, User target, String reason, int success, int max) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.helperUnbanEmbed(locale, groupId, target, reason, success, max));
 		}
 
 		public void onHelperSyncKick(int groupId, Guild guild, User target, String reason, int success, int max) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.helperKickEmbed(locale, groupId, target, reason, success, max));
 		}
 
@@ -200,7 +200,7 @@ public class GuildLogger {
 			for (int groupId : groupIds) {
 				final String groupInfo = "%s (#%d)".formatted(db.group.getName(groupId), groupId);
 				Guild master = JDA.getGuildById(db.group.getOwner(groupId));
-				final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(master);
+				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(master);
 				sendLog(master, type, () -> logUtil.blacklistAddedEmbed(locale, mod, target, groupInfo));
 			}
 		}
@@ -209,7 +209,7 @@ public class GuildLogger {
 			final String groupInfo = "%s (#%d)".formatted(db.group.getName(groupId), groupId);
 			Guild master = JDA.getGuildById(db.group.getOwner(groupId));
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(master);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(master);
 			sendLog(master, type, () -> logUtil.blacklistRemovedEmbed(locale, mod, target, groupInfo));
 		}
 
@@ -217,7 +217,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long modId = entry.getUserIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.userBanEmbed(locale, target, entry.getReason(), modId));
 		}
 
@@ -225,7 +225,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long modId = entry.getUserIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.userUnbanEmbed(locale, target, entry.getReason(), modId));
 		}
 
@@ -233,7 +233,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long modId = entry.getUserIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.userKickEmbed(locale, target, entry.getReason(), modId));
 		}
 
@@ -241,7 +241,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long modId = entry.getUserIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.userTimeoutUpdateEmbed(locale, target, entry.getReason(), modId, until));
 		}
 
@@ -249,14 +249,14 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long modId = entry.getUserIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.userTimeoutRemoveEmbed(locale, target, entry.getReason(), modId));
 		}
 
 		public void onMessagePurge(User mod, User target, int msgCount, GuildChannel channel) {
 			final Guild guild = channel.getGuild();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.messagePurge(locale, mod, target, msgCount, channel));
 		}
 	}
@@ -266,63 +266,63 @@ public class GuildLogger {
 		private final LogType type = LogType.ROLE;
 
 		public void onApproved(Member member, Member admin, Guild guild, List<Role> roles, int ticketId) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.rolesApprovedEmbed(locale, ticketId, member.getIdLong(),
 				roles.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), admin.getIdLong()));
 		}
 
 		public void onRoleAdded(Guild guild, User mod, User target, Role role) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.roleAddedEmbed(locale, mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), role.getAsMention()));
 		}
 
 		public void onRolesAdded(Guild guild, User mod, User target, String rolesAdded) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.rolesAddedEmbed(locale, mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), rolesAdded));
 		}
 
 		public void onRoleRemoved(Guild guild, User mod, User target, Role role) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.roleRemovedEmbed(locale, mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), role.getAsMention()));
 		}
 
 		public void onRolesRemoved(Guild guild, User mod, User target, String rolesRemoved) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.rolesRemovedEmbed(locale, mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), rolesRemoved));
 		}
 
 		public void onRoleRemovedAll(Guild guild, User mod, Role role) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.roleRemovedAllEmbed(locale, mod.getIdLong(), role.getIdLong()));
 		}
 
 		public void onRolesModified(Guild guild, User mod, User target, String rolesModified) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.rolesModifiedEmbed(locale, mod.getIdLong(), target.getIdLong(), target.getEffectiveAvatarUrl(), rolesModified));
 		}
 
 		public void onTempRoleAdded(Guild guild, User mod, User target, Role role, Duration duration) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.tempRoleAddedEmbed(locale, mod, target, role, duration));
 		}
 
 		public void onTempRoleAdded(Guild guild, User mod, User target, long roleId, Duration duration, boolean deleteAfter) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.tempRoleAddedEmbed(locale, mod, target, roleId, duration, deleteAfter));
 		}
 
 		public void onTempRoleRemoved(Guild guild, User mod, User target, Role role) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.tempRoleRemovedEmbed(locale, mod, target, role));
 		}
 
 		public void onTempRoleUpdated(Guild guild, User mod, User target, Role role, Instant until) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.tempRoleUpdatedEmbed(locale, mod, target, role, until));
 		}
 
 		public void onTempRoleAutoRemoved(Guild guild, Long targetId, Role role) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.tempRoleAutoRemovedEmbed(locale, targetId, role));
 		}
 	}
@@ -350,7 +350,7 @@ public class GuildLogger {
 			for (Long memberId : memberIds) {
 				Guild member = JDA.getGuildById(memberId);
 
-				final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(member);
+				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(member);
 				sendLog(member, type, () -> logUtil.groupMemberDeletedEmbed(locale, ownerId, ownerIcon, groupId, name));
 			}
 
@@ -367,7 +367,7 @@ public class GuildLogger {
 			for (Long memberId : memberIds) {
 				Guild member = JDA.getGuildById(memberId);
 
-				final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(member);
+				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(member);
 				sendLog(member, type, () -> logUtil.groupMemberDeletedEmbed(locale, ownerId, ownerIcon, groupId, groupName));
 			}
 		}
@@ -386,7 +386,7 @@ public class GuildLogger {
 			sendLog(event.getGuild(), type, () -> logUtil.groupMemberJoinedEmbed(locale, event.getMember().getAsMention(), ownerId, ownerIcon, groupId, name));
 
 			// Master log
-			final DiscordLocale ownerLocale = App.getInstance().getLocaleUtil().getLocale(owner);
+			final DiscordLocale ownerLocale = App.getInstance().getLocaleUtil().getGuildLocale(owner);
 			sendLog(owner, type, () -> logUtil.groupOwnerJoinedEmbed(ownerLocale, ownerId, ownerIcon, event.getGuild().getName(), event.getGuild().getIdLong(), groupId, name));
 		}
 
@@ -404,7 +404,7 @@ public class GuildLogger {
 			sendLog(event.getGuild(), type, () -> logUtil.groupMemberLeftEmbed(locale, event.getMember().getAsMention(), ownerId, ownerIcon, groupId, name));
 
 			// Master log
-			final DiscordLocale ownerLocale = App.getInstance().getLocaleUtil().getLocale(owner);
+			final DiscordLocale ownerLocale = App.getInstance().getLocaleUtil().getGuildLocale(owner);
 			sendLog(owner, type, () -> logUtil.groupOwnerLeftEmbed(ownerLocale, ownerId, ownerIcon, event.getGuild().getName(), event.getGuild().getIdLong(), groupId, name));
 		}
 
@@ -417,7 +417,7 @@ public class GuildLogger {
 			String groupName = db.group.getName(groupId);
 
 			// Inform group's owner
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(owner);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(owner);
 			sendLog(owner, type, () -> logUtil.groupOwnerLeftEmbed(locale, ownerId, ownerIcon, target.getName(), target.getIdLong(), groupId, groupName));
 		}
 
@@ -428,7 +428,7 @@ public class GuildLogger {
 			String ownerIcon = event.getGuild().getIconUrl();
 
 			// Send log to removed server
-			final DiscordLocale targetLocale = App.getInstance().getLocaleUtil().getLocale(target);
+			final DiscordLocale targetLocale = App.getInstance().getLocaleUtil().getGuildLocale(target);
 			sendLog(target, type, () -> logUtil.groupMemberLeftEmbed(targetLocale, "Forced, by group Master", ownerId, ownerIcon, groupId, name));
 
 			// Master log
@@ -447,7 +447,7 @@ public class GuildLogger {
 			for (Long memberId : memberIds) {
 				Guild member = JDA.getGuildById(memberId);
 
-				final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(member);
+				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(member);
 				sendLog(member, type, () -> logUtil.groupMemberRenamedEmbed(locale, ownerId, ownerIcon, groupId, oldName, newName));
 			}
 
@@ -462,7 +462,7 @@ public class GuildLogger {
 		private final LogType type = LogType.TICKET;
 
 		public void onCreate(Guild guild, GuildChannel messageChannel, User author) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.ticketCreatedEmbed(locale, messageChannel, author));
 		}
 
@@ -475,7 +475,7 @@ public class GuildLogger {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 			try {
-				final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 				client.sendMessageEmbeds(
 					logUtil.ticketClosedEmbed(locale, messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
 				).addFiles(file).queue();
@@ -485,7 +485,7 @@ public class GuildLogger {
 		}
 
 		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.ticketClosedEmbed(locale, messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong())));
 		}
 	}
@@ -499,7 +499,7 @@ public class GuildLogger {
 			final long id = guild.getIdLong();
 			final String name = guild.getName();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.guildUpdate(locale, id, name, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -507,7 +507,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.emojiCreate(locale, id, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -515,7 +515,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.emojiUpdate(locale, id, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -523,7 +523,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.emojiDelete(locale, id, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -531,7 +531,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.stickerCreate(locale, id, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -539,7 +539,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.stickerUpdate(locale, id, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -547,7 +547,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.stickerDelete(locale, id, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -557,7 +557,7 @@ public class GuildLogger {
 			var change = entry.getChangeByKey(AuditLogKey.ROLE_NAME); assert change != null;
 			final String name = change.getNewValue();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.roleCreated(locale, id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
 		}
 
@@ -567,7 +567,7 @@ public class GuildLogger {
 			var change = entry.getChangeByKey(AuditLogKey.ROLE_NAME); assert change != null;
 			final String name = change.getOldValue();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.roleDeleted(locale, id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
 		}
 
@@ -578,7 +578,7 @@ public class GuildLogger {
 			if (role == null) return;
 			final String name = role.getName();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.roleUpdate(locale, id, name, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -594,7 +594,7 @@ public class GuildLogger {
 			var change = entry.getChangeByKey(AuditLogKey.CHANNEL_NAME); assert change != null;
 			final String name = change.getNewValue();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.channelCreated(locale, id, name, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -604,7 +604,7 @@ public class GuildLogger {
 			var change = entry.getChangeByKey(AuditLogKey.CHANNEL_NAME); assert change != null;
 			final String name = change.getOldValue();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.channelDeleted(locale, id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
 		}
 
@@ -615,7 +615,7 @@ public class GuildLogger {
 			if (channel == null) return;
 			final String name = channel.getName();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.channelUpdate(locale, id, name, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
@@ -623,7 +623,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.overrideCreate(locale, id, entry, entry.getUserIdLong()));
 		}
 
@@ -631,7 +631,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.overrideUpdate(locale, id, entry, entry.getUserIdLong(), guild.getId()));
 		}
 
@@ -639,7 +639,7 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.overrideDelete(locale, id, entry, entry.getUserIdLong()));
 		}
 	}
@@ -651,7 +651,7 @@ public class GuildLogger {
 		public void onNickChange(Member target, String oldNick, String newNick) {
 			final Guild guild = target.getGuild();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.memberNickUpdate(locale, target.getUser(), oldNick, newNick));
 		}
 
@@ -659,19 +659,19 @@ public class GuildLogger {
 			final Guild guild = entry.getGuild();
 			final long id = entry.getTargetIdLong();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.rolesChange(locale, id, entry.getChanges().values(), entry.getUserIdLong()));
 		}
 
 		public void onJoined(Member member) {
 			final Guild guild = member.getGuild();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.memberJoin(locale, member));
 		}
 
 		public void onLeft(Guild guild, Member cachedMember, User user) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.memberLeave(locale, cachedMember, user, cachedMember!=null ? cachedMember.getRoles() : List.of()));
 		}
 	}
@@ -683,14 +683,14 @@ public class GuildLogger {
 		public void onVoiceMute(Member target, boolean isMuted, Long modId) {
 			final Guild guild = target.getGuild();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.voiceMute(locale, target.getIdLong(), target.getUser().getName(), target.getEffectiveAvatarUrl(), isMuted, modId));
 		}
 
 		public void onVoiceDeafen(Member target, boolean isDeafen, Long modId) {
 			final Guild guild = target.getGuild();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.voiceDeafen(locale, target.getIdLong(), target.getUser().getName(), target.getEffectiveAvatarUrl(), isDeafen, modId));
 		}
 	}
@@ -708,7 +708,7 @@ public class GuildLogger {
 
 			MessageData.DiffData diff = MessageData.getDiffContent(oldData.getContentStripped(), newData.getContentStripped());
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			MessageEmbed embed = logUtil.messageUpdate(locale, author, channel.getIdLong(), messageId, oldData, newData, diff);
 			if (embed == null) return;
 			// Create changes file only if there are significant changes
@@ -729,7 +729,7 @@ public class GuildLogger {
 
 			if ((data == null || data.isEmpty()) && modId == null) return;
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			FileUpload fileUpload = uploadContent(data, messageId);
 			if (fileUpload != null) {
 				client.sendMessageEmbeds(logUtil.messageDelete(locale, channel.getIdLong(), messageId, data, modId))
@@ -745,7 +745,7 @@ public class GuildLogger {
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			if (!messages.isEmpty()) {
 				FileUpload fileUpload = uploadContentBulk(messages, channel.getIdLong());
 				if (fileUpload != null) {
@@ -824,7 +824,7 @@ public class GuildLogger {
 		public void onLevelUp(Member target, int level, ExpType expType) {
 			final Guild guild = target.getGuild();
 
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.levelUp(locale, target, level, expType));
 		}
 	}
@@ -834,22 +834,22 @@ public class GuildLogger {
 		private final LogType type = LogType.BOT;
 
 		public void onAccessAdded(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, CmdAccessLevel level) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.accessAdded(locale, mod, userTarget, roleTarget, level.getName()));
 		}
 
 		public void onAccessRemoved(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, CmdAccessLevel level) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.accessRemoved(locale, mod, userTarget, roleTarget, level.getName()));
 		}
 
 		public void onModuleEnabled(Guild guild, User mod, CmdModule module) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.moduleEnabled(locale, mod, module));
 		}
 
 		public void onModuleDisabled(Guild guild, User mod, CmdModule module) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(guild);
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.moduleDisabled(locale, mod, module));
 		}
 	}

@@ -32,7 +32,7 @@ public class ModerationUtil {
 
 	@Nullable
 	public String getDmText(@NotNull CaseType type, @NotNull Guild guild, @Nullable String reason, @Nullable Duration duration, @Nullable User mod, boolean canAppeal) {
-		final DiscordLocale locale = lu.getLocale(guild);
+		final DiscordLocale locale = lu.getGuildLocale(guild);
 		int level;
 		String text;
 		switch (type) {
@@ -88,7 +88,7 @@ public class ModerationUtil {
 	public String getGamestrikeDmText(@NotNull CaseType type, @NotNull Guild guild, @Nullable String reason, @NotNull User mod, @NotNull GuildChannel targetChannel, int count, int limit) {
 		if (type != CaseType.GAME_STRIKE) return null;
 
-		final DiscordLocale locale = lu.getLocale(guild);
+		final DiscordLocale locale = lu.getGuildLocale(guild);
 		int level = dbUtil.getGuildSettings(guild).getInformStrike().getLevel();
 
 		String text = lu.getLocalized(locale, "logger_embed.pm.gamestrike")
@@ -113,7 +113,7 @@ public class ModerationUtil {
 
 	@Nullable
 	public MessageEmbed getDramaEmbed(@NotNull CaseType type, @NotNull Guild guild, @NotNull Member target, @Nullable String reason, @Nullable Duration duration, @Nullable GuildChannel targetChannel) {
-		final DiscordLocale locale = lu.getLocale(guild);
+		final DiscordLocale locale = lu.getGuildLocale(guild);
 		int level;
 		String text;
 		switch (type) {
@@ -152,7 +152,7 @@ public class ModerationUtil {
 	public MessageEmbed getDelstrikeEmbed(int amount, @NotNull Guild guild, @NotNull User mod) {
 		int level = dbUtil.getGuildSettings(guild).getInformDelstrike().getLevel();
 		if (level == 0) return null;
-		String text = lu.getLocalized(lu.getLocale(guild), "logger_embed.pm.delstrike").formatted(amount);
+		String text = lu.getLocalized(lu.getGuildLocale(guild), "logger_embed.pm.delstrike").formatted(amount);
 		return new EmbedBuilder().setColor(Constants.COLOR_WARNING)
 				.setDescription(formatText(text, guild, null, null, level >= 3 ? mod : null))
 				.build();
@@ -160,7 +160,7 @@ public class ModerationUtil {
 
 	@NotNull
 	public MessageEmbed getReasonUpdateEmbed(@NotNull Guild guild, @NotNull Instant timestamp, @NotNull CaseType caseType, @Nullable String oldReason, @NotNull String newReason) {
-		final DiscordLocale locale = lu.getLocale(guild);
+		final DiscordLocale locale = lu.getGuildLocale(guild);
 		if (oldReason == null) oldReason = "-";
 		if (caseType.equals(CaseType.MUTE)) {
 			// if is mute

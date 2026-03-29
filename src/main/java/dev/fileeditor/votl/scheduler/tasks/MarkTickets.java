@@ -40,7 +40,7 @@ public class MarkTickets implements Task {
 				UserSnowflake user = User.fromId(bot.getDBUtil().tickets.getUserId(channelId));
 				Instant closeTime = Instant.now().plus(CLOSE_AFTER_HOURS, ChronoUnit.HOURS);
 
-				final DiscordLocale locale = bot.getLocaleUtil().getLocale(guild);
+				final DiscordLocale locale = bot.getLocaleUtil().getGuildLocale(guild);
 				MessageEmbed embed = new EmbedBuilder()
 					.setColor(bot.getDBUtil().getGuildSettings(guild).getColor())
 					.setDescription(bot.getLocaleUtil().getLocalized(locale, "bot.ticketing.listener.close_auto")

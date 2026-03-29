@@ -100,12 +100,12 @@ public class LocaleUtil {
 
 	@NotNull
 	public String getGuildText(IReplyCallback replyCallback, @NotNull String path) {
-		return getLocalized(getLocale(replyCallback.getGuild()), path);
+		return getLocalized(getGuildLocale(replyCallback.getGuild()), path);
 	}
 
 	@NotNull
 	public String getGuildText(IReplyCallback replyCallback, @NotNull String path, @Nullable Object... args) {
-		return new Formatter().format(getLocalized(getLocale(replyCallback.getGuild()), path), args).toString();
+		return new Formatter().format(getLocalized(getGuildLocale(replyCallback.getGuild()), path), args).toString();
 	}
 
 
@@ -126,14 +126,14 @@ public class LocaleUtil {
 	@NotNull
 	public DiscordLocale getLocale(@NotNull IReplyCallback replyCallback) {
 		if (replyCallback.isFromGuild()) {
-			return getLocale(replyCallback.getGuild());
+			return getGuildLocale(replyCallback.getGuild());
 		} else {
 			return replyCallback.getUserLocale();
 		}
 	}
 
 	@NotNull
-	public DiscordLocale getLocale(@Nullable Guild guild) {
+	public DiscordLocale getGuildLocale(@Nullable Guild guild) {
 		if (guild == null) return DEFAULT_LOCALE;
 		DiscordLocale locale = App.getInstance().getDBUtil().getGuildSettings(guild).getLocale();
 		if (locale == DiscordLocale.UNKNOWN) {

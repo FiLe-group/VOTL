@@ -75,7 +75,7 @@ public class TicketUtil {
 		final Guild guild = channel.getGuild();
 		final String finalReason = reasonClosed==null ? "-" : (
 			reasonClosed.equals("activity") || reasonClosed.equals("time")
-				? bot.getLocaleUtil().getLocalized(bot.getLocaleUtil().getLocale(guild), "logger.ticket.autoclosed")
+				? bot.getLocaleUtil().getLocalized(bot.getLocaleUtil().getGuildLocale(guild), "logger.ticket.autoclosed")
 				: reasonClosed
 		);
 
@@ -98,7 +98,7 @@ public class TicketUtil {
 		final Guild guild = channel.getGuild();
 		final String finalReason = reasonClosed==null ? "-" : (
 			reasonClosed.equals("activity") || reasonClosed.equals("time")
-				? bot.getLocaleUtil().getLocalized(App.getInstance().getLocaleUtil().getLocale(guild), "logger.ticket.autoclosed")
+				? bot.getLocaleUtil().getLocalized(App.getInstance().getLocaleUtil().getGuildLocale(guild), "logger.ticket.autoclosed")
 				: reasonClosed
 		);
 
