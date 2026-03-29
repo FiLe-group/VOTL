@@ -25,9 +25,10 @@ jobs:
         id: get_sha
         run: echo "sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
       - name: Build with Gradle and set runId
-        run: ./gradlew shadowJar -Psha=${{ env.sha }} -Psnap
+        run: ./gradlew test shadowJar -Psha=${{ env.sha }} -Psnap
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
-          name: Snapshot-${{ env.sha }}
           path: build/libs/VOTL-*
+          overwrite: true
+          archive: false

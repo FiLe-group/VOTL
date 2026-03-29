@@ -84,7 +84,7 @@ tasks.build {
 				include 'VOTL-*.jar'
 			}
 			into '.'
-			rename 'VOTL-(.*).jar', 'VOTL.jar'
+			rename 'VOTL-(\\d+\\.\\d+\\.\\d+).*\\.jar', 'VOTL-$1.jar'
 		}
 	}
 }
@@ -92,7 +92,7 @@ tasks.build {
 // ShadowJar config
 tasks.shadowJar {
 	archiveBaseName = 'VOTL'
-	archiveVersion = version
+	archiveVersion = getFullVersion(version)
 	archiveClassifier = ''
 	minimize {
 		exclude(dependency('ch.qos.logback:logback-classic:.*'))
