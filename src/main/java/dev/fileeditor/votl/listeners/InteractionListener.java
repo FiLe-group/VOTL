@@ -1025,6 +1025,7 @@ public class InteractionListener extends ListenerAdapter {
 	private void buttonVoicePerms(ButtonInteractionEvent event, VoiceChannel vc) {
 		Guild guild = event.getGuild();
 		assert guild != null && event.getMember() != null;
+		List<MessageEmbed> embeds = new ArrayList<>();
 		EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
 			.setTitle(lu.getGuildText(event, "bot.voice.listener.panel.perms.title", vc.getAsMention()))
 			.setDescription(lu.getGuildText(event, "bot.voice.listener.panel.perms.field")+"\n\n");
@@ -1055,12 +1056,18 @@ public class InteractionListener extends ListenerAdapter {
 				join = contains(ov, Permission.VOICE_CONNECT);
 
 				assert ov.getRole() != null;
-				embedBuilder.appendDescription("> %s | %s | `%s`\n".formatted(view, join, ov.getRole().getName()));
+				String t = "> %s | %s | `%s`\n".formatted(view, join, ov.getRole().getName());
+				if (t.length() + embedBuilder.getDescriptionBuilder().length() >= 4000) {
+					embeds.add(embedBuilder.build());
+					embedBuilder = new EmbedBuilder();
+				}
+				embedBuilder = embedBuilder.appendDescription(t);
 			}
 		}
-		embedBuilder.appendDescription("\n%s\n".formatted(lu.getGuildText(event, "bot.voice.listener.panel.perms.members")));
 
 		//Members
+		embedBuilder.appendDescription("\n%s\n".formatted(lu.getGuildText(event, "bot.voice.listener.panel.perms.members")));
+
 		overrides = new ArrayList<>(vc.getMemberPermissionOverrides());
 		try {
 			overrides.remove(vc.getPermissionOverride(event.getMember())); // removes user
@@ -1069,11 +1076,12 @@ public class InteractionListener extends ListenerAdapter {
 			log.warn("PermsCmd null pointer at member override remove");
 		}
 
-		EmbedBuilder embedBuilder2 = embedBuilder;
 		List<PermissionOverride> ovs = overrides;
 
+		final EmbedBuilder finalEmbedBuilder = embedBuilder;
 		guild.retrieveMembersByIds(false, overrides.stream().map(PermissionOverride::getId).toArray(String[]::new)).onSuccess(
 			members -> {
+				EmbedBuilder embedBuilder2 = new EmbedBuilder(finalEmbedBuilder);
 				if (members.isEmpty()) {
 					embedBuilder2.appendDescription(lu.getGuildText(event, "bot.voice.listener.panel.perms.none") + "\n");
 				} else {
@@ -1086,11 +1094,16 @@ public class InteractionListener extends ListenerAdapter {
 							.findFirst()
 							.map(Member::getEffectiveName)
 							.orElse("Unknown");
-						embedBuilder2.appendDescription("> %s | %s | `%s`\n".formatted(view2, join2, name));
+						String t = "> %s | %s | `%s`\n".formatted(view2, join2, name);
+						if (t.length() + embedBuilder2.getDescriptionBuilder().length() >= 4000) {
+							embeds.add(embedBuilder2.build());
+							embedBuilder2 = new EmbedBuilder();
+						}
+						embedBuilder2 = embedBuilder2.appendDescription(t);
 					}
 				}
 
-				event.getHook().sendMessageEmbeds(embedBuilder2.build()).setEphemeral(true).queue();
+				event.getHook().sendMessageEmbeds(embeds).setEphemeral(true).queue();
 			}
 		);
 	}
