@@ -43,8 +43,7 @@ public class SetupCmd extends SlashCommand {
 			new VoiceCreate(), new VoiceSelect(), new VoicePanel(),
 			new VoiceName(), new VoiceLimit(),
 			new Strikes(), new InformLevel(), new RoleWhitelist(),
-			new Levels(), new Drama(),
-			new LanguageSet(), new LanguageReset()
+			new Levels(), new Drama(), new Language()
 		};
 		this.category = CmdCategory.GUILD;
 		this.accessLevel = CmdAccessLevel.ADMIN;
@@ -654,59 +653,48 @@ public class SetupCmd extends SlashCommand {
 		}
 	}
 
-	private class LanguageSet extends SlashCommand {
-		public LanguageSet() {
-			this.name = "set";
-			this.path = "bot.guild.setup.language.set";
+	private class Language extends SlashCommand {
+		public Language() {
+			this.name = "language";
+			this.path = "bot.guild.setup.language";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "forced_language", lu.getText(path+".forced_language.help"), true)
+				new OptionData(OptionType.STRING, "forced_language", lu.getText(path+".forced_language.help"))
 					.addChoices(LangUtil.getLocaleChoices())
 			);
-			this.subcommandGroup = new SubcommandGroupData("language", lu.getText("bot.guild.setup.language.help"));
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			assert event.getGuild() != null;
-			DiscordLocale locale = DiscordLocale.from(event.optString("forced_language", ""));
-			if (locale == DiscordLocale.UNKNOWN || !LangUtil.locales.contains(locale)) {
-				editError(event, path+".bad_input", "Input: "+locale.getLanguageName());
-				return;
+			if (event.hasOption("forced_language")) {
+				DiscordLocale locale = DiscordLocale.from(event.optString("forced_language", ""));
+				if (locale == DiscordLocale.UNKNOWN || !LangUtil.locales.contains(locale)) {
+					editError(event, path+".bad_input", "Input: "+locale.getLanguageName());
+					return;
+				}
+
+				try {
+					bot.getDBUtil().guildSettings.setLocale(event.getGuild().getIdLong(), locale);
+				} catch (SQLException e) {
+					editErrorDatabase(event, e, "setup language reset");
+					return;
+				}
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getGuildText(event, path+".done_set", locale.getNativeName()))
+					.build());
+			} else {
+				try {
+					bot.getDBUtil().guildSettings.setLocale(event.getGuild().getIdLong(), null);
+				} catch (SQLException e) {
+					editErrorDatabase(event, e, "setup language reset");
+					return;
+				}
+
+				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getText(event, path+".done_reset"))
+					.build());
 			}
-
-			try {
-				bot.getDBUtil().guildSettings.setLocale(event.getGuild().getIdLong(), locale);
-			} catch (SQLException e) {
-				editErrorDatabase(event, e, "setup language reset");
-				return;
-			}
-
-			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getGuildText(event, path+".done", locale.getNativeName()))
-				.build());
-		}
-	}
-
-	private class LanguageReset extends SlashCommand {
-		public LanguageReset() {
-			this.name = "reset";
-			this.path = "bot.guild.setup.language.reset";
-			this.subcommandGroup = new SubcommandGroupData("language", lu.getText("bot.guild.setup.language.help"));
-		}
-
-		@Override
-		protected void execute(SlashCommandEvent event) {
-			assert event.getGuild() != null;
-			try {
-				bot.getDBUtil().guildSettings.setLocale(event.getGuild().getIdLong(), null);
-			} catch (SQLException e) {
-				editErrorDatabase(event, e, "setup language reset");
-				return;
-			}
-
-			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
-				.build());
 		}
 	}
 

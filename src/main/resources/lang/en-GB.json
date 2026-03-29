@@ -750,21 +750,14 @@
 				},
 				"language": {
 					"help": "Manage server language settings",
-					"set": {
-						"help": "Set forced guild language",
-						"usage": "language set <lang>",
-						"forced_language": {
-							"name": "forced_language",
-							"help": "Select language"
-						},
-						"bad_input": "Bad language provided.",
-						"done": "Set forced language: **%s**"
+					"usage": "language [lang]",
+					"forced_language": {
+						"name": "forced_language",
+						"help": "Select language"
 					},
-					"reset": {
-						"help": "Clear forced language",
-						"usage": "language reset",
-						"done": "Forced language cleared (will use English or community language)."
-					}
+					"bad_input": "Bad language provided.",
+					"done_set": "Set forced language: **%s**",
+					"done_reset": "Forced language cleared (will use English or community language)."
 				}
 			},
 			"module": {
