@@ -55,7 +55,6 @@ public class Base62 {
 		return true;
 	}
 
-	@SuppressWarnings("SpellCheckingInspection")
 	private static final String BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	private static final int len = BASE62.length();
 
