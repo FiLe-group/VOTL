@@ -73,7 +73,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/votl
+          images: ${{ vars.DOCKERHUB_USERNAME }}/votl
           tags: |
             type=raw,value=latest
             type=raw,value=${{ needs.build_release.outputs.version  }}
