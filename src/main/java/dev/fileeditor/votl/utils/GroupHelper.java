@@ -10,19 +10,18 @@ import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.logs.GuildLogger;
 
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 
 public class GroupHelper {
 
-	private final JDA JDA;
+	private final App bot;
 	private final GuildLogger logger;
 	private final DBUtil db;
 
 	public GroupHelper(App bot) {
-		this.JDA = bot.JDA;
+		this.bot = bot;
 		this.logger = bot.getGuildLogger();
 		this.db = bot.getDBUtil();
 	}
@@ -41,7 +40,7 @@ public class GroupHelper {
 		final List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 		final String newReason = "Sync #%s by @%s: %s".formatted(groupId, modName, reason);
 		for (long guildId : guildIds) {
-			final Guild guild = JDA.getGuildById(guildId);
+			final Guild guild = bot.JDA.getGuildById(guildId);
 			if (guild == null) continue;
 			// fail-safe check if the target has temporal ban (to prevent auto unban)
 			db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
@@ -74,7 +73,7 @@ public class GroupHelper {
 		final List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 		final String newReason = "Sync #%s by @%s: %s".formatted(groupId, modName, reason);
 		for (long guildId : guildIds) {
-			final Guild guild = JDA.getGuildById(guildId);
+			final Guild guild = bot.JDA.getGuildById(guildId);
 			if (guild == null) continue;
 			// Remove temporal ban case
 			db.cases.setInactiveByType(target.getIdLong(), guildId, CaseType.BAN);
@@ -106,7 +105,7 @@ public class GroupHelper {
 		final List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 		final String newReason = "Sync #%s by @%s: %s".formatted(groupId, modName, reason);
 		for (long guildId : guildIds) {
-			final Guild guild = JDA.getGuildById(guildId);
+			final Guild guild = bot.JDA.getGuildById(guildId);
 			if (guild == null) continue;
 
 			completableFutures.add(guild.kick(target).reason(newReason).submit());

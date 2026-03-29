@@ -114,7 +114,7 @@ public class App {
 		
 		// Define for default
 		dbUtil			= new DBUtil(fileManager);
-		localeUtil		= new LocaleUtil(this);
+		localeUtil		= new LocaleUtil(fileManager);
 		embedUtil		= new EmbedUtil(localeUtil);
 		checkUtil		= new CheckUtil(this, ownerId);
 		ticketUtil		= new TicketUtil(this);
@@ -122,7 +122,7 @@ public class App {
 		levelUtil		= new LevelUtil(this);
 
 		logEmbedUtil	= new LogEmbedUtil();
-		guildLogger		= new GuildLogger(this, logEmbedUtil);
+		guildLogger		= new GuildLogger(this);
 		groupHelper		= new GroupHelper(this);
 
 		eventWaiter		= new EventWaiter();

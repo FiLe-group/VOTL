@@ -24,7 +24,6 @@ import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
 import dev.fileeditor.votl.utils.encoding.EncodingUtil;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogKey;
 import net.dv8tion.jda.api.entities.Guild;
@@ -48,7 +47,7 @@ public class GuildLogger {
 
 	private final Logger log = (Logger) LoggerFactory.getLogger(GuildLogger.class);
 
-	private final JDA JDA;
+	private final App bot;
 	private final DBUtil db;
 	private final LogEmbedUtil logUtil;
 	private final WebhookLogUtil webhookUtil;
@@ -65,10 +64,10 @@ public class GuildLogger {
 	public final LevelLogs level =		new LevelLogs();
 	public final BotLogs botLogs =		new BotLogs();
 
-	public GuildLogger(App bot, LogEmbedUtil logEmbedUtil) {
-		this.JDA = bot.JDA;
+	public GuildLogger(App bot) {
+		this.bot = bot;
 		this.db = bot.getDBUtil();
-		this.logUtil = logEmbedUtil;
+		this.logUtil = bot.getLogEmbedUtil();
 		this.webhookUtil = new WebhookLogUtil(db);
 	}
 
@@ -199,7 +198,7 @@ public class GuildLogger {
 		public void onBlacklistAdded(User mod, User target, List<Integer> groupIds) {
 			for (int groupId : groupIds) {
 				final String groupInfo = "%s (#%d)".formatted(db.group.getName(groupId), groupId);
-				Guild master = JDA.getGuildById(db.group.getOwner(groupId));
+				Guild master = bot.JDA.getGuildById(db.group.getOwner(groupId));
 				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(master);
 				sendLog(master, type, () -> logUtil.blacklistAddedEmbed(locale, mod, target, groupInfo));
 			}
@@ -207,7 +206,7 @@ public class GuildLogger {
 
 		public void onBlacklistRemoved(User mod, User target, int groupId) {
 			final String groupInfo = "%s (#%d)".formatted(db.group.getName(groupId), groupId);
-			Guild master = JDA.getGuildById(db.group.getOwner(groupId));
+			Guild master = bot.JDA.getGuildById(db.group.getOwner(groupId));
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(master);
 			sendLog(master, type, () -> logUtil.blacklistRemovedEmbed(locale, mod, target, groupInfo));
@@ -348,7 +347,7 @@ public class GuildLogger {
 			// For each group guild (except master) remove if from group DB and send log to log channel
 			List<Long> memberIds = db.group.getGroupMembers(groupId);
 			for (Long memberId : memberIds) {
-				Guild member = JDA.getGuildById(memberId);
+				Guild member = bot.JDA.getGuildById(memberId);
 
 				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(member);
 				sendLog(member, type, () -> logUtil.groupMemberDeletedEmbed(locale, ownerId, ownerIcon, groupId, name));
@@ -365,7 +364,7 @@ public class GuildLogger {
 			// For each group guild (except master) remove if from group DB and send log to log channel
 			List<Long> memberIds = db.group.getGroupMembers(groupId);
 			for (Long memberId : memberIds) {
-				Guild member = JDA.getGuildById(memberId);
+				Guild member = bot.JDA.getGuildById(memberId);
 
 				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(member);
 				sendLog(member, type, () -> logUtil.groupMemberDeletedEmbed(locale, ownerId, ownerIcon, groupId, groupName));
@@ -374,7 +373,7 @@ public class GuildLogger {
 
 		public void onGuildJoined(SlashCommandEvent event, Integer groupId, String name) {
 			long ownerId = db.group.getOwner(groupId);
-			Guild owner = JDA.getGuildById(ownerId);
+			Guild owner = bot.JDA.getGuildById(ownerId);
 			if (owner == null) return;
 			String ownerIcon = owner.getIconUrl();
 
@@ -392,7 +391,7 @@ public class GuildLogger {
 
 		public void onGuildLeft(SlashCommandEvent event, Integer groupId, String name) {
 			long ownerId = db.group.getOwner(groupId);
-			Guild owner = JDA.getGuildById(ownerId);
+			Guild owner = bot.JDA.getGuildById(ownerId);
 			if (owner == null) return;
 			String ownerIcon = owner.getIconUrl();
 
@@ -410,7 +409,7 @@ public class GuildLogger {
 
 		public void onGuildLeft(Guild target, int groupId) {
 			long ownerId = db.group.getOwner(groupId);
-			Guild owner = JDA.getGuildById(ownerId);
+			Guild owner = bot.JDA.getGuildById(ownerId);
 			if (owner == null) return;
 			String ownerIcon = owner.getIconUrl();
 
@@ -445,7 +444,7 @@ public class GuildLogger {
 			// Send log to each group guild
 			List<Long> memberIds = db.group.getGroupMembers(groupId);
 			for (Long memberId : memberIds) {
-				Guild member = JDA.getGuildById(memberId);
+				Guild member = bot.JDA.getGuildById(memberId);
 
 				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(member);
 				sendLog(member, type, () -> logUtil.groupMemberRenamedEmbed(locale, ownerId, ownerIcon, groupId, oldName, newName));

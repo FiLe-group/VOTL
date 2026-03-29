@@ -3,6 +3,7 @@ package dev.fileeditor.votl.utils.file.lang;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.Emote;
 
+import dev.fileeditor.votl.utils.file.FileManager;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
@@ -15,14 +16,14 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class LocaleUtil {
 
-	private final App bot;
+	private final FileManager fileManager;
 	private final LangUtil langUtil;
 
 	public static final DiscordLocale DEFAULT_LOCALE = DiscordLocale.ENGLISH_UK;
 
-	public LocaleUtil(App bot) {
-		this.bot = bot;
-		this.langUtil = new LangUtil(bot.getFileManager());
+	public LocaleUtil(FileManager fileManager) {
+		this.fileManager = fileManager;
+		this.langUtil = new LangUtil(fileManager);
 	}
 
 	@NotNull
@@ -61,7 +62,7 @@ public class LocaleUtil {
 	@NotNull
 	public Map<DiscordLocale, String> getFullLocaleMap(String path, String defaultText) {
 		Map<DiscordLocale, String> localeMap = new HashMap<>();
-		for (DiscordLocale locale : bot.getFileManager().getLanguages()) {
+		for (DiscordLocale locale : fileManager.getLanguages()) {
 			// Ignores UK/US change
 			if (locale.equals(DiscordLocale.ENGLISH_UK) || locale.equals(DiscordLocale.ENGLISH_US)) continue;
 			localeMap.put(locale, getLocalized(locale, path));
@@ -74,7 +75,7 @@ public class LocaleUtil {
 	@NotNull
 	public Map<DiscordLocale, String> getLocaleMap(String path) {
 		Map<DiscordLocale, String> localeMap = new HashMap<>();
-		for (DiscordLocale locale : bot.getFileManager().getLanguages()) {
+		for (DiscordLocale locale : fileManager.getLanguages()) {
 			// Ignores UK/US change
 			if (locale.equals(DiscordLocale.ENGLISH_UK) || locale.equals(DiscordLocale.ENGLISH_US)) continue;
 			localeMap.put(locale, getLocalized(locale, path));
