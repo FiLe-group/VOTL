@@ -43,10 +43,6 @@ public class MessageUtil {
 	@Nullable
 	public static Color getColor(String input) {
 		input = input.toLowerCase();
-		if (!input.equals("random") && !(input.length() == 6 || input.contains(",")))
-			return null;
-
-		Color color;
 
 		if (input.equals("random")) {
 			int r = ThreadLocalRandom.current().nextInt(256);
@@ -56,7 +52,14 @@ public class MessageUtil {
 			return new Color(r, g, b);
 		}
 
-		if (input.length() == 6) {
+		Color color;
+		if (input.length() == 7 && input.startsWith("#")) {
+			try {
+				color = Color.decode(input);
+			} catch (NumberFormatException ignored) {
+				return null;
+			}
+		} else if (input.length() == 6) {
 			try {
 				color = Color.decode("#"+input);
 			} catch (NumberFormatException ignored) {
@@ -66,7 +69,7 @@ public class MessageUtil {
 			String[] rgb = Arrays.copyOf(input.split(","), 3);
 			try {
 				color = new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2]));
-			} catch (NumberFormatException ignored) {
+			} catch (IllegalArgumentException ignored) {
 				return null;
 			}
 		} else {
