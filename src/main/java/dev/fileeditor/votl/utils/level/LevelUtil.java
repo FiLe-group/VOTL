@@ -15,9 +15,9 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class LevelUtil {
@@ -39,7 +39,7 @@ public class LevelUtil {
 		.expireAfterAccess(10, TimeUnit.MINUTES)
 		.build();
 
-	private static final HashSet<PlayerObject> updateQueue = new LinkedHashSet<>();
+	private static final Set<PlayerObject> updateQueue = ConcurrentHashMap.newKeySet();
 
 	private static final long hardCap = (long) Integer.MAX_VALUE*4L;
 
@@ -174,7 +174,7 @@ public class LevelUtil {
 		updateQueue.add(new PlayerObject(member)); // Add to update queue
 	}
 
-	public HashSet<PlayerObject> getUpdateQueue() {
+	public Set<PlayerObject> getUpdateQueue() {
 		return updateQueue;
 	}
 

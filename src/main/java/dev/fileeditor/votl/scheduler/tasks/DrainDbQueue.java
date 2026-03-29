@@ -42,7 +42,7 @@ public class DrainDbQueue implements Task {
 			}
 			updated++;
 		}
-		if (updated>0) {
+		if (updated > 0) {
 			LOG.debug("Updated data for {} players", updated);
 		}
 	}
