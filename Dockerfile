@@ -32,6 +32,6 @@ RUN adduser \
 
 USER votl
 
-COPY --from=build /app/VOTL.jar /bin/
+COPY --from=build /app/VOTL-*.jar /bin/VOTL.jar
 
 CMD ["java","--enable-native-access=ALL-UNNAMED","-jar","/bin/VOTL.jar"]
