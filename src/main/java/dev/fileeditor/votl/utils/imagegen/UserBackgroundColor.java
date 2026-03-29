@@ -5,13 +5,13 @@ import dev.fileeditor.votl.utils.ColorUtil;
 import java.awt.*;
 
 public class UserBackgroundColor {
-	private Color backgroundColor = ColorUtil.decode("#373746");
-	private Color mainTextColor = ColorUtil.decode("#e2e2e2", .95f);
-	private Color secondaryTextColor = ColorUtil.decode("#a6a6a6", .95f);
+	private Color backgroundColor = ColorUtil.decodeHex("#373746");
+	private Color mainTextColor = ColorUtil.decodeHex("#e2e2e2", .95f);
+	private Color secondaryTextColor = ColorUtil.decodeHex("#a6a6a6", .95f);
 	private Color experienceTextColor = null;
-	private Color experienceBackgroundColor = ColorUtil.decode("#26263b", .6f);
-	private Color experienceForegroundColor = ColorUtil.decode("#686baa", .8f);
-	private Color experienceSeparatorColor = ColorUtil.decode("#8c90e2", .8f);
+	private Color experienceBackgroundColor = ColorUtil.decodeHex("#26263b", .6f);
+	private Color experienceForegroundColor = ColorUtil.decodeHex("#686baa", .8f);
+	private Color experienceSeparatorColor = ColorUtil.decodeHex("#8c90e2", .8f);
 
 	public Color getBackgroundColor() {
 		return backgroundColor;

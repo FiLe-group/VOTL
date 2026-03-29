@@ -64,12 +64,12 @@ public class ModStatsRender extends Renderer {
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 		// Fill background
-		final Color backgroundColor = ColorUtil.decode("#2f3136");
+		final Color backgroundColor = ColorUtil.decodeHex("#2f3136");
 		g.setColor(backgroundColor);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 
 		// Add title
-		final Color mainTextColor = ColorUtil.decode("#e5e5e9");
+		final Color mainTextColor = ColorUtil.decodeHex("#e5e5e9");
 		g.setFont(Fonts.Roboto.medium.deriveFont(Font.BOLD, 26F));
 		g.setColor(mainTextColor);
 
@@ -82,7 +82,7 @@ public class ModStatsRender extends Renderer {
 
 		// Add text
 		g.setFont(Fonts.Roboto.regular.deriveFont(Font.PLAIN, 20F));
-		g.setColor(ColorUtil.decode("#c6c6c6"));
+		g.setColor(ColorUtil.decodeHex("#c6c6c6"));
 
 		String[][] data = generateTableText();
 

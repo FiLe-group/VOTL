@@ -50,7 +50,7 @@ public class UserBackgroundLoader {
 			int alpha = Integer.parseInt(input.substring(7,9), 16);
 			return ColorUtil.decodeHex(input.substring(0,7), alpha);
 		}
-		return ColorUtil.decode(input);
+		return ColorUtil.decodeHex(input);
 	}
 
 	public UserBackground getUserBackground() {
