@@ -19,6 +19,9 @@ public class AppInfo {
 			Version:  %s
 			JVM:      %s
 			JDA:      %s
+			
+			Copyright (c) 2026 Kristofer "FileEditor97"
+			Contact:  votl@fileeditor.dev
 			"""
 			.formatted(
 				VERSION,
