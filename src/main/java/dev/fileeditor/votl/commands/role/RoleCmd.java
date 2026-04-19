@@ -22,6 +22,7 @@ import net.dv8tion.jda.api.components.selections.SelectOption;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -34,7 +35,7 @@ public class RoleCmd extends SlashCommand {
 		this.path = "bot.roles.role";
 		this.children = new SlashCommand[]{
 			new Add(), new Remove(), new RemoveAll(),
-			new Modify()
+			new Modify(), new View()
 		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
@@ -204,7 +205,7 @@ public class RoleCmd extends SlashCommand {
 				editError(event, path+".no_role");
 				return;
 			}
-			String denyReason = bot.getCheckUtil().denyRole(role, event.getGuild(), event.getMember(), false);
+			String denyReason = bot.getCheckUtil().denyRole(role, event.getGuild(), event.getMember(), true);
 			if (denyReason != null) {
 				editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
 				return;
@@ -257,7 +258,7 @@ public class RoleCmd extends SlashCommand {
 			this.name = "modify";
 			this.path = "bot.roles.role.modify";
 			this.options = List.of(
-				new OptionData(OptionType.USER, "user", lu.getText(path + ".user.help"), true)
+				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
 			addMiddlewares(
 				"throttle:user,1,20"
@@ -339,6 +340,85 @@ public class RoleCmd extends SlashCommand {
 				)
 				.setComponents(actionRows)
 				.queue();
+		}
+	}
+
+	private class View extends SlashCommand {
+		public View() {
+			this.name = "view";
+			this.path = "bot.roles.role.view";
+			this.options = List.of(
+				new OptionData(OptionType.ROLE, "role", lu.getText(path + ".role.help"), true)
+			);
+			addMiddlewares(
+				"throttle:user,1,30",
+				"throttle:guild,3,60"
+			);
+			this.ephemeral = false;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Role role = event.optRole("role");
+			if (role == null) {
+				editError(event, path+".no_role");
+				return;
+			}
+
+			var guild = event.getGuild();
+			assert guild != null && event.getMember() != null;
+			String denyReason = bot.getCheckUtil().denyRole(role, guild, event.getMember(), false);
+			if (denyReason != null) {
+				editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
+				return;
+			}
+
+			guild.retrieveRoleMemberCounts().queue(roleMemberCounts -> {
+				int count = roleMemberCounts.get(role);
+				if (count == 0) {
+					editEmbed(event, bot.getEmbedUtil().getEmbed()
+						.setDescription(lu.getText(event, path+".empty"))
+						.build());
+				} else if (count > 100) {
+					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
+						.setDescription(lu.getText(event, path+".too_many", count))
+						.build());
+				} else {
+					// Display
+					event.getGuild().findMembersWithRoles(role).setTimeout(4, TimeUnit.SECONDS).onSuccess(members -> {
+						if (members.isEmpty()) {
+							editEmbed(event, bot.getEmbedUtil().getEmbed()
+								.setDescription(lu.getText(event, path+".empty"))
+								.build());
+							return;
+						}
+
+						List<MessageEmbed> embeds = new ArrayList<>();
+						EmbedBuilder embedBuilder = new EmbedBuilder()
+							.setTitle(lu.getText(event, path+".total", role.getAsMention(), members.size(), count));
+						StringBuilder builder = new StringBuilder();
+						for (int i = 0; i < members.size(); i++) {
+							Member member = members.get(i);
+							builder.append("%20d) ".formatted(i+1)).append(member.getAsMention())
+								.append(" | ")
+								.append(member.getUser().getName())
+								.append(" | ")
+								.append(member.getIdLong())
+								.append("\n");
+
+							if (builder.length() > 4000) {
+								embedBuilder.setDescription(builder.toString());
+								embeds.add(embedBuilder.build());
+								embedBuilder.setTitle(null);
+								builder.setLength(0);
+							}
+						}
+						embeds.add(embedBuilder.setDescription(builder.toString()).build());
+
+						event.getHook().editOriginalEmbeds(embeds).queue();
+					}).onError(t -> editErrorOther(event, t.getMessage()));
+				}
+			}, t -> editErrorUnknown(event, t.getMessage()));
 		}
 	}
 

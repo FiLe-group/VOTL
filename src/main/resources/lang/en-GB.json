@@ -2644,6 +2644,19 @@
 					"expired": "Selection expired.\nRun command again.",
 					"no_change": "No changes in roles. Modify assigned roles and try again.",
 					"done": "Modified user %s roles.\n%s"
+				},
+				"view": {
+					"help": "View members with a role",
+					"usage": "view <@Role",
+					"role": {
+						"name": "Role",
+						"help": "Select role"
+					},
+					"no_role": "Provided role not found.",
+					"incorrect_role": "Selected role can't be viewed.",
+					"empty": "No members has this role.",
+					"too_many": "Too many members has this role. Won't display it.",
+					"total": "%s | Total: %s (%s)"
 				}
 			},
 			"temprole": {
