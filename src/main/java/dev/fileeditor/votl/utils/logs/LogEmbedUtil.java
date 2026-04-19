@@ -1032,7 +1032,7 @@ public class LogEmbedUtil {
 	@Nullable
 	public MessageEmbed messageUpdate(DiscordLocale locale, Member member, long channelId, long messageId, @NotNull MessageData oldData, @NotNull MessageData newData, @Nullable MessageData.DiffData diff) {
 		// If it had no attachment
-		if ((oldData.getAttachment() == null || newData.getAttachment() != null) && diff == null) return null;
+		if ((!oldData.hasAttachment() || newData.hasAttachment()) && diff == null) return null;
 
 		LogEmbedBuilder builder = new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader(LogEvent.MESSAGE_UPDATE)
@@ -1041,8 +1041,8 @@ public class LogEmbedUtil {
 			.addField("message.channel", "<#%s>".formatted(channelId))
 			.setFooter("Message ID: %s\nUser ID: %s".formatted(messageId, newData.getAuthorId()));
 
-		if (oldData.getAttachment() != null && newData.getAttachment() == null) {
-			builder.appendDescription("Removed Attachment: "+oldData.getAttachment().getFileName()+"\n\n");
+		if (oldData.hasAttachment() && !newData.hasAttachment()) {
+			builder.appendDescription("Removed Attachment.\n\n");
 		}
 		if (diff != null) {
 			builder.appendDescription("**"+localized(locale, "message.content")+"**: ```diff\n")
@@ -1060,9 +1060,8 @@ public class LogEmbedUtil {
 		if (data == null) {
 			builder.setFooter("Message ID: %s".formatted(messageId));
 		} else {
-			if (data.getAttachment() != null) {
-				builder.appendDescription("[Attachment: %s]\n".formatted(data.getAttachment().getFileName()))
-					.setImage(data.getAttachment().getUrl());
+			if (data.hasAttachment()) {
+				builder.appendDescription("[Attachment removed]\n");
 			}
 			if (!data.getContent().isBlank()) {
 				builder.appendDescription("**"+localized(locale, "message.content")+"**: \n")
