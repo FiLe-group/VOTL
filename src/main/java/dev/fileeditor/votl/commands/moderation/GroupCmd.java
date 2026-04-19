@@ -239,7 +239,12 @@ public class GroupCmd extends SlashCommand {
 				30,
 				TimeUnit.SECONDS,
 				() -> event.getHook().editOriginalComponents(
-					ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
+					ActionRow.of(StringSelectMenu.create("timed_out")
+						.setPlaceholder(lu.getGuildText(event, "errors.timed_out"))
+						.addOption("Disabled", "invalid")
+						.setDisabled(true)
+						.build()
+					)
 				).queue()
 			));
 		}
@@ -468,7 +473,12 @@ public class GroupCmd extends SlashCommand {
 				30,
 				TimeUnit.SECONDS,
 				() -> event.getHook().editOriginalComponents(
-					ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
+					ActionRow.of(StringSelectMenu.create("timed_out")
+						.setPlaceholder(lu.getGuildText(event, "errors.timed_out"))
+						.addOption("Disabled", "invalid")
+						.setDisabled(true)
+						.build()
+					)
 				).queue()
 			));
 		}

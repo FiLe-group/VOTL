@@ -138,17 +138,21 @@ public class VoiceListener extends ListenerAdapter {
 			channelCreationLimit.put(userId, System.currentTimeMillis());
 		} else {
 			long allowAfter = (CHANNEL_LIMIT_SECONDS*1000) - (System.currentTimeMillis() - lastChannelCreationTime);
-			member.getUser().openPrivateChannel()
-				.queue(channel -> channel.sendMessage(
-					bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.cooldown")
-						+ "\n> Try again " + TimeFormat.RELATIVE.after(allowAfter)
-				).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
+			sendPrivateMessage(member, guildLocale, "Try again " + TimeFormat.RELATIVE.after(allowAfter));
 			return;
 		}
 
 		VoiceSettings voiceSettings = db.getVoiceSettings(guild);
 		Long categoryId = voiceSettings.getCategoryId();
-		if (categoryId == null) return;
+		if (categoryId == null) {
+			sendPrivateMessage(member, guildLocale, "Category where to create voice channel is not set.");
+			return;
+		}
+		var category = guild.getCategoryById(categoryId);
+		if (category == null) {
+			sendPrivateMessage(member, guildLocale, "Couldn't find category where to create the channel.");
+			return;
+		}
 
 		String channelName = Optional.ofNullable(db.user.getName(userId))
 			.or(() -> Optional.ofNullable(voiceSettings.getDefaultName()))
@@ -159,10 +163,11 @@ public class VoiceListener extends ListenerAdapter {
 		Integer channelLimit = Optional.ofNullable(db.user.getLimit(userId))
 			.or(() -> Optional.ofNullable(voiceSettings.getDefaultLimit()))
 			.orElse(0);
-		
-		guild.createVoiceChannel(channelName, guild.getCategoryById(categoryId))
+
+		guild.createVoiceChannel(channelName)
 			.reason(member.getUser().getEffectiveName()+" private channel")
 			.setUserlimit(channelLimit)
+			.setParent(category)
 			.syncPermissionOverrides()
 			.addPermissionOverride(member, ownerPerms, null)
 			.queue(
@@ -181,6 +186,14 @@ public class VoiceListener extends ListenerAdapter {
 					)
 					.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
 			);
+	}
+
+	private void sendPrivateMessage(Member member, DiscordLocale locale, String message) {
+		member.getUser().openPrivateChannel()
+			.queue(channel -> channel.sendMessage(
+				bot.getLocaleUtil().getLocalized(locale, "errors.error")
+					+ "\n> " + message
+			).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
 	}
 
 }
