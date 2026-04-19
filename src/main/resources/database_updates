@@ -18,3 +18,4 @@ CREATE TABLE "autopunish_new" ("guildId" INTEGER NOT NULL, "strike" INTEGER NOT 
 ALTER TABLE "guild" ADD "drama" INTEGER DEFAULT 0; ALTER TABLE "guild" ADD "dramaChannel" INTEGER;
 ALTER TABLE "blacklist" RENAME TO "serverBlacklist"; DROP TABLE "botBlacklist"; CREATE TABLE "blacklist" ("id" INTEGER NOT NULL UNIQUE, "type" INTEGER NOT NULL, "expiresIn" INTEGER, "reason" TEXT)
 ALTER TABLE "guild" ADD "locale" TEXT
+ALTER TABLE "blacklist" ADD "dnt" INTEGER DEFAULT 0

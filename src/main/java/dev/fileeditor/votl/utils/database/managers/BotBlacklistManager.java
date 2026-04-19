@@ -15,9 +15,9 @@ public class BotBlacklistManager extends LiteBase {
 		super(cu, "blacklist");
 	}
 
-	public void add(long id, Scope scope, @NotNull OffsetDateTime expiresIn, String reason) throws SQLException {
-		execute("INSERT INTO %s(id, type, expiresIn, reason) VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO UPDATE SET expiresIn=%4$s, reason=%5$s"
-			.formatted(table, id, scope.getId(), expiresIn.toEpochSecond(), quote(reason)));
+	public void add(long id, Scope scope, @NotNull OffsetDateTime expiresIn, String reason, boolean dnt) throws SQLException {
+		execute("INSERT INTO %s(id, type, expiresIn, reason, dnt) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (id) DO UPDATE SET expiresIn=%4$s, reason=%5$s, dnt=%6$s"
+			.formatted(table, id, scope.getId(), expiresIn.toEpochSecond(), quote(reason), dnt?1:0));
 	}
 
 	public void remove(long id) throws SQLException {

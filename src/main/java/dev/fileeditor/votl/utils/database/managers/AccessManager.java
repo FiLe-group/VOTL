@@ -57,7 +57,12 @@ public class AccessManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId=%s AND userId=%s)".formatted(table_user, guildId, userId));
 	}
 
-	public void removeAll(long guildId) throws SQLException {
+	public void removeUser(long userId) throws SQLException {
+		operatorCache.invalidateAll();
+		execute("DELETE FROM %s WHERE (userId=%s);".formatted(table_user, userId));
+	}
+
+	public void removeGuild(long guildId) throws SQLException {
 		invalidateRoleCache(guildId);
 		invalidateOperatorCache(guildId);
 		execute("DELETE FROM %1$s WHERE (guildId=%3$s); DELETE FROM %2$s WHERE (guildId=%3$s);".formatted(table_role, table_user, guildId));

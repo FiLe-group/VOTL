@@ -59,7 +59,7 @@ public class VoiceListener extends ListenerAdapter {
 			.queue(list -> {
 				if (!list.isEmpty()) {
 					AuditLogEntry entry = list.getFirst();
-					if (entry.getChangeByKey("mute")!=null && entry.getTargetIdLong() == event.getMember().getIdLong() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
+					if (entry.getChangeByKey("mute")!=null && entry.getTargetIdLong() == event.getMember().getIdLong() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(4))) {
 						bot.getGuildLogger().voice.onVoiceMute(event.getMember(), event.isGuildMuted(), entry.getUserIdLong());
 						return;
 					}
@@ -78,7 +78,7 @@ public class VoiceListener extends ListenerAdapter {
 			.queue(list -> {
 				if (!list.isEmpty()) {
 					AuditLogEntry entry = list.getFirst();
-					if (entry.getChangeByKey("deaf")!=null && entry.getTargetIdLong() == event.getMember().getIdLong() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(15))) {
+					if (entry.getChangeByKey("deaf")!=null && entry.getTargetIdLong() == event.getMember().getIdLong() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(4))) {
 						bot.getGuildLogger().voice.onVoiceDeafen(event.getMember(), event.isGuildDeafened(), entry.getUserIdLong());
 						return;
 					}

@@ -43,7 +43,8 @@ public class MessageListener extends ListenerAdapter {
 
 	@Override
 	public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-		if (event.getAuthor().isBot() || !event.isFromGuild()) return; //ignore bots and Private messages
+		if (event.getAuthor().isBot() || !event.isFromGuild()) return; // ignore bots and Private messages
+		if (bot.getBlacklist().hasDnt(event.getAuthor())) return; // DNT
 		
 		// cache message if not exception channel
 		final long guildId = event.getGuild().getIdLong();
@@ -74,6 +75,7 @@ public class MessageListener extends ListenerAdapter {
 	public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
 		if (event.getAuthor().isBot() || !event.isFromGuild()) return;
 		if (!bot.getDBUtil().getLogSettings(event.getGuild()).enabled(LogType.MESSAGE)) return;
+		if (bot.getBlacklist().hasDnt(event.getAuthor())) return; // DNT
 
 		final long guildId = event.getGuild().getIdLong();
 		// check channel
@@ -127,7 +129,7 @@ public class MessageListener extends ListenerAdapter {
 			.queue(list -> {
 				if (!list.isEmpty() && data != null) {
 					AuditLogEntry entry = list.getFirst();
-					if (entry.getTargetIdLong() == data.getAuthorId() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(10))) {
+					if (entry.getTargetIdLong() == data.getAuthorId() && entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(4))) {
 						bot.getGuildLogger().message.onMessageDelete(event.getGuildChannel(), messageId, data, entry.getUserIdLong());
 						return;
 					}
@@ -161,7 +163,7 @@ public class MessageListener extends ListenerAdapter {
 				} else {
 					AuditLogEntry entry = list.getFirst();
 					String count = entry.getOption(AuditLogOption.COUNT);
-					if (entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(10)))
+					if (entry.getTimeCreated().isAfter(OffsetDateTime.now().minusSeconds(4)))
 						bot.getGuildLogger().message.onMessageBulkDelete(event.getChannel(), count, messages, entry.getUserIdLong());
 					else
 						bot.getGuildLogger().message.onMessageBulkDelete(event.getChannel(), count, messages, null);

@@ -150,6 +150,8 @@ public class MemberListener extends ListenerAdapter {
 
 	@Override
 	public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {
+		if (bot.getBlacklist().hasDnt(event.getUser())) return;
+
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
 			bot.getGuildLogger().member.onNickChange(event.getMember(), event.getOldValue(), event.getNewValue());
 		}
