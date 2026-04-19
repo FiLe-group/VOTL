@@ -6,7 +6,7 @@ public final class Names {
 		throw new IllegalStateException("Utility class");
 	}
 
-	public static final String PACKAGE_COMMAND_PATH = "dev.fileeditor.votl.commands";
-	public static final String PACKAGE_JOB_PATH = "dev.fileeditor.votl.scheduler";
+	public static final String PACKAGE_COMMANDS_PATH = "dev.fileeditor.votl.commands";
+	public static final String PACKAGE_JOBS_PATH = "dev.fileeditor.votl.scheduler";
 
 }

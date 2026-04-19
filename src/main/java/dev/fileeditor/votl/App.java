@@ -163,7 +163,7 @@ public class App {
 		MiddlewareHandler.register("permissions", new PermissionsCheck(this));
 
 		LOG.info("Registering commands");
-		AutoloaderUtil.load(Names.PACKAGE_COMMAND_PATH, command -> commandClientBuilder.addSlashCommands((SlashCommand) command), false);
+		AutoloaderUtil.load(Names.PACKAGE_COMMANDS_PATH, command -> commandClientBuilder.addSlashCommands((SlashCommand) command), false);
 
 		commandClient = commandClientBuilder.build();
 		// Build
@@ -172,12 +172,12 @@ public class App {
 		final Set<GatewayIntent> intents = Set.of(
 			GatewayIntent.GUILD_EXPRESSIONS,
 			GatewayIntent.GUILD_INVITES,
-			GatewayIntent.GUILD_MEMBERS,
+			GatewayIntent.GUILD_MEMBERS, // PRIVILEGED: for guild member add/remove/update, cache
 			GatewayIntent.GUILD_MESSAGES,
 			GatewayIntent.GUILD_MODERATION,
 			GatewayIntent.GUILD_VOICE_STATES,
 			GatewayIntent.GUILD_WEBHOOKS,
-			GatewayIntent.MESSAGE_CONTENT
+			GatewayIntent.MESSAGE_CONTENT // PRIVILEGED: for message moderation
 		);
 		final Set<CacheFlag> enabledCacheFlags = Set.of(
 			CacheFlag.EMOJI,
@@ -186,18 +186,11 @@ public class App {
 			CacheFlag.ROLE_TAGS,
 			CacheFlag.VOICE_STATE
 		);
-		final Set<CacheFlag> disabledCacheFlags = Set.of(
-			CacheFlag.ACTIVITY,
-			CacheFlag.CLIENT_STATUS,
-			CacheFlag.ONLINE_STATUS,
-			CacheFlag.SCHEDULED_EVENTS
-		);
 
 		JDABuilder mainBuilder = JDABuilder.create(fileManager.getNullableString("config", "bot-token"), intents)
 			.setMemberCachePolicy(MemberCachePolicy.ALL)	// cache all members
 			.setChunkingFilter(ChunkingFilter.ALL)			// enable chunking
 			.enableCache(enabledCacheFlags)
-			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
 			.addEventListeners(
 				commandClient, eventWaiter, acListener, interactionListener,
@@ -240,7 +233,7 @@ public class App {
 		createWebhookAppender();
 
 
-		AutoloaderUtil.load(Names.PACKAGE_JOB_PATH, job -> ScheduleHandler.registerJob((Job) job));
+		AutoloaderUtil.load(Names.PACKAGE_JOBS_PATH, job -> ScheduleHandler.registerJob((Job) job));
 		LOG.info("Registered {} jobs successfully!", ScheduleHandler.entrySet().size());
 
 		LOG.info("Preparing and setting up metrics.");
