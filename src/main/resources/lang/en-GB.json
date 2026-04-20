@@ -2647,7 +2647,7 @@
 				},
 				"view": {
 					"help": "View members with a role",
-					"usage": "view <@Role",
+					"usage": "view <@Role>",
 					"role": {
 						"name": "Role",
 						"help": "Select role"
