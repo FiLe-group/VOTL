@@ -31,7 +31,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
 	implementation 'org.xerial:sqlite-jdbc:3.53.0.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
-	implementation 'org.jsoup:jsoup:1.22.1'							// HTML tools
+	implementation 'org.jsoup:jsoup:1.22.2'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
 	implementation 'io.github.java-diff-utils:java-diff-utils:4.16'	// Diff finder
 	// https://mvnrepository.com/artifact/org.json/json
