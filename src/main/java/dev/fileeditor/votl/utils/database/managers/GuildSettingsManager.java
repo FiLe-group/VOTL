@@ -223,7 +223,7 @@ public class GuildSettingsManager extends LiteBase {
 		}
 
 		public boolean isDisabled(CmdModule module) {
-			return (modulesOff & module.getValue()) == module.getValue();
+			return (modulesOff & module.getOffset()) == module.getOffset();
 		}
 
 		@NotNull

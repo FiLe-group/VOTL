@@ -98,6 +98,7 @@
 		"strikes": "Strike punishments",
 		"games": "Games",
 		"levels": "Leveling",
+		"tools": "Tools",
 		"module_disabled": "This command/module is disabled."
 	},
 	"role_type": {
@@ -1953,6 +1954,7 @@
 					"roles": "Roles",
 					"games": "Games",
 					"levels": "Leveling",
+					"tools": "Tools",
 					"other": "Other",
 					"title": "Categories"
 				},
@@ -2912,6 +2914,9 @@
 					"title": "Exempt channels"
 				}
 			}
+		},
+		"tool": {
+
 		}
 	},
 	"menus": {
