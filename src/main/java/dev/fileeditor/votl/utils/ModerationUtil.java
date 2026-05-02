@@ -44,8 +44,9 @@ public class ModerationUtil {
 					text = duration.isZero() ?
 						lu.getLocalized(locale, "logger_embed.pm.banned_perm") :
 						lu.getLocalized(locale, "logger_embed.pm.banned_temp");
-				} else
+				} else {
 					text = lu.getLocalized(locale, "logger_embed.pm.banned");
+				}
 			}
 			case KICK -> {
 				level = dbUtil.getGuildSettings(guild).getInformKick().getLevel();
@@ -71,7 +72,11 @@ public class ModerationUtil {
 		}
 
 		StringBuilder builder = new StringBuilder(
-			formatText(text, guild, level >= 2 ? reason : null, level >= 2 ? duration : null, level >= 3 ? mod : null)
+			formatText(text, guild,
+				level >= 2 ? reason : null,
+				level >= 2 || type.equals(CaseType.MUTE) ? duration : null,
+				level >= 3 ? mod : null
+			)
 		);
 		if (type.equals(CaseType.BAN) && canAppeal) {
 			String link = dbUtil.getGuildSettings(guild).getAppealLink();

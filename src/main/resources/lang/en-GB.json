@@ -169,7 +169,7 @@
 		},
 		"inform": {
 			"0": "Do not dm offender",
-			"1": "Send server and action",
+			"1": "Send server, action and mute duration",
 			"2": "Send server, action, reason and duration",
 			"3": "Send server, action, reason, duration and moderator"
 		}
@@ -258,7 +258,7 @@
 			"name": "Ticket logs",
 			"closed_title": "Ticket Closed",
 			"closed_value": "Ticket Name: {name}\nClosed By: {closed}\nCreated By: {created}\nClaimed By: {claimed}\n\n*If available, ticket's transcript is attached to this message.*",
-			"closed_pm": "Ticket closed at **{guild}** server.\n\n**Closed By**: {closed}\n**Close date**: {time}\n**Close Reason**: {reason}\n\n*If available, ticket's transcript is attached to this message.*\n*To view .html file - download it and open in any browser.*",
+			"closed_pm": "Ticket closed at **{guild}** server.\n\n**Closed By**: {closed}\n**Close date**: {time}\n**Close Reason**: {reason}\n\n*If available, ticket's transcript is attached to this message.*\n-# To view .html file - download it and open in any browser.",
 			"autoclosed": "No response, autoclosed",
 			"unclaimed": "UnClaimed",
 			"roles_title": "Roles issued | %s",
@@ -2093,7 +2093,7 @@
 				"role_dm": "{server}\n> Roles [{roles}] requested in ticket `role-{id}` assigned!\n-{mod}",
 				"role_none": "There aren't any roles that can be assigned. Manually assign user requested roles.",
 				"is_closed": "This ticket is already closed. Assign roles manually or press `Close` button.",
-				"close_request": "Hey, {user}! support have indicated that the ticket is now resolved. Would you like to close the ticket or do you have further questions? React below accordingly.\n\nIf no response {time} the ticket will automatically close itself. To prevent timed close please press cancel.",
+				"close_request": "Hey, {user}! Support have indicated that the ticket is now resolved. Would you like to close the ticket or do you have further questions? React below accordingly.\n\nIf no response {time} the ticket will automatically close itself. To prevent timed close please press cancel.",
 				"close_auto": "Hey, {user}! This ticket has not received a response for some time. Do you want to close the ticket or is your request still unresolved? React below accordingly.\n\nIf no response {time} the ticket will automatically close itself. To prevent timed close please press cancel.",
 				"claimed": "The ticket has been successfully claimed by {user}.",
 				"unclaimed": "The ticket has been successfully un-claimed.",
