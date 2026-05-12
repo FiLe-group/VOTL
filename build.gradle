@@ -29,7 +29,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:3.0.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.53.0.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.53.1.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
 	implementation 'org.jsoup:jsoup:1.22.2'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
@@ -37,7 +37,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.json/json
 	implementation 'org.json:json:20251224'							// JsonObject
 	// https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
-	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.3'	// Cache
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.4'	// Cache
 	// https://mvnrepository.com/artifact/org.reflections/reflections
 	implementation 'org.reflections:reflections:0.10.2'				// Reflections for auto-load
 	// https://mvnrepository.com/artifact/commons-cli/commons-cli
@@ -51,7 +51,7 @@ dependencies {
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
-	implementation 'org.apache.groovy:groovy:5.0.5'			    	// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:5.0.6'			    	// Groovy - code evaluation
 
 	// Testing
 	// Source: https://mvnrepository.com/artifact/org.junit/junit-bom
