@@ -96,17 +96,21 @@ public class LocaleUtil {
 
 	@NotNull
 	public String getText(@NotNull IReplyCallback replyCallback, @NotNull String path, @Nullable Object... args) {
-		return new Formatter().format(getLocalized(getLocale(replyCallback), path), args).toString();
+		return getLocalized(getLocale(replyCallback), path).formatted(args);
+	}
+
+	public String getGuildText(@NotNull Guild guild, @NotNull String path) {
+		return getLocalized(getGuildLocale(guild), path);
 	}
 
 	@NotNull
-	public String getGuildText(IReplyCallback replyCallback, @NotNull String path) {
+	public String getGuildText(@NotNull IReplyCallback replyCallback, @NotNull String path) {
 		return getLocalized(getGuildLocale(replyCallback.getGuild()), path);
 	}
 
 	@NotNull
-	public String getGuildText(IReplyCallback replyCallback, @NotNull String path, @Nullable Object... args) {
-		return new Formatter().format(getLocalized(getGuildLocale(replyCallback.getGuild()), path), args).toString();
+	public String getGuildText(@NotNull IReplyCallback replyCallback, @NotNull String path, @Nullable Object... args) {
+		return getLocalized(getGuildLocale(replyCallback.getGuild()), path).formatted(args);
 	}
 
 

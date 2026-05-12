@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 import net.dv8tion.jda.api.entities.User;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MessageUtil {
@@ -130,6 +131,19 @@ public class MessageUtil {
 
 	public static String formatKey(String text) {
 		return capitalize(text).replace("_", " ");
+	}
+
+	private static final Pattern URL_PATTERN = Pattern.compile("(https?://[^\\s/$.?#].\\S*)");
+
+	public static boolean hasLink(@NotNull String text) {
+		if (text.isEmpty()) return false;
+
+		String trimmed = text.strip();
+		if (trimmed.isEmpty()) return false;
+
+		if (trimmed.contains("\n") || trimmed.contains("\t")) return false;
+
+		return URL_PATTERN.matcher(trimmed).matches();
 	}
 
 }

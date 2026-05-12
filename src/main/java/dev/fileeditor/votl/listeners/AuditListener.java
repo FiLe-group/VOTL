@@ -37,14 +37,20 @@ public class AuditListener extends ListenerAdapter {
 				logger.channel.onChannelUpdate(entry);
 			}
 			case CHANNEL_DELETE -> {
+				// remove from DB
+				long guildId = event.getGuild().getIdLong();
+				long channelId = entry.getTargetIdLong();
+				try {
+					db.logExemptions.removeExemption(guildId, channelId);
+					db.mediaChannels.removeChannel(guildId, channelId);
+					db.games.removeChannel(channelId);
+					db.voice.remove(channelId);
+				} catch (SQLException ignored) {}
+
 				// check if enabled log
 				if (!db.getLogSettings(event.getGuild()).enabled(LogType.CHANNEL)) return;
 				
 				logger.channel.onChannelDelete(entry);
-				// remove from db exceptions
-				try {
-					db.logExemptions.removeExemption(event.getGuild().getIdLong(), entry.getTargetIdLong());
-				} catch (SQLException ignored) {}
 			}
 			case CHANNEL_OVERRIDE_CREATE -> {
 				// check if enabled log

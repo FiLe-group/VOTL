@@ -61,6 +61,7 @@ public class DBUtil {
 	public final ModReportManager modReport;
 	public final LevelManager levels;
 	public final LevelRolesManager levelRoles;
+	public final MediaChannelsManager mediaChannels;
 
 	public final BotBlacklistManager blacklist;
 
@@ -104,6 +105,7 @@ public class DBUtil {
 		modReport = new ModReportManager(connectionUtil);
 		levels = new LevelManager(connectionUtil);
 		levelRoles = new LevelRolesManager(connectionUtil);
+		mediaChannels = new MediaChannelsManager(connectionUtil);
 
 		blacklist = new BotBlacklistManager(connectionUtil);
 	}

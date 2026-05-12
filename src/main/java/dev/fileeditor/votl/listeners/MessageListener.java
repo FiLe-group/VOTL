@@ -9,13 +9,19 @@ import ch.qos.logback.classic.Logger;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.MediaType;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.CastUtil;
 
+import dev.fileeditor.votl.utils.message.MediaLinkUtil;
+import dev.fileeditor.votl.utils.message.MessageUtil;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogOption;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -44,10 +50,58 @@ public class MessageListener extends ListenerAdapter {
 	@Override
 	public void onMessageReceived(@NotNull MessageReceivedEvent event) {
 		if (event.getAuthor().isBot() || !event.isFromGuild()) return; // ignore bots and Private messages
-		if (bot.getBlacklist().hasDnt(event.getAuthor())) return; // DNT
-		
-		// cache message if not exception channel
+
 		final long guildId = event.getGuild().getIdLong();
+		// Media channel check
+		if (event.getChannelType() == ChannelType.TEXT) {
+			var mediaSettings = bot.getDBUtil().mediaChannels.getChannel(guildId, event.getChannel().getIdLong());
+			assert event.getMember() != null;
+			if (mediaSettings != null && !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.ADMIN)) {
+				var message = event.getMessage();
+				if (message.getContentRaw().isEmpty() && message.getAttachments().isEmpty()) {
+					replyMediaChannel(message, "reason_not_media");
+					return;
+				}
+
+				// Attachments checks
+				if (!message.getAttachments().isEmpty()) {
+					var attachments = message.getAttachments();
+					// Check if attachment limit is reached
+					if (mediaSettings.getMaxAttachments() > -1 && attachments.size() > mediaSettings.getMaxAttachments()) {
+						replyMediaChannel(message, "reason_max_attachements", attachments.size(), mediaSettings.getMaxAttachments());
+						return;
+					}
+					// Check if attachment type is allowed
+					for (var a : attachments) {
+						var mediaType = MediaType.fromExtension(a.getFileExtension());
+						if (mediaType.isEmpty() || !mediaSettings.getAllowedMedia().contains(mediaType.get())) {
+							replyMediaChannel(message, "reason_bad_attachement", "."+a.getFileExtension());
+							return;
+						}
+					}
+				}
+				// Text checks
+				if (!message.getContentRaw().isEmpty()) {
+					// Check if contains no links
+					if (mediaSettings.getAllowedMedia().isEmpty() && MessageUtil.hasLink(message.getContentRaw())) {
+						replyMediaChannel(message, "reason_has_links");
+						return;
+					}
+					// Check if contains only 1 link and no other text
+					if (!mediaSettings.allowedText()) {
+						var mediaType = MediaLinkUtil.detectMediaType(message.getContentRaw());
+						if (mediaType.isEmpty() || !mediaSettings.getAllowedMedia().contains(mediaType.get())) {
+							replyMediaChannel(message, "reason_bad_link");
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		if (bot.getBlacklist().hasDnt(event.getAuthor())) return; // DNT
+
+		// cache message if not exception channel
 		if (bot.getDBUtil().getLogSettings(event.getGuild()).enabled(LogType.MESSAGE)) {
 			// check channel
 			if (!bot.getDBUtil().logExemptions.isExemption(guildId, event.getChannel().getIdLong())) {
@@ -68,6 +122,20 @@ public class MessageListener extends ListenerAdapter {
 		if (!bot.getBlacklist().isBlacklisted(event.getAuthor())) {
 			bot.getLevelUtil().rewardMessagePlayer(event);
 		}
+	}
+
+	private void replyMediaChannel(Message message, String pathEnd, Object... args) {
+		var reason = MessageUtil.limitString(
+			bot.getLocaleUtil().getGuildText(message.getGuild(), "bot.tool.media_channel.listener."+pathEnd)
+				.formatted(args),
+			512
+		);
+
+		message.reply(bot.getLocaleUtil().getGuildText(message.getGuild(), "bot.tool.media_channel.listener.reply_title")+"\n> "+reason)
+			.queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS), _ -> {});
+		message.delete()
+			.reason(reason)
+			.queueAfter(2, TimeUnit.SECONDS);
 	}
 
 	

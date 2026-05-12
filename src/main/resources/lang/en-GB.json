@@ -47,7 +47,12 @@
 		},
 		"timed_out": "Timed out",
 		"proof_type": "Incorrect proof file type provided. Only .png and .jpg/.jpeg are accepted.",
-		"proof_size": "The size of the proof file cannot be larger than 4 MB."
+		"proof_size": "The size of the proof file cannot be larger than 4 MB.",
+		"option": {
+			"channel": "Selected channel not found! Make sure this channel exists and bot can access it.",
+			"user": "Selected user not found! Make sure provided ID/username is correct."
+		},
+		"failed_send": "Failed to send the message to the designated channel."
 	},
 	"misc": {
 		"and": "and",
@@ -535,6 +540,10 @@
 				"reason": {
 					"name": "reason",
 					"help": "Blacklist reason"
+				},
+				"do_not_track": {
+					"name": "do_not_track",
+					"help": "Assign 'Do not Track' tag?"
 				}
 			},
 			"experience": {
@@ -2916,7 +2925,55 @@
 			}
 		},
 		"tool": {
-
+			"media_channel": {
+				"help": "Manage media channels",
+				"add": {
+					"help": "Add a media channel",
+					"usage": "add <#Channel> <Type> [allow text?] [max attachments]",
+					"channel": {
+						"name": "channel",
+						"help": "Select a channel"
+					},
+					"allowed_media": {
+						"name": "allowed_media",
+						"help": "What type of media will be allowed in this channel"
+					},
+					"allowed_text": {
+						"name": "allowed_text",
+						"help": "Is text allowed alongside any attachment?"
+					},
+					"max_attachments": {
+						"name": "max_attachments",
+						"help": "How many attachments can one message contain"
+					},
+					"max_channels": "Max media channels reached - %d/**%d**.",
+					"bad_combination": "Either any media type or text messages must be allowed.",
+					"done": "Successfully added new media channel %s."
+				},
+				"remove": {
+					"help": "Remove a media channel setup",
+					"usage": "remove <#Channel>",
+					"channel": {
+						"name": "channel",
+						"help": "Select a channel"
+					},
+					"done": "Removed media channel setup for channel %s."
+				},
+				"view": {
+					"help": "List all media channels",
+					"usage": "view",
+					"empty": "No media channels setup.",
+					"embed_title": "Media Channels"
+				},
+				"listener": {
+					"reply_title": "Message deleted",
+					"reason_not_media": "Message doesn't contains any media attachments/links",
+					"reason_max_attachements": "Message contains too many attachments - %s out of %s",
+					"reason_bad_attachement": "Message contains attachment which is not allowed in this channel - %s",
+					"reason_has_links": "Links are not allowed in this channel",
+					"reason_bad_link": "Message contains link which is not allowed in this channel"
+				}
+			}
 		}
 	},
 	"menus": {
