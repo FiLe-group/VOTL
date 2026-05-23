@@ -1175,7 +1175,7 @@ public class LogEmbedUtil {
 			builder.append("\n");
 		}
 		if (builder.isEmpty()) return "";
-		return builder.toString();
+		return MessageUtil.limitString(builder.toString(), 3800);
 	}
 
 	private final String guildIconLink = "[Image](https://cdn.discordapp.com/icons/{guild}/%s.png)";
