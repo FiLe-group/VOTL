@@ -19,4 +19,4 @@ ALTER TABLE "guild" ADD "drama" INTEGER DEFAULT 0; ALTER TABLE "guild" ADD "dram
 ALTER TABLE "blacklist" RENAME TO "serverBlacklist"; DROP TABLE "botBlacklist"; CREATE TABLE "blacklist" ("id" INTEGER NOT NULL UNIQUE, "type" INTEGER NOT NULL, "expiresIn" INTEGER, "reason" TEXT)
 ALTER TABLE "guild" ADD "locale" TEXT
 ALTER TABLE "blacklist" ADD "dnt" INTEGER DEFAULT 0
-CREATE TABLE "customRoles" ("roleId" INTEGER NOT NULL UNIQUE, "ownerId" INTEGER NOT NULL, "guildId" INTEGER NOT NULL, "allowedModify" INTEGER DEFAULT 0, "expires" INTEGER DEFAULT 0), CREATE TABLE "mediaChannels" ("guildId" INTEGER NOT NULL, "channelId" INTEGER NOT NULL UNIQUE, "allowedMedia" INTEGER, "allowedText" INTEGER DEFAULT 1, "maxAttachments" INTEGER DEFAULT -1)
+CREATE TABLE "customRoles" ("roleId" INTEGER NOT NULL UNIQUE, "ownerId" INTEGER NOT NULL, "guildId" INTEGER NOT NULL, "allowedModify" INTEGER DEFAULT 0, "expires" INTEGER DEFAULT 0); CREATE TABLE "mediaChannels" ("guildId" INTEGER NOT NULL, "channelId" INTEGER NOT NULL UNIQUE, "allowedMedia" INTEGER, "allowedText" INTEGER DEFAULT 1, "maxAttachments" INTEGER DEFAULT -1)

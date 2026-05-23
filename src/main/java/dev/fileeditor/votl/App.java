@@ -186,11 +186,18 @@ public class App {
 			CacheFlag.ROLE_TAGS,
 			CacheFlag.VOICE_STATE
 		);
+		final Set<CacheFlag> disabledCacheFlags = Set.of(
+			CacheFlag.ACTIVITY,
+			CacheFlag.CLIENT_STATUS,
+			CacheFlag.ONLINE_STATUS,
+			CacheFlag.SCHEDULED_EVENTS
+		);
 
 		JDABuilder mainBuilder = JDABuilder.create(fileManager.getNullableString("config", "bot-token"), intents)
 			.setMemberCachePolicy(MemberCachePolicy.ALL)	// cache all members
 			.setChunkingFilter(ChunkingFilter.ALL)			// enable chunking
 			.enableCache(enabledCacheFlags)
+			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
 			.addEventListeners(
 				commandClient, eventWaiter, acListener, interactionListener,

@@ -212,8 +212,8 @@ public class DBUtil {
 							log.debug(sql);
 							st.execute(sql);
 						}
-						conn.commit();
 					}
+					conn.commit();
 				} catch (SQLException ex) {
 					conn.rollback();
 					throw ex; // rethrow

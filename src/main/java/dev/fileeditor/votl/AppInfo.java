@@ -2,10 +2,12 @@ package dev.fileeditor.votl;
 
 import dev.fileeditor.votl.utils.ConsoleColor;
 import net.dv8tion.jda.api.JDAInfo;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
 public class AppInfo {
+	@NotNull
 	public static final String VERSION = Optional.ofNullable(AppInfo.class.getPackage().getImplementationVersion())
 		.orElse("DEVELOPMENT");
 
