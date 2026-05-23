@@ -20,7 +20,7 @@ public enum CmdModule {
 	
 	CmdModule(String path, int value) {
 		this.path = path;
-		this.offset = 2^(value-1);
+		this.offset = Math.powExact(2, value-1);
 	}
 
 	public String getPath() {
