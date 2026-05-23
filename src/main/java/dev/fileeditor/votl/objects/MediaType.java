@@ -38,7 +38,7 @@ public enum MediaType {
 	private final static int SUM;
 
 	MediaType(int value, String emoji, Set<String> extensions) {
-		this.offset = 2^(value - 1);
+		this.offset = Math.powExact(2, value-1);
 		this.emoji = emoji;
 		this.extensions = extensions;
 	}
@@ -73,7 +73,7 @@ public enum MediaType {
 	}
 
 	public static EnumSet<MediaType> decode(int input) {
-		if (input == 0) return EnumSet.allOf(MediaType.class);
+		if (input == 0) return EnumSet.noneOf(MediaType.class);
 
 		EnumSet<MediaType> allowed = EnumSet.noneOf(MediaType.class);
 		for (MediaType v : values()) {

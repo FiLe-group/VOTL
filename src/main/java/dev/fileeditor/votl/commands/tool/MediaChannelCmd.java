@@ -61,7 +61,7 @@ public class MediaChannelCmd extends SlashCommand {
 
 			var channel = event.optGuildChannel("channel");
 			if (channel == null || event.getGuild().getGuildChannelById(channel.getIdLong()) == null) {
-				editError(event, lu.getText(event, "errors.option.channel"));
+				editError(event, "errors.option.channel");
 				return;
 			}
 
@@ -75,7 +75,7 @@ public class MediaChannelCmd extends SlashCommand {
 			var maxAttachments = event.optInteger("max_attachments", 10);
 
 			if (allowedMedia.isEmpty() && !allowedText) {
-				editError(event, lu.getText(event, path+".bad_combination"));
+				editError(event, path+".bad_combination");
 				return;
 			}
 
@@ -93,17 +93,17 @@ public class MediaChannelCmd extends SlashCommand {
 
 			var embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done", channel.getAsMention()))
-				.appendDescription("\n\n");
+				.appendDescription("\n\n`");
 			for (var v : MediaType.values()) {
 				embed.appendDescription(v.getEmoji()).appendDescription("|");
 			}
-			embed.appendDescription("\uD83D\uDCAC|MAX\n");
+			embed.appendDescription("\uD83D\uDCAC|MAX`\n`");
 
 			for (var v : MediaType.values()) {
 				embed.appendDescription(allowedMedia.contains(v) ? Constants.SUCCESS : Constants.FAILURE)
 					.appendDescription("|");
 			}
-			embed.appendDescription("%s|%d".formatted(
+			embed.appendDescription("%s|%d`".formatted(
 				allowedText ? Constants.SUCCESS : Constants.FAILURE,
 				maxAttachments
 			));
@@ -129,7 +129,7 @@ public class MediaChannelCmd extends SlashCommand {
 
 			var channel = event.optChannel("channel");
 			if (channel == null || event.getGuild().getGuildChannelById(channel.getIdLong()) == null) {
-				editError(event, lu.getText(event, "errors.option.channel"));
+				editError(event, "errors.option.channel");
 				return;
 			}
 
