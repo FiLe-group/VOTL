@@ -145,10 +145,9 @@ public class SetupCmd extends SlashCommand {
 			long guildId = event.getGuild().getIdLong();
 			if (event.hasOption("channel")) {
 				MessageChannel channel = event.optMessageChannel("channel");
-				assert channel != null;
-
-				if (!channel.canTalk()) {
-					editError(event, path+".cant_send");
+				if (channel == null || !channel.canTalk()) {
+					editError(event, "errors.option.channel", "Received: "+(channel == null ? "No channel" : channel.getAsMention()));
+					return;
 				}
 
 				try {
@@ -295,7 +294,7 @@ public class SetupCmd extends SlashCommand {
 			assert event.getGuild() != null;
 			MessageChannel channel = event.optMessageChannel("channel");
 			if (channel == null || !channel.canTalk()) {
-				editError(event, path+".no_channel", "Received: "+(channel == null ? "No channel" : channel.getAsMention()));
+				editError(event, "errors.option.channel", "Received: "+(channel == null ? "No channel" : channel.getAsMention()));
 				return;
 			}
 
@@ -614,10 +613,8 @@ public class SetupCmd extends SlashCommand {
 			}
 			if (event.hasOption("channel")) {
 				TextChannel channel = (TextChannel) event.optGuildChannel("channel");
-				assert channel != null;
-
-				if (!channel.canTalk()) {
-					editError(event, path+".bad_channel");
+				if (channel == null || !channel.canTalk()) {
+					editError(event, "errors.option.channel");
 					return;
 				}
 

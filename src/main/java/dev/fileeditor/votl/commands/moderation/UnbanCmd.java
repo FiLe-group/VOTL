@@ -49,11 +49,11 @@ public class UnbanCmd extends SlashCommand {
 		User tu = event.optUser("user");
 
 		if (tu == null) {
-			editError(event, path+".not_found");
+			editError(event, "errors.option.user");
 			return;
 		}
 		if (event.getUser().equals(tu) || event.getJDA().getSelfUser().equals(tu)) {
-			editError(event, path+".not_self");
+			editError(event, "errors.option.user_self");
 			return;
 		}
 
@@ -85,7 +85,7 @@ public class UnbanCmd extends SlashCommand {
 				}
 			}
 			Member mod = event.getMember();
-			final String reason = event.optString("reason", lu.getGuildText(event, path+".no_reason"));
+			String reason = bot.getModerationUtil().parseReasonMentions(event);
 
 			// perform unban
 			guild.unban(tu).reason(reason).queue(_ -> {

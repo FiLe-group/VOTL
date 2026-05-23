@@ -35,7 +35,7 @@ public class RemoveUserCmd extends SlashCommand {
 		Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
 		if (authorId == null) {
 			// If this channel is not a ticket
-			editError(event, path+".not_ticket");
+			editError(event, "errors.not_ticket");
 			return;
 		}
 		if (bot.getDBUtil().tickets.isClosed(channelId)) {
@@ -46,7 +46,7 @@ public class RemoveUserCmd extends SlashCommand {
 		User user = event.optUser("user");
 		assert user != null;
 		if (user.equals(event.getUser()) || user.equals(event.getJDA().getSelfUser()) || authorId.equals(user.getIdLong())) {
-			editError(event, path+".not_self");
+			editError(event, "errors.option.user_self");
 			return;
 		}
 

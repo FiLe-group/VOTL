@@ -57,12 +57,12 @@ public class KickCmd extends SlashCommand {
 
 		Member tm = event.optMember("member");
 		if (tm == null) {
-			editError(event, path+".not_found");
+			editError(event, "errors.option.member");
 			return;
 		}
 		assert event.getMember() != null;
 		if (event.getMember().equals(tm) || guild.getSelfMember().equals(tm)) {
-			editError(event, path+".not_self");
+			editError(event, "errors.option.user_self");
 			return;
 		}
 
@@ -89,7 +89,7 @@ public class KickCmd extends SlashCommand {
 			return;
 		}
 
-		String reason = bot.getModerationUtil().parseReasonMentions(event, this);
+		String reason = bot.getModerationUtil().parseReasonMentions(event);
 		// inform user
 		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
 		if (event.optBoolean("dm", true)) {

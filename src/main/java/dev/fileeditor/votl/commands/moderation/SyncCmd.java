@@ -58,11 +58,11 @@ public class SyncCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			User target = event.optUser("user");
 			if (target == null) {
-				editError(event, path+".not_found");
+				editError(event, "errors.option.user");
 				return;
 			}
 			if (event.getUser().equals(target) || event.getJDA().getSelfUser().equals(target)) {
-				editError(event, path+".not_self");
+				editError(event, "errors.option.user_self");
 				return;
 			}
 			assert event.getGuild() != null;
@@ -74,7 +74,7 @@ public class SyncCmd extends SlashCommand {
 			Integer groupId = event.optInteger("group");
 			long guildId = event.getGuild().getIdLong();
 			if ( !(bot.getDBUtil().group.isOwner(groupId, guildId) || bot.getDBUtil().group.canManage(groupId, guildId)) ) {
-				editError(event, path+".no_group", "Group ID: `"+groupId+"`");
+				editError(event, "errors.option.group", "Group ID: `"+groupId+"`");
 				return;
 			}
 

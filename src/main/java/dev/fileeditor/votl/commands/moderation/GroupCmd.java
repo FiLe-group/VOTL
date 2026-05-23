@@ -122,13 +122,9 @@ public class GroupCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
-			if (ownerId == null) {
-				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
-				return;
-			}
 			assert event.getGuild() != null;
-			if (event.getGuild().getIdLong() != ownerId) {
-				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+			if (ownerId == null || event.getGuild().getIdLong() != ownerId) {
+				editError(event, "errors.option.group", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
 
@@ -164,13 +160,9 @@ public class GroupCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
-			if (ownerId == null) {
-				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
-				return;
-			}
 			assert event.getGuild() != null;
-			if (event.getGuild().getIdLong() != ownerId) {
-				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+			if (ownerId == null || event.getGuild().getIdLong() != ownerId) {
+				editError(event, "errors.option.group", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
 
@@ -239,7 +231,12 @@ public class GroupCmd extends SlashCommand {
 				30,
 				TimeUnit.SECONDS,
 				() -> event.getHook().editOriginalComponents(
-					ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
+					ActionRow.of(StringSelectMenu.create("timed_out")
+						.setPlaceholder(lu.getGuildText(event, "errors.timed_out"))
+						.addOption("Disabled", "invalid")
+						.setDisabled(true)
+						.build()
+					)
 				).queue()
 			));
 		}
@@ -259,13 +256,9 @@ public class GroupCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
-			if (ownerId == null) {
-				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
-				return;
-			}
 			assert event.getGuild() != null;
-			if (event.getGuild().getIdLong() != ownerId) {
-				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+			if (ownerId == null || event.getGuild().getIdLong() != ownerId) {
+				editError(event, "errors.option.group", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
 
@@ -302,15 +295,11 @@ public class GroupCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			int groupId = event.optInteger("group_owned");
+			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
-			if (ownerId == null) {
-				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
-				return;
-			}
 			assert event.getGuild() != null;
-			if (event.getGuild().getIdLong() != ownerId) {
-				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+			if (ownerId == null || event.getGuild().getIdLong() != ownerId) {
+				editError(event, "errors.option.group", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
 
@@ -388,13 +377,9 @@ public class GroupCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
-			if (ownerId == null) {
-				editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
-				return;
-			}
 			assert event.getGuild() != null;
-			if (event.getGuild().getIdLong() != ownerId) {
-				editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+			if (ownerId == null || event.getGuild().getIdLong() != ownerId) {
+				editError(event, "errors.option.group", "Group ID: `%d`".formatted(groupId));
 				return;
 			}
 
@@ -468,7 +453,12 @@ public class GroupCmd extends SlashCommand {
 				30,
 				TimeUnit.SECONDS,
 				() -> event.getHook().editOriginalComponents(
-					ActionRow.of(StringSelectMenu.create("timed_out").setPlaceholder(lu.getGuildText(event, "errors.timed_out")).setDisabled(true).build())
+					ActionRow.of(StringSelectMenu.create("timed_out")
+						.setPlaceholder(lu.getGuildText(event, "errors.timed_out"))
+						.addOption("Disabled", "invalid")
+						.setDisabled(true)
+						.build()
+					)
 				).queue()
 			));
 		}
@@ -547,7 +537,7 @@ public class GroupCmd extends SlashCommand {
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 			assert event.getGuild() != null;
 			if (ownerId == null || !bot.getDBUtil().group.isMember(groupId, event.getGuild().getIdLong())) {
-				editError(event, path+".no_group", "Group ID: `%s`".formatted(groupId));
+				editError(event, "errors.option.group", "Group ID: `%s`".formatted(groupId));
 				return;
 			}
 
@@ -589,12 +579,8 @@ public class GroupCmd extends SlashCommand {
 				// View owned Group information - name, every guild info (name, ID, member count)
 				Integer groupId = event.optInteger("group_owned");
 				Long ownerId = bot.getDBUtil().group.getOwner(groupId);
-				if (ownerId == null) {
-					editError(event, path+".no_group", "Group ID: `%d`".formatted(groupId));
-					return;
-				}
-				if (event.getGuild().getIdLong() != ownerId) {
-					editError(event, path+".not_owned", "Group ID: `%d`".formatted(groupId));
+				if (ownerId == null || guildId != ownerId) {
+					editError(event, "errors.option.group", "Group ID: `%d`".formatted(groupId));
 					return;
 				}
 
@@ -608,7 +594,7 @@ public class GroupCmd extends SlashCommand {
 						groupName, groupId
 					))
 					.setDescription(lu.getGuildText(event, path+".embed_full",
-						event.getGuild().getName(), event.getGuild().getId(), groupSize,
+						event.getGuild().getName(), guildId, groupSize,
 						Optional.ofNullable(bot.getDBUtil().group.getAppealGuildId(groupId)).map(String::valueOf).orElse("-")
 					))
 					.addField(lu.getGuildText(event, path+".embed_invite"), invite, false);
@@ -639,7 +625,7 @@ public class GroupCmd extends SlashCommand {
 				Integer groupId = event.optInteger("group_joined");
 				Long ownerId = bot.getDBUtil().group.getOwner(groupId);
 				if (ownerId == null || !bot.getDBUtil().group.isMember(groupId, guildId)) {
-					editError(event, path+".no_group", "Group ID: `%s`".formatted(groupId));
+					editError(event, "errors.option.group", "Group ID: `%s`".formatted(groupId));
 					return;
 				}
 				

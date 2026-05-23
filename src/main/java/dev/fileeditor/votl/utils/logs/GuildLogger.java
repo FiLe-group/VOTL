@@ -802,8 +802,8 @@ public class GuildLogger {
 					if (data.isEmpty()) continue;
 					cached++;
 					baos.write("[%s (%s)]:\n".formatted(data.getAuthorName(), data.getAuthorId()).getBytes());
-					if (data.getAttachment() != null)
-						baos.write("[Attachment: %s]\n".formatted(data.getAttachment().getFileName()).getBytes(StandardCharsets.UTF_8));
+					if (data.hasAttachment())
+						baos.write("[Attachment removed]\n".getBytes(StandardCharsets.UTF_8));
 					baos.write(data.getContent().getBytes(StandardCharsets.UTF_8));
 					baos.write("\n\n-------===-------\n\n".getBytes());
 				}

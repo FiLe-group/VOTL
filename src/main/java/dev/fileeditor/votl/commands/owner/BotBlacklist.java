@@ -22,7 +22,8 @@ public class BotBlacklist extends SlashCommand {
 			new OptionData(OptionType.INTEGER, "type", lu.getText(path+".type.help"))
 				.addChoice("User", 0)
 				.addChoice("Guild", 1),
-			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"))
+			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")),
+			new OptionData(OptionType.BOOLEAN, "do_not_track", lu.getText(path+".do_not_track.help"))
 		);
 	}
 
@@ -32,10 +33,14 @@ public class BotBlacklist extends SlashCommand {
 
 		if (event.optBoolean("add")) {
 			Scope scope = Scope.fromId(event.optInteger("type", 0));
-			assert scope != null;
 			String reason = event.optString("reason");
-			bot.getBlacklist().addToBlacklist(scope, id, reason);
-			editMsg(event, "Added %s `%s` to blacklist.\n> %s".formatted(scope.getName(), id, reason == null ? "-None-" : reason));
+			boolean dnt = event.optBoolean("do_not_track", false);
+			bot.getBlacklist().addToBlacklist(scope, id, reason, dnt);
+			if (dnt) {
+				editMsg(event, "Added %s `%s` to blacklist with 'Do not Track' tag.\n> %s".formatted(scope.getName(), id, reason == null ? "-None-" : reason));
+			} else {
+				editMsg(event, "Added %s `%s` to blacklist.\n> %s".formatted(scope.getName(), id, reason == null ? "-None-" : reason));
+			}
 		} else {
 			bot.getBlacklist().remove(id);
 			editMsg(event, "Removed ID `%s` from blacklist.".formatted(id));

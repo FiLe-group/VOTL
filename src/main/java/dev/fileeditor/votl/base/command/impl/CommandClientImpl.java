@@ -53,6 +53,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import net.dv8tion.jda.internal.utils.Checks;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -397,6 +398,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 		}
 	}
 
+	@Nullable
 	private SlashCommand findSlashCommand(String path) {
 		String[] parts = path.split(" ");
 

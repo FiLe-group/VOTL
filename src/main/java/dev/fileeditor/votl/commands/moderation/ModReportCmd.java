@@ -95,7 +95,7 @@ public class ModReportCmd extends SlashCommand {
 					return;
 				}
 			} else {
-				// Next monday OR first month day at 3:00 (server time)
+				// Next Monday OR first day of the month at 3:00 (server time)
 				if (interval == 30)
 					firstReport = LocalDateTime.now().with(TemporalAdjusters.firstDayOfNextMonth()).withHour(3);
 				else

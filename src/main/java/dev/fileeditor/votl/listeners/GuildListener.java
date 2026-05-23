@@ -59,7 +59,7 @@ public class GuildListener extends ListenerAdapter {
 		ignoreExc(() -> db.group.removeGuildFromGroups(guildId));
 		ignoreExc(() -> db.group.deleteGuildGroups(guildId));
 
-		ignoreExc(() -> db.access.removeAll(guildId));
+		ignoreExc(() -> db.access.removeGuild(guildId));
 		ignoreExc(() -> db.webhook.removeAll(guildId));
 		ignoreExc(() -> db.verifySettings.remove(guildId));
 		ignoreExc(() -> db.ticketSettings.remove(guildId));
@@ -76,6 +76,7 @@ public class GuildListener extends ListenerAdapter {
 		ignoreExc(() -> db.games.removeGuild(guildId));
 		ignoreExc(() -> db.persistent.removeGuild(guildId));
 		ignoreExc(() -> db.modReport.removeGuild(guildId));
+		ignoreExc(() -> db.mediaChannels.removeGuild(guildId));
 		
 		ignoreExc(() -> db.guildSettings.remove(guildId));
 

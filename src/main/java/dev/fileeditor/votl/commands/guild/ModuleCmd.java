@@ -117,7 +117,7 @@ public class ModuleCmd extends SlashCommand {
 						return;
 					}
 					// set new data
-					final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() + sModule.getValue();
+					final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() + sModule.getOffset();
 					try {
 						bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
 					} catch (SQLException ex) {
@@ -185,7 +185,7 @@ public class ModuleCmd extends SlashCommand {
 							return;
 						}
 						// set new data
-						final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() - sModule.getValue();
+						final int newData = bot.getDBUtil().getGuildSettings(guildId).getModulesOff() - sModule.getOffset();
 						try {
 							bot.getDBUtil().guildSettings.setModuleDisabled(guildId, newData);
 						} catch (SQLException ex) {

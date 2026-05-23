@@ -74,11 +74,11 @@ public class RolesManageCmd extends SlashCommand {
 			
 			Role role = event.optRole("role");
 			if (role == null || role.hasPermission(Permission.ADMINISTRATOR, Permission.MANAGE_ROLES, Permission.MANAGE_SERVER)) {
-				editError(event, path+".no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 			if (!event.getGuild().getSelfMember().canInteract(role)) {
-				editError(event, path+".cant_interact");
+				editError(event, "errors.option.role_interact");
 				return;
 			}
 			long roleId = role.getIdLong();
@@ -175,7 +175,7 @@ public class RolesManageCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			final Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, path+".no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 			final long roleId = role.getIdLong();

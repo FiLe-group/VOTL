@@ -54,13 +54,13 @@ public class LevelRolesCmd extends SlashCommand {
 			int level = event.optInteger("level");
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, path+".invalid_args");
+				editError(event, "errors.option.role");
 				return;
 			}
 
 			String denyReason = bot.getCheckUtil().denyRole(role, event.getGuild(), event.getMember(), true);
 			if (denyReason != null) {
-				editError(event, path+".incorrect_role", denyReason);
+				editError(event, "errors.option.role_interact", denyReason);
 				return;
 			}
 			if (bot.getDBUtil().levelRoles.countLevels(event.getGuild().getIdLong()) >= Limits.LEVEL_ROLES) {

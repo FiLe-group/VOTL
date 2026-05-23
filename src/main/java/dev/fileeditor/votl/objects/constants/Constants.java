@@ -13,7 +13,7 @@ public final class Constants {
 
 	public static final String DATA_PATH = Paths.get("." + SEPAR + "data") + SEPAR;
 
-	public static final String SUCCESS = "\u2611\uFE0F";
+	public static final String SUCCESS = "\u2705";
 	public static final String WARNING = "\u26A0\uFE0F";
 	public static final String FAILURE = "\u274C";
 	public static final String NONE    = "\u25AA\uFE0F";
@@ -26,5 +26,5 @@ public final class Constants {
 	public static final String DEVELOPER_TAG = "@fileeditor";
 	public static final long DEVELOPER_ID = 369062521719488524L;
 
-	public static final int DEFAULT_CACHE_SIZE = 50;
+	public static final int DEFAULT_CACHE_SIZE = 100;
 }

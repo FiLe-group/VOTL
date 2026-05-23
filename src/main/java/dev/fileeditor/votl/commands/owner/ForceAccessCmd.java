@@ -37,7 +37,7 @@ public class ForceAccessCmd extends SlashCommand {
 	protected void execute(SlashCommandEvent event) {
 		Guild guild = event.getJDA().getGuildById(event.optString("server", "0"));
 		if (guild == null) {
-			editError(event, path+".no_guild");
+			editMsg(event, "Selected server not found.");
 			return;
 		}
 

@@ -51,12 +51,12 @@ public class VerifyRoleCmd extends SlashCommand {
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, path+".no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 			String denyReason = bot.getCheckUtil().denyRole(role, guild, event.getMember(), true);
 			if (denyReason != null) {
-				editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
 				return;
 			}
 
@@ -106,7 +106,7 @@ public class VerifyRoleCmd extends SlashCommand {
 			for (Role r : roles) {
 				String denyReason = bot.getCheckUtil().denyRole(r, guild, event.getMember(), true);
 				if (denyReason != null) {
-					editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
+					editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
 					return;
 				}
 			}

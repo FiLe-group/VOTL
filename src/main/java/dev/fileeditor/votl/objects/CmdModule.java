@@ -12,38 +12,35 @@ public enum CmdModule {
 	REPORT("modules.report", 7),
 	ROLES("modules.roles", 8),
 	GAMES("modules.games", 9),
-	LEVELS("modules.levels", 10);
+	LEVELS("modules.levels", 10),
+	TOOLS("modules.tools", 11);
 	
 	private final String path;
-	private final int value;
+	private final int offset;
 	
 	CmdModule(String path, int value) {
 		this.path = path;
-		this.value = (int) Math.pow(2, value-1);
+		this.offset = 2^(value-1);
 	}
 
 	public String getPath() {
 		return path;
 	}
 
-	public int getValue() {
-		return value;
+	public int getOffset() {
+		return offset;
 	}
 
 	public static EnumSet<CmdModule> decodeModules(int data) {
 		EnumSet<CmdModule> modules = EnumSet.noneOf(CmdModule.class);
 		for (CmdModule v : values()) {
-			if ((data & v.value) == v.value) modules.add(v);
+			if ((data & v.offset) == v.offset) modules.add(v);
 		}
 		return modules;
 	}
 
 	@SuppressWarnings("unused")
-	public static int encodeModules(EnumSet<CmdModule> actions) {
-		int data = 0;
-		for (CmdModule v : actions) {
-			data += v.value;
-		}
-		return data;
+	public static int encodeModules(EnumSet<CmdModule> values) {
+		return values.stream().mapToInt(CmdModule::getOffset).sum();
 	}
 }

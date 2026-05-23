@@ -50,7 +50,7 @@ public class LevelExemptCmd extends SlashCommand {
 			assert event.getGuild() != null;
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (channel == null) {
-				editError(event, path+".invalid_args");
+				editError(event, "errors.option.channel");
 				return;
 			}
 
@@ -102,7 +102,7 @@ public class LevelExemptCmd extends SlashCommand {
 				try {
 					channelId = event.optLong("channel");
 				} catch (Exception ex2) {
-					editError(event, path+".invalid_args");
+					editError(event, "errors.option.channel", "Input: "+event.optString("channel"));
 					return;
 				}
 			}

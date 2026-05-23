@@ -32,4 +32,5 @@ public class IrregularJobs extends Job {
 			generateReport
 		);
 	}
+
 }

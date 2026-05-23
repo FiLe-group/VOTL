@@ -33,7 +33,7 @@ public class CastUtil {
 		return (T) obj;
 	}
 
-	@Contract("!null, _, _ -> param3; null, _, null -> null; null, _, !null -> !null")
+	@Contract("null, _, _ -> param3; !null, _, _ -> !null")
 	public static <T> T resolveOrDefault(@Nullable Object obj, @NotNull Function<Object, T> resolver, @Nullable T defaultObj) {
 		if (obj == null) return defaultObj;
 		return resolver.apply(obj);

@@ -61,14 +61,14 @@ public class GameStrikeCmd extends SlashCommand {
 		GuildChannel channel = event.optGuildChannel("channel");
 		assert channel != null;
 		if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
-			editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
+			editError(event, "errors.option.channel", "Channel: %s".formatted(channel.getAsMention()));
 			return;
 		}
 		Member tm = event.optMember("user");
 		if (tm == null || tm.getUser().isBot() || tm.equals(event.getMember())
 			|| tm.equals(event.getGuild().getSelfMember())
 			|| bot.getCheckUtil().hasHigherAccess(tm, event.getMember())) {
-			editError(event, path+".not_member");
+			editError(event, "errors.option.member_interact");
 			return;
 		}
 
@@ -96,7 +96,7 @@ public class GameStrikeCmd extends SlashCommand {
 			return;
 		}
 
-		String reason = bot.getModerationUtil().parseReasonMentions(event, this);
+		String reason = bot.getModerationUtil().parseReasonMentions(event);
 		// Add to DB
 		long guildId = event.getGuild().getIdLong();
 

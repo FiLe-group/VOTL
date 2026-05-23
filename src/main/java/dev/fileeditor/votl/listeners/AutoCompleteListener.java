@@ -28,6 +28,7 @@ public class AutoCompleteListener extends ListenerAdapter {
 		
 	@Override
 	public void onCommandAutoCompleteInteraction(@NotNull CommandAutoCompleteInteractionEvent event) {
+		// Blacklist enforced in dev.fileeditor.votl.base.command.SlashCommand.onAutoComplete
 		String cmdName = event.getFullCommandName();
 		String focusedOption = event.getFocusedOption().getName();
 		if (cmdName.equals("help") && focusedOption.equals("command")) {

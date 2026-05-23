@@ -22,6 +22,7 @@ import net.dv8tion.jda.api.components.selections.SelectOption;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -34,7 +35,7 @@ public class RoleCmd extends SlashCommand {
 		this.path = "bot.roles.role";
 		this.children = new SlashCommand[]{
 			new Add(), new Remove(), new RemoveAll(),
-			new Modify()
+			new Modify(), new View()
 		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
@@ -78,14 +79,14 @@ public class RoleCmd extends SlashCommand {
 			for (Role r : roles) {
 				String denyReason = bot.getCheckUtil().denyRole(r, event.getGuild(), event.getMember(), true);
 				if (denyReason != null) {
-					editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
+					editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
 					return;
 				}
 				// Check if role whitelisted
 				if (whitelistEnabled) {
 					if (!bot.getDBUtil().roles.existsRole(r.getIdLong())) {
 						// Not whitelisted
-						editError(event, path+".not_whitelisted", "Role: %s".formatted(r.getAsMention()));
+						editError(event, "errors.role_not_whitelisted", "Role: %s".formatted(r.getAsMention()));
 						return;
 					}
 				}
@@ -93,7 +94,7 @@ public class RoleCmd extends SlashCommand {
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				editError(event, path+".no_member");
+				editError(event, "errors.option.member");
 				return;
 			}
 			List<Role> finalRoles = new ArrayList<>(member.getRoles());
@@ -146,14 +147,14 @@ public class RoleCmd extends SlashCommand {
 			for (Role r : roles) {
 				String denyReason = bot.getCheckUtil().denyRole(r, event.getGuild(), event.getMember(), true);
 				if (denyReason != null) {
-					editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
+					editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
 					return;
 				}
 				// Check if role whitelisted
 				if (whitelistEnabled) {
 					if (!bot.getDBUtil().roles.existsRole(r.getIdLong())) {
 						// Not whitelisted
-						editError(event, path+".not_whitelisted", "Role: %s".formatted(r.getAsMention()));
+						editError(event, "errors.role_not_whitelisted", "Role: %s".formatted(r.getAsMention()));
 						return;
 					}
 				}
@@ -161,7 +162,7 @@ public class RoleCmd extends SlashCommand {
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				editError(event, path+".no_member");
+				editError(event, "errors.option.member");
 				return;
 			}
 
@@ -201,12 +202,12 @@ public class RoleCmd extends SlashCommand {
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, path+".no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
-			String denyReason = bot.getCheckUtil().denyRole(role, event.getGuild(), event.getMember(), false);
+			String denyReason = bot.getCheckUtil().denyRole(role, event.getGuild(), event.getMember(), true);
 			if (denyReason != null) {
-				editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
 				return;
 			}
 
@@ -257,7 +258,7 @@ public class RoleCmd extends SlashCommand {
 			this.name = "modify";
 			this.path = "bot.roles.role.modify";
 			this.options = List.of(
-				new OptionData(OptionType.USER, "user", lu.getText(path + ".user.help"), true)
+				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
 			addMiddlewares(
 				"throttle:user,1,20"
@@ -269,12 +270,12 @@ public class RoleCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Member target = event.optMember("user");
 			if (target == null) {
-				editError(event, path+".no_user");
+				editError(event, "errors.option.member");
 				return;
 			}
 			assert event.getGuild() != null && event.getMember() != null;
 			if (!event.getMember().canInteract(target) || target.getUser().isBot()) {
-				editError(event, path+".incorrect_user");
+				editError(event, "errors.option.member_interact");
 				return;
 			}
 			List<Role> userRoles = target.getRoles();
@@ -339,6 +340,85 @@ public class RoleCmd extends SlashCommand {
 				)
 				.setComponents(actionRows)
 				.queue();
+		}
+	}
+
+	private class View extends SlashCommand {
+		public View() {
+			this.name = "view";
+			this.path = "bot.roles.role.view";
+			this.options = List.of(
+				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
+			);
+			addMiddlewares(
+				"throttle:user,1,30",
+				"throttle:guild,3,60"
+			);
+			this.ephemeral = false;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Role role = event.optRole("role");
+			if (role == null) {
+				editError(event, "errors.option.role");
+				return;
+			}
+
+			var guild = event.getGuild();
+			assert guild != null && event.getMember() != null;
+			String denyReason = bot.getCheckUtil().denyRole(role, guild, event.getMember(), false);
+			if (denyReason != null) {
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
+				return;
+			}
+
+			guild.retrieveRoleMemberCounts().queue(roleMemberCounts -> {
+				int count = roleMemberCounts.get(role);
+				if (count == 0) {
+					editEmbed(event, bot.getEmbedUtil().getEmbed()
+						.setDescription(lu.getText(event, path+".empty"))
+						.build());
+				} else if (count > 100) {
+					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
+						.setDescription(lu.getText(event, path+".too_many", count))
+						.build());
+				} else {
+					// Display
+					event.getGuild().findMembersWithRoles(role).setTimeout(4, TimeUnit.SECONDS).onSuccess(members -> {
+						if (members.isEmpty()) {
+							editEmbed(event, bot.getEmbedUtil().getEmbed()
+								.setDescription(lu.getText(event, path+".empty"))
+								.build());
+							return;
+						}
+
+						List<MessageEmbed> embeds = new ArrayList<>();
+						EmbedBuilder embedBuilder = new EmbedBuilder()
+							.setTitle(lu.getText(event, path+".total", role.getAsMention(), members.size(), count));
+						StringBuilder builder = new StringBuilder();
+						for (int i = 0; i < members.size(); i++) {
+							Member member = members.get(i);
+							builder.append("%20d) ".formatted(i+1)).append(member.getAsMention())
+								.append(" | ")
+								.append(member.getUser().getName())
+								.append(" | ")
+								.append(member.getIdLong())
+								.append("\n");
+
+							if (builder.length() > 4000) {
+								embedBuilder.setDescription(builder.toString());
+								embeds.add(embedBuilder.build());
+								embedBuilder.setTitle(null);
+								builder.setLength(0);
+							}
+						}
+						embeds.add(embedBuilder.setDescription(builder.toString()).build());
+
+						event.getHook().editOriginalEmbeds(embeds).queue();
+					}).onError(t -> editErrorOther(event, t.getMessage()));
+				}
+			}, t -> editErrorUnknown(event, t.getMessage()));
 		}
 	}
 

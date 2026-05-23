@@ -1,7 +1,6 @@
 package dev.fileeditor.votl.blacklist;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static dev.fileeditor.votl.utils.CastUtil.getOrDefault;
 
@@ -19,17 +18,17 @@ public enum Scope {
 		this.name = name;
 	}
 
-	@Nullable
+	@NotNull
 	public static Scope fromId(int id) {
 		for (Scope s : Scope.values()) {
 			if (s.id == id) {
 				return s;
 			}
 		}
-		return null;
+		throw new IllegalArgumentException("Scope with id " + id + " does not exist");
 	}
 
-	@Nullable
+	@NotNull
 	public static Scope parse(@NotNull String string) {
 		int parsedInt = getOrDefault(string, -1);
 		for (Scope s : Scope.values()) {
@@ -40,7 +39,7 @@ public enum Scope {
 				return s;
 			}
 		}
-		return null;
+		throw new IllegalArgumentException("Scope with value '" + string + "' does not exist");
 	}
 
 	public int getId() {

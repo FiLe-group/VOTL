@@ -3,9 +3,6 @@ package dev.fileeditor.votl.utils;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
-import net.dv8tion.jda.api.exceptions.ContextException;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
@@ -44,8 +41,16 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
 		// Ignore unknown interaction and ContextException, as those have little meaning and importance.
 		var throwable = event.getThrowableProxy();
-		if ((throwable instanceof ErrorResponseException ex && ex.getErrorResponse() == ErrorResponse.UNKNOWN_INTERACTION) ||
-			(throwable instanceof ContextException)) return;
+		if (throwable != null) {
+			String className = throwable.getClassName();
+
+			if (className.equals("net.dv8tion.jda.api.exceptions.ContextException")) return;
+			if (className.equals("net.dv8tion.jda.api.exceptions.ErrorResponseException")
+				&& throwable.getMessage() != null
+				&& throwable.getMessage().contains("Unknown Interaction")) {
+				return;
+			}
+		}
 
 		// Limit send rate
 		if (event.getTimeStamp() < lastSend + 50L) return; // wait 50ms

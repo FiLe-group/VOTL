@@ -32,7 +32,7 @@ public class CaseCmd extends SlashCommand {
 		assert event.getGuild() != null;
 		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
 		if (caseData == null) {
-			editError(event, path+".not_found");
+			editError(event, "errors.option.case");
 			return;
 		}
 		MessageEmbed embed = bot.getLogEmbedUtil().getCaseEmbed(event.getUserLocale(), caseData);

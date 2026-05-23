@@ -63,7 +63,7 @@ public class PersistentRoleCmd extends SlashCommand {
 			rolePerms.retainAll(managerPerms);
 			assert event.getMember() != null;
 			if (role.equals(publicRole) || role.isManaged() || !event.getMember().canInteract(role) || !event.getGuild().getSelfMember().canInteract(role) || !rolePerms.isEmpty()) {
-				editError(event, path+".incorrect_role", "Role: "+role.getAsMention());
+				editError(event, "errors.option.role_interact", "Role: "+role.getAsMention());
 				return;
 			}
 

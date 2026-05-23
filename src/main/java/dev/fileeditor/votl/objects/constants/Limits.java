@@ -18,6 +18,7 @@ public final class Limits {
 	public static final int CUSTOM_ROLES = 20;
 	public static final int TICKET_PANELS = 10;
 	public static final int WEBHOOKS = 10;
+	public static final int MEDIA_CHANNELS = 4;
 
 	public static final int REASON_CHARS = 300;
 }

@@ -34,10 +34,10 @@ public class HelpCmd extends SlashCommand {
 				.addChoice("Roles", "roles")
 				.addChoice("Games", "games")
 				.addChoice("Leveling", "levels")
+				.addChoice("Tools", "tools")
 				.addChoice("Other", "other"),
 			new OptionData(OptionType.STRING, "command", lu.getText(path+".command.help"), false, true)
-				.setRequiredLength(3, 20),
-			new OptionData(OptionType.BOOLEAN, "show", lu.getText(path+".show.help"))
+				.setRequiredLength(3, 20)
 		);
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;

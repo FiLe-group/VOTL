@@ -1660,6 +1660,9 @@ public class InteractionListener extends ListenerAdapter {
 
 	@Override
 	public void onEntitySelectInteraction(@NotNull EntitySelectInteractionEvent event) {
+		// Check if blacklisted
+		if (bot.getBlacklist().isBlacklisted(event)) return;
+
 		String menuId = event.getComponentId();
 		if (menuId.startsWith("voice")) {
 			event.deferEdit().queue();

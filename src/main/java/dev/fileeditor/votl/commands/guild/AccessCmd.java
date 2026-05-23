@@ -139,7 +139,7 @@ public class AccessCmd extends SlashCommand {
 
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, "bot.guild.access.add.no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 
@@ -147,7 +147,7 @@ public class AccessCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 
 			if (role.isPublicRole() || role.isManaged() || !guild.getSelfMember().canInteract(role) || role.hasPermission(Permission.ADMINISTRATOR)) {
-				editError(event, "bot.guild.access.add.incorrect_role");
+				editError(event, "errors.option.role_interact");
 				return;
 			}
 			if (bot.getDBUtil().access.isRole(roleId)) {
@@ -187,7 +187,7 @@ public class AccessCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, "bot.guild.access.remove.no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 
@@ -196,6 +196,7 @@ public class AccessCmd extends SlashCommand {
 			CmdAccessLevel level = bot.getDBUtil().access.getRoleLevel(roleId);
 			if (level.equals(CmdAccessLevel.ALL)) {
 				editError(event, "bot.guild.access.remove.role.no_access");
+				return;
 			}
 
 			try {
@@ -237,18 +238,18 @@ public class AccessCmd extends SlashCommand {
 
 			Member member = event.optMember("user");
 			if (member == null) {
-				editError(event, "bot.guild.access.add.no_member");
+				editError(event, "errors.option.member");
 				return;
 			}
 			if (member.isOwner() || member.getUser().isBot()) {
-				editError(event, "bot.guild.access.add.incorrect_user");
+				editError(event, "errors.option.member_interact");
 				return;
 			}
 
 			long userId = member.getIdLong();
 			long guildId = event.getGuild().getIdLong();
 			if (bot.getDBUtil().access.isOperator(guildId, userId)) {
-				editError(event, "bot.guild.access.add.user_already");
+				editError(event, "bot.guild.access.add.role.already");
 				return;
 			}
 
@@ -284,7 +285,7 @@ public class AccessCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			User user = event.optUser("user");
 			if (user == null) {
-				editError(event, "bot.guild.access.remove.no_user");
+				editError(event, "errors.option.user");
 				return;
 			}
 

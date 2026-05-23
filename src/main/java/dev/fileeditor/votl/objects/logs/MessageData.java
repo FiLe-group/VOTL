@@ -3,7 +3,6 @@ package dev.fileeditor.votl.objects.logs;
 import java.util.List;
 
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.utils.MarkdownSanitizer;
 
 import com.github.difflib.text.DiffRow;
@@ -14,15 +13,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class MessageData {
 	private final String content, authorName;
-	private final Attachment attachment;
+	private final boolean hasAttachment;
 	private final long authorId;
 
 	public MessageData(Message message) {
 		this.content = message.getContentRaw();
-		if (message.getAttachments().isEmpty())
-			this.attachment = null;
-		else
-			this.attachment = message.getAttachments().getFirst();
+		this.hasAttachment = !message.getAttachments().isEmpty();
 		this.authorId = message.getAuthor().getIdLong();
 		this.authorName = message.getAuthor().getName();
 	}
@@ -39,8 +35,8 @@ public class MessageData {
 		return MarkdownSanitizer.escape(content);
 	}
 
-	public Attachment getAttachment() {
-		return attachment;
+	public boolean hasAttachment() {
+		return hasAttachment;
 	}
 
 	public long getAuthorId() {
@@ -52,7 +48,7 @@ public class MessageData {
 	}
 
 	public boolean isEmpty() {
-		return content.isBlank() && attachment == null;
+		return content.isBlank() && !hasAttachment;
 	}
 
 	@Nullable

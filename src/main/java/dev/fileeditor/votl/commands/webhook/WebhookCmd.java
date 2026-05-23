@@ -276,13 +276,13 @@ public class WebhookCmd extends SlashCommand {
 			assert channel != null;
 
 			if (!channel.getType().equals(ChannelType.TEXT)) {
-				editError(event, path+".error_channel", "Selected channel is not Text Channel.");
+				editError(event, "errors.option.channel", "Selected channel is not Text Channel.");
 				return;
 			}
 
 			TextChannel textChannel = guild.getTextChannelById(channel.getId());
 			if (textChannel == null) {
-				editError(event, path+".error_channel", "Selected channel not found in this server.\nChannel ID: `%s`".formatted(channel.getId()));
+				editError(event, "errors.option.channel", "Selected channel not found in this server.\nChannel ID: `%s`".formatted(channel.getId()));
 				return;
 			}
 
@@ -333,7 +333,7 @@ public class WebhookCmd extends SlashCommand {
 			
 			GuildChannel channel = event.getGuildChannel();
 			if (!channel.getType().equals(ChannelType.TEXT)) {
-				editError(event, path+".error_channel", "Selected channel is not Text Channel");
+				editError(event, "errors.option.channel", "Selected channel is not Text Channel");
 				return;
 			}
 

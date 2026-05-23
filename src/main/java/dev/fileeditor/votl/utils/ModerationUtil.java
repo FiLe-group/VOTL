@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
-import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -44,8 +43,9 @@ public class ModerationUtil {
 					text = duration.isZero() ?
 						lu.getLocalized(locale, "logger_embed.pm.banned_perm") :
 						lu.getLocalized(locale, "logger_embed.pm.banned_temp");
-				} else
+				} else {
 					text = lu.getLocalized(locale, "logger_embed.pm.banned");
+				}
 			}
 			case KICK -> {
 				level = dbUtil.getGuildSettings(guild).getInformKick().getLevel();
@@ -71,7 +71,11 @@ public class ModerationUtil {
 		}
 
 		StringBuilder builder = new StringBuilder(
-			formatText(text, guild, level >= 2 ? reason : null, level >= 2 ? duration : null, level >= 3 ? mod : null)
+			formatText(text, guild,
+				level >= 2 ? reason : null,
+				level >= 2 || type.equals(CaseType.MUTE) ? duration : null,
+				level >= 3 ? mod : null
+			)
 		);
 		if (type.equals(CaseType.BAN) && canAppeal) {
 			String link = dbUtil.getGuildSettings(guild).getAppealLink();
@@ -255,10 +259,10 @@ public class ModerationUtil {
 	}
 
 	@NotNull
-	public <T extends SlashCommand> String parseReasonMentions(@NotNull SlashCommandEvent event, @NotNull T command) {
+	public String parseReasonMentions(@NotNull SlashCommandEvent event) {
 		OptionMapping option = event.getOption("reason");
-		if (option == null) {
-			return lu.getText(event, command.getPath()+".no_reason");
+		if (option == null || option.getAsString().isBlank()) {
+			return lu.getGuildText(event, "mics.no_reason");
 		}
 
 		String reason = option.getAsString();

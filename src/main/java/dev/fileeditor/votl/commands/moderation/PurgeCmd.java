@@ -55,35 +55,48 @@ public class PurgeCmd extends SlashCommand {
 					return;
 				}
 
-				deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(_ -> {
-					// Log
-					bot.getGuildLogger().mod.onMessagePurge(event.getUser(), null, toDelete, event.getGuildChannel());
-					// Reply
-					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-						.setDescription(lu.getGuildText(event, path+".done", toDelete))
+				try {
+					deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(_ -> {
+						// Log
+						bot.getGuildLogger().mod.onMessagePurge(event.getUser(), null, toDelete, event.getGuildChannel());
+						// Reply
+						event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+							.setDescription(lu.getGuildText(event, path+".done", toDelete))
+							.build()
+						).queue(msg -> msg.delete().queueAfter(4, TimeUnit.SECONDS, null, ignoreRest));
+					}, ignoreRest);
+				} catch (IllegalStateException ex) {
+					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
+						.setDescription(lu.getGuildText(event, "errors.error") + "\n> " + ex.getMessage())
 						.build()
 					).queue(msg -> msg.delete().queueAfter(4, TimeUnit.SECONDS, null, ignoreRest));
-				}, ignoreRest);
+				}
 			});
-			return;
+		} else {
+			loadMessages(event.getChannel().getHistory(), toDelete, target.getIdLong(), messages -> {
+				if (messages.isEmpty()) {
+					sendNoMessages(event, target);
+					return;
+				}
+
+				try {
+					deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(_ -> {
+						// Log
+						bot.getGuildLogger().mod.onMessagePurge(event.getUser(), target, toDelete, event.getGuildChannel());
+						// Reply
+						event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+							.setDescription(lu.getGuildText(event, path+".done_user", toDelete, target.getEffectiveName()))
+							.build()
+						).queue(msg -> msg.delete().queueAfter(4, TimeUnit.SECONDS, null, ignoreRest));
+					}, ignoreRest);
+				} catch (IllegalStateException ex) {
+					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
+						.setDescription(lu.getGuildText(event, "errors.error") + "\n> " + ex.getMessage())
+						.build()
+					).queue(msg -> msg.delete().queueAfter(4, TimeUnit.SECONDS, null, ignoreRest));
+				}
+			});
 		}
-
-		loadMessages(event.getChannel().getHistory(), toDelete, target.getIdLong(), messages -> {
-			if (messages.isEmpty()) {
-				sendNoMessages(event, target);
-				return;
-			}
-
-			deleteMessages(event.getChannel().asGuildMessageChannel(), messages, event.getUser().getName()).queue(_ -> {
-				// Log
-				bot.getGuildLogger().mod.onMessagePurge(event.getUser(), target, toDelete, event.getGuildChannel());
-				// Reply
-				event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getGuildText(event, path+".done_user", toDelete, target.getEffectiveName()))
-					.build()
-				).queue(msg -> msg.delete().queueAfter(4, TimeUnit.SECONDS, null, ignoreRest));
-			}, ignoreRest);
-		});
 	}
 
 	private void sendNoMessages(SlashCommandEvent event, User target) {
@@ -127,9 +140,13 @@ public class PurgeCmd extends SlashCommand {
 		});
 	}
 
-	private RestAction<Void> deleteMessages(GuildMessageChannel channel, List<Message> messages, String modName) {
+	private RestAction<Void> deleteMessages(GuildMessageChannel channel, List<Message> messages, String modName) throws IllegalStateException {
 		if (messages.size() == 1) {
-			return messages.getFirst().delete().reason("By "+modName);
+			var message = messages.getFirst();
+			if (message.getType().canDelete()) {
+				return messages.getFirst().delete().reason("By "+modName);
+			}
+			throw new IllegalStateException("Can't delete this type of message: %s".formatted(message.getType()));
 		}
 		return channel.deleteMessages(messages);
 	}

@@ -28,13 +28,13 @@ public class CheckAccessCmd extends SlashCommand {
 	protected void execute(SlashCommandEvent event) {
 		Guild guild = event.getJDA().getGuildById(event.optString("server", "0"));
 		if (guild == null) {
-			editError(event, path+".no_guild");
+			editMsg(event, "ERROR: Selected server not found.");
 			return;
 		}
 
 		User user = event.optUser("user");
 		if (user == null) {
-			editErrorUnknown(event, "No user found.");
+			editMsg(event, "ERROR: User not found.");
 			return;
 		}
 
