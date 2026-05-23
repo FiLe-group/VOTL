@@ -143,7 +143,7 @@ public class AutopunishCmd extends SlashCommand {
 				Role role = event.optRole("remove-role");
 				assert role != null;
 				if (!event.getGuild().getSelfMember().canInteract(role)) {
-					editError(event, path+".incorrect_role");
+					editError(event, "errors.option.role_interact");
 					return;
 				}
 				actions.add(PunishAction.REMOVE_ROLE);
@@ -154,7 +154,7 @@ public class AutopunishCmd extends SlashCommand {
 				Role role = event.optRole("add-role");
 				assert role != null;
 				if (!event.getGuild().getSelfMember().canInteract(role)) {
-					editError(event, path+".incorrect_role");
+					editError(event, "errors.option.role_interact");
 					return;
 				}
 				actions.add(PunishAction.ADD_ROLE);
@@ -165,11 +165,11 @@ public class AutopunishCmd extends SlashCommand {
 				Role role = event.optRole("temp-role");
 				assert role != null;
 				if (!event.getGuild().getSelfMember().canInteract(role)) {
-					editError(event, path+".incorrect_role");
+					editError(event, "errors.option.role_interact");
 					return;
 				}
 				if (!event.hasOption("temp-duration")) {
-					editError(event, path+".no_duration");
+					editError(event, "errors.option.duration");
 					return;
 				}
 				Duration duration;

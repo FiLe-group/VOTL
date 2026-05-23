@@ -44,7 +44,7 @@ public class UserProfileCmd extends SlashCommand {
 	protected void execute(SlashCommandEvent event) {
 		Member target = event.optMember("user", event.getMember());
 		if (target == null || target.getUser().isBot()) {
-			editError(event, path+".bad_user");
+			editError(event, "errors.option.user");
 			return;
 		}
 

@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
-import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -260,10 +259,10 @@ public class ModerationUtil {
 	}
 
 	@NotNull
-	public <T extends SlashCommand> String parseReasonMentions(@NotNull SlashCommandEvent event, @NotNull T command) {
+	public String parseReasonMentions(@NotNull SlashCommandEvent event) {
 		OptionMapping option = event.getOption("reason");
-		if (option == null) {
-			return lu.getText(event, command.getPath()+".no_reason");
+		if (option == null || option.getAsString().isBlank()) {
+			return lu.getGuildText(event, "mics.no_reason");
 		}
 
 		String reason = option.getAsString();

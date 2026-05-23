@@ -79,14 +79,14 @@ public class RoleCmd extends SlashCommand {
 			for (Role r : roles) {
 				String denyReason = bot.getCheckUtil().denyRole(r, event.getGuild(), event.getMember(), true);
 				if (denyReason != null) {
-					editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
+					editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
 					return;
 				}
 				// Check if role whitelisted
 				if (whitelistEnabled) {
 					if (!bot.getDBUtil().roles.existsRole(r.getIdLong())) {
 						// Not whitelisted
-						editError(event, path+".not_whitelisted", "Role: %s".formatted(r.getAsMention()));
+						editError(event, "errors.role_not_whitelisted", "Role: %s".formatted(r.getAsMention()));
 						return;
 					}
 				}
@@ -94,7 +94,7 @@ public class RoleCmd extends SlashCommand {
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				editError(event, path+".no_member");
+				editError(event, "errors.option.member");
 				return;
 			}
 			List<Role> finalRoles = new ArrayList<>(member.getRoles());
@@ -147,14 +147,14 @@ public class RoleCmd extends SlashCommand {
 			for (Role r : roles) {
 				String denyReason = bot.getCheckUtil().denyRole(r, event.getGuild(), event.getMember(), true);
 				if (denyReason != null) {
-					editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
+					editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
 					return;
 				}
 				// Check if role whitelisted
 				if (whitelistEnabled) {
 					if (!bot.getDBUtil().roles.existsRole(r.getIdLong())) {
 						// Not whitelisted
-						editError(event, path+".not_whitelisted", "Role: %s".formatted(r.getAsMention()));
+						editError(event, "errors.role_not_whitelisted", "Role: %s".formatted(r.getAsMention()));
 						return;
 					}
 				}
@@ -162,7 +162,7 @@ public class RoleCmd extends SlashCommand {
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				editError(event, path+".no_member");
+				editError(event, "errors.option.member");
 				return;
 			}
 
@@ -202,12 +202,12 @@ public class RoleCmd extends SlashCommand {
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, path+".no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 			String denyReason = bot.getCheckUtil().denyRole(role, event.getGuild(), event.getMember(), true);
 			if (denyReason != null) {
-				editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
 				return;
 			}
 
@@ -270,12 +270,12 @@ public class RoleCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Member target = event.optMember("user");
 			if (target == null) {
-				editError(event, path+".no_user");
+				editError(event, "errors.option.member");
 				return;
 			}
 			assert event.getGuild() != null && event.getMember() != null;
 			if (!event.getMember().canInteract(target) || target.getUser().isBot()) {
-				editError(event, path+".incorrect_user");
+				editError(event, "errors.option.member_interact");
 				return;
 			}
 			List<Role> userRoles = target.getRoles();
@@ -348,7 +348,7 @@ public class RoleCmd extends SlashCommand {
 			this.name = "view";
 			this.path = "bot.roles.role.view";
 			this.options = List.of(
-				new OptionData(OptionType.ROLE, "role", lu.getText(path + ".role.help"), true)
+				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
 			);
 			addMiddlewares(
 				"throttle:user,1,30",
@@ -361,7 +361,7 @@ public class RoleCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, path+".no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 
@@ -369,7 +369,7 @@ public class RoleCmd extends SlashCommand {
 			assert guild != null && event.getMember() != null;
 			String denyReason = bot.getCheckUtil().denyRole(role, guild, event.getMember(), false);
 			if (denyReason != null) {
-				editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
 				return;
 			}
 

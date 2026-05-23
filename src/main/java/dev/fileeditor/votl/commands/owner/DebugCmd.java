@@ -35,7 +35,7 @@ public class DebugCmd extends SlashCommand {
 				.orElse("");
 			File file = new File("./logs/votl%s.log".formatted(date));
 			if (!file.exists()) {
-				editErrorOther(event, "No file by name: "+file.getName());
+				editMsg(event, "ERROR: No file by name: "+file.getName());
 			} else {
 				event.getHook().editOriginalAttachments(FileUpload.fromData(file)).queue();
 			}

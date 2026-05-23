@@ -48,7 +48,7 @@ public class StrikeCmd extends SlashCommand {
 		this.name = "strike";
 		this.path = "bot.moderation.strike";
 		this.options = List.of(
-			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
+			new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
 			new OptionData(OptionType.INTEGER, "severity", lu.getText(path+".severity.help"), true).addChoices(
 				new Choice(lu.getText(path+".severity.minor"), 1).setNameLocalizations(lu.getLocaleMap(path+".severity.minor")),
 				new Choice(lu.getText(path+".severity.severe"), 2).setNameLocalizations(lu.getLocaleMap(path+".severity.severe")),
@@ -69,13 +69,13 @@ public class StrikeCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Member tm = event.optMember("user");
+		Member tm = event.optMember("member");
 		if (tm == null) {
-			editError(event, path+".not_found");
+			editError(event, "errors.option.member");
 			return;
 		}
 		if (event.getUser().equals(tm.getUser()) || tm.getUser().isBot()) {
-			editError(event, path+".not_self");
+			editError(event, "errors.option.user_self");
 			return;
 		}
 
@@ -104,7 +104,7 @@ public class StrikeCmd extends SlashCommand {
 			return;
 		}
 
-		String reason = bot.getModerationUtil().parseReasonMentions(event, this);
+		String reason = bot.getModerationUtil().parseReasonMentions(event);
 		Integer strikeAmount = event.optInteger("severity", 1);
 		CaseType type = CaseType.byType(20 + strikeAmount);
 

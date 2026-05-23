@@ -52,7 +52,7 @@ public class ExperienceCmd extends SlashCommand {
 
 				Guild guild = event.getJDA().getGuildById(guildId);
 				if (guild == null) {
-					editErrorOther(event, "Guild not found");
+					editMsg(event, "ERROR: Server not found.");
 					return;
 				}
 				guild.retrieveMemberById(userId).queue(member -> {

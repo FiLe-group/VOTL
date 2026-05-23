@@ -63,30 +63,30 @@ public class TempRoleCmd extends SlashCommand {
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, path+".no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 			String denyReason = bot.getCheckUtil().denyRole(role, event.getGuild(), event.getMember(), true);
 			if (denyReason != null) {
-				editError(event, path+".incorrect_role", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
 				return;
 			}
 			// Check if role whitelisted
 			if (bot.getDBUtil().getGuildSettings(guild).isRoleWhitelistEnabled()) {
 				if (!bot.getDBUtil().roles.existsRole(role.getIdLong())) {
 					// Not whitelisted
-					editError(event, path+".not_whitelisted", "Role: %s".formatted(role.getAsMention()));
+					editError(event, "errors.role_not_whitelisted", "Role: %s".formatted(role.getAsMention()));
 					return;
 				}
 			}
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				editError(event, path+".no_member");
+				editError(event, "errors.option.member");
 				return;
 			}
 			if (member.isOwner() || member.getUser().isBot()) {
-				editError(event, path+".incorrect_user");
+				editError(event, "errors.option.member_interact");
 				return;
 			}
 			
@@ -153,13 +153,13 @@ public class TempRoleCmd extends SlashCommand {
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, path+".no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				editError(event, path+".no_member");
+				editError(event, "errors.option.member");
 				return;
 			}
 			// Check time
@@ -204,13 +204,13 @@ public class TempRoleCmd extends SlashCommand {
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
-				editError(event, path+".no_role");
+				editError(event, "errors.option.role");
 				return;
 			}
 			// Check member
 			Member member = event.optMember("user");
 			if (member == null) {
-				editError(event, path+".no_member");
+				editError(event, "errors.option.member");
 				return;
 			}
 			// Check time

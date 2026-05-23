@@ -36,7 +36,7 @@ public class MuteCmd extends SlashCommand {
 		this.name = "mute";
 		this.path = "bot.moderation.mute";
 		this.options = List.of(
-			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
+			new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
 			new OptionData(OptionType.STRING, "time", lu.getText(path+".time.help"), true)
 				.setMaxLength(12),
 			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"))
@@ -54,13 +54,13 @@ public class MuteCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Member tm = event.optMember("user");
+		Member tm = event.optMember("member");
 		if (tm == null) {
-			editError(event, path+".not_found");
+			editError(event, "errors.option.member");
 			return;
 		}
 		if (event.getUser().equals(tm.getUser()) || event.getJDA().getSelfUser().equals(tm.getUser())) {
-			editError(event, path+".not_self");
+			editError(event, "errors.option.user_self");
 			return;
 		}
 
@@ -91,7 +91,7 @@ public class MuteCmd extends SlashCommand {
 
 		Guild guild = event.getGuild();
 		assert guild != null;
-		String reason = bot.getModerationUtil().parseReasonMentions(event, this);
+		String reason = bot.getModerationUtil().parseReasonMentions(event);
 		CaseData oldMuteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 
 		if (tm.isTimedOut() && oldMuteData != null) {

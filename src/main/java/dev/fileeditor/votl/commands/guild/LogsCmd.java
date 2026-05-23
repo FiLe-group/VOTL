@@ -65,7 +65,7 @@ public class LogsCmd extends SlashCommand {
 		protected void execute(SlashCommandEvent event) {
 			TextChannel channel = (TextChannel) event.optGuildChannel("channel");
 			if (channel == null) {
-				editError(event, path+".no_channel");
+				editError(event, "errors.option.channel");
 				return;
 			}
 
@@ -250,7 +250,7 @@ public class LogsCmd extends SlashCommand {
 					}
 				}
 				default -> {
-					editError(event, path+".not_found");
+					editError(event, "errors.option.channel");
 					return;
 				}
 			}
@@ -284,13 +284,13 @@ public class LogsCmd extends SlashCommand {
 				targetId = castLong(event.optString("id"));
 				if (targetId == null) throw new NumberFormatException("Value is empty or Null.");
 			} catch (NumberFormatException ex) {
-				editError(event, path+".not_found", ex.getMessage());
+				editError(event, "errors.option.channel", ex.getMessage());
 				return;
 			}
 			assert event.getGuild() != null;
 			long guildId = event.getGuild().getIdLong();
 			if (!bot.getDBUtil().logExemptions.isExemption(event.getGuild().getIdLong(), targetId)) {
-				editError(event, path+".not_found", "Provided ID: "+targetId);
+				editError(event, "errors.option.channel", "Provided ID: "+targetId);
 				return;
 			}
 			try {

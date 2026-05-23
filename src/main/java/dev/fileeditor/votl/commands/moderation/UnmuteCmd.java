@@ -23,7 +23,7 @@ public class UnmuteCmd extends SlashCommand {
 		this.name = "unmute";
 		this.path = "bot.moderation.unmute";
 		this.options = List.of(
-			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
+			new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
 			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"))
 				.setMaxLength(Limits.REASON_CHARS)
 		);
@@ -38,22 +38,21 @@ public class UnmuteCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Member tm = event.optMember("user");
+		Member tm = event.optMember("member");
 		if (tm == null) {
-			editError(event, path+".not_found");
+			editError(event, "errors.option.member");
 			return;
 		}
 
 		Guild guild = event.getGuild();
 		assert guild != null;
-		String reason = event.optString("reason", lu.getGuildText(event, path+".no_reason"));
-		
 		CaseData muteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 		if (muteData != null) {
 			ignoreExc(() -> bot.getDBUtil().cases.setInactive(muteData.getRowId()));
 		}
 
 		if (tm.isTimedOut()) {
+			String reason = bot.getModerationUtil().parseReasonMentions(event);
 			tm.removeTimeout().reason(reason).queue(_ -> {
 				Member mod = event.getMember();
 				assert mod != null;

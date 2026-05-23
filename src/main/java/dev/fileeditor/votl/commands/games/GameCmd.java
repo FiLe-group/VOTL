@@ -88,7 +88,7 @@ public class GameCmd extends SlashCommand {
 			GuildChannel channel = event.optGuildChannel("channel");
 			assert channel != null;
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
-				editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
+				editError(event, "errors.option.channel", "Channel: %s".formatted(channel.getAsMention()));
 				return;
 			}
 
@@ -153,12 +153,12 @@ public class GameCmd extends SlashCommand {
 			GuildChannel channel = event.optGuildChannel("channel");
 			assert channel != null;
 			if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
-				editError(event, path+".not_found", "Channel: %s".formatted(channel.getAsMention()));
+				editError(event, "errors.option.channel", "Channel: %s".formatted(channel.getAsMention()));
 				return;
 			}
 			User user = event.optUser("user");
 			if (user == null) {
-				editError(event, path+".no_user");
+				editError(event, "errors.option.user");
 				return;
 			}
 

@@ -132,7 +132,7 @@ public class TicketCmd extends SlashCommand {
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
-				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
+				editError(event, "errors.option.panel", "Received ID: %s".formatted(panelId));
 				return;
 			}
 
@@ -186,7 +186,7 @@ public class TicketCmd extends SlashCommand {
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
-				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
+				editError(event, "errors.option.panel", "Received ID: %s".formatted(panelId));
 				return;
 			}
 
@@ -219,7 +219,7 @@ public class TicketCmd extends SlashCommand {
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
-				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
+				editError(event, "errors.option.panel", "Received ID: %s".formatted(panelId));
 				return;
 			}
 			TextChannel channel = (TextChannel) event.optGuildChannel("channel");
@@ -269,7 +269,7 @@ public class TicketCmd extends SlashCommand {
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
-				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
+				editError(event, "errors.option.panel", "Received ID: %s".formatted(panelId));
 				return;
 			}
 
@@ -328,7 +328,7 @@ public class TicketCmd extends SlashCommand {
 			Long guildId = bot.getDBUtil().ticketPanels.getGuildId(panelId);
 			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
-				editError(event, path+".not_found", "Received ID: %s".formatted(panelId));
+				editError(event, "errors.option.panel", "Received ID: %s".formatted(panelId));
 				return;
 			}
 
@@ -409,7 +409,7 @@ public class TicketCmd extends SlashCommand {
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
 			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
-				editError(event, path+".not_found", "Received ID: %s".formatted(tagId));
+				editError(event, "errors.option.tag", "Received ID: %s".formatted(tagId));
 				return;
 			}
 
@@ -481,13 +481,13 @@ public class TicketCmd extends SlashCommand {
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
 			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
-				editError(event, path+".not_found", "Received ID: %s".formatted(tagId));
+				editError(event, "errors.option.tag", "Received ID: %s".formatted(tagId));
 				return;
 			}
 
 			Tag tag = bot.getDBUtil().ticketTags.getTagFull(tagId);
 			if (tag == null) {
-				editError(event, path+".not_found", "No record found");
+				editError(event, "errors.option.tag", "No record found");
 				return;
 			}
 
@@ -529,7 +529,7 @@ public class TicketCmd extends SlashCommand {
 			Long guildId = bot.getDBUtil().ticketTags.getGuildId(tagId);
 			assert event.getGuild() != null;
 			if (guildId == null || !guildId.equals(event.getGuild().getIdLong())) {
-				editError(event, path+".not_found", "Received ID: %s".formatted(tagId));
+				editError(event, "errors.option.tag", "Received ID: %s".formatted(tagId));
 				return;
 			}
 

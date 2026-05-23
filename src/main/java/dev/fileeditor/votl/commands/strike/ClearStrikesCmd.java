@@ -35,7 +35,7 @@ public class ClearStrikesCmd extends SlashCommand {
 	protected void execute(SlashCommandEvent event) {
 		User tu = event.optUser("user");
 		if (tu == null) {
-			editError(event, path+".not_found");
+			editError(event, "errors.option.user");
 			return;
 		}
 		if (tu.isBot()) {

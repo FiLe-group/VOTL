@@ -45,7 +45,7 @@ public class RcloseCmd extends SlashCommand {
 
 		if (authorId == null) {
 			// If this channel is not a ticket
-			editError(event, path+".not_ticket");
+			editError(event, "errors.not_ticket");
 			return;
 		}
 		if (bot.getDBUtil().tickets.isClosed(channelId)) {

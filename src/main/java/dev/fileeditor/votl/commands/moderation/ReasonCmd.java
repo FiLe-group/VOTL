@@ -39,7 +39,7 @@ public class ReasonCmd extends SlashCommand {
 		assert event.getGuild() != null;
 		CaseData caseData = bot.getDBUtil().cases.getInfo(event.getGuild().getIdLong(), event.optInteger("id"));
 		if (caseData == null) {
-			editError(event, path+".not_found");
+			editError(event, "errors.option.case");
 			return;
 		}
 		if (!caseData.isActive()) {
@@ -47,8 +47,7 @@ public class ReasonCmd extends SlashCommand {
 			return;
 		}
 
-		String newReason = event.optString("reason");
-		assert newReason != null;
+		String newReason = bot.getModerationUtil().parseReasonMentions(event);
 		try {
 			bot.getDBUtil().cases.updateReason(caseData.getRowId(), newReason);
 		} catch (SQLException ex) {

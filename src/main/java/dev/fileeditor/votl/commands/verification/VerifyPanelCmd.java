@@ -64,7 +64,7 @@ public class VerifyPanelCmd extends SlashCommand {
 			assert guild != null;
 			GuildChannel channel = event.optGuildChannel("channel");
 			if (channel == null ) {
-				editError(event, path+".no_channel", "Received: No channel");
+				editError(event, "errors.option.channel", "Received: No channel");
 				return;
 			}
 			try {

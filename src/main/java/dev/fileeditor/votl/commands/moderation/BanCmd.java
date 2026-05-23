@@ -67,11 +67,11 @@ public class BanCmd extends SlashCommand {
 		// Resolve user and check permission
 		User tu = event.optUser("user");
 		if (tu == null) {
-			editError(event, path+".not_found");
+			editError(event, "errors.option.user");
 			return;
 		}
 		if (event.getUser().equals(tu) || event.getJDA().getSelfUser().equals(tu)) {
-			editError(event, path+".not_self");
+			editError(event, "errors.option.user_self");
 			return;
 		}
 
@@ -93,7 +93,7 @@ public class BanCmd extends SlashCommand {
 			return;
 		}
 
-		String reason = bot.getModerationUtil().parseReasonMentions(event, this);
+		String reason = bot.getModerationUtil().parseReasonMentions(event);
 		guild.retrieveBan(tu).queue(ban -> {
 			CaseData oldBanData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 			if (oldBanData != null) {
