@@ -37,13 +37,14 @@ public class CaseManager extends LiteBase {
 	@NotNull
 	public CaseData add(CaseType type, long userId, String userName, long modId, String modName, long guildId, String reason, Duration duration) throws SQLException {
 		Instant now = Instant.now();
-		final String sql = """
+		final String sql =
+			"""
 			INSERT INTO %s(type, targetId, targetTag, modId, modTag, guildId, reason, timeStart, duration, active, localId)
 			VALUES (%d, %d, %s, %d, %s, %d, %s, %d, %d, %d, COALESCE((SELECT MAX(localId) + 1 FROM cases WHERE guildId=%d), 1))
 			RETURNING rowId, localId;
 			""".formatted(
 				table, type.getValue(), userId, quote(userName), modId, quote(modName), guildId, quote(reason),
-			now.getEpochSecond(), duration == null ? -1 : duration.getSeconds(),
+				now.getEpochSecond(), duration == null ? -1 : duration.getSeconds(),
 				type.isActiveInt(), guildId
 			);
 
@@ -179,6 +180,20 @@ public class CaseManager extends LiteBase {
 	}
 
 	//  BANS
+	// get most recent BAN case per guild for a user across multiple guilds
+	public List<CaseData> getBansByUser(long userId, Collection<Long> guildIds) {
+		if (guildIds.isEmpty()) return Collections.emptyList();
+		String guildIdList = guildIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+		List<Map<String, Object>> data = select(
+			("SELECT * FROM %s WHERE (targetId=%d AND type=%d AND guildId IN (%s))" +
+				" ORDER BY active DESC, timeStart DESC")
+				.formatted(table, userId, CaseType.BAN.getValue(), guildIdList),
+			fullCaseKeys
+		);
+		if (data.isEmpty()) return Collections.emptyList();
+		return data.stream().map(CaseData::new).toList();
+	}
+
 	// get all active expired bans
 	public List<CaseData> getExpired() {
 		List<Map<String, Object>> data = select("SELECT * FROM %s WHERE (active=1 AND type<20 AND duration>0 AND timeStart+duration<%d) ORDER BY rowId DESC LIMIT 10"

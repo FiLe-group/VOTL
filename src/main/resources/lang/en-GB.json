@@ -1305,6 +1305,20 @@
 				"ban_abort": "Could not ban mentioned member.",
 				"success": "\uD83D\uDD28 **User was banned %s.**"
 			},
+			"baninfo": {
+				"help": "Show ban info for a user across all group servers",
+				"usage": "baninfo <@User | ID>",
+				"user": {
+					"name": "user",
+					"help": "Mention user/Enter ID"
+				},
+				"title": "Ban info: %s",
+				"no_groups": "This server is not part of any groups and does not own any groups.",
+				"no_bans": "No bans found across %d servers.",
+				"active_title": "Active bans (%d)",
+				"past_title": "Past bans (%d)",
+				"truncated": "... and more (total: %d)"
+			},
 			"unban": {
 				"help": "Unban banned user on this server",
 				"usage": "unban <Tag | ID> [reason]",

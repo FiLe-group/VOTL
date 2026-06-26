@@ -67,6 +67,23 @@ public class GroupHelper {
 		return groupIds;
 	}
 
+	// Returns all guild IDs reachable through groups this guild owns or is part of (and up the chain).
+	public Set<Long> collectAllRelatedGuildIds(long guildId) {
+		Set<Long> result = new LinkedHashSet<>();
+		Set<Integer> visitedGroups = new HashSet<>();
+		for (int groupId : db.group.getOwnedGroups(guildId)) {
+			collectRecursive(groupId, result, visitedGroups);
+		}
+		Set<Integer> parentGroups = new LinkedHashSet<>();
+		collectGroupsUpward(guildId, parentGroups, new HashSet<>());
+		for (int groupId : parentGroups) {
+			Long ownerId = db.group.getOwner(groupId);
+			if (ownerId != null) result.add(ownerId);
+			collectRecursive(groupId, result, visitedGroups);
+		}
+		return result;
+	}
+
 	private void banUser(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull String modName) {
 		final Set<Long> guildIds = collectGuildIds(groupId);
 		if (guildIds.isEmpty()) return;
