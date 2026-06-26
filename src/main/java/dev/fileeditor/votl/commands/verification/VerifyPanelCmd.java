@@ -9,7 +9,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -41,7 +41,7 @@ public class VerifyPanelCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND};
 		this.module = CmdModule.VERIFICATION;
 		this.category = CmdCategory.VERIFICATION;
-		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.requiredPermission = AccessPermission.ADMIN;
 		this.waiter = App.getInstance().getEventWaiter();
 	}
 

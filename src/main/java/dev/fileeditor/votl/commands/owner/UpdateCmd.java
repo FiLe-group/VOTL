@@ -2,7 +2,7 @@ package dev.fileeditor.votl.commands.owner;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.ExitCodes;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -20,7 +20,7 @@ public class UpdateCmd extends SlashCommand {
 		this.name = "update";
 		this.path = "bot.owner.update";
 		this.category = CmdCategory.OWNER;
-		this.accessLevel = CmdAccessLevel.DEV;
+		this.requiredPermission = AccessPermission.DEV;
 		this.guildOnly = false;
 		this.options = List.of(
 			new OptionData(OptionType.BOOLEAN, "now", lu.getText(path+".now.help"))

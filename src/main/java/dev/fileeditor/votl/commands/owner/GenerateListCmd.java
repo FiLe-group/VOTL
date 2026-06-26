@@ -14,7 +14,7 @@ import java.util.Map;
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
@@ -29,7 +29,7 @@ public class GenerateListCmd extends SlashCommand {
 		this.name = "generate";
 		this.path = "bot.owner.generate";
 		this.category = CmdCategory.OWNER;
-		this.accessLevel = CmdAccessLevel.DEV;
+		this.requiredPermission = AccessPermission.DEV;
 		this.ephemeral = true;
 	}
 
@@ -43,14 +43,14 @@ public class GenerateListCmd extends SlashCommand {
 
 		JSONArray commandArray = new JSONArray();
 		for (SlashCommand cmd : commands) {
-			if (cmd.getAccessLevel().satisfies(CmdAccessLevel.DEV)) continue;
+			if (cmd.getRequiredPermission() == AccessPermission.DEV) continue;
 			
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("name", cmd.getName())
 				.put("description", getText(cmd.getHelpPath()))
 				.put("category", getCategoryMap(cmd.getCategory()))
 				.put("guildOnly", cmd.isGuildOnly())
-				.put("access", cmd.getAccessLevel().getLevel());
+				.put("access", cmd.getRequiredPermission() != null ? cmd.getRequiredPermission().name() : "all");
 
 			if (cmd.getModule() == null) {
 				jsonObject.put("module", Map.of("en-GB", "", "ru", ""));

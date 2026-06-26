@@ -44,7 +44,10 @@
 		},
 		"interaction": {
 			"no_values": "None of the values has been selected.",
-			"no_access": "You cannot perform this action because you do not have the required access."
+			"no_access": "You cannot perform this action because you do not have the required access.",
+			"ban_no_permanent": "You are not allowed to issue permanent bans.",
+			"ban_exceeds_limit": "Your ban duration limit is **%s**. Please use a shorter duration.",
+			"mute_exceeds_limit": "Your mute duration limit is **%s**. Please use a shorter duration."
 		},
 		"timed_out": "Timed out",
 		"proof_type": "Incorrect proof file type provided. Only .png and .jpg/.jpeg are accepted.",
@@ -457,27 +460,6 @@
 				"usage": "generate",
 				"error": "Unknown error, see below."
 			},
-			"forceaccess": {
-				"help": "Force role/user access in selected server",
-				"usage": "forceaccess <Server ID> <@Role/@User> <Access level>",
-				"server": {
-					"name": "server",
-					"help": "Enter server's ID"
-				},
-				"type": {
-					"name": "type",
-					"help": "Is target role or user?"
-				},
-				"target": {
-					"name": "target",
-					"help": "Enter target's ID"
-				},
-				"access_level": {
-					"name": "access_level",
-					"help": "Grant the target selected access level"
-				},
-				"done": "Assigned %s access %s."
-			},
 			"checkaccess": {
 				"help": "Check user's access in selected server",
 				"usage": "checkaccess <Server ID> <@User>",
@@ -812,68 +794,91 @@
 				}
 			},
 			"access": {
-				"help": "Manage access to command use",
-				"add": {
-					"help": "Allow access",
-					"role": {
-						"help": "Add server's role an access",
-						"usage": "add role <@Role | ID> <Access level>",
-						"role": {
-							"name": "role",
-							"help": "Mention role"
-						},
-						"access_level": {
-							"name": "access_level",
-							"help": "Grant the role selected access level"
-						},
-						"already": "Role already has some access!",
-						"done": "Successfully assigned %s access `%s`!"
+				"help": "Manage access groups for command permissions",
+				"group": {
+					"help": "Manage access groups",
+					"not_found": "Access group not found. Use `/access group list` to see available groups.",
+					"create": {
+						"help": "Create a new access group",
+						"name": { "name": "name", "help": "Group name (alphanumeric, spaces, hyphens; max 32 chars)" },
+						"invalid_name": "Invalid name. Use only letters, numbers, spaces and hyphens (max 32 characters).",
+						"already_exists": "A group with that name already exists.",
+						"done": "Access group **%s** created successfully."
 					},
-					"operator": {
-						"help": "Add Operator access to user",
-						"usage": "add operator <@User | ID>",
-						"user": {
-							"name": "user",
-							"help": "Mention server member"
-						},
-						"already": "This user already has some access!",
-						"done": "Successfully assigned %s Operator access!"
+					"delete": {
+						"help": "Delete an access group",
+						"group": { "name": "group", "help": "Group to delete" },
+						"done": "Access group **%s** deleted."
+					},
+					"rename": {
+						"help": "Rename an access group",
+						"group": { "name": "group", "help": "Group to rename" },
+						"name": { "name": "name", "help": "New name" },
+						"done": "Renamed group **%s** → **%s**."
+					},
+					"permission": {
+						"help": "Toggle a permission flag on a group",
+						"group": { "name": "group", "help": "Target group" },
+						"permission": { "name": "permission", "help": "Permission flag to toggle" },
+						"value": { "name": "value", "help": "Enable or disable this permission" },
+						"invalid": "Unknown permission flag. Use the autocomplete to select a valid permission.",
+						"done": "Group **%s**: permission `%s` set to %s."
+					},
+					"limit": {
+						"help": "Set a maximum ban/mute duration for a group",
+						"group": { "name": "group", "help": "Target group" },
+						"type": { "name": "type", "help": "Limit type: ban or mute" },
+						"duration": { "name": "duration", "help": "Max duration (e.g. 30m, 7d) or 'none' to remove the limit" },
+						"invalid_duration": "Invalid duration. Provide a positive value (e.g. 30m, 7d) or 'none'.",
+						"unlimited": "Unlimited",
+						"done": "Group **%s**: max %s duration set to **%s**."
+					},
+					"info": {
+						"help": "Show permissions and members of a group",
+						"group": { "name": "group", "help": "Group to inspect" },
+						"title": "Group: %s",
+						"permissions": "Permissions",
+						"limits": "Duration Limits",
+						"roles": "Roles",
+						"users": "Users",
+						"unlimited": "Unlimited",
+						"none": "*None*"
+					},
+					"list": {
+						"help": "List all access groups for this server",
+						"title": "Access Groups",
+						"none": "*No access groups configured. Use `/access group create` to add one.*"
 					}
 				},
-				"remove": {
-					"help": "Remove access",
-					"role": {
-						"help": "Remove any access level from role",
-						"usage": "remove role <@Role | ID>",
-						"role": {
-							"name": "role",
-							"help": "Mention role"
-						},
-						"no_access": "Selected role lacks any access level.",
-						"done": "Successfully removed from %s access `%s`!"
+				"member": {
+					"help": "Manage group memberships (roles and users)",
+					"addrole": {
+						"help": "Add a role to an access group",
+						"group": { "name": "group", "help": "Target group" },
+						"role": { "name": "role", "help": "Role to add" },
+						"already": "That role is already in this group.",
+						"done": "Role %s added to group **%s**."
 					},
-					"operator": {
-						"help": "Remove Operator access from user",
-						"usage": "remove operator <@User | ID>",
-						"user": {
-							"name": "user",
-							"help": "Mention user"
-						},
-						"not_operator": "Selected user has no Operator access",
-						"done": "Successfully removed from %s Operator access!"
-					}
-				},
-				"view": {
-					"help": "View who has access",
-					"usage": "view",
-					"embed": {
-						"title": "Roles with access",
-						"none_found": "*None of the roles/users has any access.*",
-						"none": "None",
-						"exempt": "**Ban exemption roles:**",
-						"helper": "**Helper roles:**",
-						"mod": "**Moderator roles:**",
-						"operator": "**Operators:**"
+					"removerole": {
+						"help": "Remove a role from an access group",
+						"group": { "name": "group", "help": "Target group" },
+						"role": { "name": "role", "help": "Role to remove" },
+						"not_in_group": "That role is not in this group.",
+						"done": "Role %s removed from group **%s**."
+					},
+					"adduser": {
+						"help": "Directly assign a user to an access group",
+						"group": { "name": "group", "help": "Target group" },
+						"user": { "name": "user", "help": "User to assign" },
+						"already": "That user is already in this group.",
+						"done": "User %s added to group **%s**."
+					},
+					"removeuser": {
+						"help": "Remove a user from an access group",
+						"group": { "name": "group", "help": "Target group" },
+						"user": { "name": "user", "help": "User to remove" },
+						"not_in_group": "That user is not in this group.",
+						"done": "User %s removed from group **%s**."
 					}
 				}
 			},

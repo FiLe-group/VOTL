@@ -40,7 +40,7 @@ public class DBUtil {
 	public final UserSettingsManager user;
 	public final VoiceChannelManager voice;
 	public final WebhookManager webhook;
-	public final AccessManager access;
+	public final AccessGroupManager accessGroups;
 	public final GroupManager group;
 	public final VerifySettingsManager verifySettings;
 	public final CaseManager cases;
@@ -80,7 +80,7 @@ public class DBUtil {
 		updateDB();
 		
 		guildSettings = new GuildSettingsManager(connectionUtil);
-		access = new AccessManager(connectionUtil);
+		accessGroups = new AccessGroupManager(connectionUtil);
 		group = new GroupManager(connectionUtil);
 		guildVoice = new GuildVoiceManager(connectionUtil);
 		voice = new VoiceChannelManager(connectionUtil);

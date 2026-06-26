@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.commands.owner;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -36,7 +36,7 @@ public class SetStatusCmd extends SlashCommand {
 				.setMaxLength(100)
 		);
 		this.category = CmdCategory.OWNER;
-		this.accessLevel = CmdAccessLevel.DEV;
+		this.requiredPermission = AccessPermission.DEV;
 		this.guildOnly = false;
 		this.ephemeral = true;
 	}

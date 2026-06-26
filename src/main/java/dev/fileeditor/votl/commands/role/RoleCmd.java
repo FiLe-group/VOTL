@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -39,7 +39,7 @@ public class RoleCmd extends SlashCommand {
 		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
-		this.accessLevel = CmdAccessLevel.HELPER;
+		this.requiredPermission = AccessPermission.CMD_ROLE;
 	}
 
 	@Override
@@ -188,7 +188,7 @@ public class RoleCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
 			);
-			this.accessLevel = CmdAccessLevel.ADMIN;
+			this.requiredPermission = AccessPermission.ADMIN;
 			addMiddlewares(
 				"throttle:guild,1,30"
 			);

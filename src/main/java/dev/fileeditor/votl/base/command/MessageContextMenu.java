@@ -16,7 +16,6 @@
 package dev.fileeditor.votl.base.command;
 
 import dev.fileeditor.votl.contracts.reflection.Reflectional;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
 
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
@@ -79,7 +78,7 @@ public abstract class MessageContextMenu extends ContextMenu implements Reflecti
 			data.setNameLocalizations(getNameLocalization());
 		}
 
-		if (getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN)) {
+		if (requiredPermission == null) {
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(getUserPermissions()));
 		}
 		else {
@@ -90,7 +89,7 @@ public abstract class MessageContextMenu extends ContextMenu implements Reflecti
 
 		// Register middlewares
 		registerThrottleMiddleware();
-		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
+		if (requiredPermission != null) {
 			middlewares.add("hasAccess");
 		}
 		if (botPermissions.length > 0 || userPermissions.length > 0) {

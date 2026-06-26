@@ -1,7 +1,8 @@
 package dev.fileeditor.votl.utils;
 
+import java.time.Duration;
 import java.util.EnumSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import net.dv8tion.jda.api.Permission;
@@ -11,10 +12,12 @@ import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
+import dev.fileeditor.votl.objects.AccessResult;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.exception.CheckException;
+import dev.fileeditor.votl.utils.message.TimeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,56 +40,71 @@ public class CheckUtil {
 		return user.getIdLong() == ownerId;
 	}
 
+	/** Resolves the combined AccessResult for a member across all their custom groups. */
 	@NotNull
-	public CmdAccessLevel getAccessLevel(@NotNull Member member) {
-		// Is bot developer
-		if (isDeveloper(member) || isBotOwner(member))
-			return CmdAccessLevel.DEV;
-		
-		// Is guild's owner
-		if (member.isOwner())
-			return CmdAccessLevel.OWNER;
+	public AccessResult resolve(@NotNull Member member) {
+		if (isDeveloper(member) || isBotOwner(member)) return AccessResult.FULL;
+		if (member.isOwner()) return AccessResult.FULL;
+		if (member.hasPermission(Permission.ADMINISTRATOR)) return AccessResult.ADMIN_DEFAULT;
 
-		// Check if is operator
-		if (bot.getDBUtil().access.isOperator(member.getGuild().getIdLong(), member.getIdLong()))
-			return CmdAccessLevel.OPERATOR;
-		
-		// Check if user has Administrator privileges
-		if (member.hasPermission(Permission.ADMINISTRATOR))
-			return CmdAccessLevel.ADMIN;
-
-		// Check for role level
-		Map<Long, CmdAccessLevel> roleIds = bot.getDBUtil().access.getAllRoles(member.getGuild().getIdLong());
-		if (roleIds.isEmpty()) return CmdAccessLevel.ALL;
-
-		return member.getRoles()
-			.stream()
-			.filter(role -> roleIds.containsKey(role.getIdLong()))
-			.map(role -> roleIds.get(role.getIdLong()))
-			.max(CmdAccessLevel::compareTo)
-			.orElse(CmdAccessLevel.ALL);
+		List<Long> roleIds = member.getRoles().stream().map(ISnowflake::getIdLong).toList();
+		return bot.getDBUtil().accessGroups.resolveForMember(
+			member.getGuild().getIdLong(), member.getIdLong(), roleIds
+		);
 	}
 
-	public boolean isOperatorPlus(@NotNull Guild guild, @NotNull UserSnowflake user) {
-		// Is bot developer
-		if (isDeveloper(user) || isBotOwner(user))
-			return true;
+	/**
+	 * Enforces ban duration limits for the executing member.
+	 * @param requested null = permanent ban
+	 */
+	public void enforceBanLimit(@NotNull IReplyCallback event, @NotNull Member member,
+	                            @Nullable Duration requested) throws CheckException {
+		if (isDeveloper(member) || isBotOwner(member) || member.isOwner()) return;
+		AccessResult access = resolve(member);
+		if (access.has(AccessPermission.MOD_PERMANENT)) return;
+		Duration max = access.limits().maxBanDuration();
+		if (max == null) return;
+		if (requested == null)
+			throw new CheckException(bot.getEmbedUtil().getError(event, "errors.interaction.ban_no_permanent"));
+		if (requested.compareTo(max) > 0)
+			throw new CheckException(bot.getEmbedUtil().getError(event,
+				"errors.interaction.ban_exceeds_limit", TimeUtil.durationToString(max)));
+	}
 
-		// Is guild's owner
-		if (guild.getOwnerIdLong() == user.getIdLong())
-			return true;
+	/**
+	 * Enforces mute duration limits for the executing member.
+	 * Mutes cannot be permanent (Discord limitation), so requested is always non-null.
+	 */
+	public void enforceMuteLimit(@NotNull IReplyCallback event, @NotNull Member member,
+	                             @NotNull Duration requested) throws CheckException {
+		if (isDeveloper(member) || isBotOwner(member) || member.isOwner()) return;
+		AccessResult access = resolve(member);
+		if (access.has(AccessPermission.MOD_PERMANENT)) return;
+		Duration max = access.limits().maxMuteDuration();
+		if (max == null) return;
+		if (requested.compareTo(max) > 0)
+			throw new CheckException(bot.getEmbedUtil().getError(event,
+				"errors.interaction.mute_exceeds_limit", TimeUtil.durationToString(max)));
+	}
 
-		// Check if is operator
-		return bot.getDBUtil().access.isOperator(guild.getIdLong(), user.getIdLong());
+	private int builtinTier(@NotNull Member member) {
+		if (isDeveloper(member) || isBotOwner(member)) return 3;
+		if (member.isOwner()) return 2;
+		if (member.hasPermission(Permission.ADMINISTRATOR)) return 1;
+		return 0;
 	}
 
 	public boolean hasHigherAccess(@NotNull Member who, @NotNull Member than) {
-		return getAccessLevel(who).isHigherThan(getAccessLevel(than));
+		return builtinTier(who) > builtinTier(than);
 	}
 
-	public boolean hasAccess(@NotNull Member member, @NotNull CmdAccessLevel accessLevel) {
-		if (accessLevel.equals(CmdAccessLevel.ALL)) return true;
-		return getAccessLevel(member).satisfies(accessLevel);
+	public boolean hasAccess(@NotNull Member member, @NotNull AccessPermission required) {
+		return switch (required) {
+			case DEV   -> isDeveloper(member) || isBotOwner(member);
+			case OWNER -> member.isOwner()    || isDeveloper(member) || isBotOwner(member);
+			case ADMIN -> member.hasPermission(Permission.ADMINISTRATOR) || member.isOwner() || isDeveloper(member) || isBotOwner(member);
+			default    -> resolve(member).has(required);
+		};
 	}
 
 	@NotNull

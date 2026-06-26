@@ -8,7 +8,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.base.waiter.EventWaiter;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -33,7 +33,7 @@ public class ModuleCmd extends SlashCommand {
 			new Show(), new Disable(), new Enable()
 		};
 		this.category = CmdCategory.GUILD;
-		this.accessLevel = CmdAccessLevel.OWNER;
+		this.requiredPermission = AccessPermission.OWNER;
 		this.waiter = App.getInstance().getEventWaiter();
 	}
 

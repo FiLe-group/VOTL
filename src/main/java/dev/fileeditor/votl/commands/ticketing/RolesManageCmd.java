@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.RoleType;
@@ -37,7 +37,7 @@ public class RolesManageCmd extends SlashCommand {
 		};
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
-		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.requiredPermission = AccessPermission.ADMIN;
 	}
 
 	@Override

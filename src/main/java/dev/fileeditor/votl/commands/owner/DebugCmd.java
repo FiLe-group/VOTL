@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.commands.owner;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -21,7 +21,7 @@ public class DebugCmd extends SlashCommand {
 			new OptionData(OptionType.STRING, "date", lu.getText(path+".date.help")).setRequiredLength(10,10)
 		);
 		this.category = CmdCategory.OWNER;
-		this.accessLevel = CmdAccessLevel.DEV;
+		this.requiredPermission = AccessPermission.DEV;
 		this.ephemeral = true;
 	}
 

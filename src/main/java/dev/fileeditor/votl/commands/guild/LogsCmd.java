@@ -10,7 +10,7 @@ import java.util.Set;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -41,7 +41,7 @@ public class LogsCmd extends SlashCommand {
 			new Enable(), new Disable(), new View(),
 			new AddExemption(), new RemoveExemption(), new ViewExemption()
 		};
-		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.requiredPermission = AccessPermission.ADMIN;
 		this.category = CmdCategory.GUILD;
 	}
 

@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.entities.User;
 import dev.fileeditor.votl.base.command.UserContextMenu;
 import dev.fileeditor.votl.base.command.UserContextMenuEvent;
 import dev.fileeditor.votl.commands.moderation.ModLogsCmd;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.utils.database.managers.CaseManager;
 
@@ -16,7 +16,7 @@ public class ModlogsMenu extends UserContextMenu {
 		this.name = "modlogs";
 		this.path = "menus.modlogs";
 		this.module = CmdModule.MODERATION;
-		this.accessLevel = CmdAccessLevel.MOD;
+		this.requiredPermission = AccessPermission.CMD_MOD_STATS;
 		addMiddlewares(
 			"throttle:user,1,10"
 		);

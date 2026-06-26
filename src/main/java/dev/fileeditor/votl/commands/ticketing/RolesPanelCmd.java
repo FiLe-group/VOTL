@@ -6,7 +6,7 @@ import java.util.List;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -39,7 +39,7 @@ public class RolesPanelCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.MESSAGE_SEND};
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
-		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.requiredPermission = AccessPermission.ADMIN;
 	}
 
 	@Override

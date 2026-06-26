@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 
 import dev.fileeditor.votl.metrics.Metrics;
 import dev.fileeditor.votl.metrics.datapoints.Timer;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
 
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.Permission;
@@ -346,8 +345,8 @@ public abstract class SlashCommand extends Interaction {
 				if (child.botPermissions.length == 0) {
 					child.botPermissions = botPermissions;
 				}
-				if (child.getAccessLevel().equals(CmdAccessLevel.ALL)) {
-					child.accessLevel = accessLevel;
+				if (child.getRequiredPermission() == null) {
+					child.requiredPermission = requiredPermission;
 				}
 				if (child.module == null) {
 					child.module = module;
@@ -400,7 +399,8 @@ public abstract class SlashCommand extends Interaction {
 				data.addSubcommandGroups(groupData.values());
 		}
 
-		if (accessLevel.isLowerThan(CmdAccessLevel.ADMIN))
+		boolean needsAccessCheck = requiredPermission != null;
+		if (requiredPermission == null)
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(userPermissions));
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
@@ -409,7 +409,7 @@ public abstract class SlashCommand extends Interaction {
 
 		// Register middlewares
 		registerThrottleMiddleware();
-		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
+		if (needsAccessCheck) {
 			middlewares.add("hasAccess");
 		}
 		if (botPermissions.length > 0 || userPermissions.length > 0) {

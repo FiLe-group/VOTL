@@ -4,7 +4,7 @@ import java.util.List;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
@@ -26,7 +26,7 @@ public class StrikesCmd extends SlashCommand {
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.STRIKES;
-		this.accessLevel = CmdAccessLevel.MOD;
+		this.requiredPermission = AccessPermission.CMD_STRIKES;
 		addMiddlewares(
 			"throttle:user,1,10"
 		);
@@ -39,7 +39,7 @@ public class StrikesCmd extends SlashCommand {
 		User tu;
 		if (event.hasOption("user")) {
 			tu = event.optUser("user", event.getUser());
-			if (!tu.equals(event.getUser()) && !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.MOD)) {
+			if (!tu.equals(event.getUser()) && !bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_STRIKES)) {
 				editError(event, path+".no_perms");
 				return;
 			}

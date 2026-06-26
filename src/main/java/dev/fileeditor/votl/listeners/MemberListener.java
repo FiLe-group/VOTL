@@ -133,7 +133,7 @@ public class MemberListener extends ListenerAdapter {
 		// When user leaves guild, check if there are any records in DB that would be better to remove.
 		// This does not consider clearing User DB, when bot leaves guild.
 		try {
-			db.access.removeUser(guildId, userId);
+			db.accessGroups.removeUserFromGuild(guildId, userId);
 			db.user.remove(event.getUser().getIdLong());
 		} catch (SQLException ignored) {}
 

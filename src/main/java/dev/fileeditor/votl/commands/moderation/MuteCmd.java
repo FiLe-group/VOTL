@@ -8,7 +8,7 @@ import java.util.Optional;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -46,7 +46,7 @@ public class MuteCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.MODERATE_MEMBERS};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.accessLevel = CmdAccessLevel.MOD;
+		this.requiredPermission = AccessPermission.CMD_MUTE;
 		addMiddlewares(
 			"throttle:guild,2,20"
 		);
@@ -77,6 +77,15 @@ public class MuteCmd extends SlashCommand {
 		}
 		if (duration.toDaysPart() > 28) {
 			editError(event, path+".abort", "Maximum mute duration: 28 days.");
+			return;
+		}
+
+		// Enforce duration limits
+		assert event.getMember() != null;
+		try {
+			bot.getCheckUtil().enforceMuteLimit(event, event.getMember(), duration);
+		} catch (dev.fileeditor.votl.utils.exception.CheckException ex) {
+			editError(event, ex.getEditData());
 			return;
 		}
 

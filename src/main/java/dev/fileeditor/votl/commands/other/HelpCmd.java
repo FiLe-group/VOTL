@@ -5,12 +5,11 @@ import java.util.*;
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
-import dev.fileeditor.votl.utils.message.MessageUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
@@ -72,7 +71,9 @@ public class HelpCmd extends SlashCommand {
 				.setTitle(lu.getText(event, "bot.help.command_info.title", command.getName()))
 				.setDescription(lu.getText(event, "bot.help.command_info.value",
 					lu.getText(event, "bot.help.command_menu.categories."+command.getCategory().name()),
-					MessageUtil.capitalize(command.getAccessLevel().getName()),
+					command.getRequiredPermission() != null
+						? command.getRequiredPermission().name()
+						: "All",
 					command.isGuildOnly() ? Emote.CROSS_C.getEmote() : Emote.CHECK_C.getEmote(),
 					Optional.ofNullable(command.getModule())
 						.map(mod -> lu.getText(event, mod.getPath()))
@@ -135,7 +136,7 @@ public class HelpCmd extends SlashCommand {
 			.toList();
 
 		for (SlashCommand command : commands) {
-			if (command.getAccessLevel().isLowerThan(CmdAccessLevel.DEV) || bot.getCheckUtil().isBotOwner(event.getUser())) {
+			if (command.getRequiredPermission() != AccessPermission.DEV || bot.getCheckUtil().isBotOwner(event.getUser())) {
 				if (!Objects.equals(category, command.getCategory())) {
 					if (category != null) {
 						builder.addField(fieldTitle, fieldValue.toString(), false);

@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
@@ -31,7 +31,7 @@ public class RcloseCmd extends SlashCommand {
 		);
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
-		this.accessLevel = CmdAccessLevel.HELPER;
+		this.requiredPermission = AccessPermission.CMD_TICKET_MANAGE;
 	}
 
 	@SuppressWarnings("FieldCanBeLocal")
@@ -65,7 +65,7 @@ public class RcloseCmd extends SlashCommand {
 			case EVERYONE -> {}
 			case HELPER -> {
 				// Check if user has Helper+ access
-				if (!bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.HELPER)) {
+				if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_TICKET_MANAGE)) {
 					// No access - reject
 					editError(event, "errors.interaction.no_access", "Helper+ access");
 					return;
@@ -77,7 +77,7 @@ public class RcloseCmd extends SlashCommand {
 				if (tagId==0) {
 					// Role request ticket
 					List<Long> supportRoleIds = bot.getDBUtil().getTicketSettings(event.getGuild()).getRoleSupportIds();
-					if (supportRoleIds.isEmpty()) supportRoleIds = bot.getDBUtil().access.getRoles(event.getGuild().getIdLong(), CmdAccessLevel.MOD);
+					if (supportRoleIds.isEmpty()) supportRoleIds = bot.getDBUtil().accessGroups.getRolesWithPermission(event.getGuild().getIdLong(), AccessPermission.CMD_TICKET_MANAGE);
 					// Check
 					if (denyCloseSupport(supportRoleIds, event.getMember())) {
 						editError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
@@ -122,7 +122,7 @@ public class RcloseCmd extends SlashCommand {
 		if (supportRoleIds.isEmpty()) return false; // No data to check against
 		final List<Role> roles = member.getRoles(); // Check if user has any support role
 		if (!roles.isEmpty() && roles.stream().anyMatch(r -> supportRoleIds.contains(r.getIdLong()))) return false;
-		return !bot.getCheckUtil().hasAccess(member, CmdAccessLevel.ADMIN); // if user has Admin access
+		return !bot.getCheckUtil().hasAccess(member, AccessPermission.ADMIN); // if user has Admin access
 	}
 
 }

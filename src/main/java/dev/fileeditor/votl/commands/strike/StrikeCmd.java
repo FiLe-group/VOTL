@@ -11,7 +11,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.PunishAction;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -60,7 +60,7 @@ public class StrikeCmd extends SlashCommand {
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.STRIKES;
-		this.accessLevel = CmdAccessLevel.MOD;
+		this.requiredPermission = AccessPermission.CMD_STRIKE;
 		addMiddlewares(
 			"throttle:user,1,10",
 			"throttle:guild,2,20"
@@ -208,12 +208,7 @@ public class StrikeCmd extends SlashCommand {
 			lu.getLocalized(locale, path+".autopunish_higher"),
 			false
 		);
-		CmdAccessLevel targetLevel = bot.getCheckUtil().getAccessLevel(target);
-		if (targetLevel.satisfies(CmdAccessLevel.HELPER)) return new Field(
-			lu.getLocalized(locale, path+".autopunish_error"),
-			lu.getLocalized(locale, path+".autopunish_exception"),
-			false
-		);
+		boolean kickBanExempt = bot.getCheckUtil().resolve(target).has(AccessPermission.AUTO_KICK_EXEMPT);
 
 		final String reason = strikes>1 ? strikes>=5 ?
 			lu.getLocalized(locale, path+".autopunish_reason_5").formatted(strikes) :
@@ -223,7 +218,7 @@ public class StrikeCmd extends SlashCommand {
 		// Execute
 		StringBuilder builder = new StringBuilder();
 		if (actions.contains(PunishAction.KICK)) {
-			if (targetLevel.satisfies(CmdAccessLevel.EXEMPT)) {
+			if (kickBanExempt) {
 				builder.append(":warning: Not kicked, user is exempt from kick.")
 					.append("\n");
 			} else {
@@ -255,7 +250,7 @@ public class StrikeCmd extends SlashCommand {
 			}
 		}
 		if (actions.contains(PunishAction.BAN)) {
-			if (targetLevel.satisfies(CmdAccessLevel.EXEMPT)) {
+			if (kickBanExempt) {
 				builder.append(":warning: Not banned, user is exempt from bans.")
 					.append("\n");
 			} else {
