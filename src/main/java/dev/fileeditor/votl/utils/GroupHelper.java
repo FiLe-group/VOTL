@@ -1,7 +1,10 @@
 package dev.fileeditor.votl.utils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -26,14 +29,46 @@ public class GroupHelper {
 		this.db = bot.getDBUtil();
 	}
 
-	private void banUser(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull String modName) {
-		final List<Long> guildIds = new ArrayList<>();
-		for (long guildId : db.group.getGroupManagers(groupId)) {
-			for (int subGroupId : db.group.getOwnedGroups(guildId)) {
-				guildIds.addAll(db.group.getGroupMembers(subGroupId));
+	// Recursively collects all guild IDs that should receive a sync action for the given group.
+	// Traverses through every member's owned sub-groups and prevents cycles via visitedGroups.
+	private void collectRecursive(int groupId, Set<Long> guildIds, Set<Integer> visitedGroups) {
+		if (!visitedGroups.add(groupId)) return;
+		for (long memberId : db.group.getGroupMembers(groupId)) {
+			guildIds.add(memberId);
+			for (int ownedGroupId : db.group.getOwnedGroups(memberId)) {
+				collectRecursive(ownedGroupId, guildIds, visitedGroups);
 			}
 		}
-		guildIds.addAll(db.group.getGroupMembers(groupId));
+	}
+
+	private Set<Long> collectGuildIds(int groupId) {
+		Set<Long> guildIds = new LinkedHashSet<>();
+		collectRecursive(groupId, guildIds, new HashSet<>());
+		return guildIds;
+	}
+
+	// Collects all group IDs this guild is a member of, walking up through group owners.
+	// Prevents cycles by tracking visited guild IDs.
+	private void collectGroupsUpward(long guildId, Set<Integer> groupIds, Set<Long> visitedGuilds) {
+		if (!visitedGuilds.add(guildId)) return;
+		for (int groupId : db.group.getGuildGroups(guildId)) {
+			if (groupIds.add(groupId)) {
+				Long ownerId = db.group.getOwner(groupId);
+				if (ownerId != null) {
+					collectGroupsUpward(ownerId, groupIds, visitedGuilds);
+				}
+			}
+		}
+	}
+
+	public Set<Integer> collectParentGroupIds(long guildId) {
+		Set<Integer> groupIds = new LinkedHashSet<>();
+		collectGroupsUpward(guildId, groupIds, new HashSet<>());
+		return groupIds;
+	}
+
+	private void banUser(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull String modName) {
+		final Set<Long> guildIds = collectGuildIds(groupId);
 		if (guildIds.isEmpty()) return;
 
 		final int maxCount = guildIds.size();
@@ -60,13 +95,7 @@ public class GroupHelper {
 	}
 
 	private void unbanUser(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull String modName) {
-		final List<Long> guildIds = new ArrayList<>();
-		for (long guildId : db.group.getGroupManagers(groupId)) {
-			for (int subGroupId : db.group.getOwnedGroups(guildId)) {
-				guildIds.addAll(db.group.getGroupMembers(subGroupId));
-			}
-		}
-		guildIds.addAll(db.group.getGroupMembers(groupId));
+		final Set<Long> guildIds = collectGuildIds(groupId);
 		if (guildIds.isEmpty()) return;
 
 		final int maxCount = guildIds.size();
@@ -92,13 +121,7 @@ public class GroupHelper {
 	}
 
 	private void kickUser(int groupId, @NotNull Guild master, @NotNull User target, @NotNull String reason, @NotNull String modName) {
-		final List<Long> guildIds = new ArrayList<>();
-		for (long guildId : db.group.getGroupManagers(groupId)) {
-			for (int subGroupId : db.group.getOwnedGroups(guildId)) {
-				guildIds.addAll(db.group.getGroupMembers(subGroupId));
-			}
-		}
-		guildIds.addAll(db.group.getGroupMembers(groupId));
+		final Set<Long> guildIds = collectGuildIds(groupId);
 		if (guildIds.isEmpty()) return;
 
 		final int maxCount = guildIds.size();

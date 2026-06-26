@@ -253,10 +253,10 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		// Check if user is blacklisted
+		// Check if user is blacklisted in any group this guild owns or is part of (including parent groups up the hierarchy)
 		List<Integer> groupIds = new ArrayList<>();
 		groupIds.addAll(db.group.getOwnedGroups(guild.getIdLong()));
-		groupIds.addAll(db.group.getGuildGroups(guild.getIdLong()));
+		groupIds.addAll(bot.getHelper().collectParentGroupIds(guild.getIdLong()));
 		for (int groupId : groupIds) {
 			ServerBlacklistManager.BlacklistData data = db.serverBlacklist.getInfo(groupId, member.getIdLong());
 			if (data != null && db.group.getAppealGuildId(groupId)!=guild.getIdLong()) {
