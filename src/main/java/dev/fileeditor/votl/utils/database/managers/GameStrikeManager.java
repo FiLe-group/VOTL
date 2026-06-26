@@ -63,4 +63,10 @@ public class GameStrikeManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (channelId=%s AND userId=%s)".formatted(strikes, channelId, userId));
 	}
 
+	public void removeStrike(long channelId, long userId) throws SQLException {
+		execute("UPDATE %s SET count=count-1 WHERE (channelId=%s AND userId=%s); DELETE FROM %s WHERE (channelId=%s AND userId=%s AND count<=0)".formatted(
+			strikes, channelId, userId, strikes, channelId, userId
+		));
+	}
+
 }

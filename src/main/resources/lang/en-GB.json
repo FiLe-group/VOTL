@@ -2722,6 +2722,20 @@
 				},
 				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
 				"done": "User %s received Game strike in %s."
+			},
+			"delgamestrike": {
+				"help": "Remove a game strike from a user",
+				"usage": "delgamestrike <#Channel> <@User>",
+				"channel": {
+					"name": "channel",
+					"help": "Select channel"
+				},
+				"user": {
+					"name": "user",
+					"help": "Mention user/Enter ID"
+				},
+				"no_strikes": "This user has no game strikes in this channel.",
+				"done": "Removed one game strike from %s in %s. Current count: `%d`/`%d`."
 			}
 		},
 		"level": {
