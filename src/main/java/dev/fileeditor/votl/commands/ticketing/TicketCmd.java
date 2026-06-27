@@ -22,6 +22,7 @@ import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.buttons.ButtonStyle;
@@ -166,6 +167,11 @@ public class TicketCmd extends SlashCommand {
 				.setTitle(lu.getGuildText(event, path+".done"))
 				.build());
 		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyPanelAutocomplete(event);
+		}
 	}
 
 	private class ViewPanel extends SlashCommand {
@@ -197,6 +203,11 @@ public class TicketCmd extends SlashCommand {
 				event.getHook().editOriginalEmbeds(buildPanelEmbed(event.getGuild(), panelId))
 					.setComponents(ActionRow.of(buttons).asDisabled())
 					.queue(null, failure -> editErrorOther(event, failure.getMessage()));
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyPanelAutocomplete(event);
 		}
 	}
 
@@ -250,6 +261,11 @@ public class TicketCmd extends SlashCommand {
 					);
 			}
 		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyPanelAutocomplete(event);
+		}
 	}
 
 	private class DeletePanel extends SlashCommand {
@@ -284,6 +300,11 @@ public class TicketCmd extends SlashCommand {
 				.setDescription(lu.getGuildText(event, path+".done", panelId))
 				.build()
 			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyPanelAutocomplete(event);
 		}
 	}
 
@@ -367,6 +388,11 @@ public class TicketCmd extends SlashCommand {
 				.setDescription(lu.getGuildText(event, path+".done", tagId, panelId))
 				.build()
 			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyPanelAutocomplete(event);
 		}
 	}
 
@@ -461,6 +487,11 @@ public class TicketCmd extends SlashCommand {
 				);
 			}
 		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyTagAutocomplete(event);
+		}
 	}
 
 	private class ViewTag extends SlashCommand {
@@ -510,14 +541,19 @@ public class TicketCmd extends SlashCommand {
 			
 			event.getHook().editOriginalEmbeds(builder.build()).setComponents(ActionRow.of(tag.previewButton())).queue();
 		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyTagAutocomplete(event);
+		}
 	}
 
-	private static class DeleteTag extends SlashCommand {
+	private class DeleteTag extends SlashCommand {
 		public DeleteTag() {
 			this.name = "delete";
 			this.path = "bot.ticketing.ticket.tags.delete";
 			this.options = List.of(
-				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true)
+				new OptionData(OptionType.INTEGER, "tag_id", lu.getText(path+".tag_id.help"), true, true)
 					.setMinValue(1)
 			);
 			this.subcommandGroup = new SubcommandGroupData("tags", lu.getText("bot.ticketing.ticket.tags.help"));
@@ -544,6 +580,11 @@ public class TicketCmd extends SlashCommand {
 				.setDescription(lu.getGuildText(event, path+".done", tagId))
 				.build()
 			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyTagAutocomplete(event);
 		}
 	}
 
@@ -771,5 +812,52 @@ public class TicketCmd extends SlashCommand {
 		if (panel == null) throw new NullPointerException("Panel data not found");
 		return panel.getFilledEmbed(bot.getDBUtil().getGuildSettings(guild).getColor()).build();
 	}
-	
+
+	private void replyPanelAutocomplete(CommandAutoCompleteInteractionEvent event) {
+		if (event.getGuild() == null) { event.replyChoices(Collections.emptyList()).queue(); return; }
+		long guildId = event.getGuild().getIdLong();
+		String value = event.getFocusedOption().getValue();
+		if (value.isBlank()) {
+			List<Choice> choices = bot.getDBUtil().ticketPanels.getPanelsText(guildId)
+				.entrySet().stream()
+				.map(panel -> new Choice("%s | %s".formatted(panel.getKey(), MessageUtil.limitString(panel.getValue(), 90)), panel.getKey()))
+				.toList();
+			event.replyChoices(choices).queue();
+			return;
+		}
+		Integer id = null;
+		try { id = Integer.valueOf(value); } catch (NumberFormatException ignored) {}
+		if (id != null) {
+			String title = bot.getDBUtil().ticketPanels.getPanelTitle(id);
+			if (title != null) {
+				event.replyChoice("%s | %s".formatted(id, MessageUtil.limitString(title, 80)), id).queue();
+				return;
+			}
+		}
+		event.replyChoices(Collections.emptyList()).queue();
+	}
+
+	private void replyTagAutocomplete(CommandAutoCompleteInteractionEvent event) {
+		if (event.getGuild() == null) { event.replyChoices(Collections.emptyList()).queue(); return; }
+		long guildId = event.getGuild().getIdLong();
+		String value = event.getFocusedOption().getValue();
+		if (value.isBlank()) {
+			List<Choice> choices = bot.getDBUtil().ticketTags.getTagsText(guildId).entrySet().stream()
+				.map(tag -> new Choice("%s | %s".formatted(tag.getKey(), tag.getValue()), tag.getKey()))
+				.collect(Collectors.toList());
+			event.replyChoices(choices).queue();
+			return;
+		}
+		Integer id = null;
+		try { id = Integer.valueOf(value); } catch (NumberFormatException ignored) {}
+		if (id != null) {
+			String title = bot.getDBUtil().ticketTags.getTagText(id);
+			if (title != null) {
+				event.replyChoice("%s - %s".formatted(id, title), id).queue();
+				return;
+			}
+		}
+		event.replyChoices(Collections.emptyList()).queue();
+	}
+
 }

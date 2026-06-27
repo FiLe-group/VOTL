@@ -166,8 +166,6 @@ public class App {
 		AutoloaderUtil.load(Names.PACKAGE_COMMANDS_PATH, command -> commandClientBuilder.addSlashCommands((SlashCommand) command), false);
 
 		commandClient = commandClientBuilder.build();
-		// Build
-		AutoCompleteListener acListener = new AutoCompleteListener(commandClient, dbUtil);
 
 		final Set<GatewayIntent> intents = Set.of(
 			GatewayIntent.GUILD_EXPRESSIONS,
@@ -200,7 +198,7 @@ public class App {
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
 			.addEventListeners(
-				commandClient, eventWaiter, acListener, interactionListener,
+				commandClient, eventWaiter, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,
 				auditListener, memberListener, eventListener
 			);

@@ -1,8 +1,11 @@
 package dev.fileeditor.votl.commands.moderation;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -17,7 +20,9 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -40,7 +45,6 @@ public class SyncCmd extends SlashCommand {
 	protected void execute(SlashCommandEvent event) {}
 
 	private class Kick extends SlashCommand {
-		
 		public Kick() {
 			this.name = "kick";
 			this.path = "bot.moderation.sync.kick";
@@ -52,6 +56,11 @@ public class SyncCmd extends SlashCommand {
 			addMiddlewares(
 				"throttle:guild,1,20"
 			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
 		}
 
 		@Override
@@ -108,6 +117,25 @@ public class SyncCmd extends SlashCommand {
 					TimeUnit.SECONDS,
 					() -> event.getHook().editOriginalComponents(ActionRow.of(Button.secondary("timed_out", "Timed out").asDisabled())).queue()
 				));
+		}
+	}
+
+	// ---- Shared helpers ----
+
+	private void replyGroupAutocomplete(CommandAutoCompleteInteractionEvent event) {
+		if (event.getGuild() == null) { event.replyChoices(Collections.emptyList()).queue(); return; }
+		long guildId = event.getGuild().getIdLong();
+		List<Integer> groupIds = new ArrayList<>();
+		groupIds.addAll(bot.getDBUtil().group.getOwnedGroups(guildId));
+		groupIds.addAll(bot.getDBUtil().group.getManagedGroups(guildId));
+		if (groupIds.isEmpty()) {
+			event.replyChoices(Collections.emptyList()).queue();
+		} else {
+			List<Command.Choice> choices = groupIds.stream()
+				.map(groupId -> new Command.Choice(
+					"%s (ID: %s)".formatted(bot.getDBUtil().group.getName(groupId), groupId), groupId))
+				.collect(Collectors.toList());
+			event.replyChoices(choices).queue();
 		}
 	}
 

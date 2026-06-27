@@ -1,6 +1,7 @@
 package dev.fileeditor.votl.commands.other;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -12,7 +13,9 @@ import dev.fileeditor.votl.objects.constants.Constants;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -41,6 +44,19 @@ public class HelpCmd extends SlashCommand {
 		this.category = CmdCategory.OTHER;
 		this.guildOnly = false;
 		this.ephemeral = true;
+	}
+
+	@Override
+	public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+		String value = event.getFocusedOption().getValue().toLowerCase().split(" ")[0];
+		List<Command.Choice> choices = bot.getClient().getSlashCommands().stream()
+			.filter(cmd -> cmd.getName().contains(value))
+			.map(cmd -> new Command.Choice(cmd.getName(), cmd.getName()))
+			.collect(Collectors.toList());
+		if (choices.size() > 25) {
+			choices.subList(25, choices.size()).clear();
+		}
+		event.replyChoices(choices).queue();
 	}
 
 	@Override

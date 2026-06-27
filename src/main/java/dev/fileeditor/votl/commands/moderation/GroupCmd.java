@@ -2,11 +2,13 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
@@ -24,7 +26,9 @@ import net.dv8tion.jda.api.components.selections.SelectOption;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -144,6 +148,11 @@ public class GroupCmd extends SlashCommand {
 				.build()
 			);
 		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupOwnedAutocomplete(event);
+		}
 	}
 
 	private class Remove extends SlashCommand {
@@ -154,6 +163,11 @@ public class GroupCmd extends SlashCommand {
 				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
 					.setMinValue(1)
 			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupOwnedAutocomplete(event);
 		}
 
 		@Override
@@ -253,6 +267,11 @@ public class GroupCmd extends SlashCommand {
 		}
 
 		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupOwnedAutocomplete(event);
+		}
+
+		@Override
 		protected void execute(SlashCommandEvent event) {
 			Integer groupId = event.optInteger("group_owned");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
@@ -291,6 +310,11 @@ public class GroupCmd extends SlashCommand {
 				new OptionData(OptionType.STRING, "appeal_server", lu.getText(path+".appeal_server.help"))
 					.setRequiredLength(12, 20)
 			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupOwnedAutocomplete(event);
 		}
 
 		@Override
@@ -371,6 +395,11 @@ public class GroupCmd extends SlashCommand {
 					.setMinValue(1),
 				new OptionData(OptionType.BOOLEAN, "manage", lu.getText(path+".manage.help"), true)
 			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupOwnedAutocomplete(event);
 		}
 
 		@Override
@@ -532,6 +561,11 @@ public class GroupCmd extends SlashCommand {
 		}
 
 		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupJoinedAutocomplete(event);
+		}
+
+		@Override
 		protected void execute(SlashCommandEvent event) {
 			Integer groupId = event.optInteger("group_joined");
 			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
@@ -558,6 +592,30 @@ public class GroupCmd extends SlashCommand {
 		}
 	}
 
+	// ---- Shared helpers ----
+
+	private void replyGroupOwnedAutocomplete(CommandAutoCompleteInteractionEvent event) {
+		if (event.getGuild() == null) { event.replyChoices(Collections.emptyList()).queue(); return; }
+		replyGroupChoices(event, bot.getDBUtil().group.getOwnedGroups(event.getGuild().getIdLong()));
+	}
+
+	private void replyGroupJoinedAutocomplete(CommandAutoCompleteInteractionEvent event) {
+		if (event.getGuild() == null) { event.replyChoices(Collections.emptyList()).queue(); return; }
+		replyGroupChoices(event, bot.getDBUtil().group.getGuildGroups(event.getGuild().getIdLong()));
+	}
+
+	private void replyGroupChoices(CommandAutoCompleteInteractionEvent event, List<Integer> groupIds) {
+		if (groupIds.isEmpty()) {
+			event.replyChoices(Collections.emptyList()).queue();
+		} else {
+			List<Command.Choice> choices = groupIds.stream()
+				.map(groupId -> new Command.Choice(
+					"%s (ID: %s)".formatted(bot.getDBUtil().group.getName(groupId), groupId), groupId))
+				.collect(Collectors.toList());
+			event.replyChoices(choices).queue();
+		}
+	}
+
 	private class View extends SlashCommand {
 		public View() {
 			this.name = "view";
@@ -569,6 +627,15 @@ public class GroupCmd extends SlashCommand {
 					.setMinValue(1)
 			);
 			this.ephemeral = true;
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			if (event.getFocusedOption().getName().equals("group_owned")) {
+				replyGroupOwnedAutocomplete(event);
+			} else {
+				replyGroupJoinedAutocomplete(event);
+			}
 		}
 
 		@Override
