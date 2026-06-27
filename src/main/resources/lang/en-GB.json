@@ -865,6 +865,7 @@
 							"help": "Max duration (e.g. 30m, 7d) or 'none' to remove the limit"
 						},
 						"invalid_duration": "Invalid duration. Provide a positive value (e.g. 30m, 7d) or 'none'.",
+						"max_duration": "Duration exceeds the maximum allowed limit of 90 days (3 months).",
 						"unlimited": "Unlimited",
 						"done": "Group **%s**: max %s duration set to **%s**."
 					},

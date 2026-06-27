@@ -298,6 +298,10 @@ public class AccessCmd extends SlashCommand {
 						editError(event, "bot.guild.access.group.limit.invalid_duration");
 						return;
 					}
+					if (d.toDays() > 90) {
+						editError(event, "bot.guild.access.group.limit.max_duration");
+						return;
+					}
 					seconds = d.toSeconds();
 					display = TimeUtil.durationToString(d);
 				} catch (FormatterException ex) {
