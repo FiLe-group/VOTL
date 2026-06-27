@@ -110,6 +110,20 @@ public class StrikeCmd extends SlashCommand {
 
 		Member mod = event.getMember();
 		assert mod != null;
+
+		if (!guild.getSelfMember().canInteract(tm)) {
+			editError(event, path+".abort", "Bot can't interact with target member.");
+			return;
+		}
+		if (bot.getCheckUtil().hasHigherAccess(tm, mod)) {
+			editError(event, path+".higher_access");
+			return;
+		}
+		if (!mod.canInteract(tm)) {
+			editError(event, path+".abort", "You can't interact with target member.");
+			return;
+		}
+
 		// inform
 		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
 		tm.getUser().openPrivateChannel().queue(pm -> {

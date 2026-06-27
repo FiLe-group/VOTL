@@ -67,7 +67,9 @@ public class GameStrikeCmd extends SlashCommand {
 		Member tm = event.optMember("user");
 		if (tm == null || tm.getUser().isBot() || tm.equals(event.getMember())
 			|| tm.equals(event.getGuild().getSelfMember())
-			|| bot.getCheckUtil().hasHigherAccess(tm, event.getMember())) {
+			|| bot.getCheckUtil().hasHigherAccess(tm, event.getMember())
+			|| !event.getGuild().getSelfMember().canInteract(tm)
+			|| !event.getMember().canInteract(tm)) {
 			editError(event, "errors.option.member_interact");
 			return;
 		}

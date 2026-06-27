@@ -89,7 +89,13 @@ public class TempRoleCmd extends SlashCommand {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
-			
+			if (!guild.getSelfMember().canInteract(member)
+				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
+				|| !event.getMember().canInteract(member)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
+
 			// Check if already added
 			long roleId = role.getIdLong();
 			long userId = member.getIdLong();
@@ -162,6 +168,12 @@ public class TempRoleCmd extends SlashCommand {
 				editError(event, "errors.option.member");
 				return;
 			}
+			if (!event.getGuild().getSelfMember().canInteract(member)
+				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
+				|| !event.getMember().canInteract(member)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
 			// Check time
 			Instant time = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), member.getIdLong());
 			if (time == null) {
@@ -211,6 +223,13 @@ public class TempRoleCmd extends SlashCommand {
 			Member member = event.optMember("user");
 			if (member == null) {
 				editError(event, "errors.option.member");
+				return;
+			}
+			assert event.getGuild() != null && event.getMember() != null;
+			if (!event.getGuild().getSelfMember().canInteract(member)
+				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
+				|| !event.getMember().canInteract(member)) {
+				editError(event, "errors.option.member_interact");
 				return;
 			}
 			// Check time

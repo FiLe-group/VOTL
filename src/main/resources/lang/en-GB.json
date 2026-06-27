@@ -1470,6 +1470,7 @@
 					"help": "Unmute reason (*none*)"
 				},
 				"not_muted": "Mentioned user is not muted/timed out.",
+				"higher_access": "Mentioned member has higher access than you do.",
 				"abort": "Could not unmute mentioned user.",
 				"success": "\uD83D\uDD0A **User was unmuted.**"
 			},
@@ -1496,6 +1497,8 @@
 					"help": "Select/Paste image with proofs. Only .png and .jpg/.jpeg are accepted."
 				},
 				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
+				"higher_access": "Mentioned member has higher access than you do.",
+				"abort": "Could not apply strike to mentioned member.",
 				"success": "\uD83D\uDEA9 **User received %s.**",
 				"autopunish_title": "Applying punishment for %d strikes",
 				"autopunish_error": "Unable to apply auto punishment.",

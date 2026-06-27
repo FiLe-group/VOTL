@@ -97,6 +97,12 @@ public class RoleCmd extends SlashCommand {
 				editError(event, "errors.option.member");
 				return;
 			}
+			if (!guild.getSelfMember().canInteract(member)
+				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
+				|| !event.getMember().canInteract(member)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
 			List<Role> finalRoles = new ArrayList<>(member.getRoles());
 			finalRoles.addAll(roles);
 
@@ -163,6 +169,12 @@ public class RoleCmd extends SlashCommand {
 			Member member = event.optMember("user");
 			if (member == null) {
 				editError(event, "errors.option.member");
+				return;
+			}
+			if (!guild.getSelfMember().canInteract(member)
+				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
+				|| !event.getMember().canInteract(member)) {
+				editError(event, "errors.option.member_interact");
 				return;
 			}
 
@@ -274,7 +286,10 @@ public class RoleCmd extends SlashCommand {
 				return;
 			}
 			assert event.getGuild() != null && event.getMember() != null;
-			if (!event.getMember().canInteract(target) || target.getUser().isBot()) {
+			if (target.getUser().isBot()
+				|| !event.getGuild().getSelfMember().canInteract(target)
+				|| bot.getCheckUtil().hasHigherAccess(target, event.getMember())
+				|| !event.getMember().canInteract(target)) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
