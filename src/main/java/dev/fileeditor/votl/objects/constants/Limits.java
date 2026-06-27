@@ -7,6 +7,7 @@ public final class Limits {
 
 	public static final int GAME_CHANNELS = 10;
 	public static final int ACCESS_GROUPS = 10;
+	public static final int ACCESS_GROUP_MEMBERS = 10;
 	public static final int AUTOPUNISHMENTS = 20;
 	public static final int LOG_EXEMPTIONS = 30;
 	public static final int PERSISTENT_ROLES = 3;

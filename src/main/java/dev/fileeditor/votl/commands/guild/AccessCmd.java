@@ -487,6 +487,12 @@ public class AccessCmd extends SlashCommand {
 				editError(event, path+".already");
 				return;
 			}
+			int total = bot.getDBUtil().accessGroups.getRolesForGroup(group.groupId()).size()
+				+ bot.getDBUtil().accessGroups.getUsersForGroup(group.groupId()).size();
+			if (total >= Limits.ACCESS_GROUP_MEMBERS) {
+				editErrorLimit(event, "group members", Limits.ACCESS_GROUP_MEMBERS);
+				return;
+			}
 
 			try {
 				bot.getDBUtil().accessGroups.addRole(group.groupId(), guildId, role.getIdLong());
@@ -591,6 +597,12 @@ public class AccessCmd extends SlashCommand {
 			}
 			if (bot.getDBUtil().accessGroups.isUserInGroup(group.groupId(), member.getIdLong())) {
 				editError(event, path+".already");
+				return;
+			}
+			int total = bot.getDBUtil().accessGroups.getRolesForGroup(group.groupId()).size()
+				+ bot.getDBUtil().accessGroups.getUsersForGroup(group.groupId()).size();
+			if (total >= Limits.ACCESS_GROUP_MEMBERS) {
+				editErrorLimit(event, "group members", Limits.ACCESS_GROUP_MEMBERS);
 				return;
 			}
 
