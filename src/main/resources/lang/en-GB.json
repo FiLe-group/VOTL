@@ -1952,7 +1952,7 @@
 				},
 				"embed": {
 					"stats_title": "Stats",
-					"stats" : {
+					"stats": {
 						"guilds": "%s Servers",
 						"shard": "Shard %s/%s",
 						"memory": "Memory: %sMb / %sMb",
@@ -2088,7 +2088,7 @@
 							"name": "role3",
 							"help": "Select role"
 						},
-						"invalid_args":"You haven't selected any role/-s.",
+						"invalid_args": "You haven't selected any role/-s.",
 						"done": "Set %s as additional roles."
 					},
 					"clear": {
@@ -2742,6 +2742,203 @@
 					"usage": "view",
 					"empty": "No temporary assigned roles.",
 					"title": "Temporary roles"
+				}
+			},
+			"custom_role": {
+				"delete_role": {
+					"help": "Force-delete a user's custom role",
+					"usage": "delete_role <@user>",
+					"user": {
+						"help": "The user whose custom role to delete"
+					},
+					"done": "Deleted %s's custom role.",
+					"not_found": "This user does not have a custom role."
+				},
+				"usage": "custom_role",
+				"request": {
+					"usage": "request <name> <color> [second_color] [color_notes] [icon]",
+					"color": {
+						"help": "Primary color as hex, e.g. #FF5500"
+					},
+					"help": "Request a custom personal role (alternative to the panel button)",
+					"submitted": "Your custom role request has been submitted for review!",
+					"icon": {
+						"help": "Icon image (64x64 px, max 256 KB, optional)"
+					},
+					"name": {
+						"help": "Name for your custom role (max 100 characters)"
+					},
+					"color_notes": {
+						"help": "Notes for the reviewer about the color (optional)"
+					},
+					"second_color": {
+						"help": "Secondary color for gradient (optional), e.g. #0055FF"
+					}
+				},
+				"setup_position": {
+					"help": "Set the role below which custom roles are placed (omit to clear)",
+					"usage": "setup_position [@role]",
+					"cleared": "Position role cleared. Custom roles will be placed at the bottom.",
+					"role": {
+						"help": "Role to place custom roles below (leave empty to clear)"
+					},
+					"done": "Position role set to %s."
+				},
+				"review": {
+					"btn_modify": "Modify & Accept",
+					"color_secondary": "Secondary Color",
+					"footer": "Server: %s",
+					"icon": "Icon",
+					"role_name": "Role Name",
+					"btn_accept": "Accept",
+					"title": "Custom Role Request #%d",
+					"requested_by": "Requested by",
+					"status": {
+						"pending": "Pending review"
+					},
+					"approved_done": "Custom role %s approved and created.",
+					"color_notes": "Color Notes",
+					"color_primary": "Primary Color",
+					"btn_reject": "Reject",
+					"rejected_done": "Request for \"%s\" has been rejected."
+				},
+				"view": {
+					"role_deleted": "*(role was deleted)*",
+					"none": "You do not have a custom role or pending request.",
+					"active_role": "Active Role",
+					"pending_request": "Pending Request",
+					"title": "Your Custom Role",
+					"help": "View your current custom role or pending request",
+					"usage": "view"
+				},
+				"access_list": {
+					"empty": "No users have been granted custom role access.",
+					"help": "List all users with custom role access in this server",
+					"usage": "access_list",
+					"title": "Custom Role Access List"
+				},
+				"setup_reviewer": {
+					"help": "Set the role that will be pinged for reviews",
+					"usage": "setup_reviewer <@role>",
+					"role": {
+						"help": "The reviewer role"
+					},
+					"done": "Reviewer role set to %s."
+				},
+				"modal": {
+					"modify": {
+						"title": "Modify & Accept Request"
+					},
+					"request": {
+						"color_hint": "Colors must be **#RRGGBB** hex format (e.g. #FF0000 for red).",
+						"color_mode": "Color Type",
+						"color_solid": "Solid color",
+						"color_solid_desc": "One flat color",
+						"color_gradient": "Gradient",
+						"color_gradient_desc": "Two colors blending into each other",
+						"color2": "Secondary Color (#RRGGBB, for gradient)",
+						"icon": "Icon URL (optional)",
+						"title": "Request a Custom Role",
+						"color1": "Primary Color (#RRGGBB)",
+						"name": "Role Name"
+					},
+					"reject": {
+						"reason": "Reason",
+						"title": "Reject Request"
+					}
+				},
+				"grant": {
+					"user": {
+						"help": "The user to grant access to"
+					},
+					"done_timed": "Granted custom role access to %s until %s.",
+					"time_limit": "Duration must be between 1 day and 400 days.",
+					"duration": {
+						"help": "How long the access lasts, e.g. 7d, 2w (omit for permanent)"
+					},
+					"help": "Grant a user access to request a custom role",
+					"usage": "grant <@user> [duration]",
+					"done_permanent": "Granted permanent custom role access to %s."
+				},
+				"icon": {
+					"help": "Add or replace the icon on your pending custom role request",
+					"usage": "icon <image>",
+					"image": {
+						"help": "Icon image (64x64 px, max 256 KB)"
+					},
+					"done": "Icon updated on your pending request."
+				},
+				"create_panel": {
+					"button_text": "Request Custom Role",
+					"embed_text": "Click the button below to request your personal custom role!",
+					"done": "Panel posted in %s.",
+					"channel": {
+						"help": "The channel where the panel is posted"
+					},
+					"help": "Post a panel with a button that users click to request a custom role",
+					"usage": "create_panel <#channel>"
+				},
+				"help": "Manage custom personal roles",
+				"setup_channel": {
+					"help": "Set the channel where review requests are posted",
+					"usage": "setup_channel <#channel>",
+					"channel": {
+						"help": "The text channel for review requests"
+					},
+					"done": "Review requests channel set to %s."
+				},
+				"revoke": {
+					"help": "Revoke a user's access and delete their custom role if they have one",
+					"usage": "revoke <@user>",
+					"user": {
+						"help": "The user whose access to revoke"
+					},
+					"done": "Revoked custom role access for %s and deleted their role (if any)."
+				},
+				"nitro_boost": {
+					"enabled": {
+						"help": "Whether nitro boosters automatically get access to request a custom role"
+					},
+					"expire_after": {
+						"help": "Days until the custom role expires after being created (1-30)"
+					},
+					"done": "Nitro boost settings updated.",
+					"renew_every": {
+						"help": "Check every N days if the user is still boosting (1-29)"
+					},
+					"help": "View or change nitro-booster auto-grant settings",
+					"usage": "nitro_boost [enabled] [expire_after] [renew_every]",
+					"view": {
+						"expire_after": "Role expires after",
+						"renew_every": "Renew check every",
+						"title": "Nitro Boost Settings",
+						"enabled": "Auto-grant"
+					}
+				},
+				"dm": {
+					"approved": {
+						"body": "Your custom role **%s** has been approved in **%s** by **%s**!",
+						"title": "Custom Role Approved!"
+					},
+					"expired": "Your custom role **%s** in **%s** has expired and been deleted.",
+					"rejected": {
+						"body": "Your request for the role **%s** in **%s** was rejected by **%s**.\n**Reason:** %s",
+						"title": "Custom Role Request Rejected"
+					}
+				},
+				"errors": {
+					"invalid_hex": "Invalid color format. Use #RRGGBB, e.g. #FF5500.",
+					"icon_wrong_size": "Image must be exactly 64 x 64 pixels.",
+					"icon_too_large": "Image exceeds the 256 KB size limit.",
+					"no_access": "You do not have access to request a custom role.",
+					"no_setup": "Custom roles are not set up on this server.",
+					"has_role": "You already have a custom role on this server.",
+					"no_pending": "You do not have a pending custom role request.",
+					"icon_invalid": "Could not load the image. Make sure the URL points to a valid image.",
+					"has_pending": "You already have a pending custom role request.",
+					"level_required": "Role icons require Server Boost Level 2 or higher.",
+					"no_request": "Request not found or already reviewed.",
+					"gradient_not_supported": "This server does not support gradient role colors. The role will not be created."
 				}
 			}
 		},

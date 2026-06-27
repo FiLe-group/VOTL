@@ -76,6 +76,10 @@ public class GuildListener extends ListenerAdapter {
 		ignoreExc(() -> db.games.removeGuild(guildId));
 		ignoreExc(() -> db.persistent.removeGuild(guildId));
 		ignoreExc(() -> db.modReport.removeGuild(guildId));
+		ignoreExc(() -> db.customRoles.removeGuild(guildId));
+		ignoreExc(() -> db.customRoleSettings.removeGuild(guildId));
+		ignoreExc(() -> db.customRoleRequests.removeGuild(guildId));
+		ignoreExc(() -> db.customRoleAccess.removeGuild(guildId));
 		ignoreExc(() -> db.mediaChannels.removeGuild(guildId));
 		
 		ignoreExc(() -> db.guildSettings.remove(guildId));

@@ -2,6 +2,11 @@ package dev.fileeditor.votl.listeners;
 
 import static dev.fileeditor.votl.utils.CastUtil.castLong;
 
+import dev.fileeditor.votl.commands.role.CustomRoleCmd;
+import dev.fileeditor.votl.utils.database.managers.CustomRoleRequestsManager.CustomRoleRequest;
+import dev.fileeditor.votl.utils.database.managers.CustomRoleSettingsManager.CustomRoleSettings;
+
+import java.net.URI;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
@@ -134,6 +139,22 @@ public class InteractionListener extends ListenerAdapter {
 		function.run();
 	}
 
+	private void runModalButtonInteraction(ButtonInteractionEvent event, @Nullable Cooldown cooldown, @NotNull Runnable function) {
+		if (cooldown != null) {
+			String key = getCooldownKey(cooldown, event);
+			int remaining = bot.getClient().getRemainingCooldown(key);
+			if (remaining > 0) {
+				event.reply(getCooldownErrorString(cooldown, event, remaining)).setEphemeral(true)
+					.queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
+				return;
+			} else {
+				bot.getClient().applyCooldown(key, cooldown.getTime());
+			}
+		}
+
+		function.run();
+	}
+
 	@Override
 	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
 		// Check if blacklisted
@@ -223,6 +244,18 @@ public class InteractionListener extends ListenerAdapter {
 					runButtonInteraction(event, Cooldown.BUTTON_SHOW_STRIKES, () -> buttonShowStrikes(event));
 				}
 				case "manage-confirm" -> runButtonInteraction(event, Cooldown.BUTTON_MODIFY_CONFIRM, () -> buttonModifyConfirm(event));
+				case "custom_role" -> {
+					Metrics.interactionReceived.labelValue("custom_role").inc();
+					if ("create".equals(actions[1])) runModalButtonInteraction(event, Cooldown.BUTTON_CUSTOM_ROLE_REQUEST, () -> buttonCustomRoleRequest(event));
+				}
+				case "cr" -> {
+					Metrics.interactionReceived.labelValue("cr:"+actions[1]).inc();
+					switch (actions[1]) {
+						case "accept" -> runButtonInteraction(event, null, () -> buttonCustomRoleAccept(event, Long.parseLong(actions[2])));
+						case "modify" -> runModalButtonInteraction(event, null, () -> buttonCustomRoleModify(event, Long.parseLong(actions[2])));
+						case "reject" -> runModalButtonInteraction(event, null, () -> buttonCustomRoleReject(event, Long.parseLong(actions[2])));
+					}
+				}
 				default -> log.debug("Unknown button interaction: {}", event.getComponentId());
 			}
 		} catch (Throwable t) {
@@ -1493,9 +1526,15 @@ public class InteractionListener extends ListenerAdapter {
 		event.deferEdit().queue();
 		String[] modalId = event.getModalId().split(":");
 
-		//noinspection SwitchStatementWithTooFewBranches
 		switch (modalId[0]) {
 			case "role_temp" -> modalTempRole(event, castLong(modalId[1]));
+			case "cr" -> {
+				switch (modalId[1]) {
+					case "request" -> modalCustomRoleRequest(event);
+					case "modify" -> modalCustomRoleModify(event, Long.parseLong(modalId[2]));
+					case "reject" -> modalCustomRoleReject(event, Long.parseLong(modalId[2]));
+				}
+			}
 		}
 	}
 
@@ -1792,7 +1831,8 @@ public class InteractionListener extends ListenerAdapter {
 		BUTTON_REPORT_DELETE(3, CooldownScope.GUILD),
 		BUTTON_SHOW_STRIKES(30, CooldownScope.USER),
 		BUTTON_SYNC_ACTION(10, CooldownScope.CHANNEL),
-		BUTTON_MODIFY_CONFIRM(10, CooldownScope.USER);
+		BUTTON_MODIFY_CONFIRM(10, CooldownScope.USER),
+		BUTTON_CUSTOM_ROLE_REQUEST(30, CooldownScope.USER);
 
 		private final int time;
 		private final CooldownScope scope;
@@ -1850,6 +1890,499 @@ public class InteractionListener extends ListenerAdapter {
 			.formatted(descriptor == null ? "" : descriptor, TimeFormat.RELATIVE.after(remaining));
 	}
 
+
+	// ---- Custom Role interactions ----
+
+	private void buttonCustomRoleRequest(ButtonInteractionEvent event) {
+		assert event.getGuild() != null && event.getMember() != null;
+		long guildId = event.getGuild().getIdLong();
+		long userId = event.getMember().getIdLong();
+
+		CustomRoleSettings settings = db.customRoleSettings.getSettings(guildId);
+		if (!settings.isConfigured()) {
+			sendErrorLive(event, "bot.roles.custom_role.errors.no_setup");
+			return;
+		}
+		if (!db.customRoleAccess.hasAccess(userId, guildId)) {
+			sendErrorLive(event, "bot.roles.custom_role.errors.no_access");
+			return;
+		}
+		if (db.customRoles.getByOwner(userId, guildId) != null) {
+			sendErrorLive(event, "bot.roles.custom_role.errors.has_role");
+			return;
+		}
+		if (db.customRoleRequests.getPendingByUser(userId, guildId) != null) {
+			sendErrorLive(event, "bot.roles.custom_role.errors.has_pending");
+			return;
+		}
+
+		var locale = event.getUserLocale();
+		var modal = net.dv8tion.jda.api.modals.Modal.create("cr:request",
+				lu.getLocalized(locale, "bot.roles.custom_role.modal.request.title"))
+			.addComponents(
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.name"),
+					TextInput.create("name", TextInputStyle.SHORT).setMaxLength(100).setRequired(true).build()),
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_mode"),
+					net.dv8tion.jda.api.components.radiogroup.RadioGroup.create("colorMode")
+						.addOption("solid",
+							lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_solid"),
+							lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_solid_desc"),
+							true)
+						.addOption("gradient",
+							lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_gradient"),
+							lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_gradient_desc"))
+						.setRequired(true).build()),
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color1"),
+					TextInput.create("color1", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setRequired(true).build()),
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color2"),
+					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setRequired(false).build()),
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon"),
+					TextInput.create("icon", TextInputStyle.SHORT).setMaxLength(512).setRequired(false).build())
+			)
+			.build();
+		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
+	}
+
+	private void modalCustomRoleRequest(ModalInteractionEvent event) {
+		assert event.getGuild() != null && event.getMember() != null;
+		long guildId = event.getGuild().getIdLong();
+		long userId = event.getMember().getIdLong();
+
+		CustomRoleSettings settings = db.customRoleSettings.getSettings(guildId);
+		if (!settings.isConfigured()) {
+			sendError(event, "bot.roles.custom_role.errors.no_setup");
+			return;
+		}
+		if (!db.customRoleAccess.hasAccess(userId, guildId)) {
+			sendError(event, "bot.roles.custom_role.errors.no_access");
+			return;
+		}
+		if (db.customRoles.getByOwner(userId, guildId) != null) {
+			sendError(event, "bot.roles.custom_role.errors.has_role");
+			return;
+		}
+		if (db.customRoleRequests.getPendingByUser(userId, guildId) != null) {
+			sendError(event, "bot.roles.custom_role.errors.has_pending");
+			return;
+		}
+
+		String name      = Optional.ofNullable(event.getValue("name")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
+		String colorMode = Optional.ofNullable(event.getValue("colorMode")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("solid");
+		String color1    = Optional.ofNullable(event.getValue("color1")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
+		String color2    = Optional.ofNullable(event.getValue("color2")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		String icon      = Optional.ofNullable(event.getValue("icon")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		if ("solid".equals(colorMode)) color2 = null;
+		if (color2 != null && color2.isBlank()) color2 = null;
+		if (icon   != null && icon.isBlank())   icon   = null;
+
+		if (!CustomRoleCmd.isValidHex(color1)) {
+			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Primary: " + color1);
+			return;
+		}
+		if (color2 != null && !CustomRoleCmd.isValidHex(color2)) {
+			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Secondary: " + color2);
+			return;
+		}
+
+		color1 = CustomRoleCmd.normalizeHex(color1);
+		if (color2 != null) color2 = CustomRoleCmd.normalizeHex(color2);
+
+		long requestId;
+		try {
+			requestId = db.customRoleRequests.create(guildId, userId, name, color1, color2, null, icon);
+		} catch (SQLException ex) {
+			log.warn("Failed to create custom role request", ex);
+			sendError(event, "errors.database");
+			return;
+		}
+
+		postReviewEmbed(event, event.getGuild(), settings, requestId, event.getMember(), name, color1, color2, icon);
+
+		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
+			.setColor(Constants.COLOR_SUCCESS)
+			.setDescription(lu.getLocalized(event.getUserLocale(), "bot.roles.custom_role.request.submitted"))
+			.build()
+		).setEphemeral(true).queue();
+	}
+
+	private void buttonCustomRoleAccept(ButtonInteractionEvent event, long requestId) {
+		assert event.getGuild() != null && event.getMember() != null;
+		if (!isReviewer(event)) {
+			sendError(event, "errors.interaction.no_access");
+			return;
+		}
+
+		CustomRoleRequest request = db.customRoleRequests.getById(requestId);
+		if (request == null || !request.isPending()) {
+			sendError(event, "bot.roles.custom_role.errors.no_request");
+			return;
+		}
+
+		createCustomRole(event, event.getGuild(), request, event.getMember().getIdLong());
+	}
+
+	private void buttonCustomRoleModify(ButtonInteractionEvent event, long requestId) {
+		assert event.getGuild() != null && event.getMember() != null;
+		if (!isReviewer(event)) {
+			sendErrorLive(event, "errors.interaction.no_access");
+			return;
+		}
+
+		CustomRoleRequest request = db.customRoleRequests.getById(requestId);
+		if (request == null || !request.isPending()) {
+			sendErrorLive(event, "bot.roles.custom_role.errors.no_request");
+			return;
+		}
+
+		var locale = event.getUserLocale();
+		boolean isGradient = request.color2 != null;
+		var modal = net.dv8tion.jda.api.modals.Modal.create("cr:modify:" + requestId,
+				lu.getLocalized(locale, "bot.roles.custom_role.modal.modify.title"))
+			.addComponents(
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.name"),
+					TextInput.create("name", TextInputStyle.SHORT).setMaxLength(100).setValue(request.roleName).setRequired(true).build()),
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_mode"),
+					net.dv8tion.jda.api.components.radiogroup.RadioGroup.create("colorMode")
+						.addOption("solid",
+							lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_solid"),
+							lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_solid_desc"),
+							!isGradient)
+						.addOption("gradient",
+							lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_gradient"),
+							lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color_gradient_desc"),
+							isGradient)
+						.setRequired(true).build()),
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color1"),
+					TextInput.create("color1", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color1 != null ? request.color1 : "").setRequired(true).build()),
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color2"),
+					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color2 != null ? request.color2 : "").setRequired(false).build()),
+				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon"),
+					TextInput.create("icon", TextInputStyle.SHORT).setMaxLength(512).setValue(request.iconUrl != null ? request.iconUrl : "").setRequired(false).build())
+			)
+			.build();
+		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
+	}
+
+	private void modalCustomRoleModify(ModalInteractionEvent event, long requestId) {
+		assert event.getGuild() != null && event.getMember() != null;
+		if (!isReviewer(event)) {
+			sendError(event, "errors.interaction.no_access");
+			return;
+		}
+
+		CustomRoleRequest request = db.customRoleRequests.getById(requestId);
+		if (request == null || !request.isPending()) {
+			sendError(event, "bot.roles.custom_role.errors.no_request");
+			return;
+		}
+
+		String name      = Optional.ofNullable(event.getValue("name")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(request.roleName);
+		String colorMode = Optional.ofNullable(event.getValue("colorMode")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("solid");
+		String color1    = Optional.ofNullable(event.getValue("color1")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
+		String color2    = Optional.ofNullable(event.getValue("color2")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		String icon      = Optional.ofNullable(event.getValue("icon")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		if ("solid".equals(colorMode)) color2 = null;
+		if (color2 != null && color2.isBlank()) color2 = null;
+		if (icon   != null && icon.isBlank())   icon   = null;
+
+		if (!CustomRoleCmd.isValidHex(color1)) {
+			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Primary: " + color1);
+			return;
+		}
+		if (color2 != null && !CustomRoleCmd.isValidHex(color2)) {
+			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Secondary: " + color2);
+			return;
+		}
+
+		color1 = CustomRoleCmd.normalizeHex(color1);
+		if (color2 != null) color2 = CustomRoleCmd.normalizeHex(color2);
+
+		try {
+			db.customRoleRequests.updateDetails(requestId, name, color1, color2, icon);
+		} catch (SQLException ex) {
+			log.warn("Failed to update custom role request details", ex);
+			sendError(event, "errors.database");
+			return;
+		}
+
+		// Reload with updated details
+		CustomRoleRequest updated = db.customRoleRequests.getById(requestId);
+		if (updated == null) {
+			sendError(event, "bot.roles.custom_role.errors.no_request");
+			return;
+		}
+		createCustomRole(event, event.getGuild(), updated, event.getMember().getIdLong());
+	}
+
+	private void buttonCustomRoleReject(ButtonInteractionEvent event, long requestId) {
+		assert event.getGuild() != null && event.getMember() != null;
+		if (!isReviewer(event)) {
+			sendErrorLive(event, "errors.interaction.no_access");
+			return;
+		}
+
+		CustomRoleRequest request = db.customRoleRequests.getById(requestId);
+		if (request == null || !request.isPending()) {
+			sendErrorLive(event, "bot.roles.custom_role.errors.no_request");
+			return;
+		}
+
+		var modal = net.dv8tion.jda.api.modals.Modal.create("cr:reject:" + requestId,
+				lu.getLocalized(event.getUserLocale(), "bot.roles.custom_role.modal.reject.title"))
+			.addComponents(
+				Label.of(lu.getLocalized(event.getUserLocale(), "bot.roles.custom_role.modal.reject.reason"),
+					TextInput.create("reason", TextInputStyle.PARAGRAPH).setMaxLength(500).setRequired(true).build())
+			)
+			.build();
+		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
+	}
+
+	private void modalCustomRoleReject(ModalInteractionEvent event, long requestId) {
+		assert event.getGuild() != null && event.getMember() != null;
+		if (!isReviewer(event)) {
+			sendError(event, "errors.interaction.no_access");
+			return;
+		}
+
+		CustomRoleRequest request = db.customRoleRequests.getById(requestId);
+		if (request == null || !request.isPending()) {
+			sendError(event, "bot.roles.custom_role.errors.no_request");
+			return;
+		}
+
+		String reason = Optional.ofNullable(event.getValue("reason")).map(ModalMapping::getAsOptionalString).orElse("No reason provided");
+
+		try {
+			db.customRoleRequests.reject(requestId, event.getMember().getIdLong(), reason);
+		} catch (SQLException ex) {
+			log.warn("Failed to reject custom role request", ex);
+			sendError(event, "errors.database");
+			return;
+		}
+
+		// Update review embed
+		if (request.messageId != null) {
+			CustomRoleSettings settings = db.customRoleSettings.getSettings(event.getGuild().getIdLong());
+			if (settings.getRequestsChannelId() != null) {
+				var channel = event.getGuild().getTextChannelById(settings.getRequestsChannelId());
+				if (channel != null) {
+					channel.retrieveMessageById(request.messageId).queue(msg ->
+						msg.editMessageComponents(ActionRow.of(
+							Button.success("cr:accept:" + requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_accept")).asDisabled(),
+							Button.primary("cr:modify:" + requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_modify")).asDisabled(),
+							Button.danger("cr:reject:" + requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_reject")).asDisabled()
+						)).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
+					, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
+				}
+			}
+		}
+
+		// DM requester
+		event.getGuild().retrieveMemberById(request.userId).queue(member ->
+			member.getUser().openPrivateChannel().queue(dm ->
+				dm.sendMessageEmbeds(bot.getEmbedUtil().getEmbed()
+					.setColor(Constants.COLOR_FAILURE)
+					.setTitle(lu.getLocalized(net.dv8tion.jda.api.interactions.DiscordLocale.ENGLISH_UK, "bot.roles.custom_role.dm.rejected.title"))
+					.setDescription(lu.getLocalized(net.dv8tion.jda.api.interactions.DiscordLocale.ENGLISH_UK, "bot.roles.custom_role.dm.rejected.body")
+						.formatted(request.roleName, event.getGuild().getName(), event.getMember().getEffectiveName(), reason))
+					.build()
+				).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
+			)
+		, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER));
+
+		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
+			.setColor(Constants.COLOR_SUCCESS)
+			.setDescription(lu.getGuildText(event, "bot.roles.custom_role.review.rejected_done").formatted(request.roleName))
+			.build()
+		).setEphemeral(true).queue();
+	}
+
+	private void createCustomRole(IReplyCallback event, net.dv8tion.jda.api.entities.Guild guild,
+	                              CustomRoleRequest request, long reviewerId) {
+		String name   = request.roleName;
+		String color1 = request.color1;
+		String color2 = request.color2;
+
+		int c1 = 0;
+		int c2 = -1;
+		try {
+			if (color1 != null) c1 = Integer.parseInt(color1.replace("#", ""), 16);
+			if (color2 != null) c2 = Integer.parseInt(color2.replace("#", ""), 16);
+		} catch (NumberFormatException ex) {
+			sendError(event, "bot.roles.custom_role.errors.invalid_hex", ex.getMessage());
+			return;
+		}
+
+		boolean isGradient = color2 != null && c2 >= 0;
+		if (isGradient && !guild.getFeatures().contains("ROLE_COLORS")) {
+			sendError(event, "bot.roles.custom_role.errors.gradient_not_supported");
+			return;
+		}
+
+		CustomRoleSettings settings = db.customRoleSettings.getSettings(guild.getIdLong());
+
+		var creator = guild.createRole().setName(name);
+		if (isGradient) {
+			creator = creator.setGradientColors(c1, c2);
+		} else if (color1 != null) {
+			creator = creator.setColor(c1);
+		}
+
+		creator.reason("Custom role approved by " + (event.getMember() != null ? event.getMember().getEffectiveName() : "reviewer"))
+			.queue(role -> {
+				// Position below configured role
+				if (settings.getPositionRoleId() != null) {
+					Role positionRole = guild.getRoleById(settings.getPositionRoleId());
+					if (positionRole != null) {
+						guild.modifyRolePositions().selectPosition(role).moveBelow(positionRole).queue(null,
+							t -> log.warn("Failed to position custom role {} in {}", role.getIdLong(), guild.getIdLong(), t));
+					}
+				}
+
+				// Handle icon — fetch from URL if present
+				String iconUrl = request.iconUrl;
+				if (iconUrl != null && !iconUrl.isBlank()) {
+					if (guild.getBoostTier().getKey() < 2) {
+						log.info("Guild {} boost level < 2, skipping icon for custom role {}", guild.getIdLong(), role.getIdLong());
+					} else {
+						try {
+							var conn = URI.create(iconUrl).toURL().openConnection();
+							conn.setConnectTimeout(5000);
+							conn.setReadTimeout(5000);
+							byte[] bytes = conn.getInputStream().readAllBytes();
+							if (bytes.length <= 256 * 1024) {
+								var icon = net.dv8tion.jda.api.entities.Icon.from(bytes);
+								role.getManager().setIcon(icon).queue(null,
+									t -> log.warn("Failed to set icon on custom role {}", role.getIdLong(), t));
+							} else {
+								log.warn("Icon too large for custom role {}, skipping", role.getIdLong());
+							}
+						} catch (Exception ex) {
+							log.warn("Failed to fetch icon for custom role {}", role.getIdLong(), ex);
+						}
+					}
+				}
+
+				// Assign to owner
+				long ownerId = request.userId;
+				guild.retrieveMemberById(ownerId).queue(member -> {
+					guild.addRoleToMember(member, role)
+						.reason("Custom role assigned")
+						.queue(null, t -> log.warn("Failed to assign custom role {} to {}", role.getIdLong(), ownerId, t));
+
+					// DB
+					try {
+						var accessRecord = db.customRoleAccess.getAccess(ownerId, guild.getIdLong());
+						long expiresAt = accessRecord != null ? accessRecord.expiresAt : 0;
+						boolean isNitro = accessRecord != null && accessRecord.isNitro;
+						long renewAt = isNitro
+							? java.time.Instant.now().plus(settings.getNitroRenewDays(), java.time.temporal.ChronoUnit.DAYS).getEpochSecond()
+							: 0;
+						db.customRoles.add(role.getIdLong(), ownerId, guild.getIdLong(), false, expiresAt, isNitro, renewAt);
+						db.customRoleRequests.approve(request.requestId, reviewerId);
+					} catch (SQLException ex) {
+						log.warn("Failed to record approved custom role in DB", ex);
+					}
+
+					// DM owner
+					member.getUser().openPrivateChannel().queue(dm ->
+						dm.sendMessageEmbeds(bot.getEmbedUtil().getEmbed()
+							.setColor(Constants.COLOR_SUCCESS)
+							.setTitle(lu.getLocalized(net.dv8tion.jda.api.interactions.DiscordLocale.ENGLISH_UK, "bot.roles.custom_role.dm.approved.title"))
+							.setDescription(lu.getLocalized(net.dv8tion.jda.api.interactions.DiscordLocale.ENGLISH_UK, "bot.roles.custom_role.dm.approved.body")
+								.formatted(role.getName(), guild.getName(), event.getMember() != null ? event.getMember().getEffectiveName() : "reviewer"))
+							.build()
+						).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
+					);
+				}, t -> log.warn("Failed to retrieve member {} for custom role assignment", ownerId, t));
+
+				// Update review embed — disable buttons
+				if (request.messageId != null && settings.getRequestsChannelId() != null) {
+					var reviewChannel = guild.getTextChannelById(settings.getRequestsChannelId());
+					if (reviewChannel != null) {
+						reviewChannel.retrieveMessageById(request.messageId).queue(msg ->
+							msg.editMessageComponents(ActionRow.of(
+								Button.success("cr:accept:" + request.requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_accept")).asDisabled(),
+								Button.primary("cr:modify:" + request.requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_modify")).asDisabled(),
+								Button.danger("cr:reject:" + request.requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_reject")).asDisabled()
+							)).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
+						, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
+					}
+				}
+
+				// Reply to reviewer
+				event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
+					.setColor(Constants.COLOR_SUCCESS)
+					.setDescription(lu.getGuildText(event, "bot.roles.custom_role.review.approved_done").formatted(role.getAsMention()))
+					.build()
+				).setEphemeral(true).queue();
+			},
+			failure -> {
+				log.warn("Failed to create custom role for request {}", request.requestId, failure);
+				sendError(event, "errors.error", failure.getMessage());
+			});
+	}
+
+	private void postReviewEmbed(ModalInteractionEvent event, net.dv8tion.jda.api.entities.Guild guild,
+	                             CustomRoleSettings settings, long requestId,
+	                             net.dv8tion.jda.api.entities.Member requester,
+	                             String name, String color1, @Nullable String color2,
+	                             @Nullable String iconUrl) {
+		var reviewChannel = Optional.ofNullable(settings.getRequestsChannelId()).map(guild::getTextChannelById).orElse(null);
+		if (reviewChannel == null) return;
+
+		net.dv8tion.jda.api.entities.Role reviewerRole = settings.getReviewerRoleId() != null
+			? guild.getRoleById(settings.getReviewerRoleId()) : null;
+		String ping = reviewerRole != null ? reviewerRole.getAsMention() : "";
+
+		var embed = bot.getEmbedUtil().getEmbed()
+			.setTitle(lu.getText(event, "bot.roles.custom_role.review.title").formatted(requestId))
+			.addField(lu.getText(event, "bot.roles.custom_role.review.requested_by"), requester.getAsMention(), true)
+			.addField(lu.getText(event, "bot.roles.custom_role.review.role_name"), name, true)
+			.addField(lu.getText(event, "bot.roles.custom_role.review.color_primary"), color1, true);
+		if (color2 != null) {
+			embed.addField(lu.getText(event, "bot.roles.custom_role.review.color_secondary"), color2, true);
+		}
+		if (iconUrl != null) {
+			embed.addField(lu.getText(event, "bot.roles.custom_role.review.icon"), iconUrl, false)
+				.setImage(iconUrl);
+		}
+		embed.setFooter(lu.getText(event, "bot.roles.custom_role.review.footer").formatted(guild.getName()));
+
+		List<Button> buttons = List.of(
+			Button.success("cr:accept:" + requestId, lu.getText(event, "bot.roles.custom_role.review.btn_accept")),
+			Button.primary("cr:modify:" + requestId, lu.getText(event, "bot.roles.custom_role.review.btn_modify")),
+			Button.danger("cr:reject:" + requestId, lu.getText(event, "bot.roles.custom_role.review.btn_reject"))
+		);
+
+		reviewChannel.sendMessage(
+			new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+				.setContent(ping)
+				.setEmbeds(embed.build())
+				.setComponents(ActionRow.of(buttons))
+				.build()
+		).queue(msg -> ignoreExc(() -> db.customRoleRequests.setMessageId(requestId, msg.getIdLong())));
+	}
+
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	private boolean isReviewer(ButtonInteractionEvent event) {
+		if (event.getMember() == null || event.getGuild() == null) return false;
+		if (event.getMember().hasPermission(Permission.ADMINISTRATOR)) return true;
+		CustomRoleSettings settings = db.customRoleSettings.getSettings(event.getGuild().getIdLong());
+		if (settings.getReviewerRoleId() == null) return false;
+		return event.getMember().getRoles().stream().anyMatch(r -> r.getIdLong() == settings.getReviewerRoleId());
+	}
+
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	private boolean isReviewer(ModalInteractionEvent event) {
+		if (event.getMember() == null || event.getGuild() == null) return false;
+		if (event.getMember().hasPermission(Permission.ADMINISTRATOR)) return true;
+		CustomRoleSettings settings = db.customRoleSettings.getSettings(event.getGuild().getIdLong());
+		if (settings.getReviewerRoleId() == null) return false;
+		return event.getMember().getRoles().stream().anyMatch(r -> r.getIdLong() == settings.getReviewerRoleId());
+	}
+
+	// ---- end Custom Role ----
 
 	private void ignoreExc(RunnableExc runnable) {
 		try {
