@@ -10,7 +10,7 @@ public record AccessLimits(
 ) {
 	public static final AccessLimits UNLIMITED = new AccessLimits(null, null);
 
-	/** Merges two limits, taking the most permissive (highest) value per field. null = unlimited always wins. */
+	/** Merges two limits, taking the most permissive (highest) finite value. null means "no constraint from this group" and is ignored unless both sides are null. */
 	public AccessLimits merge(AccessLimits other) {
 		return new AccessLimits(
 			maxOf(this.maxBanDuration, other.maxBanDuration),
@@ -19,7 +19,8 @@ public record AccessLimits(
 	}
 
 	private static @Nullable Duration maxOf(@Nullable Duration a, @Nullable Duration b) {
-		if (a == null || b == null) return null;
+		if (a == null) return b;
+		if (b == null) return a;
 		return a.compareTo(b) >= 0 ? a : b;
 	}
 }

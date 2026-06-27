@@ -123,12 +123,26 @@ public class AccessResultTest extends BaseTest {
 	}
 
 	@Test
-	void unlimitedAlwaysWinsInMerge() {
+	void groupWithNoLimitDoesNotCancelOtherGroupsLimit() {
+		// Regression: a group with no limits (null = "no constraint") must not cancel a
+		// finite limit from another group the member belongs to.
+		// exempt group: no limits configured
+		AccessLimits exempt = new AccessLimits(null, null);
+		// moderator group: 7-day ban, 24-hour mute limit
+		AccessLimits moderator = new AccessLimits(Duration.ofDays(7), Duration.ofHours(24));
+		AccessLimits merged = exempt.merge(moderator);
+		assertEquals(Duration.ofDays(7), merged.maxBanDuration());
+		assertEquals(Duration.ofHours(24), merged.maxMuteDuration());
+	}
+
+	@Test
+	void nullLimitTreatedAsNoConstraint() {
+		// null means the group contributes no opinion; the finite side always wins
 		AccessLimits limited = new AccessLimits(Duration.ofDays(7), Duration.ofHours(24));
-		assertNull(AccessLimits.UNLIMITED.merge(limited).maxBanDuration());
-		assertNull(limited.merge(AccessLimits.UNLIMITED).maxBanDuration());
-		assertNull(AccessLimits.UNLIMITED.merge(limited).maxMuteDuration());
-		assertNull(limited.merge(AccessLimits.UNLIMITED).maxMuteDuration());
+		assertEquals(Duration.ofDays(7),   AccessLimits.UNLIMITED.merge(limited).maxBanDuration());
+		assertEquals(Duration.ofDays(7),   limited.merge(AccessLimits.UNLIMITED).maxBanDuration());
+		assertEquals(Duration.ofHours(24), AccessLimits.UNLIMITED.merge(limited).maxMuteDuration());
+		assertEquals(Duration.ofHours(24), limited.merge(AccessLimits.UNLIMITED).maxMuteDuration());
 	}
 
 	@Test
@@ -142,24 +156,24 @@ public class AccessResultTest extends BaseTest {
 
 	@Test
 	void mergeLimitsIndependentPerField() {
-		// ban unlimited on 'a', mute unlimited on 'b' — both fields should come out unlimited
+		// ban null on 'a' (no constraint), mute null on 'b' (no constraint) — each field takes the finite value
 		AccessLimits a = new AccessLimits(null, Duration.ofHours(6));
 		AccessLimits b = new AccessLimits(Duration.ofDays(14), null);
 		AccessLimits merged = a.merge(b);
-		assertNull(merged.maxBanDuration());
-		assertNull(merged.maxMuteDuration());
+		assertEquals(Duration.ofDays(14), merged.maxBanDuration());
+		assertEquals(Duration.ofHours(6), merged.maxMuteDuration());
 	}
 
 	@Test
 	void mergeResultLimitsPassThrough() {
-		// r1: ban=7d, mute=unlimited(null)   r2: ban=unlimited(null), mute=12h
-		// merged: ban=null (null wins), mute=null (null wins)
+		// r1: ban=7d, mute=null (no mute constraint)   r2: ban=null (no ban constraint), mute=12h
+		// merged: ban=7d (finite wins over null), mute=12h (finite wins over null)
 		AccessResult r1 = new AccessResult(EnumSet.of(AccessPermission.CMD_BAN),
 			new AccessLimits(Duration.ofDays(7), null));
 		AccessResult r2 = new AccessResult(EnumSet.of(AccessPermission.CMD_KICK),
 			new AccessLimits(null, Duration.ofHours(12)));
 		AccessResult merged = r1.merge(r2);
-		assertNull(merged.limits().maxBanDuration());
-		assertNull(merged.limits().maxMuteDuration());
+		assertEquals(Duration.ofDays(7),   merged.limits().maxBanDuration());
+		assertEquals(Duration.ofHours(12), merged.limits().maxMuteDuration());
 	}
 }

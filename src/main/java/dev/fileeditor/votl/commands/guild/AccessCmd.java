@@ -218,6 +218,10 @@ public class AccessCmd extends SlashCommand {
 				editError(event, "bot.guild.access.group.permission.invalid");
 				return;
 			}
+			if (perm == AccessPermission.ADMIN || perm == AccessPermission.OWNER || perm == AccessPermission.DEV) {
+				editError(event, "bot.guild.access.group.permission.invalid");
+				return;
+			}
 
 			boolean value = event.optBoolean("value");
 			long newBitmask = value
@@ -246,6 +250,7 @@ public class AccessCmd extends SlashCommand {
 			} else {
 				String query = event.getFocusedOption().getValue().toUpperCase();
 				List<Command.Choice> choices = Arrays.stream(AccessPermission.values())
+					.filter(p -> p != AccessPermission.ADMIN && p != AccessPermission.OWNER && p != AccessPermission.DEV)
 					.filter(p -> p.name().contains(query))
 					.limit(25)
 					.map(p -> new Command.Choice(p.name().toLowerCase(), p.name()))
