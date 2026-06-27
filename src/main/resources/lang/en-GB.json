@@ -800,42 +800,81 @@
 					"not_found": "Access group not found. Use `/access group list` to see available groups.",
 					"create": {
 						"help": "Create a new access group",
-						"name": { "name": "name", "help": "Group name (alphanumeric, spaces, hyphens; max 32 chars)" },
+						"usage": "group create <name>",
+						"name": {
+							"name": "name",
+							"help": "Group name (alphanumeric, spaces, hyphens; max 32 chars)"
+						},
 						"invalid_name": "Invalid name. Use only letters, numbers, spaces and hyphens (max 32 characters).",
 						"already_exists": "A group with that name already exists.",
 						"done": "Access group **%s** created successfully."
 					},
 					"delete": {
 						"help": "Delete an access group",
-						"group": { "name": "group", "help": "Group to delete" },
+						"usage": "group delete <group>",
+						"group": {
+							"name": "group",
+							"help": "Group to delete"
+						},
 						"done": "Access group **%s** deleted."
 					},
 					"rename": {
 						"help": "Rename an access group",
-						"group": { "name": "group", "help": "Group to rename" },
-						"name": { "name": "name", "help": "New name" },
+						"usage": "group rename <group> <name>",
+						"group": {
+							"name": "group",
+							"help": "Group to rename"
+						},
+						"name": {
+							"name": "name",
+							"help": "New name"
+						},
 						"done": "Renamed group **%s** → **%s**."
 					},
 					"permission": {
 						"help": "Toggle a permission flag on a group",
-						"group": { "name": "group", "help": "Target group" },
-						"permission": { "name": "permission", "help": "Permission flag to toggle" },
-						"value": { "name": "value", "help": "Enable or disable this permission" },
+						"usage": "group permission <group> <permission> <value>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"permission": {
+							"name": "permission",
+							"help": "Permission flag to toggle"
+						},
+						"value": {
+							"name": "value",
+							"help": "Enable or disable this permission"
+						},
 						"invalid": "Unknown permission flag. Use the autocomplete to select a valid permission.",
 						"done": "Group **%s**: permission `%s` set to %s."
 					},
 					"limit": {
 						"help": "Set a maximum ban/mute duration for a group",
-						"group": { "name": "group", "help": "Target group" },
-						"type": { "name": "type", "help": "Limit type: ban or mute" },
-						"duration": { "name": "duration", "help": "Max duration (e.g. 30m, 7d) or 'none' to remove the limit" },
+						"usage": "group limit <group> <type> <duration>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"type": {
+							"name": "type",
+							"help": "Limit type: ban or mute"
+						},
+						"duration": {
+							"name": "duration",
+							"help": "Max duration (e.g. 30m, 7d) or 'none' to remove the limit"
+						},
 						"invalid_duration": "Invalid duration. Provide a positive value (e.g. 30m, 7d) or 'none'.",
 						"unlimited": "Unlimited",
 						"done": "Group **%s**: max %s duration set to **%s**."
 					},
 					"info": {
 						"help": "Show permissions and members of a group",
-						"group": { "name": "group", "help": "Group to inspect" },
+						"usage": "group info <group>",
+						"group": {
+							"name": "group",
+							"help": "Group to inspect"
+						},
 						"title": "Group: %s",
 						"permissions": "Permissions",
 						"limits": "Duration Limits",
@@ -846,6 +885,7 @@
 					},
 					"list": {
 						"help": "List all access groups for this server",
+						"usage": "group list",
 						"title": "Access Groups",
 						"none": "*No access groups configured. Use `/access group create` to add one.*"
 					}
@@ -854,29 +894,57 @@
 					"help": "Manage group memberships (roles and users)",
 					"addrole": {
 						"help": "Add a role to an access group",
-						"group": { "name": "group", "help": "Target group" },
-						"role": { "name": "role", "help": "Role to add" },
+						"usage": "member addrole <group> <@role>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"role": {
+							"name": "role",
+							"help": "Role to add"
+						},
 						"already": "That role is already in this group.",
 						"done": "Role %s added to group **%s**."
 					},
 					"removerole": {
 						"help": "Remove a role from an access group",
-						"group": { "name": "group", "help": "Target group" },
-						"role": { "name": "role", "help": "Role to remove" },
+						"usage": "member removerole <group> <@role>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"role": {
+							"name": "role",
+							"help": "Role to remove"
+						},
 						"not_in_group": "That role is not in this group.",
 						"done": "Role %s removed from group **%s**."
 					},
 					"adduser": {
 						"help": "Directly assign a user to an access group",
-						"group": { "name": "group", "help": "Target group" },
-						"user": { "name": "user", "help": "User to assign" },
+						"usage": "member adduser <group> <@user>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"user": {
+							"name": "user",
+							"help": "User to assign"
+						},
 						"already": "That user is already in this group.",
 						"done": "User %s added to group **%s**."
 					},
 					"removeuser": {
 						"help": "Remove a user from an access group",
-						"group": { "name": "group", "help": "Target group" },
-						"user": { "name": "user", "help": "User to remove" },
+						"usage": "member removeuser <group> <@user>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"user": {
+							"name": "user",
+							"help": "User to remove"
+						},
 						"not_in_group": "That user is not in this group.",
 						"done": "User %s removed from group **%s**."
 					}
