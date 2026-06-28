@@ -179,7 +179,8 @@ public class ThrottleMiddleware extends Middleware {
 	public enum ThrottleType {
 		USER("U:%d", "User"),
 		CHANNEL("C:%d", "Channel"),
-		GUILD("G:%d", "Guild");
+		GUILD("G:%d", "Guild"),
+		GLOBAL("GLOBAL", "Global");
 
 		private final String format;
 		private final String name;
@@ -208,7 +209,7 @@ public class ThrottleMiddleware extends Middleware {
 		}
 
 		public String genKey(long id) {
-			return format.formatted(id);
+			return this.equals(GLOBAL) ? format : format.formatted(id);
 		}
 
 		public ISnowflake getSnowflake(GenericCommandInteractionEvent event) {
@@ -216,6 +217,7 @@ public class ThrottleMiddleware extends Middleware {
 				case GUILD -> event.isFromGuild() ? event.getGuild() : event.getUser();
 				case CHANNEL -> event.getChannel();
 				case USER -> event.getUser();
+				case GLOBAL -> () -> 0;
 			};
 		}
 
