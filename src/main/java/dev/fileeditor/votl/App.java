@@ -82,9 +82,9 @@ public class App {
 	private ExitCodes shutdownCode = ExitCodes.RESTART;
 
 	@SuppressWarnings("BusyWait")
-	public App(CliSettings settings) {
+	public App(CliSettings cliSettings) {
 		App.instance = this;
-		this.cliSettings = settings;
+		this.cliSettings = cliSettings;
 
 		System.out.println(AppInfo.getVersionInfo());
 
