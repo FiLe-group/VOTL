@@ -10,7 +10,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -53,7 +53,7 @@ public class BanCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.accessLevel = CmdAccessLevel.MOD;
+		this.requiredPermission = AccessPermission.CMD_BAN;
 		addMiddlewares(
 			"throttle:guild,2,20"
 		);
@@ -62,7 +62,7 @@ public class BanCmd extends SlashCommand {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		Guild guild = event.getGuild();
-		assert guild != null;
+		assert guild != null && event.getMember() != null;
 
 		// Resolve user and check permission
 		User tu = event.optUser("user");
@@ -81,6 +81,14 @@ public class BanCmd extends SlashCommand {
 			duration = TimeUtil.stringToDuration(event.optString("time"), false);
 		} catch (FormatterException ex) {
 			editError(event, ex.getPath());
+			return;
+		}
+
+		// Enforce duration limits
+		try {
+			bot.getCheckUtil().enforceBanLimit(event, event.getMember(), duration.isZero() ? null : duration);
+		} catch (dev.fileeditor.votl.utils.exception.CheckException ex) {
+			editError(event, ex.getEditData());
 			return;
 		}
 

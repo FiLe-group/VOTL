@@ -4,7 +4,7 @@ import java.util.List;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -44,7 +44,7 @@ public class ModLogsCmd extends SlashCommand {
 		if (event.hasOption("user")) {
 			tu = event.optUser("user");
 			assert tu != null;
-			if (!tu.equals(event.getUser()) && !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.MOD)) {
+			if (!tu.equals(event.getUser()) && !bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_MOD_STATS)) {
 				editError(event, path+".no_perms");
 				return;
 			}

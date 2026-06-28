@@ -1,7 +1,7 @@
 package dev.fileeditor.votl.commands.moderation;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -36,7 +36,7 @@ public class ModReportCmd extends SlashCommand {
 		};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.requiredPermission = AccessPermission.ADMIN;
 	}
 
 	@Override

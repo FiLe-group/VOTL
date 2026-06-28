@@ -9,7 +9,7 @@ import java.util.Map;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -37,7 +37,7 @@ public class TempRoleCmd extends SlashCommand {
 		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
-		this.accessLevel = CmdAccessLevel.MOD;
+		this.requiredPermission = AccessPermission.CMD_TEMP_ROLE;
 	}
 
 	@Override
@@ -89,7 +89,13 @@ public class TempRoleCmd extends SlashCommand {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
-			
+			if (!guild.getSelfMember().canInteract(member)
+				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
+				|| !event.getMember().canInteract(member)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
+
 			// Check if already added
 			long roleId = role.getIdLong();
 			long userId = member.getIdLong();
@@ -162,6 +168,12 @@ public class TempRoleCmd extends SlashCommand {
 				editError(event, "errors.option.member");
 				return;
 			}
+			if (!event.getGuild().getSelfMember().canInteract(member)
+				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
+				|| !event.getMember().canInteract(member)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
 			// Check time
 			Instant time = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), member.getIdLong());
 			if (time == null) {
@@ -211,6 +223,13 @@ public class TempRoleCmd extends SlashCommand {
 			Member member = event.optMember("user");
 			if (member == null) {
 				editError(event, "errors.option.member");
+				return;
+			}
+			assert event.getGuild() != null && event.getMember() != null;
+			if (!event.getGuild().getSelfMember().canInteract(member)
+				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
+				|| !event.getMember().canInteract(member)) {
+				editError(event, "errors.option.member_interact");
 				return;
 			}
 			// Check time

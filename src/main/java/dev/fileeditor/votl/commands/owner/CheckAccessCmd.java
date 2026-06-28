@@ -2,7 +2,7 @@ package dev.fileeditor.votl.commands.owner;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
@@ -16,7 +16,7 @@ public class CheckAccessCmd extends SlashCommand {
 		this.name = "checkaccess";
 		this.path = "bot.owner.checkaccess";
 		this.category = CmdCategory.OWNER;
-		this.accessLevel = CmdAccessLevel.DEV;
+		this.requiredPermission = AccessPermission.DEV;
 		this.options = List.of(
 			new OptionData(OptionType.STRING, "server", lu.getText(path+".server.help"), true),
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
@@ -39,8 +39,12 @@ public class CheckAccessCmd extends SlashCommand {
 		}
 
 		guild.retrieveMember(user).queue(member -> {
-			CmdAccessLevel level = bot.getCheckUtil().getAccessLevel(member);
-			editMsg(event, "%s(%s) - %s".formatted(member.getAsMention(), member.getEffectiveName(), level.getName()));
+			String tier;
+			if (bot.getCheckUtil().hasAccess(member, AccessPermission.DEV))        tier = "DEV";
+			else if (bot.getCheckUtil().hasAccess(member, AccessPermission.OWNER)) tier = "OWNER";
+			else if (bot.getCheckUtil().hasAccess(member, AccessPermission.ADMIN)) tier = "ADMIN";
+			else                                                                    tier = "ALL";
+			editMsg(event, "%s(%s) - %s".formatted(member.getAsMention(), member.getEffectiveName(), tier));
 		}, failure -> editError(event, failure.getMessage()));
 	}
 }

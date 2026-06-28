@@ -20,7 +20,7 @@ import dev.fileeditor.votl.contracts.middleware.Middleware;
 import dev.fileeditor.votl.contracts.reflection.Reflectionable;
 import dev.fileeditor.votl.middleware.MiddlewareHandler;
 import dev.fileeditor.votl.middleware.ThrottleMiddleware;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 
@@ -194,10 +194,10 @@ public abstract class Interaction extends Reflectionable {
 
 	protected CmdModule module = null;
 
-	protected CmdAccessLevel accessLevel = CmdAccessLevel.ALL;
+	protected AccessPermission requiredPermission = null;
 
-	public CmdAccessLevel getAccessLevel() {
-		return accessLevel;
+	public AccessPermission getRequiredPermission() {
+		return requiredPermission;
 	}
 
 	public CmdModule getModule() {

@@ -44,7 +44,10 @@
 		},
 		"interaction": {
 			"no_values": "None of the values has been selected.",
-			"no_access": "You cannot perform this action because you do not have the required access."
+			"no_access": "You cannot perform this action because you do not have the required access.",
+			"ban_no_permanent": "You are not allowed to issue permanent bans.",
+			"ban_exceeds_limit": "Your ban duration limit is **%s**. Please use a shorter duration.",
+			"mute_exceeds_limit": "Your mute duration limit is **%s**. Please use a shorter duration."
 		},
 		"timed_out": "Timed out",
 		"proof_type": "Incorrect proof file type provided. Only .png and .jpg/.jpeg are accepted.",
@@ -457,27 +460,6 @@
 				"usage": "generate",
 				"error": "Unknown error, see below."
 			},
-			"forceaccess": {
-				"help": "Force role/user access in selected server",
-				"usage": "forceaccess <Server ID> <@Role/@User> <Access level>",
-				"server": {
-					"name": "server",
-					"help": "Enter server's ID"
-				},
-				"type": {
-					"name": "type",
-					"help": "Is target role or user?"
-				},
-				"target": {
-					"name": "target",
-					"help": "Enter target's ID"
-				},
-				"access_level": {
-					"name": "access_level",
-					"help": "Grant the target selected access level"
-				},
-				"done": "Assigned %s access %s."
-			},
 			"checkaccess": {
 				"help": "Check user's access in selected server",
 				"usage": "checkaccess <Server ID> <@User>",
@@ -812,68 +794,160 @@
 				}
 			},
 			"access": {
-				"help": "Manage access to command use",
-				"add": {
-					"help": "Allow access",
-					"role": {
-						"help": "Add server's role an access",
-						"usage": "add role <@Role | ID> <Access level>",
-						"role": {
-							"name": "role",
-							"help": "Mention role"
+				"help": "Manage access groups for command permissions",
+				"group": {
+					"help": "Manage access groups",
+					"not_found": "Access group not found. Use `/access group list` to see available groups.",
+					"create": {
+						"help": "Create a new access group",
+						"usage": "group create <name>",
+						"name": {
+							"name": "name",
+							"help": "Group name (alphanumeric, spaces, hyphens; max 32 chars)"
 						},
-						"access_level": {
-							"name": "access_level",
-							"help": "Grant the role selected access level"
-						},
-						"already": "Role already has some access!",
-						"done": "Successfully assigned %s access `%s`!"
+						"invalid_name": "Invalid name. Use only letters, numbers, spaces and hyphens (max 32 characters).",
+						"already_exists": "A group with that name already exists.",
+						"done": "Access group **%s** created successfully."
 					},
-					"operator": {
-						"help": "Add Operator access to user",
-						"usage": "add operator <@User | ID>",
-						"user": {
-							"name": "user",
-							"help": "Mention server member"
+					"delete": {
+						"help": "Delete an access group",
+						"usage": "group delete <group>",
+						"group": {
+							"name": "group",
+							"help": "Group to delete"
 						},
-						"already": "This user already has some access!",
-						"done": "Successfully assigned %s Operator access!"
+						"done": "Access group **%s** deleted."
+					},
+					"rename": {
+						"help": "Rename an access group",
+						"usage": "group rename <group> <name>",
+						"group": {
+							"name": "group",
+							"help": "Group to rename"
+						},
+						"name": {
+							"name": "name",
+							"help": "New name"
+						},
+						"done": "Renamed group **%s** → **%s**."
+					},
+					"permission": {
+						"help": "Toggle a permission flag on a group",
+						"usage": "group permission <group> <permission> <value>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"permission": {
+							"name": "permission",
+							"help": "Permission flag to toggle"
+						},
+						"value": {
+							"name": "value",
+							"help": "Enable or disable this permission"
+						},
+						"invalid": "Unknown permission flag. Use the autocomplete to select a valid permission.",
+						"done": "Group **%s**: permission `%s` set to %s."
+					},
+					"limit": {
+						"help": "Set a maximum ban/mute duration for a group",
+						"usage": "group limit <group> <type> <duration>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"type": {
+							"name": "type",
+							"help": "Limit type: ban or mute"
+						},
+						"duration": {
+							"name": "duration",
+							"help": "Max duration (e.g. 30m, 7d) or 'none' to remove the limit"
+						},
+						"invalid_duration": "Invalid duration. Provide a positive value (e.g. 30m, 7d) or 'none'.",
+						"max_duration": "Duration exceeds the maximum allowed limit of 90 days (3 months).",
+						"unlimited": "Unlimited",
+						"done": "Group **%s**: max %s duration set to **%s**."
+					},
+					"info": {
+						"help": "Show permissions and members of a group",
+						"usage": "group info <group>",
+						"group": {
+							"name": "group",
+							"help": "Group to inspect"
+						},
+						"title": "Group: %s",
+						"permissions": "Permissions",
+						"limits": "Duration Limits",
+						"roles": "Roles",
+						"users": "Users",
+						"unlimited": "Unlimited",
+						"none": "*None*"
+					},
+					"list": {
+						"help": "List all access groups for this server",
+						"usage": "group list",
+						"title": "Access Groups",
+						"none": "*No access groups configured. Use `/access group create` to add one.*"
 					}
 				},
-				"remove": {
-					"help": "Remove access",
-					"role": {
-						"help": "Remove any access level from role",
-						"usage": "remove role <@Role | ID>",
+				"member": {
+					"help": "Manage group memberships (roles and users)",
+					"addrole": {
+						"help": "Add a role to an access group",
+						"usage": "member addrole <group> <@role>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
 						"role": {
 							"name": "role",
-							"help": "Mention role"
+							"help": "Role to add"
 						},
-						"no_access": "Selected role lacks any access level.",
-						"done": "Successfully removed from %s access `%s`!"
+						"already": "That role is already in this group.",
+						"done": "Role %s added to group **%s**."
 					},
-					"operator": {
-						"help": "Remove Operator access from user",
-						"usage": "remove operator <@User | ID>",
+					"removerole": {
+						"help": "Remove a role from an access group",
+						"usage": "member removerole <group> <@role>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"role": {
+							"name": "role",
+							"help": "Role to remove"
+						},
+						"not_in_group": "That role is not in this group.",
+						"done": "Role %s removed from group **%s**."
+					},
+					"adduser": {
+						"help": "Directly assign a user to an access group",
+						"usage": "member adduser <group> <@user>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
 						"user": {
 							"name": "user",
-							"help": "Mention user"
+							"help": "User to assign"
 						},
-						"not_operator": "Selected user has no Operator access",
-						"done": "Successfully removed from %s Operator access!"
-					}
-				},
-				"view": {
-					"help": "View who has access",
-					"usage": "view",
-					"embed": {
-						"title": "Roles with access",
-						"none_found": "*None of the roles/users has any access.*",
-						"none": "None",
-						"exempt": "**Ban exemption roles:**",
-						"helper": "**Helper roles:**",
-						"mod": "**Moderator roles:**",
-						"operator": "**Operators:**"
+						"already": "That user is already in this group.",
+						"done": "User %s added to group **%s**."
+					},
+					"removeuser": {
+						"help": "Remove a user from an access group",
+						"usage": "member removeuser <group> <@user>",
+						"group": {
+							"name": "group",
+							"help": "Target group"
+						},
+						"user": {
+							"name": "user",
+							"help": "User to remove"
+						},
+						"not_in_group": "That user is not in this group.",
+						"done": "User %s removed from group **%s**."
 					}
 				}
 			},
@@ -1305,6 +1379,20 @@
 				"ban_abort": "Could not ban mentioned member.",
 				"success": "\uD83D\uDD28 **User was banned %s.**"
 			},
+			"baninfo": {
+				"help": "Show ban info for a user across all group servers",
+				"usage": "baninfo <@User | ID>",
+				"user": {
+					"name": "user",
+					"help": "Mention user/Enter ID"
+				},
+				"title": "Ban info: %s",
+				"no_groups": "This server is not part of any groups and does not own any groups.",
+				"no_bans": "No bans found across %d servers.",
+				"active_title": "Active bans (%d)",
+				"past_title": "Past bans (%d)",
+				"truncated": "... and more (total: %d)"
+			},
 			"unban": {
 				"help": "Unban banned user on this server",
 				"usage": "unban <Tag | ID> [reason]",
@@ -1383,6 +1471,7 @@
 					"help": "Unmute reason (*none*)"
 				},
 				"not_muted": "Mentioned user is not muted/timed out.",
+				"higher_access": "Mentioned member has higher access than you do.",
 				"abort": "Could not unmute mentioned user.",
 				"success": "\uD83D\uDD0A **User was unmuted.**"
 			},
@@ -1409,6 +1498,8 @@
 					"help": "Select/Paste image with proofs. Only .png and .jpg/.jpeg are accepted."
 				},
 				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
+				"higher_access": "Mentioned member has higher access than you do.",
+				"abort": "Could not apply strike to mentioned member.",
 				"success": "\uD83D\uDEA9 **User received %s.**",
 				"autopunish_title": "Applying punishment for %d strikes",
 				"autopunish_error": "Unable to apply auto punishment.",
@@ -1861,7 +1952,7 @@
 				},
 				"embed": {
 					"stats_title": "Stats",
-					"stats" : {
+					"stats": {
 						"guilds": "%s Servers",
 						"shard": "Shard %s/%s",
 						"memory": "Memory: %sMb / %sMb",
@@ -1997,7 +2088,7 @@
 							"name": "role3",
 							"help": "Select role"
 						},
-						"invalid_args":"You haven't selected any role/-s.",
+						"invalid_args": "You haven't selected any role/-s.",
 						"done": "Set %s as additional roles."
 					},
 					"clear": {
@@ -2652,6 +2743,203 @@
 					"empty": "No temporary assigned roles.",
 					"title": "Temporary roles"
 				}
+			},
+			"custom_role": {
+				"delete_role": {
+					"help": "Force-delete a user's custom role",
+					"usage": "delete_role <@user>",
+					"user": {
+						"help": "The user whose custom role to delete"
+					},
+					"done": "Deleted %s's custom role.",
+					"not_found": "This user does not have a custom role."
+				},
+				"usage": "custom_role",
+				"request": {
+					"usage": "request <name> <color> [second_color] [color_notes] [icon]",
+					"color": {
+						"help": "Primary color as hex, e.g. #FF5500"
+					},
+					"help": "Request a custom personal role (alternative to the panel button)",
+					"submitted": "Your custom role request has been submitted for review!",
+					"icon": {
+						"help": "Icon image (64x64 px, max 256 KB, optional)"
+					},
+					"name": {
+						"help": "Name for your custom role (max 100 characters)"
+					},
+					"color_notes": {
+						"help": "Notes for the reviewer about the color (optional)"
+					},
+					"second_color": {
+						"help": "Secondary color for gradient (optional), e.g. #0055FF"
+					}
+				},
+				"setup_position": {
+					"help": "Set the role below which custom roles are placed (omit to clear)",
+					"usage": "setup_position [@role]",
+					"cleared": "Position role cleared. Custom roles will be placed at the bottom.",
+					"role": {
+						"help": "Role to place custom roles below (leave empty to clear)"
+					},
+					"done": "Position role set to %s."
+				},
+				"review": {
+					"btn_modify": "Modify & Accept",
+					"color_secondary": "Secondary Color",
+					"footer": "Server: %s",
+					"icon": "Icon",
+					"role_name": "Role Name",
+					"btn_accept": "Accept",
+					"title": "Custom Role Request #%d",
+					"requested_by": "Requested by",
+					"status": {
+						"pending": "Pending review"
+					},
+					"approved_done": "Custom role %s approved and created.",
+					"color_notes": "Color Notes",
+					"color_primary": "Primary Color",
+					"btn_reject": "Reject",
+					"rejected_done": "Request for \"%s\" has been rejected."
+				},
+				"view": {
+					"role_deleted": "*(role was deleted)*",
+					"none": "You do not have a custom role or pending request.",
+					"active_role": "Active Role",
+					"pending_request": "Pending Request",
+					"title": "Your Custom Role",
+					"help": "View your current custom role or pending request",
+					"usage": "view"
+				},
+				"access_list": {
+					"empty": "No users have been granted custom role access.",
+					"help": "List all users with custom role access in this server",
+					"usage": "access_list",
+					"title": "Custom Role Access List"
+				},
+				"setup_reviewer": {
+					"help": "Set the role that will be pinged for reviews",
+					"usage": "setup_reviewer <@role>",
+					"role": {
+						"help": "The reviewer role"
+					},
+					"done": "Reviewer role set to %s."
+				},
+				"modal": {
+					"modify": {
+						"title": "Modify & Accept Request"
+					},
+					"request": {
+						"color_hint": "Colors must be **#RRGGBB** hex format (e.g. #FF0000 for red).",
+						"color_mode": "Color Type",
+						"color_solid": "Solid color",
+						"color_solid_desc": "One flat color",
+						"color_gradient": "Gradient",
+						"color_gradient_desc": "Two colors blending into each other",
+						"color2": "Secondary Color (#RRGGBB, for gradient)",
+						"icon": "Icon URL (optional)",
+						"title": "Request a Custom Role",
+						"color1": "Primary Color (#RRGGBB)",
+						"name": "Role Name"
+					},
+					"reject": {
+						"reason": "Reason",
+						"title": "Reject Request"
+					}
+				},
+				"grant": {
+					"user": {
+						"help": "The user to grant access to"
+					},
+					"done_timed": "Granted custom role access to %s until %s.",
+					"time_limit": "Duration must be between 1 day and 400 days.",
+					"duration": {
+						"help": "How long the access lasts, e.g. 7d, 2w (omit for permanent)"
+					},
+					"help": "Grant a user access to request a custom role",
+					"usage": "grant <@user> [duration]",
+					"done_permanent": "Granted permanent custom role access to %s."
+				},
+				"icon": {
+					"help": "Add or replace the icon on your pending custom role request",
+					"usage": "icon <image>",
+					"image": {
+						"help": "Icon image (64x64 px, max 256 KB)"
+					},
+					"done": "Icon updated on your pending request."
+				},
+				"create_panel": {
+					"button_text": "Request Custom Role",
+					"embed_text": "Click the button below to request your personal custom role!",
+					"done": "Panel posted in %s.",
+					"channel": {
+						"help": "The channel where the panel is posted"
+					},
+					"help": "Post a panel with a button that users click to request a custom role",
+					"usage": "create_panel <#channel>"
+				},
+				"help": "Manage custom personal roles",
+				"setup_channel": {
+					"help": "Set the channel where review requests are posted",
+					"usage": "setup_channel <#channel>",
+					"channel": {
+						"help": "The text channel for review requests"
+					},
+					"done": "Review requests channel set to %s."
+				},
+				"revoke": {
+					"help": "Revoke a user's access and delete their custom role if they have one",
+					"usage": "revoke <@user>",
+					"user": {
+						"help": "The user whose access to revoke"
+					},
+					"done": "Revoked custom role access for %s and deleted their role (if any)."
+				},
+				"nitro_boost": {
+					"enabled": {
+						"help": "Whether nitro boosters automatically get access to request a custom role"
+					},
+					"expire_after": {
+						"help": "Days until the custom role expires after being created (1-30)"
+					},
+					"done": "Nitro boost settings updated.",
+					"renew_every": {
+						"help": "Check every N days if the user is still boosting (1-29)"
+					},
+					"help": "View or change nitro-booster auto-grant settings",
+					"usage": "nitro_boost [enabled] [expire_after] [renew_every]",
+					"view": {
+						"expire_after": "Role expires after",
+						"renew_every": "Renew check every",
+						"title": "Nitro Boost Settings",
+						"enabled": "Auto-grant"
+					}
+				},
+				"dm": {
+					"approved": {
+						"body": "Your custom role **%s** has been approved in **%s** by **%s**!",
+						"title": "Custom Role Approved!"
+					},
+					"expired": "Your custom role **%s** in **%s** has expired and been deleted.",
+					"rejected": {
+						"body": "Your request for the role **%s** in **%s** was rejected by **%s**.\n**Reason:** %s",
+						"title": "Custom Role Request Rejected"
+					}
+				},
+				"errors": {
+					"invalid_hex": "Invalid color format. Use #RRGGBB, e.g. #FF5500.",
+					"icon_wrong_size": "Image must be exactly 64 x 64 pixels.",
+					"icon_too_large": "Image exceeds the 256 KB size limit.",
+					"no_access": "You do not have access to request a custom role.",
+					"no_setup": "Custom roles are not set up on this server.",
+					"has_role": "You already have a custom role on this server.",
+					"no_pending": "You do not have a pending custom role request.",
+					"icon_invalid": "Could not load the image. Make sure the URL points to a valid image.",
+					"has_pending": "You already have a pending custom role request.",
+					"level_required": "Role icons require Server Boost Level 2 or higher.",
+					"no_request": "Request not found or already reviewed.",
+					"gradient_not_supported": "This server does not support gradient role colors. The role will not be created."
+				}
 			}
 		},
 		"games": {
@@ -2722,6 +3010,20 @@
 				},
 				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
 				"done": "User %s received Game strike in %s."
+			},
+			"delgamestrike": {
+				"help": "Remove a game strike from a user",
+				"usage": "delgamestrike <#Channel> <@User>",
+				"channel": {
+					"name": "channel",
+					"help": "Select channel"
+				},
+				"user": {
+					"name": "user",
+					"help": "Mention user/Enter ID"
+				},
+				"no_strikes": "This user has no game strikes in this channel.",
+				"done": "Removed one game strike from %s in %s. Current count: `%d`/`%d`."
 			}
 		},
 		"level": {

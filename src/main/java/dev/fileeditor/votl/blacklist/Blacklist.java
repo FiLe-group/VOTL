@@ -108,7 +108,7 @@ public class Blacklist {
 
 		// Process data for removal
 		try {
-			bot.getDBUtil().access.removeUser(id);
+			bot.getDBUtil().accessGroups.removeUserFromAll(id);
 			bot.getDBUtil().levels.deleteUser(id);
 			bot.getDBUtil().user.remove(id);
 		} catch (SQLException e) {

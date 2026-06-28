@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -38,7 +38,7 @@ public class WebhookCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.MANAGE_WEBHOOKS};
 		this.category = CmdCategory.WEBHOOK;
 		this.module = CmdModule.WEBHOOK;
-		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.requiredPermission = AccessPermission.ADMIN;
 	}
 
 	@Override

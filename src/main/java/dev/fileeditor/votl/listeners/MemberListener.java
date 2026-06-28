@@ -3,6 +3,7 @@ package dev.fileeditor.votl.listeners;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -21,6 +22,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateBoostTimeEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -133,7 +135,7 @@ public class MemberListener extends ListenerAdapter {
 		// When user leaves guild, check if there are any records in DB that would be better to remove.
 		// This does not consider clearing User DB, when bot leaves guild.
 		try {
-			db.access.removeUser(guildId, userId);
+			db.accessGroups.removeUserFromGuild(guildId, userId);
 			db.user.remove(event.getUser().getIdLong());
 		} catch (SQLException ignored) {}
 
@@ -145,6 +147,22 @@ public class MemberListener extends ListenerAdapter {
 				GuildChannel channel = event.getGuild().getGuildChannelById(channelId);
 				if (channel != null) channel.delete().reason("Author left").queue();
 			});
+		}
+	}
+
+	@Override
+	public void onGuildMemberUpdateBoostTime(@NotNull GuildMemberUpdateBoostTimeEvent event) {
+		if (event.getOldValue() != null || event.getNewValue() == null) return;
+		// User just started boosting
+		long guildId = event.getGuild().getIdLong();
+		long userId = event.getUser().getIdLong();
+		var settings = db.customRoleSettings.getSettings(guildId);
+		if (!settings.isNitroAutoGrant()) return;
+		Instant expires = Instant.now().plus(settings.getNitroExpireDays(), ChronoUnit.DAYS);
+		try {
+			db.customRoleAccess.grant(userId, guildId, 0L, expires.getEpochSecond(), true);
+		} catch (SQLException e) {
+			log.warn("Failed to grant nitro custom role access for {} @ {}", userId, guildId, e);
 		}
 	}
 

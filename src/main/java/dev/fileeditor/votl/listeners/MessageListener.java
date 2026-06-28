@@ -9,7 +9,7 @@ import ch.qos.logback.classic.Logger;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.App;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.MediaType;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
@@ -56,7 +56,7 @@ public class MessageListener extends ListenerAdapter {
 		if (event.getChannelType() == ChannelType.TEXT) {
 			var mediaSettings = bot.getDBUtil().mediaChannels.getChannel(guildId, event.getChannel().getIdLong());
 			assert event.getMember() != null;
-			if (mediaSettings != null && !bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.ADMIN)) {
+			if (mediaSettings != null && !bot.getCheckUtil().hasAccess(event.getMember(), AccessPermission.ADMIN)) {
 				var message = event.getMessage();
 				if (message.getContentRaw().isEmpty() && message.getAttachments().isEmpty()) {
 					replyMediaChannel(message, "reason_not_media");

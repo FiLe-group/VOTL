@@ -1,19 +1,21 @@
 package dev.fileeditor.votl.commands.other;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.Category;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
-import dev.fileeditor.votl.utils.message.MessageUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -45,6 +47,19 @@ public class HelpCmd extends SlashCommand {
 	}
 
 	@Override
+	public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+		String value = event.getFocusedOption().getValue().toLowerCase().split(" ")[0];
+		List<Command.Choice> choices = bot.getClient().getSlashCommands().stream()
+			.filter(cmd -> cmd.getName().contains(value))
+			.map(cmd -> new Command.Choice(cmd.getName(), cmd.getName()))
+			.collect(Collectors.toList());
+		if (choices.size() > 25) {
+			choices.subList(25, choices.size()).clear();
+		}
+		event.replyChoices(choices).queue();
+	}
+
+	@Override
 	protected void execute(SlashCommandEvent event) {
 		String findCmd = event.optString("command");
 
@@ -72,7 +87,9 @@ public class HelpCmd extends SlashCommand {
 				.setTitle(lu.getText(event, "bot.help.command_info.title", command.getName()))
 				.setDescription(lu.getText(event, "bot.help.command_info.value",
 					lu.getText(event, "bot.help.command_menu.categories."+command.getCategory().name()),
-					MessageUtil.capitalize(command.getAccessLevel().getName()),
+					command.getRequiredPermission() != null
+						? command.getRequiredPermission().name()
+						: "All",
 					command.isGuildOnly() ? Emote.CROSS_C.getEmote() : Emote.CHECK_C.getEmote(),
 					Optional.ofNullable(command.getModule())
 						.map(mod -> lu.getText(event, mod.getPath()))
@@ -135,7 +152,7 @@ public class HelpCmd extends SlashCommand {
 			.toList();
 
 		for (SlashCommand command : commands) {
-			if (command.getAccessLevel().isLowerThan(CmdAccessLevel.DEV) || bot.getCheckUtil().isBotOwner(event.getUser())) {
+			if (command.getRequiredPermission() != AccessPermission.DEV || bot.getCheckUtil().isBotOwner(event.getUser())) {
 				if (!Objects.equals(category, command.getCategory())) {
 					if (category != null) {
 						builder.addField(fieldTitle, fieldValue.toString(), false);

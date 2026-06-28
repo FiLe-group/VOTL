@@ -5,7 +5,7 @@ import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.metrics.Metrics;
 import dev.fileeditor.votl.metrics.timeseries.PingData;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -38,7 +38,7 @@ public class ViewMetricsCmd extends SlashCommand {
 			new CommandInfo(), new CommandStats(), new ButtonStats(), new Ping()
 		};
 		this.category = CmdCategory.OWNER;
-		this.accessLevel = CmdAccessLevel.DEV;
+		this.requiredPermission = AccessPermission.DEV;
 		this.guildOnly = false;
 		this.ephemeral = true;
 	}

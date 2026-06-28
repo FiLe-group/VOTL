@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.logs.LogType;
@@ -831,16 +830,6 @@ public class GuildLogger {
 	// Bot actions
 	public class BotLogs {
 		private final LogType type = LogType.BOT;
-
-		public void onAccessAdded(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, CmdAccessLevel level) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.accessAdded(locale, mod, userTarget, roleTarget, level.getName()));
-		}
-
-		public void onAccessRemoved(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, CmdAccessLevel level) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.accessRemoved(locale, mod, userTarget, roleTarget, level.getName()));
-		}
 
 		public void onModuleEnabled(Guild guild, User mod, CmdModule module) {
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);

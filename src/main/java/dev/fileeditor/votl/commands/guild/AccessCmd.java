@@ -1,25 +1,31 @@
 package dev.fileeditor.votl.commands.guild;
 
-import java.sql.SQLException;
-import java.util.List;
-
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
-import dev.fileeditor.votl.objects.constants.Limits;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.objects.constants.Limits;
+import dev.fileeditor.votl.utils.database.managers.AccessGroupManager.GroupData;
+import dev.fileeditor.votl.utils.exception.FormatterException;
+import dev.fileeditor.votl.utils.message.TimeUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
+
+import java.sql.SQLException;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AccessCmd extends SlashCommand {
 
@@ -27,22 +33,30 @@ public class AccessCmd extends SlashCommand {
 		this.name = "access";
 		this.path = "bot.guild.access";
 		this.children = new SlashCommand[]{
-			new View(),
-			new AddRole(), new RemoveRole(),
-			new AddOperator(), new RemoveOperator()
+			new GroupCreate(), new GroupDelete(), new GroupRename(),
+			new GroupPermission(), new GroupLimit(),
+			new GroupInfo(), new GroupList(),
+			new MemberAddRole(), new MemberRemoveRole(),
+			new MemberAddUser(), new MemberRemoveUser()
 		};
 		this.category = CmdCategory.GUILD;
-		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.requiredPermission = AccessPermission.ADMIN;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {}
 
-	private class View extends SlashCommand {
-		public View() {
-			this.name = "view";
-			this.path = "bot.guild.access.view";
-			this.ephemeral = true;
+	// ---- /access group create ----
+
+	private class GroupCreate extends SlashCommand {
+		public GroupCreate() {
+			this.name = "create";
+			this.path = "bot.guild.access.group.create";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true).setMaxLength(32)
+			);
+			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
+			this.requiredPermission = AccessPermission.OWNER;
 		}
 
 		@Override
@@ -51,190 +65,530 @@ public class AccessCmd extends SlashCommand {
 			assert guild != null;
 			long guildId = guild.getIdLong();
 
-			List<Long> exemptIds = bot.getDBUtil().access.getRoles(guildId, CmdAccessLevel.EXEMPT);
-			List<Long> helperIds = bot.getDBUtil().access.getRoles(guildId, CmdAccessLevel.HELPER);
-			List<Long> modIds = bot.getDBUtil().access.getRoles(guildId, CmdAccessLevel.MOD);
-			List<Long> operatorIds = bot.getDBUtil().access.getOperators(guildId);
+			if (bot.getDBUtil().accessGroups.countGroups(guildId) >= Limits.ACCESS_GROUPS) {
+				editErrorLimit(event, "groups", Limits.ACCESS_GROUPS);
+				return;
+			}
 
-			EmbedBuilder embedBuilder = bot.getEmbedUtil().getEmbed()
-				.setTitle(lu.getGuildText(event, "bot.guild.access.view.embed.title"));
+			String name = event.optString("name", "").trim();
+			if (!name.matches("[\\w\\s\\-]{1,32}")) {
+				editError(event, "bot.guild.access.group.create.invalid_name");
+				return;
+			}
+			if (bot.getDBUtil().accessGroups.getGroup(guildId, name) != null) {
+				editError(event, "bot.guild.access.group.create.already_exists");
+				return;
+			}
 
-			if (exemptIds.isEmpty() && helperIds.isEmpty() && modIds.isEmpty() && operatorIds.isEmpty()) {
-				editEmbed(event,
-					embedBuilder.setDescription(
-						lu.getGuildText(event, "bot.guild.access.view.embed.none_found")
-					).build()
+			try {
+				bot.getDBUtil().accessGroups.createGroup(guildId, name);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "create group");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, path+".done", name))
+				.build()
+			);
+		}
+	}
+
+	// ---- /access group delete ----
+
+	private class GroupDelete extends SlashCommand {
+		public GroupDelete() {
+			this.name = "delete";
+			this.path = "bot.guild.access.group.delete";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true)
+			);
+			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
+			this.requiredPermission = AccessPermission.OWNER;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+
+			GroupData group = resolveGroup(event, guild.getIdLong());
+			if (group == null) return;
+
+			try {
+				bot.getDBUtil().accessGroups.deleteGroup(group.groupId(), guild.getIdLong());
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "delete group");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, path+".done", group.name()))
+				.build()
+			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
+		}
+	}
+
+	// ---- /access group rename ----
+
+	private class GroupRename extends SlashCommand {
+		public GroupRename() {
+			this.name = "rename";
+			this.path = "bot.guild.access.group.rename";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true).setMaxLength(32)
+			);
+			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
+			this.requiredPermission = AccessPermission.OWNER;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+			long guildId = guild.getIdLong();
+
+			GroupData group = resolveGroup(event, guildId);
+			if (group == null) return;
+
+			String newName = event.optString("name", "").trim();
+			if (!newName.matches("[\\w\\s\\-]{1,32}")) {
+				editError(event, "bot.guild.access.group.create.invalid_name");
+				return;
+			}
+			if (bot.getDBUtil().accessGroups.getGroup(guildId, newName) != null) {
+				editError(event, "bot.guild.access.group.create.already_exists");
+				return;
+			}
+
+			try {
+				bot.getDBUtil().accessGroups.renameGroup(group.groupId(), guildId, newName);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "rename group");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, path+".done", group.name(), newName))
+				.build()
+			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
+		}
+	}
+
+	// ---- /access group permission ----
+
+	private class GroupPermission extends SlashCommand {
+		public GroupPermission() {
+			this.name = "permission";
+			this.path = "bot.guild.access.group.permission";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.STRING, "permission", lu.getText(path+".permission.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.BOOLEAN, "value", lu.getText(path+".value.help"), true)
+			);
+			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
+			this.requiredPermission = AccessPermission.OWNER;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+			long guildId = guild.getIdLong();
+
+			GroupData group = resolveGroup(event, guildId);
+			if (group == null) return;
+
+			String permName = event.optString("permission", "");
+			AccessPermission perm;
+			try {
+				perm = AccessPermission.valueOf(permName.toUpperCase());
+			} catch (IllegalArgumentException ex) {
+				editError(event, "bot.guild.access.group.permission.invalid");
+				return;
+			}
+			if (perm == AccessPermission.ADMIN || perm == AccessPermission.OWNER || perm == AccessPermission.DEV) {
+				editError(event, "bot.guild.access.group.permission.invalid");
+				return;
+			}
+
+			boolean value = event.optBoolean("value");
+			long newBitmask = value
+				? group.permissions() | perm.toBit()
+				: group.permissions() & ~perm.toBit();
+
+			try {
+				bot.getDBUtil().accessGroups.setPermissions(group.groupId(), guildId, newBitmask);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set permission");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, path+".done",
+					group.name(), perm.name().toLowerCase(), value ? "✅" : "❌"))
+				.build()
+			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			String focused = event.getFocusedOption().getName();
+			if (focused.equals("group")) {
+				replyGroupAutocomplete(event);
+			} else {
+				String query = event.getFocusedOption().getValue().toUpperCase();
+				List<Command.Choice> choices = Arrays.stream(AccessPermission.values())
+					.filter(p -> p != AccessPermission.ADMIN && p != AccessPermission.OWNER && p != AccessPermission.DEV)
+					.filter(p -> p.name().contains(query))
+					.limit(25)
+					.map(p -> new Command.Choice(p.name().toLowerCase(), p.name()))
+					.collect(Collectors.toList());
+				event.replyChoices(choices).queue();
+			}
+		}
+	}
+
+	// ---- /access group limit ----
+
+	private class GroupLimit extends SlashCommand {
+		public GroupLimit() {
+			this.name = "limit";
+			this.path = "bot.guild.access.group.limit";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.STRING, "type", lu.getText(path+".type.help"), true)
+					.addChoice("ban", "ban")
+					.addChoice("mute", "mute"),
+				new OptionData(OptionType.STRING, "duration", lu.getText(path+".duration.help"), true).setMaxLength(16)
+			);
+			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
+			this.requiredPermission = AccessPermission.OWNER;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+			long guildId = guild.getIdLong();
+
+			GroupData group = resolveGroup(event, guildId);
+			if (group == null) return;
+
+			String type = event.optString("type", "ban");
+			String durationStr = event.optString("duration", "none");
+
+			Long seconds = null;
+			String display;
+			if (!durationStr.equalsIgnoreCase("none")) {
+				try {
+					Duration d = TimeUtil.stringToDuration(durationStr, false);
+					if (d.isZero()) {
+						editError(event, "bot.guild.access.group.limit.invalid_duration");
+						return;
+					}
+					if (d.toDays() > 90) {
+						editError(event, "bot.guild.access.group.limit.max_duration");
+						return;
+					}
+					seconds = d.toSeconds();
+					display = TimeUtil.durationToString(d);
+				} catch (FormatterException ex) {
+					editError(event, ex.getPath());
+					return;
+				}
+			} else {
+				display = lu.getGuildText(event, path+".unlimited");
+			}
+
+			try {
+				if (type.equals("ban")) {
+					bot.getDBUtil().accessGroups.setMaxBanDuration(group.groupId(), guildId, seconds);
+				} else {
+					bot.getDBUtil().accessGroups.setMaxMuteDuration(group.groupId(), guildId, seconds);
+				}
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set limit");
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, path+".done", group.name(), type, display))
+				.build()
+			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
+		}
+	}
+
+	// ---- /access group info ----
+
+	private class GroupInfo extends SlashCommand {
+		public GroupInfo() {
+			this.name = "info";
+			this.path = "bot.guild.access.group.info";
+			this.options = List.of(
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true)
+			);
+			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
+			this.ephemeral = true;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+
+			GroupData group = resolveGroup(event, guild.getIdLong());
+			if (group == null) return;
+
+			List<Long> roleIds = bot.getDBUtil().accessGroups.getRolesForGroup(group.groupId());
+			List<Long> userIds = bot.getDBUtil().accessGroups.getUsersForGroup(group.groupId());
+
+			StringBuilder sb = new StringBuilder();
+
+			// Permissions
+			sb.append("**").append(lu.getGuildText(event, path+".permissions")).append("**\n");
+			for (AccessPermission perm : AccessPermission.values()) {
+				if ((group.permissions() & perm.toBit()) != 0L) {
+					sb.append("> `").append(perm.name().toLowerCase()).append("`\n");
+				}
+			}
+
+			// Limits
+			sb.append("\n**").append(lu.getGuildText(event, path+".limits")).append("**\n");
+			sb.append("> Ban: ").append(group.maxBanSeconds() == null
+				? lu.getGuildText(event, path+".unlimited")
+				: TimeUtil.durationToString(java.time.Duration.ofSeconds(group.maxBanSeconds()))).append("\n");
+			sb.append("> Mute: ").append(group.maxMuteSeconds() == null
+				? lu.getGuildText(event, path+".unlimited")
+				: TimeUtil.durationToString(java.time.Duration.ofSeconds(group.maxMuteSeconds()))).append("\n");
+
+			// Roles
+			sb.append("\n**").append(lu.getGuildText(event, path+".roles")).append("**\n");
+			if (roleIds.isEmpty()) {
+				sb.append("> ").append(lu.getGuildText(event, path+".none")).append("\n");
+			} else {
+				for (Long roleId : roleIds) {
+					Role role = guild.getRoleById(roleId);
+					if (role == null) {
+						ignoreExc(() -> bot.getDBUtil().accessGroups.removeRole(group.groupId(), guild.getIdLong(), roleId));
+					} else {
+						sb.append("> ").append(role.getAsMention()).append(" `").append(roleId).append("`\n");
+					}
+				}
+			}
+
+			// Users
+			sb.append("\n**").append(lu.getGuildText(event, path+".users")).append("**\n");
+			if (userIds.isEmpty()) {
+				sb.append("> ").append(lu.getGuildText(event, path+".none")).append("\n");
+			} else {
+				for (Long userId : userIds) {
+					sb.append("> ").append(User.fromId(userId).getAsMention()).append(" `").append(userId).append("`\n");
+				}
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed()
+				.setTitle(lu.getGuildText(event, path+".title", group.name()))
+				.setDescription(sb.toString())
+				.build()
+			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
+		}
+	}
+
+	// ---- /access group list ----
+
+	private class GroupList extends SlashCommand {
+		public GroupList() {
+			this.name = "list";
+			this.path = "bot.guild.access.group.list";
+			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
+			this.ephemeral = true;
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+
+			List<GroupData> groups = bot.getDBUtil().accessGroups.getGroupsForGuild(guild.getIdLong());
+			if (groups.isEmpty()) {
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
+					.setDescription(lu.getGuildText(event, path+".none"))
+					.build()
 				);
 				return;
 			}
 
+			EmbedBuilder eb = bot.getEmbedUtil().getEmbed()
+				.setTitle(lu.getGuildText(event, path+".title"));
 			StringBuilder sb = new StringBuilder();
-
-			sb.append(lu.getGuildText(event, "bot.guild.access.view.embed.exempt")).append("\n");
-			if (exemptIds.isEmpty()) sb.append("> %s\n".formatted(lu.getGuildText(event, "bot.guild.access.view.embed.none")));
-			else for (Long roleId : exemptIds) {
-				Role role = guild.getRoleById(roleId);
-				if (role == null) {
-					ignoreExc(() -> bot.getDBUtil().access.removeRole(guildId, roleId));
-					continue;
-				}
-				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
+			for (GroupData g : groups) {
+				int roleCount = bot.getDBUtil().accessGroups.getRolesForGroup(g.groupId()).size();
+				int userCount = bot.getDBUtil().accessGroups.getUsersForGroup(g.groupId()).size();
+				long permCount = Long.bitCount(g.permissions());
+				sb.append("**").append(g.name()).append("**")
+					.append(" — ").append(permCount).append(" perm(s)")
+					.append(", ").append(roleCount).append(" role(s)")
+					.append(", ").append(userCount).append(" user(s)\n");
 			}
-
-			sb.append(lu.getGuildText(event, "bot.guild.access.view.embed.helper")).append("\n");
-			if (helperIds.isEmpty()) sb.append("> %s\n".formatted(lu.getGuildText(event, "bot.guild.access.view.embed.none")));
-			else for (Long roleId : helperIds) {
-				Role role = guild.getRoleById(roleId);
-				if (role == null) {
-					ignoreExc(() -> bot.getDBUtil().access.removeRole(guildId, roleId));
-					continue;
-				}
-				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
-			}
-
-			sb.append(lu.getGuildText(event, "bot.guild.access.view.embed.mod")).append("\n");
-			if (modIds.isEmpty()) sb.append("> %s".formatted(lu.getGuildText(event, "bot.guild.access.view.embed.none")));
-			else for (Long roleId : modIds) {
-				Role role = guild.getRoleById(roleId);
-				if (role == null) {
-					ignoreExc(() -> bot.getDBUtil().access.removeRole(guildId, roleId));
-					continue;
-				}
-				sb.append("> %s `%s`\n".formatted(role.getAsMention(), roleId));
-			}
-
-			sb.append("\n").append(lu.getGuildText(event, "bot.guild.access.view.embed.operator")).append("\n");
-			if (operatorIds.isEmpty()) sb.append("> %s".formatted(lu.getGuildText(event, "bot.guild.access.view.embed.none")));
-			else for (Long userId : operatorIds) {
-				UserSnowflake user = User.fromId(userId);
-				sb.append("> %s `%s`\n".formatted(user.getAsMention(), userId));
-			}
-
-			embedBuilder.setDescription(sb);
-			editEmbed(event, embedBuilder.build());
+			editEmbed(event, eb.setDescription(sb.toString()).build());
 		}
 	}
 
-	private class AddRole extends SlashCommand {
-		public AddRole() {
-			this.name = "role";
-			this.path = "bot.guild.access.add.role";
+	// ---- /access member addrole ----
+
+	private class MemberAddRole extends SlashCommand {
+		public MemberAddRole() {
+			this.name = "addrole";
+			this.path = "bot.guild.access.member.addrole";
 			this.options = List.of(
-				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true),
-				new OptionData(OptionType.INTEGER, "access_level", lu.getText(path+".access_level.help"), true)
-					.addChoice("Ban Exemption", CmdAccessLevel.EXEMPT.getLevel())
-					.addChoice("Helper", CmdAccessLevel.HELPER.getLevel())
-					.addChoice("Moderator", CmdAccessLevel.MOD.getLevel())
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
 			);
-			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.guild.access.add.help"));
+			this.subcommandGroup = new SubcommandGroupData("member", lu.getText("bot.guild.access.member.help"));
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			assert event.getGuild() != null;
-			if (bot.getDBUtil().access.countRoles(event.getGuild().getIdLong()) >= Limits.ACCESS_ROLES) {
-				editErrorLimit(event, "roles", Limits.ACCESS_ROLES);
-				return;
-			}
+			Guild guild = event.getGuild();
+			assert guild != null;
+			long guildId = guild.getIdLong();
+
+			GroupData group = resolveGroup(event, guildId);
+			if (group == null) return;
 
 			Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, "errors.option.role");
 				return;
 			}
-
-			long roleId = role.getIdLong();
-			Guild guild = event.getGuild();
-
-			if (role.isPublicRole() || role.isManaged() || !guild.getSelfMember().canInteract(role) || role.hasPermission(Permission.ADMINISTRATOR)) {
+			if (role.isPublicRole() || role.isManaged()) {
 				editError(event, "errors.option.role_interact");
 				return;
 			}
-			if (bot.getDBUtil().access.isRole(roleId)) {
-				editError(event, "bot.guild.access.add.role.already");
+			if (bot.getDBUtil().accessGroups.isRoleInGroup(group.groupId(), role.getIdLong())) {
+				editError(event, path+".already");
+				return;
+			}
+			int total = bot.getDBUtil().accessGroups.getRolesForGroup(group.groupId()).size()
+				+ bot.getDBUtil().accessGroups.getUsersForGroup(group.groupId()).size();
+			if (total >= Limits.ACCESS_GROUP_MEMBERS) {
+				editErrorLimit(event, "group members", Limits.ACCESS_GROUP_MEMBERS);
 				return;
 			}
 
-			CmdAccessLevel level = CmdAccessLevel.byLevel(event.optInteger("access_level"));
 			try {
-				bot.getDBUtil().access.addRole(guild.getIdLong(), roleId, level);
+				bot.getDBUtil().accessGroups.addRole(group.groupId(), guildId, role.getIdLong());
 			} catch (SQLException ex) {
-				editErrorDatabase(event, ex, "add role");
+				editErrorDatabase(event, ex, "add role to group");
 				return;
 			}
 
-			// Log
-			bot.getGuildLogger().botLogs.onAccessAdded(guild, event.getUser(), null, role, level);
-			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getGuildText(event, "bot.guild.access.add.role.done", role.getAsMention(), level.getName()))
+				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention(), group.name()))
 				.build()
 			);
 		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
+		}
 	}
 
-	private class RemoveRole extends SlashCommand {
-		public RemoveRole() {
-			this.name = "role";
-			this.path = "bot.guild.access.remove.role";
+	// ---- /access member removerole ----
+
+	private class MemberRemoveRole extends SlashCommand {
+		public MemberRemoveRole() {
+			this.name = "removerole";
+			this.path = "bot.guild.access.member.removerole";
 			this.options = List.of(
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
 			);
-			this.subcommandGroup = new SubcommandGroupData("remove", lu.getText("bot.guild.access.remove.help"));
+			this.subcommandGroup = new SubcommandGroupData("member", lu.getText("bot.guild.access.member.help"));
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+			long guildId = guild.getIdLong();
+
+			GroupData group = resolveGroup(event, guildId);
+			if (group == null) return;
+
 			Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, "errors.option.role");
 				return;
 			}
-
-			long roleId = role.getIdLong();
-
-			CmdAccessLevel level = bot.getDBUtil().access.getRoleLevel(roleId);
-			if (level.equals(CmdAccessLevel.ALL)) {
-				editError(event, "bot.guild.access.remove.role.no_access");
+			if (!bot.getDBUtil().accessGroups.isRoleInGroup(group.groupId(), role.getIdLong())) {
+				editError(event, path+".not_in_group");
 				return;
 			}
 
 			try {
-				assert event.getGuild() != null;
-				bot.getDBUtil().access.removeRole(event.getGuild().getIdLong(), roleId);
+				bot.getDBUtil().accessGroups.removeRole(group.groupId(), guildId, role.getIdLong());
 			} catch (SQLException ex) {
-				editErrorDatabase(event, ex, "remove role");
+				editErrorDatabase(event, ex, "remove role from group");
 				return;
 			}
 
-			// Log
-			bot.getGuildLogger().botLogs.onAccessRemoved(event.getGuild(), event.getUser(), null, role, level);
-			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getGuildText(event, "bot.guild.access.remove.role.done", role.getAsMention(), level.getName()))
+				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention(), group.name()))
 				.build()
 			);
 		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
+		}
 	}
 
-	private class AddOperator extends SlashCommand {
-		public AddOperator() {
-			this.name = "operator";
-			this.path = "bot.guild.access.add.operator";
+	// ---- /access member adduser ----
+
+	private class MemberAddUser extends SlashCommand {
+		public MemberAddUser() {
+			this.name = "adduser";
+			this.path = "bot.guild.access.member.adduser";
 			this.options = List.of(
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
-			this.subcommandGroup = new SubcommandGroupData("add", lu.getText("bot.guild.access.add.help"));
-			this.accessLevel = CmdAccessLevel.OWNER;
+			this.subcommandGroup = new SubcommandGroupData("member", lu.getText("bot.guild.access.member.help"));
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			assert event.getGuild() != null;
-			if (bot.getDBUtil().access.countRoles(event.getGuild().getIdLong()) >= Limits.ACCESS_USERS) {
-				editErrorLimit(event, "operators", Limits.ACCESS_USERS);
-				return;
-			}
+			Guild guild = event.getGuild();
+			assert guild != null;
+			long guildId = guild.getIdLong();
+
+			GroupData group = resolveGroup(event, guildId);
+			if (group == null) return;
 
 			Member member = event.optMember("user");
 			if (member == null) {
@@ -245,73 +599,108 @@ public class AccessCmd extends SlashCommand {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
-
-			long userId = member.getIdLong();
-			long guildId = event.getGuild().getIdLong();
-			if (bot.getDBUtil().access.isOperator(guildId, userId)) {
-				editError(event, "bot.guild.access.add.role.already");
+			if (bot.getDBUtil().accessGroups.isUserInGroup(group.groupId(), member.getIdLong())) {
+				editError(event, path+".already");
+				return;
+			}
+			int total = bot.getDBUtil().accessGroups.getRolesForGroup(group.groupId()).size()
+				+ bot.getDBUtil().accessGroups.getUsersForGroup(group.groupId()).size();
+			if (total >= Limits.ACCESS_GROUP_MEMBERS) {
+				editErrorLimit(event, "group members", Limits.ACCESS_GROUP_MEMBERS);
 				return;
 			}
 
 			try {
-				bot.getDBUtil().access.addOperator(guildId, userId);
+				bot.getDBUtil().accessGroups.addUser(group.groupId(), guildId, member.getIdLong());
 			} catch (SQLException ex) {
-				editErrorDatabase(event, ex, "add operator");
+				editErrorDatabase(event, ex, "add user to group");
 				return;
 			}
-			
-			// Log
-			bot.getGuildLogger().botLogs.onAccessAdded(event.getGuild(), event.getUser(), member.getUser(), null, CmdAccessLevel.OPERATOR);
-			// Send reply
+
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getGuildText(event, "bot.guild.access.add.operator.done", member.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", member.getAsMention(), group.name()))
 				.build()
 			);
 		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
+		}
 	}
 
-	private class RemoveOperator extends SlashCommand {
-		public RemoveOperator() {
-			this.name = "operator";
-			this.path = "bot.guild.access.remove.operator";
+	// ---- /access member removeuser ----
+
+	private class MemberRemoveUser extends SlashCommand {
+		public MemberRemoveUser() {
+			this.name = "removeuser";
+			this.path = "bot.guild.access.member.removeuser";
 			this.options = List.of(
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
-			this.subcommandGroup = new SubcommandGroupData("remove", lu.getText("bot.guild.access.remove.help"));
-			this.accessLevel = CmdAccessLevel.OWNER;
+			this.subcommandGroup = new SubcommandGroupData("member", lu.getText("bot.guild.access.member.help"));
 		}
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+			long guildId = guild.getIdLong();
+
+			GroupData group = resolveGroup(event, guildId);
+			if (group == null) return;
+
 			User user = event.optUser("user");
 			if (user == null) {
 				editError(event, "errors.option.user");
 				return;
 			}
-
-			long userId = user.getIdLong();
-			assert event.getGuild() != null;
-			long guildId = event.getGuild().getIdLong();
-			if (!bot.getDBUtil().access.isOperator(guildId, userId)) {
-				editError(event, "bot.guild.access.remove.operator.not_operator");
+			if (!bot.getDBUtil().accessGroups.isUserInGroup(group.groupId(), user.getIdLong())) {
+				editError(event, path+".not_in_group");
 				return;
 			}
 
 			try {
-				bot.getDBUtil().access.removeUser(guildId, userId);
+				bot.getDBUtil().accessGroups.removeUser(group.groupId(), guildId, user.getIdLong());
 			} catch (SQLException ex) {
-				editErrorDatabase(event, ex, "remove user");
+				editErrorDatabase(event, ex, "remove user from group");
 				return;
 			}
 
-			// Log
-			bot.getGuildLogger().botLogs.onAccessRemoved(event.getGuild(), event.getUser(), user, null, CmdAccessLevel.OPERATOR);
-			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getGuildText(event, "bot.guild.access.remove.operator.done", user.getAsMention()))
+				.setDescription(lu.getGuildText(event, path+".done", user.getAsMention(), group.name()))
 				.build()
 			);
 		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
+		}
 	}
 
+	// ---- Shared helpers ----
+
+	private GroupData resolveGroup(SlashCommandEvent event, long guildId) {
+		String name = event.optString("group", "");
+		GroupData group = bot.getDBUtil().accessGroups.getGroup(guildId, name);
+		if (group == null) {
+			editError(event, "bot.guild.access.group.not_found");
+		}
+		return group;
+	}
+
+	private void replyGroupAutocomplete(CommandAutoCompleteInteractionEvent event) {
+		if (event.getGuild() == null) return;
+		String query = event.getFocusedOption().getValue().toLowerCase();
+		List<Command.Choice> choices = bot.getDBUtil().accessGroups
+			.getGroupsForGuild(event.getGuild().getIdLong())
+			.stream()
+			.filter(g -> g.name().toLowerCase().contains(query))
+			.limit(25)
+			.map(g -> new Command.Choice(g.name(), g.name()))
+			.collect(Collectors.toList());
+		event.replyChoices(choices).queue();
+	}
 }

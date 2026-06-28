@@ -17,8 +17,6 @@ package dev.fileeditor.votl.base.command;
 
 import java.util.*;
 
-import dev.fileeditor.votl.objects.CmdAccessLevel;
-
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -106,7 +104,7 @@ public abstract class ContextMenu extends Interaction
 			data.setNameLocalizations(getNameLocalization());
 		}
 
-		if (getAccessLevel().isLowerThan(CmdAccessLevel.ADMIN))
+		if (requiredPermission == null)
 			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(getUserPermissions()));
 		else
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
@@ -115,7 +113,7 @@ public abstract class ContextMenu extends Interaction
 
 		// Register middlewares
 		registerThrottleMiddleware();
-		if (accessLevel.isHigherThan(CmdAccessLevel.ALL)) {
+		if (requiredPermission != null) {
 			middlewares.add("hasAccess");
 		}
 		if (botPermissions.length > 0 || userPermissions.length > 0) {

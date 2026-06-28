@@ -2,7 +2,7 @@ package dev.fileeditor.votl.commands.owner;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.ExitCodes;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 
@@ -21,7 +21,7 @@ public class ShutdownCmd extends SlashCommand {
 		this.name = "shutdown";
 		this.path = "bot.owner.shutdown";
 		this.category = CmdCategory.OWNER;
-		this.accessLevel = CmdAccessLevel.DEV;
+		this.requiredPermission = AccessPermission.DEV;
 		this.guildOnly = false;
 		this.options = List.of(
 			new OptionData(OptionType.BOOLEAN, "now", lu.getText(path+".now.help"))

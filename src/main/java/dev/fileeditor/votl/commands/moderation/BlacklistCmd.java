@@ -2,12 +2,14 @@ package dev.fileeditor.votl.commands.moderation;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -18,6 +20,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -29,7 +33,7 @@ public class BlacklistCmd extends SlashCommand {
 		this.children = new SlashCommand[]{new View(), new Search(), new Remove()};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.accessLevel = CmdAccessLevel.OPERATOR;
+		this.requiredPermission = AccessPermission.BLACKLIST_MANAGE;
 	}
 
 	@Override
@@ -44,6 +48,11 @@ public class BlacklistCmd extends SlashCommand {
 				new OptionData(OptionType.INTEGER, "page", lu.getText(path+".page.help")).setMinValue(1)
 			);
 			this.ephemeral = true;
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
 		}
 
 		@Override
@@ -142,6 +151,11 @@ public class BlacklistCmd extends SlashCommand {
 		}
 
 		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupAutocomplete(event);
+		}
+
+		@Override
 		protected void execute(SlashCommandEvent event) {
 			Integer groupId = event.optInteger("group");
 			assert event.getGuild() != null;
@@ -173,5 +187,24 @@ public class BlacklistCmd extends SlashCommand {
 			}
 		}
 	}
-	
+
+	// ---- Shared helpers ----
+
+	private void replyGroupAutocomplete(CommandAutoCompleteInteractionEvent event) {
+		if (event.getGuild() == null) { event.replyChoices(Collections.emptyList()).queue(); return; }
+		long guildId = event.getGuild().getIdLong();
+		List<Integer> groupIds = new ArrayList<>();
+		groupIds.addAll(bot.getDBUtil().group.getOwnedGroups(guildId));
+		groupIds.addAll(bot.getDBUtil().group.getManagedGroups(guildId));
+		if (groupIds.isEmpty()) {
+			event.replyChoices(Collections.emptyList()).queue();
+		} else {
+			List<Command.Choice> choices = groupIds.stream()
+				.map(groupId -> new Command.Choice(
+					"%s (ID: %s)".formatted(bot.getDBUtil().group.getName(groupId), groupId), groupId))
+				.collect(Collectors.toList());
+			event.replyChoices(choices).queue();
+		}
+	}
+
 }

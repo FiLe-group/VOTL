@@ -6,7 +6,7 @@ import java.util.List;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -36,7 +36,7 @@ public class UnbanCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.accessLevel = CmdAccessLevel.MOD;
+		this.requiredPermission = AccessPermission.CMD_BAN;
 		addMiddlewares(
 			"throttle:guild,1,10"
 		);
@@ -68,7 +68,7 @@ public class UnbanCmd extends SlashCommand {
 			for (int groupId : bot.getDBUtil().group.getGuildGroups(guild.getIdLong())) {
 				// Check every group this server is part of for if user is blacklisted
 				if (bot.getDBUtil().serverBlacklist.inGroupUser(groupId, tu.getIdLong())) {
-					if (bot.getCheckUtil().hasAccess(event.getMember(), CmdAccessLevel.OPERATOR)) {
+					if (bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.BLACKLIST_MANAGE)) {
 						// User is Operator+, remove blacklist
 						try {
 							bot.getDBUtil().serverBlacklist.removeUser(groupId, tu.getIdLong());

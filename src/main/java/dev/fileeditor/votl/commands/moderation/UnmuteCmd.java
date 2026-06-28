@@ -5,7 +5,7 @@ import java.util.List;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Limits;
@@ -30,7 +30,7 @@ public class UnmuteCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.MODERATE_MEMBERS};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.accessLevel = CmdAccessLevel.MOD;
+		this.requiredPermission = AccessPermission.CMD_UNMUTE;
 		addMiddlewares(
 			"throttle:guild,1,10"
 		);
@@ -46,6 +46,22 @@ public class UnmuteCmd extends SlashCommand {
 
 		Guild guild = event.getGuild();
 		assert guild != null;
+		Member mod = event.getMember();
+		assert mod != null;
+
+		if (!guild.getSelfMember().canInteract(tm)) {
+			editError(event, path+".abort", "Bot can't interact with target member.");
+			return;
+		}
+		if (bot.getCheckUtil().hasHigherAccess(tm, mod)) {
+			editError(event, path+".higher_access");
+			return;
+		}
+		if (!mod.canInteract(tm)) {
+			editError(event, path+".abort", "You can't interact with target member.");
+			return;
+		}
+
 		CaseData muteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 		if (muteData != null) {
 			ignoreExc(() -> bot.getDBUtil().cases.setInactive(muteData.getRowId()));
@@ -54,8 +70,6 @@ public class UnmuteCmd extends SlashCommand {
 		if (tm.isTimedOut()) {
 			String reason = bot.getModerationUtil().parseReasonMentions(event);
 			tm.removeTimeout().reason(reason).queue(_ -> {
-				Member mod = event.getMember();
-				assert mod != null;
 				// add info to db
 				CaseData unmuteData;
 				try {

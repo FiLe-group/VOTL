@@ -2,7 +2,7 @@ package dev.fileeditor.votl.commands.level;
 
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.ExpType;
 import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
@@ -27,7 +27,7 @@ public class LevelRolesCmd extends SlashCommand {
 			new SetLevelRoles(), new RemoveLevelRoles(), new ViewLevelRoles(),
 		};
 		this.category = CmdCategory.LEVELS;
-		this.accessLevel = CmdAccessLevel.ADMIN;
+		this.requiredPermission = AccessPermission.ADMIN;
 	}
 
 	@Override

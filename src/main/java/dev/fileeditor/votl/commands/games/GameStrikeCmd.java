@@ -9,7 +9,7 @@ import java.util.Optional;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CaseType;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -48,7 +48,7 @@ public class GameStrikeCmd extends SlashCommand {
 		);
 		this.category = CmdCategory.GAMES;
 		this.module = CmdModule.GAMES;
-		this.accessLevel = CmdAccessLevel.MOD;
+		this.requiredPermission = AccessPermission.CMD_GAME_STRIKE;
 		addMiddlewares(
 			"throttle:user,1,10",
 			"throttle:guild,2,20"
@@ -67,7 +67,9 @@ public class GameStrikeCmd extends SlashCommand {
 		Member tm = event.optMember("user");
 		if (tm == null || tm.getUser().isBot() || tm.equals(event.getMember())
 			|| tm.equals(event.getGuild().getSelfMember())
-			|| bot.getCheckUtil().hasHigherAccess(tm, event.getMember())) {
+			|| bot.getCheckUtil().hasHigherAccess(tm, event.getMember())
+			|| !event.getGuild().getSelfMember().canInteract(tm)
+			|| !event.getMember().canInteract(tm)) {
 			editError(event, "errors.option.member_interact");
 			return;
 		}

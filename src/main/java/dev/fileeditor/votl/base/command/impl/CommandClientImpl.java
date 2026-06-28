@@ -36,7 +36,7 @@ import dev.fileeditor.votl.base.command.UserContextMenuEvent;
 
 import dev.fileeditor.votl.blacklist.Blacklist;
 import dev.fileeditor.votl.middleware.MiddlewareStack;
-import dev.fileeditor.votl.objects.CmdAccessLevel;
+import dev.fileeditor.votl.objects.AccessPermission;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -337,7 +337,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 
 		// Build the command and privilege data
 		for (SlashCommand command : getSlashCommands()) {
-			if (command.getAccessLevel().satisfies(CmdAccessLevel.DEV)) {
+			if (command.getRequiredPermission() == AccessPermission.DEV) {
 				dataDev.add(command.buildCommandData());
 			} else {
 				data.add(command.buildCommandData());
