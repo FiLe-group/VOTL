@@ -50,7 +50,7 @@ public class GenerateListCmd extends SlashCommand {
 				.put("description", getText(cmd.getHelpPath()))
 				.put("category", getCategoryMap(cmd.getCategory()))
 				.put("guildOnly", cmd.isGuildOnly())
-				.put("access", cmd.getRequiredPermission() != null ? cmd.getRequiredPermission().name() : "all");
+				.put("permission", cmd.getRequiredPermission() != null ? cmd.getRequiredPermission().name() : "none");
 
 			if (cmd.getModule() == null) {
 				jsonObject.put("module", Map.of("en-GB", "", "ru", ""));
