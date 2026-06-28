@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CheckAccessCmd extends SlashCommand {
 	public CheckAccessCmd() {
@@ -40,10 +41,19 @@ public class CheckAccessCmd extends SlashCommand {
 
 		guild.retrieveMember(user).queue(member -> {
 			String tier;
-			if (bot.getCheckUtil().hasAccess(member, AccessPermission.DEV))        tier = "DEV";
-			else if (bot.getCheckUtil().hasAccess(member, AccessPermission.OWNER)) tier = "OWNER";
-			else if (bot.getCheckUtil().hasAccess(member, AccessPermission.ADMIN)) tier = "ADMIN";
-			else                                                                    tier = "ALL";
+			if (bot.getCheckUtil().hasAccess(member, AccessPermission.DEV))
+				tier = "DEV";
+			else if (bot.getCheckUtil().hasAccess(member, AccessPermission.OWNER))
+				tier = "OWNER";
+			else if (bot.getCheckUtil().hasAccess(member, AccessPermission.ADMIN))
+				tier = "ADMIN";
+			else {
+				var perms = bot.getCheckUtil().resolve(member);
+				if (perms.permissions().isEmpty())
+					tier = "NO PERMISSIONS";
+				else
+					tier = perms.permissions().stream().map(Enum::name).collect(Collectors.joining(", "));
+			}
 			editMsg(event, "%s(%s) - %s".formatted(member.getAsMention(), member.getEffectiveName(), tier));
 		}, failure -> editError(event, failure.getMessage()));
 	}
