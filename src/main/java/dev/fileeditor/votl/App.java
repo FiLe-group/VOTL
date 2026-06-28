@@ -143,6 +143,7 @@ public class App {
 		blacklist.syncBlacklistWithDatabase();
 
 		// Define a command client
+		LOG.info("Preparing command client");
 		CommandClientBuilder commandClientBuilder = new CommandClientBuilder()
 			.setOwnerId(ownerId)
 			.setStatus(OnlineStatus.ONLINE)
