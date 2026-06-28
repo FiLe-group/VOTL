@@ -54,7 +54,7 @@ import static java.lang.Long.parseLong;
 
 public class App {
 	protected static App instance;
-	private final CliSettings settings;
+	private final CliSettings cliSettings;
 	
 	private static final Logger LOG = (Logger) LoggerFactory.getLogger(App.class);
 
@@ -84,7 +84,7 @@ public class App {
 	@SuppressWarnings("BusyWait")
 	public App(CliSettings settings) {
 		App.instance = this;
-		this.settings = settings;
+		this.cliSettings = settings;
 
 		System.out.println(AppInfo.getVersionInfo());
 
@@ -254,8 +254,8 @@ public class App {
 		return instance;
 	}
 
-	public CliSettings getSettings() {
-		return settings;
+	public CliSettings getCliSettings() {
+		return cliSettings;
 	}
 
 	public CommandClient getClient() {
