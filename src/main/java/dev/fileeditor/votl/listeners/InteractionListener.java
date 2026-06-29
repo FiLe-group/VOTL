@@ -79,7 +79,7 @@ import org.slf4j.LoggerFactory;
 
 public class InteractionListener extends ListenerAdapter {
 
-	private final Logger log = (Logger) LoggerFactory.getLogger(InteractionListener.class);
+	private final Logger LOG = (Logger) LoggerFactory.getLogger(InteractionListener.class);
 
 	private final App bot;
 	private final LocaleUtil lu;
@@ -256,12 +256,12 @@ public class InteractionListener extends ListenerAdapter {
 						case "reject" -> runModalButtonInteraction(event, null, () -> buttonCustomRoleReject(event, Long.parseLong(actions[2])));
 					}
 				}
-				default -> log.debug("Unknown button interaction: {}", event.getComponentId());
+				default -> LOG.debug("Unknown button interaction: {}", event.getComponentId());
 			}
 		} catch (Throwable t) {
 			// Logs throwable and tries to respond to the user with the error
 			// Thrown errors are not user's error, but code's fault as such things should be caught earlier and replied properly
-			log.error("ButtonInteraction Exception", t);
+			LOG.error("ButtonInteraction Exception", t);
 			bot.getEmbedUtil().sendUnknownError(event.getHook(), lu.getLocale(event), t.getMessage());
 		}
 	}
@@ -273,12 +273,12 @@ public class InteractionListener extends ListenerAdapter {
 
 		Long verifyRoleId = db.getVerifySettings(guild).getRoleId();
 		if (verifyRoleId == null) {
-			sendError(event, "bot.verification.failed_role", "The verification role is not configured");
+			sendError(event, "bot.verification.failed_role", "The verification role is not configured.");
 			return;
 		}
 		Role verifyRole = guild.getRoleById(verifyRoleId);
 		if (verifyRole == null) {
-			sendError(event, "bot.verification.failed_role", "Verification role not found");
+			sendError(event, "bot.verification.failed_role", "Verification role not found.");
 			return;
 		}
 		if (member.getRoles().contains(verifyRole)) {
@@ -304,7 +304,7 @@ public class InteractionListener extends ListenerAdapter {
 				_ -> event.getHook().sendMessage(Constants.SUCCESS).setEphemeral(true).queue(),
 				failure -> {
 					sendError(event, "bot.verification.failed_role");
-					log.warn("Was unable to add verify role to user in {}({})", guild.getName(), guild.getId(), failure);
+					LOG.warn("Was unable to add verify role to user in {}({})\n  {}", guild.getName(), guild.getId(), failure.getMessage());
 				}
 			);
 		} else {
@@ -323,7 +323,7 @@ public class InteractionListener extends ListenerAdapter {
 					_ -> event.getHook().sendMessage(Constants.SUCCESS).setEphemeral(true).queue(),
 				failure -> {
 					sendError(event, "bot.verification.failed_role");
-					log.warn("Was unable to add roles to user in {}({})", guild.getName(), guild.getId(), failure);
+					LOG.warn("Was unable to add roles to user in {}({})\n  {}", guild.getName(), guild.getId(), failure.getMessage());
 				}
 			);
 		}
@@ -694,7 +694,7 @@ public class InteractionListener extends ListenerAdapter {
 						.replace("{server}", guild.getName())
 						.replace("{id}", String.valueOf(ticketId))
 						.replace("{mod}", event.getMember().getEffectiveName())
-					).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER)));
+					).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER, ErrorResponse.NO_MUTUAL_GUILDS)));
 				}, failure -> sendError(event, "bot.ticketing.listener.role_failed", failure.getMessage()));
 		}, failure -> sendError(event, "bot.ticketing.listener.no_member", failure.getMessage()));
 	}
@@ -762,7 +762,7 @@ public class InteractionListener extends ListenerAdapter {
 			.queue(msg -> bot.getTicketUtil()
 				.closeTicket(channelId, event.getUser(), reason, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)
 					.andThen(t -> {
-						log.error("Couldn't close ticket with channelID '{}'", channelId, t);
+						LOG.error("Couldn't close ticket with channelID '{}'", channelId, t);
 						msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed", t.getMessage())).queue();
 					})
 				)
@@ -1078,7 +1078,7 @@ public class InteractionListener extends ListenerAdapter {
 			overrides.remove(vc.getPermissionOverride(Objects.requireNonNull(guild.getBotRole()))); // removes bot's role
 			overrides.remove(vc.getPermissionOverride(guild.getPublicRole())); // removes @everyone role
 		} catch (NullPointerException ex) {
-			log.warn("PermsCmd null pointer at role override remove");
+			LOG.warn("PermsCmd null pointer at role override remove");
 		}
 
 		if (overrides.isEmpty()) {
@@ -1106,7 +1106,7 @@ public class InteractionListener extends ListenerAdapter {
 			overrides.remove(vc.getPermissionOverride(event.getMember())); // removes user
 			overrides.remove(vc.getPermissionOverride(guild.getSelfMember())); // removes bot
 		} catch (NullPointerException ex) {
-			log.warn("PermsCmd null pointer at member override remove");
+			LOG.warn("PermsCmd null pointer at member override remove");
 		}
 
 		List<PermissionOverride> ovs = overrides;
@@ -1692,7 +1692,7 @@ public class InteractionListener extends ListenerAdapter {
 		} catch(Throwable t) {
 			// Log throwable and try to respond to the user with the error
 			// Thrown errors are not user's error, but code's fault as such things should be caught earlier and replied properly
-			log.error("Role modify Exception", t);
+			LOG.error("Role modify Exception", t);
 			bot.getEmbedUtil().sendUnknownError(event.getHook(), lu.getLocale(event), t.getMessage());
 		}
 	}
@@ -1991,7 +1991,7 @@ public class InteractionListener extends ListenerAdapter {
 		try {
 			requestId = db.customRoleRequests.create(guildId, userId, name, color1, color2, null, icon);
 		} catch (SQLException ex) {
-			log.warn("Failed to create custom role request", ex);
+			LOG.warn("Failed to create custom role request", ex);
 			sendError(event, "errors.database");
 			return;
 		}
@@ -2100,7 +2100,7 @@ public class InteractionListener extends ListenerAdapter {
 		try {
 			db.customRoleRequests.updateDetails(requestId, name, color1, color2, icon);
 		} catch (SQLException ex) {
-			log.warn("Failed to update custom role request details", ex);
+			LOG.warn("Failed to update custom role request details", ex);
 			sendError(event, "errors.database");
 			return;
 		}
@@ -2155,7 +2155,7 @@ public class InteractionListener extends ListenerAdapter {
 		try {
 			db.customRoleRequests.reject(requestId, event.getMember().getIdLong(), reason);
 		} catch (SQLException ex) {
-			log.warn("Failed to reject custom role request", ex);
+			LOG.warn("Failed to reject custom role request", ex);
 			sendError(event, "errors.database");
 			return;
 		}
@@ -2235,7 +2235,7 @@ public class InteractionListener extends ListenerAdapter {
 					Role positionRole = guild.getRoleById(settings.getPositionRoleId());
 					if (positionRole != null) {
 						guild.modifyRolePositions().selectPosition(role).moveBelow(positionRole).queue(null,
-							t -> log.warn("Failed to position custom role {} in {}", role.getIdLong(), guild.getIdLong(), t));
+							t -> LOG.warn("Failed to position custom role {} in {}", role.getIdLong(), guild.getIdLong(), t));
 					}
 				}
 
@@ -2243,7 +2243,7 @@ public class InteractionListener extends ListenerAdapter {
 				String iconUrl = request.iconUrl;
 				if (iconUrl != null && !iconUrl.isBlank()) {
 					if (guild.getBoostTier().getKey() < 2) {
-						log.info("Guild {} boost level < 2, skipping icon for custom role {}", guild.getIdLong(), role.getIdLong());
+						LOG.info("Guild {} boost level < 2, skipping icon for custom role {}", guild.getIdLong(), role.getIdLong());
 					} else {
 						try {
 							var conn = URI.create(iconUrl).toURL().openConnection();
@@ -2253,12 +2253,12 @@ public class InteractionListener extends ListenerAdapter {
 							if (bytes.length <= 256 * 1024) {
 								var icon = net.dv8tion.jda.api.entities.Icon.from(bytes);
 								role.getManager().setIcon(icon).queue(null,
-									t -> log.warn("Failed to set icon on custom role {}", role.getIdLong(), t));
+									t -> LOG.warn("Failed to set icon on custom role {}", role.getIdLong(), t));
 							} else {
-								log.warn("Icon too large for custom role {}, skipping", role.getIdLong());
+								LOG.warn("Icon too large for custom role {}, skipping", role.getIdLong());
 							}
 						} catch (Exception ex) {
-							log.warn("Failed to fetch icon for custom role {}", role.getIdLong(), ex);
+							LOG.warn("Failed to fetch icon for custom role {}", role.getIdLong(), ex);
 						}
 					}
 				}
@@ -2268,7 +2268,7 @@ public class InteractionListener extends ListenerAdapter {
 				guild.retrieveMemberById(ownerId).queue(member -> {
 					guild.addRoleToMember(member, role)
 						.reason("Custom role assigned")
-						.queue(null, t -> log.warn("Failed to assign custom role {} to {}", role.getIdLong(), ownerId, t));
+						.queue(null, t -> LOG.warn("Failed to assign custom role {} to {}", role.getIdLong(), ownerId, t));
 
 					// DB
 					try {
@@ -2281,7 +2281,7 @@ public class InteractionListener extends ListenerAdapter {
 						db.customRoles.add(role.getIdLong(), ownerId, guild.getIdLong(), false, expiresAt, isNitro, renewAt);
 						db.customRoleRequests.approve(request.requestId, reviewerId);
 					} catch (SQLException ex) {
-						log.warn("Failed to record approved custom role in DB", ex);
+						LOG.warn("Failed to record approved custom role in DB", ex);
 					}
 
 					// DM owner
@@ -2294,7 +2294,7 @@ public class InteractionListener extends ListenerAdapter {
 							.build()
 						).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
 					);
-				}, t -> log.warn("Failed to retrieve member {} for custom role assignment", ownerId, t));
+				}, t -> LOG.warn("Failed to retrieve member {} for custom role assignment", ownerId, t));
 
 				// Update review embed — disable buttons
 				if (request.messageId != null && settings.getRequestsChannelId() != null) {
@@ -2318,7 +2318,7 @@ public class InteractionListener extends ListenerAdapter {
 				).setEphemeral(true).queue();
 			},
 			failure -> {
-				log.warn("Failed to create custom role for request {}", request.requestId, failure);
+				LOG.warn("Failed to create custom role for request {}", request.requestId, failure);
 				sendError(event, "errors.error", failure.getMessage());
 			});
 	}
