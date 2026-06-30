@@ -39,7 +39,7 @@ public class RoleCmd extends SlashCommand {
 		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
-		this.requiredPermission = AccessPermission.CMD_ROLE;
+		this.requiredPermission = AccessPermission.CMD_ROLES;
 	}
 
 	@Override
