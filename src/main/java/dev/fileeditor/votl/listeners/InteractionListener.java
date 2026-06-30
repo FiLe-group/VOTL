@@ -1231,11 +1231,6 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		if (bot.getHelper() == null) {
-			sendError(event, "errors.no_helper");
-			return;
-		}
-
 		String targetId = event.getComponentId().split(":")[1];
 		CaseData caseData = db.cases.getMemberActive(Long.parseLong(targetId), event.getGuild().getIdLong(), CaseType.BAN);
 		if (caseData == null || !caseData.getDuration().isZero()) {
@@ -1365,11 +1360,6 @@ public class InteractionListener extends ListenerAdapter {
 		assert event.getGuild() != null && event.getMember() != null;
 		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.SYNC_ACTIONS)) {
 			sendError(event, "errors.interaction.no_access");
-			return;
-		}
-
-		if (bot.getHelper() == null) {
-			sendError(event, "errors.no_helper");
 			return;
 		}
 

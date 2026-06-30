@@ -41,10 +41,6 @@ public class BanInfoCmd extends SlashCommand {
 			editError(event, "errors.option.user");
 			return;
 		}
-		if (bot.getHelper() == null) {
-			editError(event, "errors.unknown");
-			return;
-		}
 
 		Set<Long> guildIds = bot.getHelper().collectAllRelatedGuildIds(event.getGuild().getIdLong());
 		if (guildIds.isEmpty()) {
