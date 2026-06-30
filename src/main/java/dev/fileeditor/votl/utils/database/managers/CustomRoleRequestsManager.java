@@ -17,7 +17,7 @@ public class CustomRoleRequestsManager extends LiteBase {
 	private static final Set<String> FIELDS = Set.of(
 		"requestId", "guildId", "userId", "roleName",
 		"color1", "color2", "colorNotes", "iconUrl",
-		"status", "reviewerId", "rejectReason", "createdAt", "messageId"
+		"status", "reviewerId", "rejectReason", "createdAt", "messageId", "requestType"
 	);
 
 	public CustomRoleRequestsManager(ConnectionUtil cu) {
@@ -27,11 +27,18 @@ public class CustomRoleRequestsManager extends LiteBase {
 	public long create(long guildId, long userId, String roleName,
 	                   @Nullable String color1, @Nullable String color2,
 	                   @Nullable String colorNotes, @Nullable String iconUrl) throws SQLException {
+		return create(guildId, userId, roleName, color1, color2, colorNotes, iconUrl, 0);
+	}
+
+	public long create(long guildId, long userId, String roleName,
+	                   @Nullable String color1, @Nullable String color2,
+	                   @Nullable String colorNotes, @Nullable String iconUrl,
+	                   int requestType) throws SQLException {
 		return executeWithRow(
-			"INSERT INTO %s(guildId, userId, roleName, color1, color2, colorNotes, iconUrl, createdAt) VALUES (%d, %d, %s, %s, %s, %s, %s, %d)"
+			"INSERT INTO %s(guildId, userId, roleName, color1, color2, colorNotes, iconUrl, createdAt, requestType) VALUES (%d, %d, %s, %s, %s, %s, %s, %d, %d)"
 				.formatted(table, guildId, userId,
 					quote(roleName), quote(color1), quote(color2), quote(colorNotes), quote(iconUrl),
-					Instant.now().getEpochSecond())
+					Instant.now().getEpochSecond(), requestType)
 		);
 	}
 
@@ -48,6 +55,15 @@ public class CustomRoleRequestsManager extends LiteBase {
 	public CustomRoleRequest getPendingByUser(long userId, long guildId) {
 		return applyOrDefault(
 			selectOne("SELECT * FROM %s WHERE (userId=%d AND guildId=%d AND status=0)".formatted(table, userId, guildId), FIELDS),
+			CustomRoleRequest::new,
+			null
+		);
+	}
+
+	@Nullable
+	public CustomRoleRequest getLatestApprovedByUser(long userId, long guildId) {
+		return applyOrDefault(
+			selectOne("SELECT * FROM %s WHERE (userId=%d AND guildId=%d AND status=1) ORDER BY createdAt DESC LIMIT 1".formatted(table, userId, guildId), FIELDS),
 			CustomRoleRequest::new,
 			null
 		);
@@ -91,6 +107,7 @@ public class CustomRoleRequestsManager extends LiteBase {
 		@Nullable public final String rejectReason;
 		public final long createdAt;
 		@Nullable public final Long messageId;
+		public final int requestType;
 
 		public CustomRoleRequest(Map<String, Object> data) {
 			this.requestId = castLong(data.get("requestId"));
@@ -106,12 +123,14 @@ public class CustomRoleRequestsManager extends LiteBase {
 			this.rejectReason = getOrDefault(data.get("rejectReason"), null);
 			this.createdAt = castLong(data.get("createdAt"));
 			this.messageId = castLong(data.get("messageId"));
+			this.requestType = getOrDefault(data.get("requestType"), 0);
 		}
 
 		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-		public boolean isPending()  { return status == 0; }
-		public boolean isApproved() { return status == 1; }
-		public boolean isRejected() { return status == 2; }
+		public boolean isPending()     { return status == 0; }
+		public boolean isApproved()    { return status == 1; }
+		public boolean isRejected()    { return status == 2; }
+		public boolean isEditRequest() { return requestType == 1; }
 	}
 
 }

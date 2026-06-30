@@ -230,10 +230,12 @@ public class CustomRoleCmd extends SlashCommand {
 			MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 				.setDescription(lu.getGuildText(event, path+".embed_text"))
 				.build();
-			Button button = Button.secondary("custom_role:create", lu.getGuildText(event, path+".button_text"))
+			Button createButton = Button.secondary("custom_role:create", lu.getGuildText(event, path+".button_text"))
 				.withEmoji(Emoji.fromUnicode("👤"));
+			Button editButton = Button.secondary("custom_role:edit", lu.getGuildText(event, path+".edit_button_text"))
+				.withEmoji(Emoji.fromUnicode("✏️"));
 
-			channel.sendMessageEmbeds(embed).setComponents(ActionRow.of(button)).queue(
+			channel.sendMessageEmbeds(embed).setComponents(ActionRow.of(createButton, editButton)).queue(
 				_ -> editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getText(event, path+".done").formatted(channel.getAsMention()))
 					.build()),

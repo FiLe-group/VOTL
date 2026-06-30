@@ -45,7 +45,7 @@ public class DelGameStrikeCmd extends SlashCommand {
 		assert channel != null;
 		Integer maxStrikes = bot.getDBUtil().games.getMaxStrikes(channel.getIdLong());
 		if (maxStrikes == null) {
-			editError(event, "errors.option.channel", "Channel: %s".formatted(channel.getAsMention()));
+			editError(event, path+".bad_channel", "Channel: %s".formatted(channel.getAsMention()));
 			return;
 		}
 		User tu = event.optUser("user");
