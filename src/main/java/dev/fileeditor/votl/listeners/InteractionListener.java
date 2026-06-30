@@ -556,7 +556,7 @@ public class InteractionListener extends ListenerAdapter {
 				// Get either support roles or use mod roles
 				mentions.append("||");
 				List<Long> supportRoleIds = db.ticketSettings.getSettings(guild.getIdLong()).getRoleSupportIds();
-				if (supportRoleIds.isEmpty()) supportRoleIds = db.accessGroups.getRolesWithPermission(guild.getIdLong(), AccessPermission.CMD_TICKET_MANAGE);
+				if (supportRoleIds.isEmpty()) supportRoleIds = db.accessGroups.getRolesWithPermission(guild.getIdLong(), AccessPermission.TICKET_SUPPORT);
 				supportRoleIds.forEach(roleId -> mentions.append(" <@&").append(roleId).append(">"));
 				mentions.append("||");
 				// Send message
@@ -599,7 +599,7 @@ public class InteractionListener extends ListenerAdapter {
 		assert event.getGuild() != null && event.getMember() != null;
 		List<Long> supportRoleIds = bot.getDBUtil().getTicketSettings(event.getGuild()).getRoleSupportIds();
 		if (supportRoleIds.isEmpty()) {
-			if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_TICKET_MANAGE)) {
+			if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.TICKET_SUPPORT)) {
 				// User has no Helper+ access to approve role request
 				sendError(event, "errors.interaction.no_access", "Helper+");
 				return;
@@ -714,7 +714,7 @@ public class InteractionListener extends ListenerAdapter {
 				case EVERYONE -> {}
 				case HELPER -> {
 					// Check if user has Helper+ access
-					if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_TICKET_MANAGE)) {
+					if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.TICKET_SUPPORT)) {
 						// No access - reject
 						sendError(event, "errors.interaction.no_access", "Helper+ access");
 						return;
@@ -726,7 +726,7 @@ public class InteractionListener extends ListenerAdapter {
 					if (tagId==0) {
 						// Role request ticket
 						List<Long> supportRoleIds = db.getTicketSettings(event.getGuild()).getRoleSupportIds();
-						if (supportRoleIds.isEmpty()) supportRoleIds = db.accessGroups.getRolesWithPermission(event.getGuild().getIdLong(), AccessPermission.CMD_TICKET_MANAGE);
+						if (supportRoleIds.isEmpty()) supportRoleIds = db.accessGroups.getRolesWithPermission(event.getGuild().getIdLong(), AccessPermission.TICKET_SUPPORT);
 						// Check
 						if (denyTicketAction(supportRoleIds, event.getMember())) {
 							sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
@@ -797,7 +797,7 @@ public class InteractionListener extends ListenerAdapter {
 	// Ticket management
 	private void buttonTicketClaim(ButtonInteractionEvent event) {
 		assert event.getMember() != null;
-		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_TICKET_MANAGE)) {
+		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.TICKET_SUPPORT)) {
 			// User has no Helper's access or higher to approve role request
 			sendError(event, "errors.interaction.no_access");
 			return;
@@ -822,7 +822,7 @@ public class InteractionListener extends ListenerAdapter {
 
 	private void buttonTicketUnclaim(ButtonInteractionEvent event) {
 		assert event.getMember() != null;
-		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_TICKET_MANAGE)) {
+		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.TICKET_SUPPORT)) {
 			// User has no Helper's access or higher to approve role request
 			sendError(event, "errors.interaction.no_access");
 			return;

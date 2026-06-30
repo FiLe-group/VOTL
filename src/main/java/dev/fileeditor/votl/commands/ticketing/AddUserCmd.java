@@ -27,7 +27,7 @@ public class AddUserCmd extends SlashCommand {
 		);
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
-		this.requiredPermission = AccessPermission.CMD_TICKET_MANAGE;
+		this.requiredPermission = AccessPermission.TICKET_SUPPORT;
 	}
 
 	@Override

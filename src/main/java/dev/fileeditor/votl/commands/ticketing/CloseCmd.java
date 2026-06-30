@@ -54,7 +54,7 @@ public class CloseCmd extends SlashCommand {
 				case EVERYONE -> {}
 				case HELPER -> {
 					// Check if user has Helper+ access
-					if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_TICKET_MANAGE)) {
+					if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.TICKET_SUPPORT)) {
 						// No access - reject
 						editError(event, "errors.interaction.no_access", "Helper+ access");
 						return;
@@ -66,7 +66,7 @@ public class CloseCmd extends SlashCommand {
 					if (tagId==0) {
 						// Role request ticket
 						List<Long> supportRoleIds = bot.getDBUtil().getTicketSettings(event.getGuild()).getRoleSupportIds();
-						if (supportRoleIds.isEmpty()) supportRoleIds = bot.getDBUtil().accessGroups.getRolesWithPermission(event.getGuild().getIdLong(), AccessPermission.CMD_TICKET_MANAGE);
+						if (supportRoleIds.isEmpty()) supportRoleIds = bot.getDBUtil().accessGroups.getRolesWithPermission(event.getGuild().getIdLong(), AccessPermission.TICKET_SUPPORT);
 						// Check
 						if (denyCloseSupport(supportRoleIds, event.getMember())) {
 							editError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");

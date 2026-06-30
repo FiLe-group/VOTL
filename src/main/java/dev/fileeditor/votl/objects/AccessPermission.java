@@ -2,8 +2,8 @@ package dev.fileeditor.votl.objects;
 
 public enum AccessPermission {
 	// Grouped command access
-	CMD_TICKET_MANAGE,    // AddUserCmd, RemoveUserCmd, RcloseCmd, CloseCmd
-	CMD_ROLE,             // RoleCmd add/remove subcommands
+	TICKET_SUPPORT,    		// AddUserCmd, RemoveUserCmd, RcloseCmd, CloseCmd
+	CMD_ROLES,				// RoleCmd add/remove subcommands
 
 	// Per-command access flags
 	CMD_BAN,
@@ -25,20 +25,20 @@ public enum AccessPermission {
 	CMD_BAN_INFO,
 
 	// Sync group actions
-	SYNC_ACTIONS,         // execute sync bans/kicks/unbans
-	SYNC_MANAGER,         // join/leave/manage server groups
-	BLACKLIST_MANAGE,     // manage sync blacklists
+	SYNC_ACTIONS,			// execute sync bans/kicks/unbans
+	SYNC_MANAGER,			// join/leave/manage server groups
+	BLACKLIST_MANAGE,		// manage sync blacklists
 
 	// Special statuses
-	AUTO_KICK_EXEMPT,     // exempt from auto-kick and auto-ban triggers only
+	AUTO_KICK_EXEMPT,		// exempt from auto-kick and auto-ban triggers only
 
 	// Elevated capability
-	MOD_PERMANENT,        // no duration limits on bans/mutes
+	MOD_PERMANENT,			// no duration limits on bans/mutes
 
 	// Built-in tier checks (command-level only, never stored in DB)
-	ADMIN,   // Discord Administrator permission or higher
-	OWNER,   // Guild owner or higher
-	DEV;     // Bot developer / bot owner only
+	ADMIN,			// Discord Administrator permission or higher
+	OWNER,			// Guild owner or higher
+	DEV;			// Bot developer / bot owner only
 
 	public long toBit() {
 		return 1L << this.ordinal();
