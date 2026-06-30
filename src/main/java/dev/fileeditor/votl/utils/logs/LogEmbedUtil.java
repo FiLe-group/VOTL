@@ -750,6 +750,46 @@ public class LogEmbedUtil {
 	}
 
 
+	// Custom Role
+	@NotNull
+	public MessageEmbed customRoleRequestedEmbed(DiscordLocale locale, long userId, String roleName,
+	                                              String color1, @Nullable String color2, long requestId, boolean isEdit) {
+		String headerKey = isEdit ? "bot.custom_role_edit_requested" : "bot.custom_role_requested";
+		String colors = color2 != null ? "%s → %s".formatted(color1, color2) : color1;
+		return new LogEmbedBuilder(locale, AMBER_LIGHT)
+			.setHeader(headerKey, roleName)
+			.setUser(userId)
+			.addField("bot.custom_role_name", roleName)
+			.addField("bot.custom_role_colors", colors)
+			.setFooter("Request ID: %d | User ID: %d".formatted(requestId, userId))
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed customRoleAcceptedEmbed(DiscordLocale locale, long reviewerId, long userId,
+	                                             String roleMention, boolean isEdit) {
+		String headerKey = isEdit ? "bot.custom_role_edit_accepted" : "bot.custom_role_accepted";
+		return new LogEmbedBuilder(locale, GREEN_LIGHT)
+			.setHeader(headerKey, roleMention)
+			.setUser(userId)
+			.setEnforcer(reviewerId)
+			.setId(userId)
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed customRoleRejectedEmbed(DiscordLocale locale, long reviewerId, long userId,
+	                                             String roleName, String reason) {
+		return new LogEmbedBuilder(locale, RED_LIGHT)
+			.setHeader("bot.custom_role_rejected", roleName)
+			.setUser(userId)
+			.setEnforcer(reviewerId)
+			.setReason(reason)
+			.setId(userId)
+			.build();
+	}
+
+
 	// Bot settings
 	@NotNull
 	public MessageEmbed accessAdded(DiscordLocale locale, User mod, User userTarget, Role roleTarget, String levelName) {

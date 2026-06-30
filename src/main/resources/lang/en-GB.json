@@ -372,7 +372,14 @@
 			"access_level": "Access level",
 			"module": "Module",
 			"module_enabled": "Module enabled",
-			"module_disabled": "Module disabled"
+			"module_disabled": "Module disabled",
+			"custom_role_requested": "Custom role requested | %s",
+			"custom_role_edit_requested": "Custom role edit requested | %s",
+			"custom_role_accepted": "Custom role created | %s",
+			"custom_role_edit_accepted": "Custom role updated | %s",
+			"custom_role_rejected": "Custom role request rejected | %s",
+			"custom_role_name": "Role Name",
+			"custom_role_colors": "Colors"
 		},
 		"helper": {
 			"banned": "User was banned in %s",

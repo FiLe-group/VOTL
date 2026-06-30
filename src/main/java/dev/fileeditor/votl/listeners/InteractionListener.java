@@ -1990,6 +1990,8 @@ public class InteractionListener extends ListenerAdapter {
 
 		postReviewEmbed(event, event.getGuild(), settings, requestId, event.getMember(), name, color1, color2, icon, false);
 
+		bot.getGuildLogger().botLogs.onCustomRoleRequested(event.getGuild(), userId, name, color1, color2, requestId, false);
+
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
 			.setColor(Constants.COLOR_SUCCESS)
 			.setDescription(lu.getLocalized(event.getUserLocale(), "bot.roles.custom_role.request.submitted"))
@@ -2187,6 +2189,8 @@ public class InteractionListener extends ListenerAdapter {
 			.setDescription(lu.getGuildText(event, "bot.roles.custom_role.review.rejected_done").formatted(request.roleName))
 			.build()
 		).setEphemeral(true).queue();
+
+		bot.getGuildLogger().botLogs.onCustomRoleRejected(event.getGuild(), event.getMember().getIdLong(), request.userId, request.roleName, reason);
 	}
 
 	private void buttonCustomRoleEdit(ButtonInteractionEvent event) {
@@ -2301,6 +2305,8 @@ public class InteractionListener extends ListenerAdapter {
 		}
 
 		postReviewEmbed(event, event.getGuild(), settings, requestId, event.getMember(), name, color1, color2, icon, true);
+
+		bot.getGuildLogger().botLogs.onCustomRoleRequested(event.getGuild(), userId, name, color1, color2, requestId, true);
 
 		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
 			.setColor(Constants.COLOR_SUCCESS)
@@ -2419,6 +2425,8 @@ public class InteractionListener extends ListenerAdapter {
 					.setDescription(lu.getGuildText(event, "bot.roles.custom_role.review.edit_approved_done").formatted(existingRole.getAsMention()))
 					.build()
 				).setEphemeral(true).queue();
+
+				bot.getGuildLogger().botLogs.onCustomRoleAccepted(guild, reviewerId, request.userId, existingRole.getAsMention(), true);
 			},
 			failure -> {
 				LOG.warn("Failed to modify custom role for edit request {}", request.requestId, failure);
@@ -2550,6 +2558,8 @@ public class InteractionListener extends ListenerAdapter {
 					.setDescription(lu.getGuildText(event, "bot.roles.custom_role.review.approved_done").formatted(role.getAsMention()))
 					.build()
 				).setEphemeral(true).queue();
+
+				bot.getGuildLogger().botLogs.onCustomRoleAccepted(guild, reviewerId, request.userId, role.getAsMention(), false);
 			},
 			failure -> {
 				LOG.warn("Failed to create custom role for request {}", request.requestId, failure);

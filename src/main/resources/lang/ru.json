@@ -372,7 +372,14 @@
 			"access_level": "Уровень доступа",
 			"module": "Модуль",
 			"module_enabled": "Модуль включен",
-			"module_disabled": "Модуль выключен"
+			"module_disabled": "Модуль выключен",
+			"custom_role_requested": "Запрос кастомной роли | %s",
+			"custom_role_edit_requested": "Запрос изменения кастомной роли | %s",
+			"custom_role_accepted": "Создана кастомная роль | %s",
+			"custom_role_edit_accepted": "Обновлена кастомная роль | %s",
+			"custom_role_rejected": "Кастомная роль отклонена | %s",
+			"custom_role_name": "Название роли",
+			"custom_role_colors": "Colors"
 		},
 		"helper": {
 			"banned": "Пользователь был забанен в %s",

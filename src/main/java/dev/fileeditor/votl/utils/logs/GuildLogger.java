@@ -840,5 +840,21 @@ public class GuildLogger {
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.moduleDisabled(locale, mod, module));
 		}
+
+		public void onCustomRoleRequested(Guild guild, long userId, String roleName,
+		                                  String color1, @Nullable String color2, long requestId, boolean isEdit) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.customRoleRequestedEmbed(locale, userId, roleName, color1, color2, requestId, isEdit));
+		}
+
+		public void onCustomRoleAccepted(Guild guild, long reviewerId, long userId, String roleMention, boolean isEdit) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.customRoleAcceptedEmbed(locale, reviewerId, userId, roleMention, isEdit));
+		}
+
+		public void onCustomRoleRejected(Guild guild, long reviewerId, long userId, String roleName, String reason) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.customRoleRejectedEmbed(locale, reviewerId, userId, roleName, reason));
+		}
 	}
 }
