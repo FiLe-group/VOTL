@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+@SuppressWarnings("SqlSourceToSinkFlow")
 public class LiteBase {
 
 	private final ConnectionUtil util;
@@ -179,11 +180,11 @@ public class LiteBase {
 	@NotNull
 	protected String quote(@Nullable final Object value) {
 		// Convert to string and replace '(single quote) with ''(2 single quotes) for sql
-		if (value == null ) return "NULL";
+		if (value == null) return "NULL";
 		final String text = String.valueOf(value);
 		if (text.isBlank() || text.equalsIgnoreCase("NULL")) return "NULL";
 
-		return String.format("'%s'", String.valueOf(value).replaceAll("'", "''"));
+		return String.format("'%s'", String.valueOf(value).replace("'", "''"));
 	}
 
 	@Nullable

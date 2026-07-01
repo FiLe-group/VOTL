@@ -300,7 +300,8 @@
 			"modified": "User roles modified",
 			"temp_added": "Role added temporary to user",
 			"temp_updated": "Temporary role updated for user",
-			"temp_removed": "Temporary role removed from user"
+			"temp_removed": "Temporary role removed from user",
+			"temp_delete": "Delete after"
 		},
 		"guild": {
 			"name": "Server logs",
@@ -1435,12 +1436,7 @@
 				},
 				"kick_abort": "Could not kick mentioned member.",
 				"higher_access": "Mentioned member has higher access than you do.",
-				"success": "\uD83D\uDC5F **User was kicked.**",
-				"sync": {
-					"title": "**Sync this kick?**\nSelect groups bellow.",
-					"value": "Select group/-s",
-					"done": "Kick sync in progress! Result will be posted in log channel."
-				}
+				"success": "\uD83D\uDC5F **User was kicked.**"
 			},
 			"mute": {
 				"help": "Time out member",
