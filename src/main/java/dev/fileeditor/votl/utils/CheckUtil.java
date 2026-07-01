@@ -44,7 +44,7 @@ public class CheckUtil {
 	@NotNull
 	public AccessResult resolve(@NotNull Member member) {
 		if (isDeveloper(member) || isBotOwner(member)) return AccessResult.FULL;
-		if (member.isOwner()) return AccessResult.FULL;
+		if (member.isOwner()) return AccessResult.SERVER_OWNER;
 		if (member.hasPermission(Permission.ADMINISTRATOR)) return AccessResult.ADMIN_DEFAULT;
 
 		List<Long> roleIds = member.getRoles().stream().map(ISnowflake::getIdLong).toList();

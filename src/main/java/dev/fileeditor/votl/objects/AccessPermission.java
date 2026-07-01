@@ -25,9 +25,8 @@ public enum AccessPermission {
 	CMD_BAN_INFO,
 
 	// Sync group actions
-	SYNC_ACTIONS,			// execute sync bans/kicks/unbans
-	SYNC_MANAGER,			// join/leave/manage server groups
-	BLACKLIST_MANAGE,		// manage sync blacklists
+	SYNC_GROUP_MANAGER,		// join/leave/manage server groups
+	BLACKLIST_MANAGE,		// manage sync blacklists, execute sync actions
 
 	// Special statuses
 	AUTO_KICK_EXEMPT,		// exempt from auto-kick and auto-ban triggers only

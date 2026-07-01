@@ -49,8 +49,9 @@ public class AccessResultTest extends BaseTest {
 
 	@Test
 	void adminDefaultExcludesSyncPermissions() {
-		assertFalse(AccessResult.ADMIN_DEFAULT.has(AccessPermission.SYNC_ACTIONS));
-		assertFalse(AccessResult.ADMIN_DEFAULT.has(AccessPermission.SYNC_MANAGER));
+		assertFalse(AccessResult.ADMIN_DEFAULT.has(AccessPermission.DEV));
+		assertFalse(AccessResult.ADMIN_DEFAULT.has(AccessPermission.OWNER));
+		assertFalse(AccessResult.ADMIN_DEFAULT.has(AccessPermission.SYNC_GROUP_MANAGER));
 		assertFalse(AccessResult.ADMIN_DEFAULT.has(AccessPermission.BLACKLIST_MANAGE));
 	}
 

@@ -1152,7 +1152,7 @@ public class InteractionListener extends ListenerAdapter {
 	// Blacklist
 	private void buttonBlacklist(ButtonInteractionEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
-		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.SYNC_ACTIONS)) {
+		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.BLACKLIST_MANAGE)) {
 			sendError(event, "errors.interaction.no_access");
 			return;
 		}
@@ -1227,7 +1227,7 @@ public class InteractionListener extends ListenerAdapter {
 
 	private void buttonSyncBan(ButtonInteractionEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
-		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.SYNC_ACTIONS)) {
+		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.BLACKLIST_MANAGE)) {
 			sendError(event, "errors.interaction.no_access");
 			return;
 		}
@@ -1293,7 +1293,7 @@ public class InteractionListener extends ListenerAdapter {
 
 	private void buttonSyncUnban(ButtonInteractionEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
-		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.SYNC_ACTIONS)) {
+		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.BLACKLIST_MANAGE)) {
 			sendError(event, "errors.interaction.no_access");
 			return;
 		}
@@ -1359,7 +1359,7 @@ public class InteractionListener extends ListenerAdapter {
 
 	private void buttonSyncKick(ButtonInteractionEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
-		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.SYNC_ACTIONS)) {
+		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.BLACKLIST_MANAGE)) {
 			sendError(event, "errors.interaction.no_access");
 			return;
 		}
@@ -2190,6 +2190,7 @@ public class InteractionListener extends ListenerAdapter {
 			.build()
 		).setEphemeral(true).queue();
 
+		assert event.getMember() != null;
 		bot.getGuildLogger().botLogs.onCustomRoleRejected(event.getGuild(), event.getMember().getIdLong(), request.userId, request.roleName, reason);
 	}
 

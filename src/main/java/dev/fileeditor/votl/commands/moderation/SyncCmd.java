@@ -37,7 +37,7 @@ public class SyncCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.KICK_MEMBERS, Permission.BAN_MEMBERS};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.requiredPermission = AccessPermission.SYNC_ACTIONS;
+		this.requiredPermission = AccessPermission.BLACKLIST_MANAGE;
 		this.waiter = App.getInstance().getEventWaiter();
 	}
 

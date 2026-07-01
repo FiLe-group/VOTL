@@ -45,7 +45,7 @@ public class GroupCmd extends SlashCommand {
 		};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.requiredPermission = AccessPermission.SYNC_MANAGER;
+		this.requiredPermission = AccessPermission.SYNC_GROUP_MANAGER;
 		this.waiter = App.getInstance().getEventWaiter();
 	}
 

@@ -13,14 +13,18 @@ public record AccessResult(Set<AccessPermission> permissions, AccessLimits limit
 		EnumSet.noneOf(AccessPermission.class), AccessLimits.UNLIMITED
 	);
 
-	/** ADMIN built-in: all flags except sync-related. */
+	/** Build-in sets. */
+	public static final AccessResult SERVER_OWNER;
 	public static final AccessResult ADMIN_DEFAULT;
 	static {
-		EnumSet<AccessPermission> adminPerms = EnumSet.allOf(AccessPermission.class);
-		adminPerms.remove(AccessPermission.SYNC_ACTIONS);
-		adminPerms.remove(AccessPermission.SYNC_MANAGER);
-		adminPerms.remove(AccessPermission.BLACKLIST_MANAGE);
-		ADMIN_DEFAULT = new AccessResult(adminPerms, AccessLimits.UNLIMITED);
+		EnumSet<AccessPermission> perms = EnumSet.allOf(AccessPermission.class);
+		perms.remove(AccessPermission.DEV);
+		SERVER_OWNER = new AccessResult(perms, AccessLimits.UNLIMITED);
+
+		perms.remove(AccessPermission.OWNER);
+		perms.remove(AccessPermission.SYNC_GROUP_MANAGER);
+		perms.remove(AccessPermission.BLACKLIST_MANAGE);
+		ADMIN_DEFAULT = new AccessResult(perms, AccessLimits.UNLIMITED);
 	}
 
 	public boolean has(AccessPermission p) {
