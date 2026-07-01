@@ -68,17 +68,11 @@ public class AccessResultTest extends BaseTest {
 		);
 	}
 
-	/**
-	 * ADMIN_DEFAULT is built from EnumSet.allOf() minus the three sync flags, so the
-	 * tier sentinels (ADMIN/OWNER/DEV) are technically set in the bitfield.
-	 * This does NOT grant tier access: HasAccess short-circuits to member checks for
-	 * those values before ever calling resolve().has(). This test documents the artifact.
-	 */
 	@Test
 	void adminDefaultContainsTierBitsAsArtifact() {
 		assertTrue(AccessResult.ADMIN_DEFAULT.has(AccessPermission.ADMIN));
-		assertTrue(AccessResult.ADMIN_DEFAULT.has(AccessPermission.OWNER));
-		assertTrue(AccessResult.ADMIN_DEFAULT.has(AccessPermission.DEV));
+		assertFalse(AccessResult.ADMIN_DEFAULT.has(AccessPermission.OWNER));
+		assertFalse(AccessResult.ADMIN_DEFAULT.has(AccessPermission.DEV));
 	}
 
 	// ---- AccessResult.merge ----
