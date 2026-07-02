@@ -17,6 +17,7 @@ package dev.fileeditor.votl.base.command;
 
 import dev.fileeditor.votl.contracts.reflection.Reflectional;
 
+import dev.fileeditor.votl.objects.AccessPermission;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -78,12 +79,8 @@ public abstract class MessageContextMenu extends ContextMenu implements Reflecti
 			data.setNameLocalizations(getNameLocalization());
 		}
 
-		if (requiredPermission == null) {
-			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(getUserPermissions()));
-		}
-		else {
+		if (requiredPermission == AccessPermission.ADMIN || requiredPermission == AccessPermission.OWNER || requiredPermission == AccessPermission.DEV)
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
-		}
 
 		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 

@@ -45,12 +45,16 @@ public class CheckUtil {
 	public AccessResult resolve(@NotNull Member member) {
 		if (isDeveloper(member) || isBotOwner(member)) return AccessResult.FULL;
 		if (member.isOwner()) return AccessResult.SERVER_OWNER;
-		if (member.hasPermission(Permission.ADMINISTRATOR)) return AccessResult.ADMIN_DEFAULT;
 
 		List<Long> roleIds = member.getRoles().stream().map(ISnowflake::getIdLong).toList();
-		return bot.getDBUtil().accessGroups.resolveForMember(
+		AccessResult groupResult = bot.getDBUtil().accessGroups.resolveForMember(
 			member.getGuild().getIdLong(), member.getIdLong(), roleIds
 		);
+
+		if (member.hasPermission(Permission.ADMINISTRATOR)) {
+			return AccessResult.ADMIN_DEFAULT.merge(groupResult);
+		}
+		return groupResult;
 	}
 
 	/**

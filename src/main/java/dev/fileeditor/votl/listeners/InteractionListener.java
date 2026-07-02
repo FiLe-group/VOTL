@@ -2333,7 +2333,7 @@ public class InteractionListener extends ListenerAdapter {
 		}
 
 		boolean isGradient = color2 != null && c2 >= 0;
-		if (isGradient && !guild.getFeatures().contains("ROLE_COLORS")) {
+		if (isGradient && !guild.getFeatures().contains("ENHANCED_ROLE_COLORS")) {
 			sendError(event, "bot.roles.custom_role.errors.gradient_not_supported");
 			return;
 		}
@@ -2457,7 +2457,7 @@ public class InteractionListener extends ListenerAdapter {
 		}
 
 		boolean isGradient = color2 != null && c2 >= 0;
-		if (isGradient && !guild.getFeatures().contains("ROLE_COLORS")) {
+		if (isGradient && !guild.getFeatures().contains("ENHANCED_ROLE_COLORS")) {
 			sendError(event, "bot.roles.custom_role.errors.gradient_not_supported");
 			return;
 		}

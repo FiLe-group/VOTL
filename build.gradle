@@ -76,18 +76,26 @@ tasks.jar {
 }
 
 // ShadowJar + copy to base folder
-tasks.build {
-	dependsOn(shadowJar)
-
+tasks.register('copyJar') {
+	def shadow = tasks.shadowJar
+	dependsOn(shadow)
+	def outFile = shadow.archiveFile          // captured at config time
+	def destName = "VOTL-${version}.jar"
 	doLast {
 		copy {
-			from('build/libs') {
-				include 'VOTL-*.jar'
-			}
-			into '.'
-			rename 'VOTL-(\\d+\\.\\d+\\.\\d+).*\\.jar', 'VOTL-$1.jar'
+			from(outFile)
+			into('.')
+			rename { destName }
 		}
 	}
+}
+
+// Refresh the root copy whether you run `build` or `shadowJar`
+tasks.build {
+	dependsOn(copyJar)
+}
+tasks.shadowJar {
+	finalizedBy(copyJar)
 }
 
 // ShadowJar config

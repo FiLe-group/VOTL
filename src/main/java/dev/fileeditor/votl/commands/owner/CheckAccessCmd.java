@@ -3,6 +3,7 @@ package dev.fileeditor.votl.commands.owner;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.AccessPermission;
+import dev.fileeditor.votl.objects.AccessResult;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
@@ -40,19 +41,22 @@ public class CheckAccessCmd extends SlashCommand {
 		}
 
 		guild.retrieveMember(user).queue(member -> {
+			var perms = bot.getCheckUtil().resolve(member);
 			String tier;
-			if (bot.getCheckUtil().hasAccess(member, AccessPermission.DEV))
+			if (perms.has(AccessPermission.DEV))
 				tier = "DEV";
-			else if (bot.getCheckUtil().hasAccess(member, AccessPermission.OWNER))
+			else if (perms.has(AccessPermission.OWNER))
 				tier = "OWNER";
-			else if (bot.getCheckUtil().hasAccess(member, AccessPermission.ADMIN))
-				tier = "ADMIN";
-			else {
-				var perms = bot.getCheckUtil().resolve(member);
-				if (perms.permissions().isEmpty())
-					tier = "NO PERMISSIONS";
-				else
-					tier = perms.permissions().stream().map(Enum::name).collect(Collectors.joining(", "));
+			else if (perms.has(AccessPermission.ADMIN)) {
+				String extra = perms.permissions().stream()
+					.filter(p -> !AccessResult.ADMIN_DEFAULT.has(p))
+					.map(Enum::name)
+					.collect(Collectors.joining(", "));
+				tier = extra.isEmpty() ? "ADMIN" : "ADMIN + " + extra;
+			} else {
+				tier = perms.permissions().isEmpty()
+					? "NO PERMISSIONS"
+					: perms.permissions().stream().map(Enum::name).collect(Collectors.joining(", "));
 			}
 			editMsg(event, "%s(%s) - %s".formatted(member.getAsMention(), member.getEffectiveName(), tier));
 		}, failure -> editError(event, failure.getMessage()));

@@ -17,14 +17,15 @@ public record AccessResult(Set<AccessPermission> permissions, AccessLimits limit
 	public static final AccessResult SERVER_OWNER;
 	public static final AccessResult ADMIN_DEFAULT;
 	static {
-		EnumSet<AccessPermission> perms = EnumSet.allOf(AccessPermission.class);
-		perms.remove(AccessPermission.DEV);
-		SERVER_OWNER = new AccessResult(perms, AccessLimits.UNLIMITED);
+		EnumSet<AccessPermission> ownerPerms = EnumSet.allOf(AccessPermission.class);
+		ownerPerms.remove(AccessPermission.DEV);
+		SERVER_OWNER = new AccessResult(ownerPerms, AccessLimits.UNLIMITED);
 
-		perms.remove(AccessPermission.OWNER);
-		perms.remove(AccessPermission.SYNC_GROUP_MANAGER);
-		perms.remove(AccessPermission.BLACKLIST_MANAGE);
-		ADMIN_DEFAULT = new AccessResult(perms, AccessLimits.UNLIMITED);
+		EnumSet<AccessPermission> adminPerms = EnumSet.copyOf(ownerPerms);
+		adminPerms.remove(AccessPermission.OWNER);
+		adminPerms.remove(AccessPermission.SYNC_GROUP_MANAGER);
+		adminPerms.remove(AccessPermission.BLACKLIST_MANAGE);
+		ADMIN_DEFAULT = new AccessResult(adminPerms, AccessLimits.UNLIMITED);
 	}
 
 	public boolean has(AccessPermission p) {

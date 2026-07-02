@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 import dev.fileeditor.votl.metrics.Metrics;
 import dev.fileeditor.votl.metrics.datapoints.Timer;
 
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -333,27 +334,35 @@ public abstract class SlashCommand extends Interaction {
 			data.setNSFW(true);
 		}
 
+		// Register middlewares
+		registerThrottleMiddleware();
+		if (requiredPermission != null) {
+			middlewares.add("hasAccess");
+		}
+		if (botPermissions.length > 0 || userPermissions.length > 0) {
+			middlewares.add("permissions");
+		}
+
 		// Check for children
 		if (children.length != 0) {
 			// Temporary map for easy group storage
 			Map<String, SubcommandGroupData> groupData = new HashMap<>();
 			for (SlashCommand child : children) {
 				// Inherit
-				if (child.userPermissions.length == 0) {
-					child.userPermissions = userPermissions;
-				}
-				if (child.botPermissions.length == 0) {
-					child.botPermissions = botPermissions;
-				}
-				if (child.getRequiredPermission() == null) {
-					child.requiredPermission = requiredPermission;
-				}
-				if (child.module == null) {
-					child.module = module;
-				}
-				if (isEphemeralReply()) {
-					child.ephemeral = true;
-				}
+				if (child.userPermissions.length == 0) child.userPermissions = userPermissions;
+				if (child.botPermissions.length == 0) child.botPermissions = botPermissions;
+				if (child.requiredPermission == null) child.requiredPermission = requiredPermission;
+
+				if (child.module == null) child.module = module;
+				if (ephemeral) child.ephemeral = true;
+
+				// Middlewares
+				if (child.middlewares.isEmpty()) child.middlewares.addAll(middlewares);
+				child.registerThrottleMiddleware();
+
+				if (child.requiredPermission != null) child.middlewares.add("hasAccess");
+				if (child.botPermissions.length > 0 || child.userPermissions.length > 0) child.middlewares.add("permissions");
+
 				// Set attributes
 				child.help = lu.getText(child.getHelpPath());
 				child.descriptionLocalization = lu.getFullLocaleMap(child.getHelpPath(), child.getHelp());
@@ -399,22 +408,10 @@ public abstract class SlashCommand extends Interaction {
 				data.addSubcommandGroups(groupData.values());
 		}
 
-		boolean needsAccessCheck = requiredPermission != null;
-		if (requiredPermission == null)
-			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(userPermissions));
-		else
+		if (requiredPermission == AccessPermission.ADMIN || requiredPermission == AccessPermission.OWNER || requiredPermission == AccessPermission.DEV)
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
 
 		data.setContexts(guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
-
-		// Register middlewares
-		registerThrottleMiddleware();
-		if (needsAccessCheck) {
-			middlewares.add("hasAccess");
-		}
-		if (botPermissions.length > 0 || userPermissions.length > 0) {
-			middlewares.add("permissions");
-		}
 
 		return data;
 	}
