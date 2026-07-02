@@ -2213,9 +2213,9 @@ public class InteractionListener extends ListenerAdapter {
 
 		var lastApproved = db.customRoleRequests.getLatestApprovedByUser(userId, guildId);
 		String prefillName   = lastApproved != null ? lastApproved.roleName : "";
-		String prefillColor1 = lastApproved != null && lastApproved.color1 != null ? lastApproved.color1 : "";
-		String prefillColor2 = lastApproved != null && lastApproved.color2 != null ? lastApproved.color2 : "";
-		String prefillIcon   = lastApproved != null && lastApproved.iconUrl != null ? lastApproved.iconUrl : "";
+		String prefillColor1 = lastApproved != null ? lastApproved.color1 : null;
+		String prefillColor2 = lastApproved != null ? lastApproved.color2 : null;
+		String prefillIcon   = lastApproved != null ? lastApproved.iconUrl : null;
 		boolean wasGradient  = lastApproved != null && lastApproved.color2 != null;
 
 		var locale = event.getUserLocale();
