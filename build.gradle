@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	// ShadowJar
 	// https://mvnrepository.com/artifact/com.gradleup.shadow/shadow-gradle-plugin
-	id 'com.gradleup.shadow' version '9.4.2'
+	id 'com.gradleup.shadow' version '9.4.3'
 }
 
 // Getting version
@@ -24,7 +24,7 @@ dependencies {
 		exclude module: 'tink'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-	implementation 'ch.qos.logback:logback-classic:1.5.35'			// Logging (required by JDA)
+	implementation 'ch.qos.logback:logback-classic:1.5.37'			// Logging (required by JDA)
 
 	// Tools
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
@@ -56,7 +56,7 @@ dependencies {
 
 	// Testing
 	// Source: https://mvnrepository.com/artifact/org.junit/junit-bom
-	testImplementation platform('org.junit:junit-bom:6.1.0')
+	testImplementation platform('org.junit:junit-bom:6.1.1')
 	// Source: https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	// Source: https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher
