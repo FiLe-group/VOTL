@@ -663,8 +663,8 @@ public class TicketCmd extends SlashCommand {
 					.setMaxLength(200),
 				new OptionData(OptionType.INTEGER, "allow_close", lu.getText(path+".allow_close.help"))
 					.addChoice("Everyone (default)", TicketSettingsManager.AllowClose.EVERYONE.getValue())
-					.addChoice("Helper+ access", TicketSettingsManager.AllowClose.HELPER.getValue())
-					.addChoice("Ticket support roles", TicketSettingsManager.AllowClose.SUPPORT.getValue()),
+					.addChoice("With Support permission", TicketSettingsManager.AllowClose.SUPPORT_PERMISSION.getValue())
+					.addChoice("Ticket support roles", TicketSettingsManager.AllowClose.DIRECT_SUPPORT_ROLES.getValue()),
 				new OptionData(OptionType.INTEGER, "transcripts_mode", lu.getText(path+".transcripts_mode.help"))
 					.addChoice("All tickets", TicketSettingsManager.TranscriptsMode.ALL.getValue())
 					.addChoice("All, except role requests (default)", TicketSettingsManager.TranscriptsMode.EXCEPT_ROLES.getValue())

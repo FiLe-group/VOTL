@@ -193,8 +193,8 @@ public class TicketSettingsManager extends LiteBase {
 
 	public enum AllowClose {
 		EVERYONE(0),
-		HELPER(1),
-		SUPPORT(2);
+		SUPPORT_PERMISSION(1),
+		DIRECT_SUPPORT_ROLES(2);
 
 		private final int value;
 		private final static Map<Integer, AllowClose> BY_VALUE = new HashMap<>(values().length);

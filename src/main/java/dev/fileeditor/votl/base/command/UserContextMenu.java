@@ -118,6 +118,8 @@ public abstract class UserContextMenu extends ContextMenu implements Reflectiona
 
 		if (requiredPermission == AccessPermission.ADMIN || requiredPermission == AccessPermission.OWNER || requiredPermission == AccessPermission.DEV)
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+		else if (userPermissions.length > 0)
+			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(userPermissions));
 
 		data.setContexts(this.guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 

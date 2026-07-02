@@ -65,7 +65,7 @@ public class CheckUtil {
 	                            @Nullable Duration requested) throws CheckException {
 		if (isDeveloper(member) || isBotOwner(member) || member.isOwner()) return;
 		AccessResult access = resolve(member);
-		if (access.has(AccessPermission.MOD_PERMANENT)) return;
+		if (access.has(AccessPermission.LIMIT_OVERRIDE)) return;
 		Duration max = access.limits().maxBanDuration();
 		if (max == null) return;
 		if (requested == null)
@@ -83,7 +83,7 @@ public class CheckUtil {
 	                             @NotNull Duration requested) throws CheckException {
 		if (isDeveloper(member) || isBotOwner(member) || member.isOwner()) return;
 		AccessResult access = resolve(member);
-		if (access.has(AccessPermission.MOD_PERMANENT)) return;
+		if (access.has(AccessPermission.LIMIT_OVERRIDE)) return;
 		Duration max = access.limits().maxMuteDuration();
 		if (max == null) return;
 		if (requested.compareTo(max) > 0)

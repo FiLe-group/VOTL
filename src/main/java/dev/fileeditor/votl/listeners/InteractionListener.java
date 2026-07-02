@@ -516,6 +516,12 @@ public class InteractionListener extends ListenerAdapter {
 		assert guild != null && event.getMember() != null;
 		long guildId = guild.getIdLong();
 
+		final List<Long> supportRoleIds = db.ticketSettings.getSettings(guild.getIdLong()).getRoleSupportIds();
+		if (supportRoleIds.isEmpty()) {
+			sendError(event, "bot.ticketing.listener.no_support_roles");
+			return;
+		}
+
 		// Check if user has selected any role
 		List<Field> fields = event.getMessage().getEmbeds().getFirst().getFields();
 		List<Long> roleIds = MessageUtil.getRoleIdsFromString(fields.isEmpty() ? "" : Objects.requireNonNull(fields.getFirst().getValue()));
@@ -554,10 +560,8 @@ public class InteractionListener extends ListenerAdapter {
 				);
 				
 				StringBuffer mentions = new StringBuffer(event.getMember().getAsMention());
-				// Get either support roles or use mod roles
+				// Get support roles
 				mentions.append("||");
-				List<Long> supportRoleIds = db.ticketSettings.getSettings(guild.getIdLong()).getRoleSupportIds();
-				if (supportRoleIds.isEmpty()) supportRoleIds = db.accessGroups.getRolesWithPermission(guild.getIdLong(), AccessPermission.TICKET_SUPPORT);
 				supportRoleIds.forEach(roleId -> mentions.append(" <@&").append(roleId).append(">"));
 				mentions.append("||");
 				// Send message
@@ -599,14 +603,8 @@ public class InteractionListener extends ListenerAdapter {
 	private void buttonRoleTicketApprove(ButtonInteractionEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
 		List<Long> supportRoleIds = bot.getDBUtil().getTicketSettings(event.getGuild()).getRoleSupportIds();
-		if (supportRoleIds.isEmpty()) {
-			if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.TICKET_SUPPORT)) {
-				// User has no Helper+ access to approve role request
-				sendError(event, "errors.interaction.no_access", "Helper+");
-				return;
-			}
-		} else if (denyTicketAction(supportRoleIds, event.getMember())) {
-			sendError(event, "errors.interaction.no_access", "Ticket support or Admin+");
+		if (denyTicketAction(supportRoleIds, event.getMember())) {
+			sendError(event, "errors.interaction.no_access", "Ticket support or Admin permission");
 			return;
 		}
 		long channelId = event.getChannel().getIdLong();
@@ -713,37 +711,32 @@ public class InteractionListener extends ListenerAdapter {
 		if (!isAuthor) {
 			switch (db.getTicketSettings(event.getGuild()).getAllowClose()) {
 				case EVERYONE -> {}
-				case HELPER -> {
+				case SUPPORT_PERMISSION -> {
 					// Check if user has Helper+ access
 					if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.TICKET_SUPPORT)) {
 						// No access - reject
-						sendError(event, "errors.interaction.no_access", "Helper+ access");
+						sendError(event, "errors.interaction.no_access", "`Ticket support` permission");
 						return;
 					}
 				}
-				case SUPPORT -> {
+				case DIRECT_SUPPORT_ROLES -> {
 					// Check if user is ticket support(or mod if support empty) or has Admin+ access
 					int tagId = db.tickets.getTag(channelId);
+					List<Long> supportRoleIds;
 					if (tagId==0) {
 						// Role request ticket
-						List<Long> supportRoleIds = db.getTicketSettings(event.getGuild()).getRoleSupportIds();
-						if (supportRoleIds.isEmpty()) supportRoleIds = db.accessGroups.getRolesWithPermission(event.getGuild().getIdLong(), AccessPermission.TICKET_SUPPORT);
-						// Check
-						if (denyTicketAction(supportRoleIds, event.getMember())) {
-							sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
-							return;
-						}
+						supportRoleIds = db.getTicketSettings(event.getGuild()).getRoleSupportIds();
 					} else {
 						// Standard ticket
-						final List<Long> supportRoleIds = Stream.of(db.ticketTags.getSupportRolesString(tagId).split(";"))
+						supportRoleIds = Stream.of(db.ticketTags.getSupportRolesString(tagId).split(";"))
 							.filter(v -> !v.isBlank())
 							.map(Long::parseLong)
 							.toList();
-						// Check
-						if (denyTicketAction(supportRoleIds, event.getMember())) {
-							sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
-							return;
-						}
+					}
+					// Check
+					if (denyTicketAction(supportRoleIds, event.getMember())) {
+						sendError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
+						return;
 					}
 				}
 			}
@@ -771,9 +764,10 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private boolean denyTicketAction(List<Long> roleIds, Member member) {
-		if (roleIds.isEmpty()) return false; // No data to check against
-		final List<Role> roles = member.getRoles(); // Check if user has any support role
-		if (!roles.isEmpty() && roles.stream().anyMatch(r -> roleIds.contains(r.getIdLong()))) return false;
+		if (!roleIds.isEmpty()) {
+			final List<Role> roles = member.getRoles(); // Check if user has any support role
+			if (!roles.isEmpty() && roles.stream().anyMatch(r -> roleIds.contains(r.getIdLong()))) return false;
+		}
 		return !bot.getCheckUtil().hasAccess(member, AccessPermission.ADMIN); // if user has Admin access
 	}
 

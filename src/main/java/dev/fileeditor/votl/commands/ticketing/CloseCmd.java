@@ -52,36 +52,31 @@ public class CloseCmd extends SlashCommand {
 		if (!isAuthor) {
 			switch (bot.getDBUtil().getTicketSettings(event.getGuild()).getAllowClose()) {
 				case EVERYONE -> {}
-				case HELPER -> {
+				case SUPPORT_PERMISSION -> {
 					// Check if user has Helper+ access
 					if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.TICKET_SUPPORT)) {
 						// No access - reject
-						editError(event, "errors.interaction.no_access", "Helper+ access");
+						editError(event, "errors.interaction.no_access", "`Ticket support` permission");
 						return;
 					}
 				}
-				case SUPPORT -> {
+				case DIRECT_SUPPORT_ROLES -> {
 					// Check if user is ticket support or has Admin+ access
 					int tagId = bot.getDBUtil().tickets.getTag(channelId);
+					List<Long> supportRoleIds;
 					if (tagId==0) {
 						// Role request ticket
-						List<Long> supportRoleIds = bot.getDBUtil().getTicketSettings(event.getGuild()).getRoleSupportIds();
-						if (supportRoleIds.isEmpty()) supportRoleIds = bot.getDBUtil().accessGroups.getRolesWithPermission(event.getGuild().getIdLong(), AccessPermission.TICKET_SUPPORT);
-						// Check
-						if (denyCloseSupport(supportRoleIds, event.getMember())) {
-							editError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
-							return;
-						}
+						supportRoleIds = bot.getDBUtil().getTicketSettings(event.getGuild()).getRoleSupportIds();
 					} else {
 						// Standard ticket
-						final List<Long> supportRoleIds = Stream.of(bot.getDBUtil().ticketTags.getSupportRolesString(tagId).split(";"))
+						supportRoleIds = Stream.of(bot.getDBUtil().ticketTags.getSupportRolesString(tagId).split(";"))
 							.map(Long::parseLong)
 							.toList();
-						// Check
-						if (denyCloseSupport(supportRoleIds, event.getMember())) {
-							editError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin+ access");
-							return;
-						}
+					}
+					// Check
+					if (denyCloseSupport(supportRoleIds, event.getMember())) {
+						editError(event, "errors.interaction.no_access", "'Support' for this ticket or Admin permission");
+						return;
 					}
 				}
 			}
@@ -107,9 +102,10 @@ public class CloseCmd extends SlashCommand {
 	}
 
 	private boolean denyCloseSupport(List<Long> supportRoleIds, Member member) {
-		if (supportRoleIds.isEmpty()) return false; // No data to check against
-		final List<Role> roles = member.getRoles(); // Check if user has any support role
-		if (!roles.isEmpty() && roles.stream().anyMatch(r -> supportRoleIds.contains(r.getIdLong()))) return false;
+		if (!supportRoleIds.isEmpty()) {
+			final List<Role> roles = member.getRoles(); // Check if user has any support role
+			if (!roles.isEmpty() && roles.stream().anyMatch(r -> supportRoleIds.contains(r.getIdLong()))) return false;
+		}
 		return !bot.getCheckUtil().hasAccess(member, AccessPermission.ADMIN); // if user has Admin access
 	}
 

@@ -410,6 +410,8 @@ public abstract class SlashCommand extends Interaction {
 
 		if (requiredPermission == AccessPermission.ADMIN || requiredPermission == AccessPermission.OWNER || requiredPermission == AccessPermission.DEV)
 			data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+		else if (userPermissions.length > 0)
+			data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(userPermissions));
 
 		data.setContexts(guildOnly ? Set.of(InteractionContextType.GUILD) : Set.of(InteractionContextType.GUILD, InteractionContextType.BOT_DM));
 

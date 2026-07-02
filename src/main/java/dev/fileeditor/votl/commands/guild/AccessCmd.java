@@ -53,7 +53,8 @@ public class AccessCmd extends SlashCommand {
 			this.name = "create";
 			this.path = "bot.guild.access.group.create";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true).setMaxLength(32)
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true)
+					.setMaxLength(32)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
 			this.requiredPermission = AccessPermission.OWNER;
@@ -101,7 +102,7 @@ public class AccessCmd extends SlashCommand {
 			this.name = "delete";
 			this.path = "bot.guild.access.group.delete";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true)
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
 			this.requiredPermission = AccessPermission.OWNER;
@@ -141,8 +142,9 @@ public class AccessCmd extends SlashCommand {
 			this.name = "rename";
 			this.path = "bot.guild.access.group.rename";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
-				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true).setMaxLength(32)
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true),
+				new OptionData(OptionType.STRING, "name", lu.getText(path+".name.help"), true)
+					.setMaxLength(32)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
 			this.requiredPermission = AccessPermission.OWNER;
@@ -193,8 +195,8 @@ public class AccessCmd extends SlashCommand {
 			this.name = "permission";
 			this.path = "bot.guild.access.group.permission";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
-				new OptionData(OptionType.STRING, "permission", lu.getText(path+".permission.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true),
+				new OptionData(OptionType.STRING, "permission", lu.getText(path+".permission.help"), true, true),
 				new OptionData(OptionType.BOOLEAN, "value", lu.getText(path+".value.help"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
@@ -218,7 +220,7 @@ public class AccessCmd extends SlashCommand {
 				editError(event, "bot.guild.access.group.permission.invalid");
 				return;
 			}
-			if (perm == AccessPermission.ADMIN || perm == AccessPermission.OWNER || perm == AccessPermission.DEV) {
+			if (perm.hidden) {
 				editError(event, "bot.guild.access.group.permission.invalid");
 				return;
 			}
@@ -250,7 +252,7 @@ public class AccessCmd extends SlashCommand {
 			} else {
 				String query = event.getFocusedOption().getValue().toUpperCase();
 				List<Command.Choice> choices = Arrays.stream(AccessPermission.values())
-					.filter(p -> p != AccessPermission.ADMIN && p != AccessPermission.OWNER && p != AccessPermission.DEV)
+					.filter(p -> !p.hidden)
 					.filter(p -> p.name().contains(query))
 					.limit(25)
 					.map(p -> new Command.Choice(p.name().toLowerCase(), p.name()))
@@ -267,11 +269,12 @@ public class AccessCmd extends SlashCommand {
 			this.name = "limit";
 			this.path = "bot.guild.access.group.limit";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true),
 				new OptionData(OptionType.STRING, "type", lu.getText(path+".type.help"), true)
 					.addChoice("ban", "ban")
 					.addChoice("mute", "mute"),
-				new OptionData(OptionType.STRING, "duration", lu.getText(path+".duration.help"), true).setMaxLength(16)
+				new OptionData(OptionType.STRING, "duration", lu.getText(path+".duration.help"), true)
+					.setMaxLength(16)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
 			this.requiredPermission = AccessPermission.OWNER;
@@ -342,7 +345,7 @@ public class AccessCmd extends SlashCommand {
 			this.name = "info";
 			this.path = "bot.guild.access.group.info";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true)
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
 			this.ephemeral = true;
@@ -463,7 +466,7 @@ public class AccessCmd extends SlashCommand {
 			this.name = "addrole";
 			this.path = "bot.guild.access.member.addrole";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true),
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("member", lu.getText("bot.guild.access.member.help"));
@@ -524,7 +527,7 @@ public class AccessCmd extends SlashCommand {
 			this.name = "removerole";
 			this.path = "bot.guild.access.member.removerole";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true),
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("member", lu.getText("bot.guild.access.member.help"));
@@ -575,7 +578,7 @@ public class AccessCmd extends SlashCommand {
 			this.name = "adduser";
 			this.path = "bot.guild.access.member.adduser";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true),
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("member", lu.getText("bot.guild.access.member.help"));
@@ -636,7 +639,7 @@ public class AccessCmd extends SlashCommand {
 			this.name = "removeuser";
 			this.path = "bot.guild.access.member.removeuser";
 			this.options = List.of(
-				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true).setAutoComplete(true),
+				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true),
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("member", lu.getText("bot.guild.access.member.help"));

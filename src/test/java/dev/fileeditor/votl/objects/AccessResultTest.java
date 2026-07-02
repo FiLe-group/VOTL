@@ -63,7 +63,7 @@ public class AccessResultTest extends BaseTest {
 			() -> assertTrue(AccessResult.ADMIN_DEFAULT.has(AccessPermission.CMD_MUTE)),
 			() -> assertTrue(AccessResult.ADMIN_DEFAULT.has(AccessPermission.CMD_UNMUTE)),
 			() -> assertTrue(AccessResult.ADMIN_DEFAULT.has(AccessPermission.TICKET_SUPPORT)),
-			() -> assertTrue(AccessResult.ADMIN_DEFAULT.has(AccessPermission.MOD_PERMANENT)),
+			() -> assertTrue(AccessResult.ADMIN_DEFAULT.has(AccessPermission.LIMIT_OVERRIDE)),
 			() -> assertTrue(AccessResult.ADMIN_DEFAULT.has(AccessPermission.AUTO_KICK_EXEMPT))
 		);
 	}
