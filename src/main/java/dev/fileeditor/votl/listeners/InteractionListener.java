@@ -1969,6 +1969,10 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Secondary: " + color2);
 			return;
 		}
+		if (icon != null && !event.getGuild().getFeatures().contains("ROLE_ICONS")) {
+			sendError(event, "bot.roles.custom_role.errors.level_required");
+			return;
+		}
 
 		color1 = CustomRoleCmd.normalizeHex(color1);
 		if (color2 != null) color2 = CustomRoleCmd.normalizeHex(color2);
@@ -2286,6 +2290,10 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Secondary: " + color2);
 			return;
 		}
+		if (icon != null && !event.getGuild().getFeatures().contains("ROLE_ICONS")) {
+			sendError(event, "bot.roles.custom_role.errors.level_required");
+			return;
+		}
 
 		color1 = CustomRoleCmd.normalizeHex(color1);
 		if (color2 != null) color2 = CustomRoleCmd.normalizeHex(color2);
@@ -2331,6 +2339,10 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.gradient_not_supported");
 			return;
 		}
+		if (request.iconUrl != null && !request.iconUrl.isBlank() && !guild.getFeatures().contains("ROLE_ICONS")) {
+			sendError(event, "bot.roles.custom_role.errors.level_required");
+			return;
+		}
 
 		Long existingRoleId = db.customRoles.getByOwner(request.userId, guild.getIdLong());
 		if (existingRoleId == null) {
@@ -2358,22 +2370,20 @@ public class InteractionListener extends ListenerAdapter {
 				// Handle icon update
 				String iconUrl = request.iconUrl;
 				if (iconUrl != null && !iconUrl.isBlank()) {
-					if (guild.getBoostTier().getKey() >= 2) {
-						try {
-							var conn = URI.create(iconUrl).toURL().openConnection();
-							conn.setConnectTimeout(5000);
-							conn.setReadTimeout(5000);
-							byte[] bytes = conn.getInputStream().readAllBytes();
-							if (bytes.length <= 256 * 1024) {
-								var icon = net.dv8tion.jda.api.entities.Icon.from(bytes);
-								existingRole.getManager().setIcon(icon).queue(null,
-									t -> LOG.warn("Failed to update icon on custom role {}", existingRoleId, t));
-							} else {
-								LOG.warn("Icon too large for custom role edit {}, skipping", existingRoleId);
-							}
-						} catch (Exception ex) {
-							LOG.warn("Failed to fetch icon for custom role edit {}", existingRoleId, ex);
+					try {
+						var conn = URI.create(iconUrl).toURL().openConnection();
+						conn.setConnectTimeout(5000);
+						conn.setReadTimeout(5000);
+						byte[] bytes = conn.getInputStream().readAllBytes();
+						if (bytes.length <= 256 * 1024) {
+							var icon = net.dv8tion.jda.api.entities.Icon.from(bytes);
+							existingRole.getManager().setIcon(icon).queue(null,
+								t -> LOG.warn("Failed to update icon on custom role {}", existingRoleId, t));
+						} else {
+							LOG.warn("Icon too large for custom role edit {}, skipping", existingRoleId);
 						}
+					} catch (Exception ex) {
+						LOG.warn("Failed to fetch icon for custom role edit {}", existingRoleId, ex);
 					}
 				}
 
@@ -2455,6 +2465,10 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.gradient_not_supported");
 			return;
 		}
+		if (request.iconUrl != null && !request.iconUrl.isBlank() && !guild.getFeatures().contains("ROLE_ICONS")) {
+			sendError(event, "bot.roles.custom_role.errors.level_required");
+			return;
+		}
 
 		CustomRoleSettings settings = db.customRoleSettings.getSettings(guild.getIdLong());
 
@@ -2479,24 +2493,20 @@ public class InteractionListener extends ListenerAdapter {
 				// Handle icon — fetch from URL if present
 				String iconUrl = request.iconUrl;
 				if (iconUrl != null && !iconUrl.isBlank()) {
-					if (guild.getBoostTier().getKey() < 2) {
-						LOG.info("Guild {} boost level < 2, skipping icon for custom role {}", guild.getIdLong(), role.getIdLong());
-					} else {
-						try {
-							var conn = URI.create(iconUrl).toURL().openConnection();
-							conn.setConnectTimeout(5000);
-							conn.setReadTimeout(5000);
-							byte[] bytes = conn.getInputStream().readAllBytes();
-							if (bytes.length <= 256 * 1024) {
-								var icon = net.dv8tion.jda.api.entities.Icon.from(bytes);
-								role.getManager().setIcon(icon).queue(null,
-									t -> LOG.warn("Failed to set icon on custom role {}", role.getIdLong(), t));
-							} else {
-								LOG.warn("Icon too large for custom role {}, skipping", role.getIdLong());
-							}
-						} catch (Exception ex) {
-							LOG.warn("Failed to fetch icon for custom role {}", role.getIdLong(), ex);
+					try {
+						var conn = URI.create(iconUrl).toURL().openConnection();
+						conn.setConnectTimeout(5000);
+						conn.setReadTimeout(5000);
+						byte[] bytes = conn.getInputStream().readAllBytes();
+						if (bytes.length <= 256 * 1024) {
+							var icon = net.dv8tion.jda.api.entities.Icon.from(bytes);
+							role.getManager().setIcon(icon).queue(null,
+								t -> LOG.warn("Failed to set icon on custom role {}", role.getIdLong(), t));
+						} else {
+							LOG.warn("Icon too large for custom role {}, skipping", role.getIdLong());
 						}
+					} catch (Exception ex) {
+						LOG.warn("Failed to fetch icon for custom role {}", role.getIdLong(), ex);
 					}
 				}
 
