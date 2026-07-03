@@ -41,7 +41,7 @@ public class GameStrikeCmd extends SlashCommand {
 		this.options = List.of(
 			new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
 				.setChannelTypes(ChannelType.TEXT),
-			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
+			new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
 			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help"), true)
 				.setMaxLength(Limits.REASON_CHARS),
 			new OptionData(OptionType.ATTACHMENT, "proof", lu.getText(path+".proof.help"))
@@ -66,7 +66,7 @@ public class GameStrikeCmd extends SlashCommand {
 		}
 
 		// Member check
-		Member target = event.optMember("user");
+		Member target = event.optMember("member");
 		if (target == null) {
 			editError(event, "errors.option.member");
 			return;

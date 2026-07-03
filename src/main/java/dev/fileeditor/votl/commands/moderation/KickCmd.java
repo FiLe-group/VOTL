@@ -55,7 +55,7 @@ public class KickCmd extends SlashCommand {
 		Guild guild = event.getGuild();
 		assert guild != null;
 
-		Member target = event.optMember("user");
+		Member target = event.optMember("member");
 		if (target == null) {
 			editError(event, "errors.option.member");
 			return;

@@ -64,7 +64,7 @@ public class BanCmd extends SlashCommand {
 		Guild guild = event.getGuild();
 		assert guild != null && event.getMember() != null;
 
-		// Resolve user and check permission
+		// Resolve user
 		User tu = event.optUser("user");
 		if (tu == null) {
 			editError(event, "errors.option.user");

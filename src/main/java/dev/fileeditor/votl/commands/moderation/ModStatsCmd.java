@@ -44,7 +44,7 @@ public class ModStatsCmd extends SlashCommand {
 		this.module = CmdModule.MODERATION;
 		this.requiredPermission = AccessPermission.CMD_MOD_STATS;
 		addMiddlewares(
-			"throttle:user,1,20"
+			"throttle:user,1,10"
 		);
 	}
 

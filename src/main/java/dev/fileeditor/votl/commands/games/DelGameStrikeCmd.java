@@ -28,7 +28,7 @@ public class DelGameStrikeCmd extends SlashCommand {
 		this.options = List.of(
 			new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
 				.setChannelTypes(ChannelType.TEXT),
-			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
+			new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true)
 		);
 		this.category = CmdCategory.GAMES;
 		this.module = CmdModule.GAMES;
@@ -48,7 +48,7 @@ public class DelGameStrikeCmd extends SlashCommand {
 			editError(event, path+".bad_channel", "Channel: %s".formatted(channel.getAsMention()));
 			return;
 		}
-		User tu = event.optUser("user");
+		User tu = event.optUser("member");
 		if (tu == null || tu.isBot()) {
 			editError(event, "errors.option.user");
 			return;

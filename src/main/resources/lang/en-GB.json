@@ -2601,9 +2601,9 @@
 				"add": {
 					"help": "Add role/-s to the specified user",
 					"usage": "add <@User> <@Role> [@Role] [@Role]",
-					"user": {
-						"name": "user",
-						"help": "Select user"
+					"member": {
+						"name": "member",
+						"help": "Select member"
 					},
 					"role1": {
 						"name": "role1",
@@ -2624,9 +2624,9 @@
 				"remove": {
 					"help": "Remove role/-s from the specified user",
 					"usage": "remove <@User> <@Role> [@Role] [@Role]",
-					"user": {
-						"name": "user",
-						"help": "Select user"
+					"member": {
+						"name": "member",
+						"help": "Select member"
 					},
 					"role1": {
 						"name": "role1",
@@ -2659,9 +2659,9 @@
 				"modify": {
 					"help": "Modify user roles",
 					"usage": "modify <@User>",
-					"user": {
-						"name": "user",
-						"help": "Select user"
+					"member": {
+						"name": "member",
+						"help": "Select member"
 					},
 					"no_roles": "No roles to assign or remove.",
 					"button": "Modify roles",
@@ -2692,9 +2692,9 @@
 						"name": "role",
 						"help": "Select role which to assign"
 					},
-					"user": {
-						"name": "user",
-						"help": "Select user to which assign this role"
+					"member": {
+						"name": "member",
+						"help": "Select a member to whom assign this role"
 					},
 					"duration": {
 						"name": "duration",
@@ -3029,8 +3029,8 @@
 					"name": "channel",
 					"help": "Select channel"
 				},
-				"user": {
-					"name": "user",
+				"member": {
+					"name": "member",
 					"help": "Mention user/Enter ID"
 				},
 				"reason": {
@@ -3051,8 +3051,8 @@
 					"name": "channel",
 					"help": "Select channel"
 				},
-				"user": {
-					"name": "user",
+				"member": {
+					"name": "member",
 					"help": "Mention user/Enter ID"
 				},
 				"bad_channel": "Selected channel is not configured as game channel.",

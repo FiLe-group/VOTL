@@ -50,7 +50,7 @@ public class RoleCmd extends SlashCommand {
 			this.name = "add";
 			this.path = "bot.roles.role.add";
 			this.options = List.of(
-				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
+				new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
 				new OptionData(OptionType.ROLE, "role1", lu.getText(path+".role1.help"), true),
 				new OptionData(OptionType.ROLE, "role2", lu.getText(path+".role2.help"), false),
 				new OptionData(OptionType.ROLE, "role3", lu.getText(path+".role3.help"), false)
@@ -62,7 +62,7 @@ public class RoleCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 			assert guild != null;
 			// Check member
-			Member target = event.optMember("user");
+			Member target = event.optMember("member");
 			if (target == null) {
 				editError(event, "errors.option.member");
 				return;
@@ -70,8 +70,7 @@ public class RoleCmd extends SlashCommand {
 			Member mod = event.getMember();
 			assert mod != null;
 			if (target.getUser().isBot()
-				|| target.equals(guild.getSelfMember())
-				|| target.equals(mod)) {
+				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}
@@ -132,7 +131,7 @@ public class RoleCmd extends SlashCommand {
 			this.name = "remove";
 			this.path = "bot.roles.role.remove";
 			this.options = List.of(
-				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
+				new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
 				new OptionData(OptionType.ROLE, "role1", lu.getText(path+".role1.help"), true),
 				new OptionData(OptionType.ROLE, "role2", lu.getText(path+".role2.help"), false),
 				new OptionData(OptionType.ROLE, "role3", lu.getText(path+".role3.help"), false)
@@ -144,7 +143,7 @@ public class RoleCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 			assert guild != null;
 			// Check member
-			Member target = event.optMember("user");
+			Member target = event.optMember("member");
 			if (target == null) {
 				editError(event, "errors.option.member");
 				return;
@@ -152,8 +151,7 @@ public class RoleCmd extends SlashCommand {
 			Member mod = event.getMember();
 			assert mod != null;
 			if (target.getUser().isBot()
-				|| target.equals(guild.getSelfMember())
-				|| target.equals(mod)) {
+				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}
@@ -285,7 +283,7 @@ public class RoleCmd extends SlashCommand {
 			this.name = "modify";
 			this.path = "bot.roles.role.modify";
 			this.options = List.of(
-				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
+				new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true)
 			);
 			addMiddlewares(
 				"throttle:user,1,20"
@@ -298,7 +296,7 @@ public class RoleCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 			assert guild != null;
 			// Check member
-			Member target = event.optMember("user");
+			Member target = event.optMember("member");
 			if (target == null) {
 				editError(event, "errors.option.member");
 				return;
@@ -306,8 +304,7 @@ public class RoleCmd extends SlashCommand {
 			Member mod = event.getMember();
 			assert mod != null;
 			if (target.getUser().isBot()
-				|| target.equals(guild.getSelfMember())
-				|| target.equals(mod)) {
+				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}

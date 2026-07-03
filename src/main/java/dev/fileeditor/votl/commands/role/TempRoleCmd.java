@@ -49,7 +49,7 @@ public class TempRoleCmd extends SlashCommand {
 			this.path = "bot.roles.temprole.assign";
 			this.options = List.of(
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true),
-				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
+				new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
 				new OptionData(OptionType.STRING, "duration", lu.getText(path+".duration.help"), true)
 					.setMaxLength(12),
 				new OptionData(OptionType.BOOLEAN, "delete", lu.getText(path+".delete.help"))
@@ -61,7 +61,7 @@ public class TempRoleCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 			assert guild != null;
 			// Check member
-			Member target = event.optMember("user");
+			Member target = event.optMember("member");
 			if (target == null) {
 				editError(event, "errors.option.member");
 				return;
@@ -69,8 +69,7 @@ public class TempRoleCmd extends SlashCommand {
 			Member mod = event.getMember();
 			assert mod != null;
 			if (target.getUser().isBot()
-				|| target.equals(guild.getSelfMember())
-				|| target.equals(mod)) {
+				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}
@@ -153,7 +152,7 @@ public class TempRoleCmd extends SlashCommand {
 			this.path = "bot.roles.temprole.cancel";
 			this.options = List.of(
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true),
-				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
+				new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true)
 			);
 		}
 
@@ -162,7 +161,7 @@ public class TempRoleCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 			assert guild != null;
 			// Check member
-			Member target = event.optMember("user");
+			Member target = event.optMember("member");
 			if (target == null) {
 				editError(event, "errors.option.member");
 				return;
@@ -170,8 +169,7 @@ public class TempRoleCmd extends SlashCommand {
 			Member mod = event.getMember();
 			assert mod != null;
 			if (target.getUser().isBot()
-				|| target.equals(guild.getSelfMember())
-				|| target.equals(mod)) {
+				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}
@@ -219,7 +217,7 @@ public class TempRoleCmd extends SlashCommand {
 			this.path = "bot.roles.temprole.extend";
 			this.options = List.of(
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true),
-				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true),
+				new OptionData(OptionType.USER, "member", lu.getText(path+".member.help"), true),
 				new OptionData(OptionType.STRING, "duration", lu.getText(path+".duration.help"), true)
 					.setMaxLength(12)
 			);
@@ -230,7 +228,7 @@ public class TempRoleCmd extends SlashCommand {
 			Guild guild = event.getGuild();
 			assert guild != null;
 			// Check member
-			Member target = event.optMember("user");
+			Member target = event.optMember("member");
 			if (target == null) {
 				editError(event, "errors.option.member");
 				return;
@@ -238,8 +236,7 @@ public class TempRoleCmd extends SlashCommand {
 			Member mod = event.getMember();
 			assert mod != null;
 			if (target.getUser().isBot()
-				|| target.equals(guild.getSelfMember())
-				|| target.equals(mod)) {
+				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}

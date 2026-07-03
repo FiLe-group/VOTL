@@ -57,7 +57,7 @@ public class MuteCmd extends SlashCommand {
 		Guild guild = event.getGuild();
 		assert guild != null;
 		// Check member
-		Member target = event.optMember("user");
+		Member target = event.optMember("member");
 		if (target == null) {
 			editError(event, "errors.option.member");
 			return;
