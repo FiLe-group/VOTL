@@ -2715,9 +2715,9 @@
 						"name": "role",
 						"help": "Select role"
 					},
-					"user": {
-						"name": "user",
-						"help": "Select user"
+					"member": {
+						"name": "member",
+						"help": "Select member"
 					},
 					"not_found": "Selected role is not assigned temporary to this user.",
 					"done": "Canceled temporary role."
@@ -2729,9 +2729,9 @@
 						"name": "role",
 						"help": "Select role"
 					},
-					"user": {
-						"name": "user",
-						"help": "Select user"
+					"member": {
+						"name": "member",
+						"help": "Select member"
 					},
 					"duration": {
 						"name": "duration",
