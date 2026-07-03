@@ -190,6 +190,43 @@ public class AccessGroupManager extends LiteBase {
 			.formatted(T_USERS, groupId, userId), "userId", Long.class) != null;
 	}
 
+	/**
+	 * One-off maintenance helper for remapping {@code permissions} bitmask positions across all guilds,
+	 * e.g. after {@link AccessPermission} bit values are reassigned.
+	 */
+	public String migratePermissionBits(Map<Integer, Integer> bitMapping) {
+		List<Map<String, Object>> rows = select(
+			"SELECT groupId,guildId,permissions FROM \"%s\"".formatted(T_GROUPS),
+			Set.of("groupId", "guildId", "permissions")
+		);
+
+		StringBuilder sb = new StringBuilder();
+		int changed = 0;
+		for (Map<String, Object> row : rows) {
+			int groupId = ((Number) row.get("groupId")).intValue();
+			long guildId = castLong(row.get("guildId"));
+			long oldValue = castLong(row.get("permissions"));
+
+			long newValue = 0L;
+			for (int bit = 0; bit < 64; bit++) {
+				if ((oldValue & (1L << bit)) == 0L) continue;
+				int newBit = bitMapping.getOrDefault(bit, bit);
+				newValue |= (1L << newBit);
+			}
+
+			if (newValue == oldValue) continue;
+			try {
+				setPermissions(groupId, guildId, newValue);
+				changed++;
+				sb.append("group %d (guild %d): %d -> %d%n".formatted(groupId, guildId, oldValue, newValue));
+			} catch (SQLException ex) {
+				sb.append("group %d (guild %d): FAILED - %s%n".formatted(groupId, guildId, ex.getMessage()));
+			}
+		}
+		sb.insert(0, "Migrated %d/%d groups%n".formatted(changed, rows.size()));
+		return sb.toString();
+	}
+
 	// ---- Internal ----
 
 	private boolean matchesMember(GroupData g, long userId, List<Long> roleIds) {

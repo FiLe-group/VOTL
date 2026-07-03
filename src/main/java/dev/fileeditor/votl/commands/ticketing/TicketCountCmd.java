@@ -29,7 +29,7 @@ public class TicketCountCmd extends SlashCommand {
 		);
 		this.module = CmdModule.TICKETING;
 		this.category = CmdCategory.TICKETING;
-		this.requiredPermission = AccessPermission.CMD_TICKET_COUNT;
+		this.requiredPermission = AccessPermission.CMD_MOD_STATS;
 	}
 
 	@Override

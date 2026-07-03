@@ -40,7 +40,7 @@ public class CustomRoleCmd extends SlashCommand {
 			new SetupChannel(), new SetupReviewer(), new SetupPosition(),
 			new NitroBoost(), new CreatePanel(),
 			new Grant(), new Revoke(), new AccessList(), new DeleteRole(),
-			new Request(), new Icon(), new View()
+			new Request(), new View()
 		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
@@ -244,7 +244,7 @@ public class CustomRoleCmd extends SlashCommand {
 		}
 	}
 
-	// ---- ADMIN: Grant access ----
+	// ---- PERMISSION: Grant access ----
 
 	private class Grant extends SlashCommand {
 		public Grant() {
@@ -255,7 +255,7 @@ public class CustomRoleCmd extends SlashCommand {
 				new OptionData(OptionType.STRING, "duration", lu.getText(path+".duration.help"))
 					.setMaxLength(16)
 			);
-			this.requiredPermission = AccessPermission.ADMIN;
+			this.requiredPermission = AccessPermission.CMD_CUSTOM_ROLE;
 		}
 
 		@Override
@@ -303,7 +303,7 @@ public class CustomRoleCmd extends SlashCommand {
 		}
 	}
 
-	// ---- ADMIN: Revoke access ----
+	// ---- PERMISSION: Revoke access ----
 
 	private class Revoke extends SlashCommand {
 		public Revoke() {
@@ -312,7 +312,7 @@ public class CustomRoleCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.USER, "user", lu.getText(path+".user.help"), true)
 			);
-			this.requiredPermission = AccessPermission.ADMIN;
+			this.requiredPermission = AccessPermission.CMD_CUSTOM_ROLE;
 		}
 
 		@Override
@@ -347,13 +347,13 @@ public class CustomRoleCmd extends SlashCommand {
 		}
 	}
 
-	// ---- ADMIN: Access list ----
+	// ---- PERMISSION: Access list ----
 
 	private class AccessList extends SlashCommand {
 		public AccessList() {
 			this.name = "access_list";
 			this.path = "bot.roles.custom_role.access_list";
-			this.requiredPermission = AccessPermission.ADMIN;
+			this.requiredPermission = AccessPermission.CMD_CUSTOM_ROLE;
 			this.ephemeral = true;
 		}
 
@@ -487,61 +487,15 @@ public class CustomRoleCmd extends SlashCommand {
 						editError(event, "bot.roles.custom_role.errors.icon_too_large");
 						return;
 					}
+					if (!guild.getFeatures().contains("ROLE_ICONS")) {
+						editError(event, "bot.roles.custom_role.errors.level_required");
+						return;
+					}
 					iconUrl = attachment.getUrl();
 				}
 			}
 
 			submitRequest(event, guildId, userId, name, color1, color2, colorNotes, iconUrl);
-		}
-	}
-
-	// ---- USER: Add/replace icon on pending request ----
-
-	private class Icon extends SlashCommand {
-		public Icon() {
-			this.name = "icon";
-			this.path = "bot.roles.custom_role.icon";
-			this.options = List.of(
-				new OptionData(OptionType.ATTACHMENT, "image", lu.getText(path+".image.help"), true)
-			);
-		}
-
-		@Override
-		public void execute(SlashCommandEvent event) {
-			Guild guild = event.getGuild();
-			assert guild != null && event.getMember() != null;
-			long guildId = guild.getIdLong();
-			long userId = event.getMember().getIdLong();
-
-			var pending = bot.getDBUtil().customRoleRequests.getPendingByUser(userId, guildId);
-			if (pending == null) {
-				editError(event, "bot.roles.custom_role.errors.no_pending");
-				return;
-			}
-
-			try (var attachment = event.optAttachment("image")) {
-				if (attachment == null || !attachment.isImage()) {
-					editError(event, "bot.roles.custom_role.errors.icon_invalid");
-					return;
-				}
-				if (attachment.getSize() > 256 * 1024) {
-					editError(event, "bot.roles.custom_role.errors.icon_too_large");
-					return;
-				}
-
-				try {
-					bot.getDBUtil().customRoleRequests.updateDetails(
-						pending.requestId, pending.roleName, pending.color1, pending.color2, attachment.getUrl()
-					);
-				} catch (SQLException ex) {
-					editErrorDatabase(event, ex, "update icon");
-					return;
-				}
-			}
-
-			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getText(event, path+".done"))
-				.build());
 		}
 	}
 
@@ -551,6 +505,7 @@ public class CustomRoleCmd extends SlashCommand {
 		public View() {
 			this.name = "view";
 			this.path = "bot.roles.custom_role.view";
+			this.ephemeral = true;
 		}
 
 		@Override

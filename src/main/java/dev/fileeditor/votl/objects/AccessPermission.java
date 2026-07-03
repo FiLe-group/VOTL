@@ -7,13 +7,13 @@ public enum AccessPermission {
 
 	// Per-command access flags
 	CMD_BAN(2),
-	CMD_KICK(3),
-	CMD_MUTE(4),
-	CMD_UNMUTE(5),
-	CMD_REASON(6),
-	CMD_DURATION(7),
-	CMD_CASE(8),
-	CMD_STRIKES(9),
+	CMD_UNBAN(3),
+	CMD_KICK(4),
+	CMD_MUTE(5),
+	CMD_UNMUTE(6),
+	CMD_REASON(7),
+	CMD_DURATION(8),
+	CMD_CASE(9),
 	CMD_STRIKE(10),
 	CMD_DELETE_STRIKE(11),
 	CMD_GAME_STRIKE(12),
@@ -21,8 +21,8 @@ public enum AccessPermission {
 	CMD_MOD_STATS(14),
 	CMD_PURGE(15),
 	CMD_TEMP_ROLE(16),
-	CMD_TICKET_COUNT(17),
-	CMD_BAN_INFO(18),
+	CMD_BAN_INFO(17),
+	CMD_CUSTOM_ROLE(18),
 
 	// Sync group actions
 	SYNC_GROUP_MANAGER(19),		// join/leave/manage server groups

@@ -26,7 +26,6 @@ public class StrikesCmd extends SlashCommand {
 		);
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.STRIKES;
-		this.requiredPermission = AccessPermission.CMD_STRIKES;
 		addMiddlewares(
 			"throttle:user,1,10"
 		);
@@ -36,15 +35,10 @@ public class StrikesCmd extends SlashCommand {
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
-		User tu;
-		if (event.hasOption("user")) {
-			tu = event.optUser("user", event.getUser());
-			if (!tu.equals(event.getUser()) && !bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_STRIKES)) {
-				editError(event, path+".no_perms");
-				return;
-			}
-		} else {
-			tu = event.getUser();
+		User tu = event.optUser("user", event.getUser());
+		if (!tu.equals(event.getUser()) && !bot.getCheckUtil().hasAccess(event.getMember(), AccessPermission.CMD_MOD_STATS)) {
+			editError(event, path+".no_perms");
+			return;
 		}
 
 		Pair<Integer, String> strikeData = bot.getDBUtil().strikes.getData(event.getGuild().getIdLong(), tu.getIdLong());

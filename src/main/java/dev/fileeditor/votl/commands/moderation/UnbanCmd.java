@@ -36,7 +36,7 @@ public class UnbanCmd extends SlashCommand {
 		this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
-		this.requiredPermission = AccessPermission.CMD_BAN;
+		this.requiredPermission = AccessPermission.CMD_UNBAN;
 		addMiddlewares(
 			"throttle:guild,1,10"
 		);

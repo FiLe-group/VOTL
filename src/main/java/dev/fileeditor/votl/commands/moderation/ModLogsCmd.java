@@ -35,21 +35,16 @@ public class ModLogsCmd extends SlashCommand {
 		addMiddlewares(
 			"throttle:user,1,20"
 		);
+		this.ephemeral = true;
 	}
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
-		User tu;
-		if (event.hasOption("user")) {
-			tu = event.optUser("user");
-			assert tu != null;
-			if (!tu.equals(event.getUser()) && !bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.CMD_MOD_STATS)) {
-				editError(event, path+".no_perms");
-				return;
-			}
-		} else {
-			tu = event.getUser();
+		User tu = event.optUser("user", event.getUser());
+		if (!tu.equals(event.getUser()) && !bot.getCheckUtil().hasAccess(event.getMember(), AccessPermission.CMD_MOD_STATS)) {
+			editError(event, path+".no_perms");
+			return;
 		}
 
 		final long guildId = event.getGuild().getIdLong();
