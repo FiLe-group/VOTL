@@ -74,7 +74,7 @@ public class TempRoleCmd extends SlashCommand {
 				return;
 			}
 			if (!guild.getSelfMember().canInteract(target)
-				|| !mod.canInteract(target)) {
+				|| (!mod.equals(target) && !mod.canInteract(target))) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
@@ -174,7 +174,7 @@ public class TempRoleCmd extends SlashCommand {
 				return;
 			}
 			if (!guild.getSelfMember().canInteract(target)
-				|| !mod.canInteract(target)) {
+				|| (!mod.equals(target) && !mod.canInteract(target))) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
@@ -241,7 +241,7 @@ public class TempRoleCmd extends SlashCommand {
 				return;
 			}
 			if (!guild.getSelfMember().canInteract(target)
-				|| !mod.canInteract(target)) {
+				|| (!mod.equals(target) && !mod.canInteract(target))) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
