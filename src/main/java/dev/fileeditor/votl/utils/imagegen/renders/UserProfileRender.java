@@ -53,7 +53,9 @@ public class UserProfileRender extends Renderer {
 	public UserProfileRender(@NotNull Member member) {
 		this.globalName = member.getEffectiveName().replaceAll("[\\p{So}\\p{Cn}]", "").strip(); // Remove emojis
 		this.userName = member.getUser().getName();
-		this.avatarUrl = member.getEffectiveAvatarUrl();
+		this.avatarUrl = member.getEffectiveAvatarUrl()
+			.replace("?animated=true", "")
+			.replaceFirst("(\\.webp)|(\\.gif)", ".png");
 		this.timeCreated = member.getUser().getTimeCreated();
 		this.timeJoined = member.getTimeJoined();
 	}
