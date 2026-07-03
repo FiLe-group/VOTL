@@ -69,22 +69,32 @@ public class StrikeCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Member tm = event.optMember("member");
-		if (tm == null) {
+		Guild guild = event.getGuild();
+		assert guild != null;
+		// Check member
+		Member target = event.optMember("user");
+		if (target == null) {
 			editError(event, "errors.option.member");
 			return;
 		}
-		if (event.getUser().equals(tm.getUser()) || tm.getUser().isBot()) {
+		Member mod = event.getMember();
+		assert mod != null;
+		if (target.getUser().isBot()
+			|| target.equals(guild.getSelfMember())
+			|| target.equals(mod)) {
 			editError(event, "errors.option.user_self");
+			return;
+		}
+		if (!guild.getSelfMember().canInteract(target)
+			|| !mod.canInteract(target)) {
+			editError(event, "errors.option.member_interact");
 			return;
 		}
 
 		// Check if target has strike cooldown
-		Guild guild = event.getGuild();
-		assert guild != null;
 		Duration strikeCooldown = bot.getDBUtil().getGuildSettings(event.getGuild()).getStrikeCooldown();
 		if (strikeCooldown.isPositive()) {
-			Instant lastUpdate = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), tm.getIdLong());
+			Instant lastUpdate = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), target.getIdLong());
 			if (lastUpdate != null && lastUpdate.plus(strikeCooldown).isAfter(Instant.now())) {
 				// Cooldown between strikes
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
@@ -108,25 +118,9 @@ public class StrikeCmd extends SlashCommand {
 		Integer strikeAmount = event.optInteger("severity", 1);
 		CaseType type = CaseType.byType(20 + strikeAmount);
 
-		Member mod = event.getMember();
-		assert mod != null;
-
-		if (!guild.getSelfMember().canInteract(tm)) {
-			editError(event, path+".abort", "Bot can't interact with target member.");
-			return;
-		}
-		if (bot.getCheckUtil().hasHigherAccess(tm, mod)) {
-			editError(event, path+".higher_access");
-			return;
-		}
-		if (!mod.canInteract(tm)) {
-			editError(event, path+".abort", "You can't interact with target member.");
-			return;
-		}
-
 		// inform
 		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
-		tm.getUser().openPrivateChannel().queue(pm -> {
+		target.getUser().openPrivateChannel().queue(pm -> {
 			Button button = Button.secondary("strikes:"+guild.getId(), lu.getGuildText(event, "logger_embed.pm.button_strikes"));
 			final String text = bot.getModerationUtil().getDmText(type, guild, reason, null, mod.getUser(), false);
 			if (text == null) return;
@@ -138,9 +132,9 @@ public class StrikeCmd extends SlashCommand {
 							.map(event.getJDA()::getTextChannelById)
 							.orElse(null);
 						if (dramaChannel != null) {
-							final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), tm, reason, null);
+							final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), target, reason, null);
 							if (dramaEmbed == null) return;
-							dramaChannel.sendMessage("||%s||".formatted(tm.getAsMention()))
+							dramaChannel.sendMessage("||%s||".formatted(target.getAsMention()))
 								.addEmbeds(dramaEmbed)
 								.queue();
 						}
@@ -153,7 +147,7 @@ public class StrikeCmd extends SlashCommand {
 				.map(event.getJDA()::getTextChannelById)
 				.orElse(null);
 			if (dramaChannel != null) {
-				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(type, event.getGuild(), tm, reason, null);
+				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(type, event.getGuild(), target, reason, null);
 				if (dramaEmbed != null) {
 					dramaChannel.sendMessageEmbeds(dramaEmbed).queue();
 				}
@@ -164,7 +158,7 @@ public class StrikeCmd extends SlashCommand {
 		CaseData caseData;
 		try {
 			caseData = bot.getDBUtil().cases.add(
-				type, tm.getIdLong(), tm.getUser().getName(),
+				type, target.getIdLong(), target.getUser().getName(),
 				mod.getIdLong(), mod.getUser().getName(),
 				guild.getIdLong(), reason, null
 			);
@@ -175,18 +169,18 @@ public class StrikeCmd extends SlashCommand {
 		// add strikes
 		final Field action;
 		try {
-			action = executeStrike(event, guild, tm, strikeAmount, caseData.getRowId());
+			action = executeStrike(event, guild, target, strikeAmount, caseData.getRowId());
 		} catch (Exception e) {
 			editErrorOther(event, e.getMessage());
 			return;
 		}
 		// log
-		bot.getGuildLogger().mod.onNewCase(guild, tm.getUser(), caseData, proofData).thenAccept(logUrl -> {
+		bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), caseData, proofData).thenAccept(logUrl -> {
 			// Add log url to db
 			bot.getDBUtil().cases.setLogUrl(caseData.getRowId(), logUrl);
 			// send reply
 			EmbedBuilder builder = bot.getModerationUtil().actionEmbed(lu.getLocale(event), caseData.getLocalIdInt(),
-				path+".success", type.getPath(), tm.getUser(), mod.getUser(), reason, logUrl);
+				path+".success", type.getPath(), target.getUser(), mod.getUser(), reason, logUrl);
 			if (action != null) builder.addField(action);
 
 			editEmbed(event, builder.build());

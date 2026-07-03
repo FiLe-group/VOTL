@@ -38,43 +38,41 @@ public class UnmuteCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Member tm = event.optMember("member");
-		if (tm == null) {
+		Guild guild = event.getGuild();
+		assert guild != null;
+		// Check member
+		Member target = event.optMember("user");
+		if (target == null) {
 			editError(event, "errors.option.member");
 			return;
 		}
-
-		Guild guild = event.getGuild();
-		assert guild != null;
 		Member mod = event.getMember();
 		assert mod != null;
-
-		if (!guild.getSelfMember().canInteract(tm)) {
-			editError(event, path+".abort", "Bot can't interact with target member.");
+		if (target.getUser().isBot()
+			|| target.equals(guild.getSelfMember())
+			|| target.equals(mod)) {
+			editError(event, "errors.option.user_self");
 			return;
 		}
-		if (bot.getCheckUtil().hasHigherAccess(tm, mod)) {
-			editError(event, path+".higher_access");
-			return;
-		}
-		if (!mod.canInteract(tm)) {
-			editError(event, path+".abort", "You can't interact with target member.");
+		if (!guild.getSelfMember().canInteract(target)
+			|| !mod.canInteract(target)) {
+			editError(event, "errors.option.member_interact");
 			return;
 		}
 
-		CaseData muteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
+		CaseData muteData = bot.getDBUtil().cases.getMemberActive(target.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 		if (muteData != null) {
 			ignoreExc(() -> bot.getDBUtil().cases.setInactive(muteData.getRowId()));
 		}
 
-		if (tm.isTimedOut()) {
+		if (target.isTimedOut()) {
 			String reason = bot.getModerationUtil().parseReasonMentions(event);
-			tm.removeTimeout().reason(reason).queue(_ -> {
+			target.removeTimeout().reason(reason).queue(_ -> {
 				// add info to db
 				CaseData unmuteData;
 				try {
 					unmuteData = bot.getDBUtil().cases.add(
-						CaseType.UNMUTE, tm.getIdLong(), tm.getUser().getName(),
+						CaseType.UNMUTE, target.getIdLong(), target.getUser().getName(),
 						mod.getIdLong(), mod.getUser().getName(),
 						guild.getIdLong(), reason, null
 					);
@@ -83,10 +81,10 @@ public class UnmuteCmd extends SlashCommand {
 					return;
 				}
 				// log unmute
-				bot.getGuildLogger().mod.onNewCase(guild, tm.getUser(), unmuteData, muteData != null ? muteData.getReason() : null).thenAccept(logUrl -> {
+				bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), unmuteData, muteData != null ? muteData.getReason() : null).thenAccept(logUrl -> {
 					// reply
 					editEmbed(event, bot.getModerationUtil().actionEmbed(lu.getLocale(event), unmuteData.getLocalIdInt(),
-						path+".success", tm.getUser(), mod.getUser(), reason, logUrl)
+						path+".success", target.getUser(), mod.getUser(), reason, logUrl)
 					);
 				});
 			},

@@ -57,19 +57,28 @@ public class GameStrikeCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		assert event.getGuild() != null;
+		assert event.getGuild() != null && event.getMember() != null;
 		GuildChannel channel = event.optGuildChannel("channel");
 		assert channel != null;
 		if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
 			editError(event, "errors.option.channel", "Channel: %s".formatted(channel.getAsMention()));
 			return;
 		}
-		Member tm = event.optMember("user");
-		if (tm == null || tm.getUser().isBot() || tm.equals(event.getMember())
-			|| tm.equals(event.getGuild().getSelfMember())
-			|| bot.getCheckUtil().hasHigherAccess(tm, event.getMember())
-			|| !event.getGuild().getSelfMember().canInteract(tm)
-			|| !event.getMember().canInteract(tm)) {
+
+		// Member check
+		Member target = event.optMember("user");
+		if (target == null) {
+			editError(event, "errors.option.member");
+			return;
+		}
+		if (target.getUser().isBot()
+			|| target.equals(event.getGuild().getSelfMember())
+			|| target.equals(event.getMember())) {
+			editError(event, "errors.option.user_self");
+			return;
+		}
+		if (!event.getGuild().getSelfMember().canInteract(target)
+			|| !event.getMember().canInteract(target)) {
 			editError(event, "errors.option.member_interact");
 			return;
 		}
@@ -78,7 +87,7 @@ public class GameStrikeCmd extends SlashCommand {
 		long channelId = channel.getIdLong();
 		Duration strikeCooldown = bot.getDBUtil().getGuildSettings(event.getGuild()).getStrikeCooldown();
 		if (strikeCooldown.isPositive()) {
-			Instant lastUpdate = bot.getDBUtil().games.getLastUpdate(channelId, tm.getIdLong());
+			Instant lastUpdate = bot.getDBUtil().games.getLastUpdate(channelId, target.getIdLong());
 			if (lastUpdate != null && lastUpdate.plus(strikeCooldown).isAfter(Instant.now())) {
 				// Cooldown between strikes
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
@@ -104,9 +113,9 @@ public class GameStrikeCmd extends SlashCommand {
 
 		final CaseManager.CaseData strikeData;
 		try {
-			bot.getDBUtil().games.addStrike(guildId, channelId, tm.getIdLong());
+			bot.getDBUtil().games.addStrike(guildId, channelId, target.getIdLong());
 			strikeData = bot.getDBUtil().cases.add(
-				CaseType.GAME_STRIKE, tm.getIdLong(), tm.getUser().getName(),
+				CaseType.GAME_STRIKE, target.getIdLong(), target.getUser().getName(),
 				event.getUser().getIdLong(), event.getUser().getName(),
 				guildId, reason, null
 			);
@@ -116,20 +125,20 @@ public class GameStrikeCmd extends SlashCommand {
 		}
 
 		// Log
-		final int strikeCount = bot.getDBUtil().games.countStrikes(channelId, tm.getIdLong());
+		final int strikeCount = bot.getDBUtil().games.countStrikes(channelId, target.getIdLong());
 		final int maxStrikes = bot.getDBUtil().games.getMaxStrikes(channelId);
-		bot.getGuildLogger().mod.onNewCase(event.getGuild(), tm.getUser(), strikeData, proofData, strikeCount+"/"+maxStrikes);
+		bot.getGuildLogger().mod.onNewCase(event.getGuild(), target.getUser(), strikeData, proofData, strikeCount+"/"+maxStrikes);
 
 		// Check if reached limit
 		if (strikeCount >= maxStrikes) {
 			try {
-				channel.getPermissionContainer().upsertPermissionOverride(tm).setDenied(denyPerms).reason("Game ban").queue();
+				channel.getPermissionContainer().upsertPermissionOverride(target).setDenied(denyPerms).reason("Game ban").queue();
 			} catch (InsufficientPermissionException ignored) {}
 		}
 
 		// Inform user and send to drama
 		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
-		tm.getUser().openPrivateChannel().queue(pm -> {
+		target.getUser().openPrivateChannel().queue(pm -> {
 			final String text = bot.getModerationUtil().getGamestrikeDmText(CaseType.GAME_STRIKE, event.getGuild(), reason, event.getUser(), channel, strikeCount, maxStrikes);
 			if (text == null) return;
 
@@ -140,9 +149,9 @@ public class GameStrikeCmd extends SlashCommand {
 							.map(event.getJDA()::getTextChannelById)
 							.orElse(null);
 						if (dramaChannel != null) {
-							final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.GAME_STRIKE, event.getGuild(), tm, reason, null, channel);
+							final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.GAME_STRIKE, event.getGuild(), target, reason, null, channel);
 							if (dramaEmbed == null) return;
-							dramaChannel.sendMessage("||%s||".formatted(tm.getAsMention()))
+							dramaChannel.sendMessage("||%s||".formatted(target.getAsMention()))
 								.addEmbeds(dramaEmbed)
 								.queue();
 						}
@@ -155,7 +164,7 @@ public class GameStrikeCmd extends SlashCommand {
 				.map(event.getJDA()::getTextChannelById)
 				.orElse(null);
 			if (dramaChannel != null) {
-				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.GAME_STRIKE, event.getGuild(), tm, reason, null, channel);
+				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.GAME_STRIKE, event.getGuild(), target, reason, null, channel);
 				if (dramaEmbed != null) {
 					dramaChannel.sendMessageEmbeds(dramaEmbed).queue();
 				}
@@ -164,7 +173,7 @@ public class GameStrikeCmd extends SlashCommand {
 
 		// Reply
 		editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-			.setDescription(lu.getGuildText(event, path+".done", tm.getAsMention(), channel.getAsMention()))
+			.setDescription(lu.getGuildText(event, path+".done", target.getAsMention(), channel.getAsMention()))
 			.setFooter("#"+strikeData.getLocalId())
 			.build());
 	}

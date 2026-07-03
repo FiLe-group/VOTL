@@ -91,17 +91,6 @@ public class CheckUtil {
 				"errors.interaction.mute_exceeds_limit", TimeUtil.durationToString(max)));
 	}
 
-	private int builtinTier(@NotNull Member member) {
-		if (isDeveloper(member) || isBotOwner(member)) return 3;
-		if (member.isOwner()) return 2;
-		if (member.hasPermission(Permission.ADMINISTRATOR)) return 1;
-		return 0;
-	}
-
-	public boolean hasHigherAccess(@NotNull Member who, @NotNull Member than) {
-		return builtinTier(who) > builtinTier(than);
-	}
-
 	public boolean hasAccess(@NotNull Member member, @NotNull AccessPermission required) {
 		return switch (required) {
 			case DEV   -> isDeveloper(member) || isBotOwner(member);

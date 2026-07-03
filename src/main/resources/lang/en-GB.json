@@ -55,9 +55,9 @@
 		"option": {
 			"channel": "Selected channel not found! Make sure this channel exists and bot can access it.",
 			"user": "Selected user not found! Make sure provided ID/username is correct.",
-			"user_self": "You can't select yourself! Please check and choose another user.",
-			"member": "Selected member not found! Make sure they are member of this server.",
-			"member_interact": "Can't use selected member! Make sure they are member of this server and you can interract with them.",
+			"user_self": "Can't select yourself or the bot!",
+			"member": "Selected member not found! Make sure they are a member of this server.",
+			"member_interact": "Can't use selected member! Make sure you can interract with them.",
 			"role": "Selected role not found! Make sure provided ID is correct.",
 			"role_interact": "Can't use selected role! Please specify another role.",
 			"duration": "Duration must be specified!",

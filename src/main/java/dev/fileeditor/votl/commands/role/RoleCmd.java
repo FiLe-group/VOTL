@@ -60,7 +60,26 @@ public class RoleCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
-			assert guild != null && event.getMember() != null;
+			assert guild != null;
+			// Check member
+			Member target = event.optMember("user");
+			if (target == null) {
+				editError(event, "errors.option.member");
+				return;
+			}
+			Member mod = event.getMember();
+			assert mod != null;
+			if (target.getUser().isBot()
+				|| target.equals(guild.getSelfMember())
+				|| target.equals(mod)) {
+				editError(event, "errors.option.user_self");
+				return;
+			}
+			if (!guild.getSelfMember().canInteract(target)
+				|| !mod.canInteract(target)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
 
 			// Get roles
 			List<Role> roles = new ArrayList<>(3);
@@ -91,29 +110,18 @@ public class RoleCmd extends SlashCommand {
 					}
 				}
 			}
-			// Check member
-			Member member = event.optMember("user");
-			if (member == null) {
-				editError(event, "errors.option.member");
-				return;
-			}
-			if (!guild.getSelfMember().canInteract(member)
-				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
-				|| !event.getMember().canInteract(member)) {
-				editError(event, "errors.option.member_interact");
-				return;
-			}
-			List<Role> finalRoles = new ArrayList<>(member.getRoles());
+
+			List<Role> finalRoles = new ArrayList<>(target.getRoles());
 			finalRoles.addAll(roles);
 
-			guild.modifyMemberRoles(member, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(_ -> {
+			guild.modifyMemberRoles(target, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(_ -> {
 				String rolesString = roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "));
 				// Log
-				bot.getGuildLogger().role.onRolesAdded(guild, event.getUser(), member.getUser(), rolesString);
+				bot.getGuildLogger().role.onRolesAdded(guild, event.getUser(), target.getUser(), rolesString);
 				// Send reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setColor(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getGuildText(event, path+".done", rolesString, member.getAsMention()))
+					.setDescription(lu.getGuildText(event, path+".done", rolesString, target.getAsMention()))
 					.build());
 			}, failure -> editError(event, path+".failed", failure.getMessage()));
 		}
@@ -134,7 +142,26 @@ public class RoleCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
-			assert guild != null && event.getMember() != null;
+			assert guild != null;
+			// Check member
+			Member target = event.optMember("user");
+			if (target == null) {
+				editError(event, "errors.option.member");
+				return;
+			}
+			Member mod = event.getMember();
+			assert mod != null;
+			if (target.getUser().isBot()
+				|| target.equals(guild.getSelfMember())
+				|| target.equals(mod)) {
+				editError(event, "errors.option.user_self");
+				return;
+			}
+			if (!guild.getSelfMember().canInteract(target)
+				|| !mod.canInteract(target)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
 
 			// Get roles
 			List<Role> roles = new ArrayList<>(3);
@@ -165,29 +192,17 @@ public class RoleCmd extends SlashCommand {
 					}
 				}
 			}
-			// Check member
-			Member member = event.optMember("user");
-			if (member == null) {
-				editError(event, "errors.option.member");
-				return;
-			}
-			if (!guild.getSelfMember().canInteract(member)
-				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
-				|| !event.getMember().canInteract(member)) {
-				editError(event, "errors.option.member_interact");
-				return;
-			}
 
-			List<Role> finalRoles = new ArrayList<>(member.getRoles());
+			List<Role> finalRoles = new ArrayList<>(target.getRoles());
 			finalRoles.removeAll(roles);
 
-			guild.modifyMemberRoles(member, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(_ -> {
+			guild.modifyMemberRoles(target, finalRoles).reason("by "+event.getMember().getEffectiveName()).queue(_ -> {
 				String rolesString = roles.stream().map(Role::getAsMention).collect(Collectors.joining(", "));
 				// Log
-				bot.getGuildLogger().role.onRolesRemoved(guild, event.getUser(), member.getUser(), rolesString);
+				bot.getGuildLogger().role.onRolesRemoved(guild, event.getUser(), target.getUser(), rolesString);
 				// Send reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-					.setDescription(lu.getGuildText(event, path+".done", rolesString, member.getAsMention()))
+					.setDescription(lu.getGuildText(event, path+".done", rolesString, target.getAsMention()))
 					.build());
 			}, failure -> editError(event, path+".failed", failure.getMessage()));
 		}
@@ -280,19 +295,28 @@ public class RoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+			// Check member
 			Member target = event.optMember("user");
 			if (target == null) {
 				editError(event, "errors.option.member");
 				return;
 			}
-			assert event.getGuild() != null && event.getMember() != null;
+			Member mod = event.getMember();
+			assert mod != null;
 			if (target.getUser().isBot()
-				|| !event.getGuild().getSelfMember().canInteract(target)
-				|| bot.getCheckUtil().hasHigherAccess(target, event.getMember())
-				|| !event.getMember().canInteract(target)) {
+				|| target.equals(guild.getSelfMember())
+				|| target.equals(mod)) {
+				editError(event, "errors.option.user_self");
+				return;
+			}
+			if (!guild.getSelfMember().canInteract(target)
+				|| !mod.canInteract(target)) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
+
 			List<Role> userRoles = target.getRoles();
 			List<Role> allRoles = event.getGuild().getRoles();
 

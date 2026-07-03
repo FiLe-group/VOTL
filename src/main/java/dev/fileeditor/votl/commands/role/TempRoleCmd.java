@@ -59,7 +59,27 @@ public class TempRoleCmd extends SlashCommand {
 		@Override
 		protected void execute(SlashCommandEvent event) {
 			Guild guild = event.getGuild();
-			assert guild != null && event.getMember() != null;
+			assert guild != null;
+			// Check member
+			Member target = event.optMember("user");
+			if (target == null) {
+				editError(event, "errors.option.member");
+				return;
+			}
+			Member mod = event.getMember();
+			assert mod != null;
+			if (target.getUser().isBot()
+				|| target.equals(guild.getSelfMember())
+				|| target.equals(mod)) {
+				editError(event, "errors.option.user_self");
+				return;
+			}
+			if (!guild.getSelfMember().canInteract(target)
+				|| !mod.canInteract(target)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
+
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
@@ -79,26 +99,10 @@ public class TempRoleCmd extends SlashCommand {
 					return;
 				}
 			}
-			// Check member
-			Member member = event.optMember("user");
-			if (member == null) {
-				editError(event, "errors.option.member");
-				return;
-			}
-			if (member.isOwner() || member.getUser().isBot()) {
-				editError(event, "errors.option.member_interact");
-				return;
-			}
-			if (!guild.getSelfMember().canInteract(member)
-				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
-				|| !event.getMember().canInteract(member)) {
-				editError(event, "errors.option.member_interact");
-				return;
-			}
 
 			// Check if already added
 			long roleId = role.getIdLong();
-			long userId = member.getIdLong();
+			long userId = target.getIdLong();
 			if (bot.getDBUtil().tempRoles.expireAt(roleId, userId) != null) {
 				editError(event, path+".already_set");
 				return;
@@ -124,7 +128,7 @@ public class TempRoleCmd extends SlashCommand {
 			}
 			Instant until = Instant.now().plus(duration);
 
-			guild.addRoleToMember(member, role).reason("Assigned temporary role | by %s".formatted(event.getMember().getEffectiveName())).queue(_ -> {
+			guild.addRoleToMember(target, role).reason("Assigned temporary role | by %s".formatted(event.getMember().getEffectiveName())).queue(_ -> {
 				try {
 					bot.getDBUtil().tempRoles.add(guild.getIdLong(), roleId, userId, delete, until);
 				} catch (SQLException ex) {
@@ -132,11 +136,11 @@ public class TempRoleCmd extends SlashCommand {
 					return;
 				}
 				// Log
-				bot.getGuildLogger().role.onTempRoleAdded(guild, event.getUser(), member.getUser(), role, duration);
+				bot.getGuildLogger().role.onTempRoleAdded(guild, event.getUser(), target.getUser(), role, duration);
 				// Send reply
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getGuildText(event, path+".done",
-						role.getAsMention(), member.getAsMention(), TimeUtil.formatTime(until, true)
+						role.getAsMention(), target.getAsMention(), TimeUtil.formatTime(until, true)
 					)).build()
 				);
 			}, failure -> editErrorOther(event, failure.getMessage()));
@@ -155,42 +159,52 @@ public class TempRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
-			assert event.getGuild() != null && event.getMember() != null;
+			Guild guild = event.getGuild();
+			assert guild != null;
+			// Check member
+			Member target = event.optMember("user");
+			if (target == null) {
+				editError(event, "errors.option.member");
+				return;
+			}
+			Member mod = event.getMember();
+			assert mod != null;
+			if (target.getUser().isBot()
+				|| target.equals(guild.getSelfMember())
+				|| target.equals(mod)) {
+				editError(event, "errors.option.user_self");
+				return;
+			}
+			if (!guild.getSelfMember().canInteract(target)
+				|| !mod.canInteract(target)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
+
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, "errors.option.role");
 				return;
 			}
-			// Check member
-			Member member = event.optMember("user");
-			if (member == null) {
-				editError(event, "errors.option.member");
-				return;
-			}
-			if (!event.getGuild().getSelfMember().canInteract(member)
-				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
-				|| !event.getMember().canInteract(member)) {
-				editError(event, "errors.option.member_interact");
-				return;
-			}
+
 			// Check time
-			Instant time = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), member.getIdLong());
+			Instant time = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), target.getIdLong());
 			if (time == null) {
 				editError(event, path+".not_found");
 				return;
 			}
 
-			event.getGuild().removeRoleFromMember(member, role).reason("Canceled temporary role | by "+event.getMember().getEffectiveName()).queue();
+			event.getGuild().removeRoleFromMember(target, role).reason("Canceled temporary role | by "+event.getMember().getEffectiveName()).queue();
 
 			try {
-				bot.getDBUtil().tempRoles.remove(role.getIdLong(), member.getIdLong());
+				bot.getDBUtil().tempRoles.remove(role.getIdLong(), target.getIdLong());
 			} catch (SQLException ex) {
 				editErrorDatabase(event, ex, "remove temp role");
 				return;
 			}
 			// Log
-			bot.getGuildLogger().role.onTempRoleRemoved(event.getGuild(), event.getUser(), member.getUser(), role);
+			bot.getGuildLogger().role.onTempRoleRemoved(event.getGuild(), event.getUser(), target.getUser(), role);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done"))
@@ -213,27 +227,37 @@ public class TempRoleCmd extends SlashCommand {
 
 		@Override
 		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+			// Check member
+			Member target = event.optMember("user");
+			if (target == null) {
+				editError(event, "errors.option.member");
+				return;
+			}
+			Member mod = event.getMember();
+			assert mod != null;
+			if (target.getUser().isBot()
+				|| target.equals(guild.getSelfMember())
+				|| target.equals(mod)) {
+				editError(event, "errors.option.user_self");
+				return;
+			}
+			if (!guild.getSelfMember().canInteract(target)
+				|| !mod.canInteract(target)) {
+				editError(event, "errors.option.member_interact");
+				return;
+			}
+
 			// Check role
 			Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, "errors.option.role");
 				return;
 			}
-			// Check member
-			Member member = event.optMember("user");
-			if (member == null) {
-				editError(event, "errors.option.member");
-				return;
-			}
-			assert event.getGuild() != null && event.getMember() != null;
-			if (!event.getGuild().getSelfMember().canInteract(member)
-				|| bot.getCheckUtil().hasHigherAccess(member, event.getMember())
-				|| !event.getMember().canInteract(member)) {
-				editError(event, "errors.option.member_interact");
-				return;
-			}
+
 			// Check time
-			Instant oldTime = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), member.getIdLong());
+			Instant oldTime = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), target.getIdLong());
 			if (oldTime == null) {
 				editError(event, path+".not_found");
 				return;
@@ -254,17 +278,17 @@ public class TempRoleCmd extends SlashCommand {
 			}
 
 			try {
-				bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), member.getIdLong(), newTime);
+				bot.getDBUtil().tempRoles.updateTime(role.getIdLong(), target.getIdLong(), newTime);
 			} catch (SQLException ex) {
 				editErrorDatabase(event, ex, "update temp role duration");
 				return;
 			}
 			// Log
-			bot.getGuildLogger().role.onTempRoleUpdated(event.getGuild(), event.getUser(), member.getUser(), role, newTime);
+			bot.getGuildLogger().role.onTempRoleUpdated(event.getGuild(), event.getUser(), target.getUser(), role, newTime);
 			// Send reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done",
-					role.getAsMention(), member.getAsMention(), TimeUtil.formatTime(newTime, true)))
+					role.getAsMention(), target.getAsMention(), TimeUtil.formatTime(newTime, true)))
 				.build()
 			);
 		}

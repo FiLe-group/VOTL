@@ -55,28 +55,22 @@ public class KickCmd extends SlashCommand {
 		Guild guild = event.getGuild();
 		assert guild != null;
 
-		Member tm = event.optMember("member");
-		if (tm == null) {
+		Member target = event.optMember("user");
+		if (target == null) {
 			editError(event, "errors.option.member");
 			return;
 		}
-		assert event.getMember() != null;
-		if (event.getMember().equals(tm) || guild.getSelfMember().equals(tm)) {
+		Member mod = event.getMember();
+		assert mod != null;
+		if (target.getUser().isBot()
+			|| target.equals(event.getGuild().getSelfMember())
+			|| target.equals(mod)) {
 			editError(event, "errors.option.user_self");
 			return;
 		}
-
-		Member mod = event.getMember();
-		if (!guild.getSelfMember().canInteract(tm)) {
-			editError(event, path+".kick_abort", "Bot can't interact with target member.");
-			return;
-		}
-		if (bot.getCheckUtil().hasHigherAccess(tm, mod)) {
-			editError(event, path+".higher_access");
-			return;
-		}
-		if (!mod.canInteract(tm)) {
-			editError(event, path+".kick_abort", "You can't interact with target member.");
+		if (!event.getGuild().getSelfMember().canInteract(target)
+			|| !mod.canInteract(target)) {
+			editError(event, "errors.option.member_interact");
 			return;
 		}
 
@@ -93,7 +87,7 @@ public class KickCmd extends SlashCommand {
 		// inform user
 		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
 		if (event.optBoolean("dm", true)) {
-			tm.getUser().openPrivateChannel().queue(pm -> {
+			target.getUser().openPrivateChannel().queue(pm -> {
 				final String text = bot.getModerationUtil().getDmText(CaseType.KICK, guild, reason, null, mod.getUser(), false);
 				if (text == null) return;
 				pm.sendMessage(text).setSuppressEmbeds(true)
@@ -103,9 +97,9 @@ public class KickCmd extends SlashCommand {
 								.map(event.getJDA()::getTextChannelById)
 								.orElse(null);
 							if (dramaChannel != null) {
-								final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), tm, reason, null);
+								final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), target, reason, null);
 								if (dramaEmbed == null) return;
-								dramaChannel.sendMessage("||%s||".formatted(tm.getAsMention()))
+								dramaChannel.sendMessage("||%s||".formatted(target.getAsMention()))
 									.addEmbeds(dramaEmbed)
 									.queue();
 							}
@@ -119,19 +113,19 @@ public class KickCmd extends SlashCommand {
 				.map(event.getJDA()::getTextChannelById)
 				.orElse(null);
 			if (dramaChannel != null) {
-				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), tm, reason, null);
+				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), target, reason, null);
 				if (dramaEmbed != null) {
 					dramaChannel.sendMessageEmbeds(dramaEmbed).queue();
 				}
 			}
 		}
 
-		tm.kick().reason(reason).queueAfter(2, TimeUnit.SECONDS, _ -> {
+		target.kick().reason(reason).queueAfter(2, TimeUnit.SECONDS, _ -> {
 			// add info to db
 			CaseData kickData;
 			try {
 				kickData = bot.getDBUtil().cases.add(
-					CaseType.KICK, tm.getIdLong(), tm.getUser().getName(),
+					CaseType.KICK, target.getIdLong(), target.getUser().getName(),
 					mod.getIdLong(), mod.getUser().getName(),
 					guild.getIdLong(), reason, null
 				);
@@ -140,15 +134,15 @@ public class KickCmd extends SlashCommand {
 				return;
 			}
 			// log kick
-			bot.getGuildLogger().mod.onNewCase(guild, tm.getUser(), kickData, proofData).thenAccept(logUrl -> {
+			bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), kickData, proofData).thenAccept(logUrl -> {
 				// Add log url to db
 				bot.getDBUtil().cases.setLogUrl(kickData.getRowId(), logUrl);
 				// reply and ask for kick sync
 				event.getHook().editOriginalEmbeds(
 					bot.getModerationUtil().actionEmbed(lu.getLocale(event), kickData.getLocalIdInt(),
-						path+".success", tm.getUser(), mod.getUser(), reason, logUrl)
+						path+".success", target.getUser(), mod.getUser(), reason, logUrl)
 				).setComponents(ActionRow.of(
-					Button.primary("sync_kick:"+tm.getId(), "Sync kick").withEmoji(Emoji.fromUnicode("🆑"))
+					Button.primary("sync_kick:"+target.getId(), "Sync kick").withEmoji(Emoji.fromUnicode("🆑"))
 				)).queue();
 			});
 		},

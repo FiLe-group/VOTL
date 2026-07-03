@@ -54,16 +54,29 @@ public class MuteCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		Member tm = event.optMember("member");
-		if (tm == null) {
+		Guild guild = event.getGuild();
+		assert guild != null;
+		// Check member
+		Member target = event.optMember("user");
+		if (target == null) {
 			editError(event, "errors.option.member");
 			return;
 		}
-		if (event.getUser().equals(tm.getUser()) || event.getJDA().getSelfUser().equals(tm.getUser())) {
+		Member mod = event.getMember();
+		assert mod != null;
+		if (target.getUser().isBot()
+			|| target.equals(guild.getSelfMember())
+			|| target.equals(mod)) {
 			editError(event, "errors.option.user_self");
 			return;
 		}
+		if (!guild.getSelfMember().canInteract(target)
+			|| !mod.canInteract(target)) {
+			editError(event, "errors.option.member_interact");
+			return;
+		}
 
+		// Get duration
 		final Duration duration;
 		try {
 			duration = TimeUtil.stringToDuration(event.optString("time"), false);
@@ -98,44 +111,26 @@ public class MuteCmd extends SlashCommand {
 			return;
 		}
 
-		Guild guild = event.getGuild();
-		assert guild != null;
 		String reason = bot.getModerationUtil().parseReasonMentions(event);
-		CaseData oldMuteData = bot.getDBUtil().cases.getMemberActive(tm.getIdLong(), guild.getIdLong(), CaseType.MUTE);
+		CaseData oldMuteData = bot.getDBUtil().cases.getMemberActive(target.getIdLong(), guild.getIdLong(), CaseType.MUTE);
 
-		if (tm.isTimedOut() && oldMuteData != null) {
+		if (target.isTimedOut() && oldMuteData != null) {
 			// Case already exists, change duration
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_WARNING)
 				.setDescription(lu.getGuildText(event, path+".already_muted", oldMuteData.getLocalId()))
 				.addField(lu.getGuildText(event, "logger.moderation.mute.short_title"), lu.getGuildText(event, "logger.moderation.mute.short_info")
-					.replace("{username}", tm.getAsMention())
-					.replace("{until}", TimeUtil.formatTime(tm.getTimeOutEnd(), false))
+					.replace("{username}", target.getAsMention())
+					.replace("{until}", TimeUtil.formatTime(target.getTimeOutEnd(), false))
 					, false)
 				.build()
 			);
 		} else {
 			// No case -> override current timeout
 			// No case and not timed out -> timeout
-			Member mod = event.getMember();
-			assert mod != null;
-			if (!guild.getSelfMember().canInteract(tm)) {
-				editError(event, path+".abort", "Bot can't interact with target member.");
-				return;
-			}
-			if (bot.getCheckUtil().hasHigherAccess(tm, mod)) {
-				editError(event, path+".higher_access");
-				return;
-			}
-			if (!mod.canInteract(tm)) {
-				editError(event, path+".abort", "You can't interact with target member.");
-				return;
-			}
-
-			// timeout
-			tm.timeoutFor(duration).reason(reason).queue(_ -> {
+			target.timeoutFor(duration).reason(reason).queue(_ -> {
 				// inform
 				final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
-				tm.getUser().openPrivateChannel().queue(pm -> {
+				target.getUser().openPrivateChannel().queue(pm -> {
 					final String text = bot.getModerationUtil().getDmText(CaseType.MUTE, guild, reason, duration, mod.getUser(), false);
 					if (text == null) return;
 					pm.sendMessage(text).setSuppressEmbeds(true)
@@ -145,9 +140,9 @@ public class MuteCmd extends SlashCommand {
 									.map(event.getJDA()::getTextChannelById)
 									.orElse(null);
 								if (dramaChannel != null) {
-									final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.MUTE, event.getGuild(), tm, reason, duration);
+									final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.MUTE, event.getGuild(), target, reason, duration);
 									if (dramaEmbed == null) return;
-									dramaChannel.sendMessage("||%s||".formatted(tm.getAsMention()))
+									dramaChannel.sendMessage("||%s||".formatted(target.getAsMention()))
 										.addEmbeds(dramaEmbed)
 										.queue();
 								}
@@ -160,7 +155,7 @@ public class MuteCmd extends SlashCommand {
 						.map(event.getJDA()::getTextChannelById)
 						.orElse(null);
 					if (dramaChannel != null) {
-						final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.MUTE, event.getGuild(), tm, reason, duration);
+						final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.MUTE, event.getGuild(), target, reason, duration);
 						if (dramaEmbed != null) {
 							dramaChannel.sendMessageEmbeds(dramaEmbed).queue();
 						}
@@ -180,7 +175,7 @@ public class MuteCmd extends SlashCommand {
 				CaseData newMuteData;
 				try {
 					newMuteData = bot.getDBUtil().cases.add(
-						CaseType.MUTE, tm.getIdLong(), tm.getUser().getName(),
+						CaseType.MUTE, target.getIdLong(), target.getUser().getName(),
 						mod.getIdLong(), mod.getUser().getName(),
 						guild.getIdLong(), reason, duration
 					);
@@ -189,12 +184,12 @@ public class MuteCmd extends SlashCommand {
 					return;
 				}
 				// log mute
-				bot.getGuildLogger().mod.onNewCase(guild, tm.getUser(), newMuteData, proofData).thenAccept(logUrl -> {
+				bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), newMuteData, proofData).thenAccept(logUrl -> {
 					// Add log url to db
 					bot.getDBUtil().cases.setLogUrl(newMuteData.getRowId(), logUrl);
 					// send embed
 					editEmbed(event, bot.getModerationUtil().actionEmbed(lu.getLocale(event), newMuteData.getLocalIdInt(),
-						path+".success", tm.getUser(), mod.getUser(), reason, duration, logUrl)
+						path+".success", target.getUser(), mod.getUser(), reason, duration, logUrl)
 					);
 				});
 			},
