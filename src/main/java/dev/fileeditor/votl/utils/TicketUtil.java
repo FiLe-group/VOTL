@@ -88,7 +88,7 @@ public class TicketUtil {
 
 					long authorId = db.tickets.getUserId(channel.getIdLong());
 
-					bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
+					bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, finalReason, file);
 				},
 				failureHandler
 			);
@@ -124,7 +124,7 @@ public class TicketUtil {
 						}
 					}));
 
-					bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, file);
+					bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, finalReason, file);
 				},
 				failureHandler
 			);

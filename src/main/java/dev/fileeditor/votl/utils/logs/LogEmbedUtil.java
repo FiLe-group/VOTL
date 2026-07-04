@@ -723,13 +723,14 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
-	public MessageEmbed ticketClosedEmbed(DiscordLocale locale, GuildChannel channel, User userClosed, Long authorId, Long claimerId) {
+	public MessageEmbed ticketClosedEmbed(DiscordLocale locale, GuildChannel channel, User userClosed, Long authorId, Long claimerId, String reasonClosed) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader("ticket.closed_title")
 			.setDescription(localized(locale, "ticket.closed_value")
 				.replace("{name}", channel.getName())
-				.replace("{closed}", Optional.ofNullable(userClosed).map(User::getAsMention).orElse("Auto"))
 				.replace("{created}", User.fromId(authorId).getAsMention())
+				.replace("{closed}", Optional.ofNullable(userClosed).map(User::getAsMention).orElse("Auto"))
+				.replace("{reason}", Optional.ofNullable(reasonClosed).orElse("-"))
 				.replace("{claimed}", Optional.ofNullable(claimerId).map("<@%s>"::formatted).orElse(localized(locale, "ticket.unclaimed")))
 			)
 			.setFooter("Channel ID: "+channel.getId())

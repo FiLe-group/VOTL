@@ -113,7 +113,7 @@ public class TicketSettingsManager extends LiteBase {
 		public TicketSettings() {
 			this.autocloseTime = 0;
 			this.autocloseLeft = false;
-			this.timeToReply = 0;
+			this.timeToReply = 3;
 			this.otherRoles = true;
 			this.rowText = Collections.nCopies(3, "Select roles");
 			this.roleSupportIds = List.of();

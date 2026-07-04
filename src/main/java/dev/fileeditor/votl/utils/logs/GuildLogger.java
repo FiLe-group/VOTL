@@ -464,9 +464,9 @@ public class GuildLogger {
 			sendLog(guild, type, () -> logUtil.ticketCreatedEmbed(locale, messageChannel, author));
 		}
 
-		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId, FileUpload file) {
+		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId, String reason, FileUpload file) {
 			if (file == null) {
-				onClose(guild, messageChannel, userClosed, authorId);
+				onClose(guild, messageChannel, userClosed, authorId, reason);
 				return;
 			}
 
@@ -475,16 +475,16 @@ public class GuildLogger {
 			try {
 				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 				client.sendMessageEmbeds(
-					logUtil.ticketClosedEmbed(locale, messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()))
+					logUtil.ticketClosedEmbed(locale, messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()), reason)
 				).addFiles(file).queue();
 			} catch (Exception ex) {
 				log.warn("Failed to send ticket close log: {}", ex.getMessage(), ex);
 			}
 		}
 
-		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId) {
+		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId, String reason) {
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.ticketClosedEmbed(locale, messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong())));
+			sendLog(guild, type, () -> logUtil.ticketClosedEmbed(locale, messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()), reason));
 		}
 	}
 
