@@ -54,13 +54,14 @@ public class DiscordHtmlTranscripts {
             .deadline(System.currentTimeMillis() + 3000)
             .takeAsync(200)
             .thenAcceptAsync(list -> {
-                if (list.size() <= 2) action.accept(null); // Both messages are from bot - panel and close message.
-                if (list.size() <= 6) {
+                boolean skip = true;
+                if (list.size() > 2 && list.size() <= 6) {
                     // Check if history has repeated authors - then it's bot
                     Set<Long> ids = new HashSet<>();
                     list.forEach(msg -> ids.add(msg.getAuthor().getIdLong()));
-                    if (ids.size() <= 1) action.accept(null);
+                    if (ids.size() > 1) skip = false;
                 }
+                if (skip) action.accept(null);
                 else {
                     try {
                         final String filename = EncodingUtil.encodeTranscript(channel.getIdLong());

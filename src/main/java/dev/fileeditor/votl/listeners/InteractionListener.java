@@ -754,12 +754,11 @@ public class InteractionListener extends ListenerAdapter {
 				.build()
 			)
 			.queue(msg -> bot.getTicketUtil()
-				.closeTicket(channelId, event.getUser(), reason, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)
-					.andThen(t -> {
-						LOG.error("Couldn't close ticket with channelID '{}'", channelId, t);
-						msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed", t.getMessage())).queue();
-					})
-				)
+				.closeTicket(channelId, event.getUser(), reason, t -> {
+					if (ErrorResponse.UNKNOWN_MESSAGE.test(t) || ErrorResponse.UNKNOWN_CHANNEL.test(t)) return;
+					LOG.error("Couldn't close ticket with channelID '{}'", channelId, t);
+					msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed", t.getMessage())).queue();
+				})
 			);
 	}
 
