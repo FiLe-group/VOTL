@@ -262,7 +262,7 @@ public class ModerationUtil {
 	public String parseReasonMentions(@NotNull SlashCommandEvent event) {
 		OptionMapping option = event.getOption("reason");
 		if (option == null || option.getAsString().isBlank()) {
-			return lu.getGuildText(event, "mics.no_reason");
+			return lu.getGuildText(event, "misc.no_reason");
 		}
 
 		String reason = option.getAsString();
