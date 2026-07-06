@@ -1889,10 +1889,6 @@ public class InteractionListener extends ListenerAdapter {
 			sendErrorLive(event, "bot.roles.custom_role.errors.no_setup");
 			return;
 		}
-		if (!db.customRoleAccess.hasAccess(userId, guildId)) {
-			sendErrorLive(event, "bot.roles.custom_role.errors.no_access");
-			return;
-		}
 		if (db.customRoles.getByOwner(userId, guildId) != null) {
 			sendErrorLive(event, "bot.roles.custom_role.errors.has_role");
 			return;
@@ -1900,6 +1896,23 @@ public class InteractionListener extends ListenerAdapter {
 		if (db.customRoleRequests.getPendingByUser(userId, guildId) != null) {
 			sendErrorLive(event, "bot.roles.custom_role.errors.has_pending");
 			return;
+		}
+		if (!db.customRoleAccess.hasAccess(userId, guildId)) {
+			// Fallback: active server boost
+			// Auto-grant temporary access
+			if (settings.isNitroAutoGrant() && event.getMember().isBoosting()) {
+				Instant expires = Instant.now().plus(settings.getNitroExpireDays(), ChronoUnit.DAYS);
+				try {
+					db.customRoleAccess.grant(userId, guildId, 0L, expires.getEpochSecond(), true);
+				} catch (SQLException e) {
+					LOG.warn("Failed to grant nitro custom role access for {} @ {}", userId, guildId, e);
+					sendErrorLive(event, "errors.database");
+					return;
+				}
+			} else {
+				sendErrorLive(event, "bot.roles.custom_role.errors.no_access");
+				return;
+			}
 		}
 
 		var locale = event.getUserLocale();
