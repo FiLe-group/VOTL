@@ -2165,21 +2165,7 @@ public class InteractionListener extends ListenerAdapter {
 		}
 
 		// Update review embed
-		if (request.messageId != null) {
-			CustomRoleSettings settings = db.customRoleSettings.getSettings(event.getGuild().getIdLong());
-			if (settings.getRequestsChannelId() != null) {
-				var channel = event.getGuild().getTextChannelById(settings.getRequestsChannelId());
-				if (channel != null) {
-					channel.retrieveMessageById(request.messageId).queue(msg ->
-						msg.editMessageComponents(ActionRow.of(
-							Button.success("cr:accept:" + requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_accept")).asDisabled(),
-							Button.primary("cr:modify:" + requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_modify")).asDisabled(),
-							Button.danger("cr:reject:" + requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_reject")).asDisabled()
-						)).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
-					, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
-				}
-			}
-		}
+		finalizeReviewEmbed(event, event.getGuild(), request, event.getMember().getIdLong(), false);
 
 		// DM requester
 		event.getGuild().retrieveMemberById(request.userId).queue(member ->
@@ -2419,22 +2405,8 @@ public class InteractionListener extends ListenerAdapter {
 					)
 				, t -> LOG.warn("Failed to DM member {} about custom role edit", request.userId, t));
 
-				// Disable review buttons
-				if (request.messageId != null) {
-					CustomRoleSettings settings = db.customRoleSettings.getSettings(guild.getIdLong());
-					if (settings.getRequestsChannelId() != null) {
-						var reviewChannel = guild.getTextChannelById(settings.getRequestsChannelId());
-						if (reviewChannel != null) {
-							reviewChannel.retrieveMessageById(request.messageId).queue(msg ->
-								msg.editMessageComponents(ActionRow.of(
-									Button.success("cr:accept:" + request.requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_accept")).asDisabled(),
-									Button.primary("cr:modify:" + request.requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_modify")).asDisabled(),
-									Button.danger("cr:reject:" + request.requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_reject")).asDisabled()
-								)).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
-							, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
-						}
-					}
-				}
+				// Update review embed
+				finalizeReviewEmbed(event, guild, request, reviewerId, true);
 
 				// Reply to reviewer
 				event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
@@ -2555,19 +2527,8 @@ public class InteractionListener extends ListenerAdapter {
 					);
 				}, t -> LOG.warn("Failed to retrieve member {} for custom role assignment", ownerId, t));
 
-				// Update review embed — disable buttons
-				if (request.messageId != null && settings.getRequestsChannelId() != null) {
-					var reviewChannel = guild.getTextChannelById(settings.getRequestsChannelId());
-					if (reviewChannel != null) {
-						reviewChannel.retrieveMessageById(request.messageId).queue(msg ->
-							msg.editMessageComponents(ActionRow.of(
-								Button.success("cr:accept:" + request.requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_accept")).asDisabled(),
-								Button.primary("cr:modify:" + request.requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_modify")).asDisabled(),
-								Button.danger("cr:reject:" + request.requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_reject")).asDisabled()
-							)).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
-						, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
-					}
-				}
+				// Update review embed
+				finalizeReviewEmbed(event, guild, request, reviewerId, true);
 
 				// Reply to reviewer
 				event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed(event)
@@ -2626,6 +2587,34 @@ public class InteractionListener extends ListenerAdapter {
 				.setComponents(ActionRow.of(buttons))
 				.build()
 		).queue(msg -> ignoreExc(() -> db.customRoleRequests.setMessageId(requestId, msg.getIdLong())));
+	}
+
+	// Updates the posted review embed with the final decision (color, status, reviewer) and disables its buttons
+	private void finalizeReviewEmbed(IReplyCallback event, net.dv8tion.jda.api.entities.Guild guild,
+	                                 CustomRoleRequest request, long reviewerId, boolean approved) {
+		if (request.messageId == null) return;
+		CustomRoleSettings settings = db.customRoleSettings.getSettings(guild.getIdLong());
+		if (settings.getRequestsChannelId() == null) return;
+		TextChannel channel = guild.getTextChannelById(settings.getRequestsChannelId());
+		if (channel == null) return;
+
+		String reviewPath = "bot.roles.custom_role.review";
+		channel.retrieveMessageById(request.messageId).queue(msg -> {
+			var embeds = msg.getEmbeds();
+			EmbedBuilder builder = embeds.isEmpty() ? bot.getEmbedUtil().getEmbed() : new EmbedBuilder(embeds.get(0));
+			builder.setColor(approved ? Constants.COLOR_SUCCESS : Constants.COLOR_FAILURE)
+				.addField(lu.getText(event, reviewPath+".status"),
+					lu.getText(event, approved ? reviewPath+".status_approved" : reviewPath+".status_rejected"), true)
+				.addField(lu.getText(event, reviewPath+".reviewer"), "<@"+reviewerId+">", true);
+
+			msg.editMessageEmbeds(builder.build())
+				.setComponents(ActionRow.of(
+					Button.success("cr:accept:" + request.requestId, lu.getGuildText(event, reviewPath+".btn_accept")).asDisabled(),
+					Button.primary("cr:modify:" + request.requestId, lu.getGuildText(event, reviewPath+".btn_modify")).asDisabled(),
+					Button.danger("cr:reject:" + request.requestId, lu.getGuildText(event, reviewPath+".btn_reject")).asDisabled()
+				))
+				.queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
+		}, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
 	}
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")

@@ -2976,9 +2976,10 @@
 					"title": "Запрос кастомной роли #%d",
 					"edit_title": "Запрос изменения кастомной роли #%d",
 					"requested_by": "Запросил",
-					"status": {
-						"pending": "На проверке"
-					},
+					"status": "Статус",
+					"status_approved": "Одобрено",
+					"status_rejected": "Отклонено",
+					"reviewer": "Проверил",
 					"approved_done": "Кастомная роль %s одобрена и создана.",
 					"edit_approved_done": "Личная роль %s успешно обновлена.",
 					"color_notes": "Заметки цвета",

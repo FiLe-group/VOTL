@@ -2976,9 +2976,10 @@
 					"title": "Custom Role Request #%d",
 					"edit_title": "Custom Role Edit Request #%d",
 					"requested_by": "Requested by",
-					"status": {
-						"pending": "Pending review"
-					},
+					"status": "Status",
+					"status_approved": "Approved",
+					"status_rejected": "Rejected",
+					"reviewer": "Reviewed by",
 					"approved_done": "Custom role %s approved and created.",
 					"edit_approved_done": "Custom role %s updated successfully.",
 					"color_notes": "Color Notes",
