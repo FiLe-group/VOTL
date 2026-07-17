@@ -55,7 +55,9 @@ public class DiscordHtmlTranscripts {
             .takeAsync(200)
             .thenAcceptAsync(list -> {
                 boolean skip = true;
-                if (list.size() > 2 && list.size() <= 6) {
+                if (list.size() >= 6) {
+                    skip = false;
+                } else if (list.size() > 2) {
                     // Check if history has repeated authors - then it's bot
                     Set<Long> ids = new HashSet<>();
                     list.forEach(msg -> ids.add(msg.getAuthor().getIdLong()));
