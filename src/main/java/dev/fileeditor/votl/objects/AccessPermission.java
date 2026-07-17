@@ -23,6 +23,7 @@ public enum AccessPermission {
 	CMD_TEMP_ROLE(16),
 	CMD_BAN_INFO(17),
 	CMD_CUSTOM_ROLE(18),
+	CMD_AUTO_ROLE(26),
 
 	// Sync group actions
 	SYNC_GROUP_MANAGER(19),		// join/leave/manage server groups

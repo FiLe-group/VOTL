@@ -5,8 +5,13 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
@@ -18,10 +23,13 @@ import dev.fileeditor.votl.utils.database.managers.CaseManager;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateBoostTimeEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
@@ -174,5 +182,93 @@ public class MemberListener extends ListenerAdapter {
 			bot.getGuildLogger().member.onNickChange(event.getMember(), event.getOldValue(), event.getNewValue());
 		}
 	}
-	
+
+	@Override
+	public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
+		if (event.getUser().isBot()) return;
+		Guild guild = event.getGuild();
+		long guildId = guild.getIdLong();
+		if (db.autoRole.getPairs(guildId).isEmpty()) return;
+
+		Member member = event.getMember();
+		Set<Long> currentRoleIds = member.getRoles().stream().map(Role::getIdLong).collect(Collectors.toSet());
+
+		// targetRoleId -> triggerRoleId that granted it (for logging)
+		Map<Long, Long> toGrant = new HashMap<>();
+		for (Role trigger : event.getRoles()) {
+			for (Long targetId : db.autoRole.getTargets(guildId, trigger.getIdLong())) {
+				if (!currentRoleIds.contains(targetId)) {
+					toGrant.putIfAbsent(targetId, trigger.getIdLong());
+				}
+			}
+		}
+		if (toGrant.isEmpty()) return;
+
+		List<Role> rolesToAdd = new ArrayList<>();
+		for (Long targetId : toGrant.keySet()) {
+			Role role = guild.getRoleById(targetId);
+			if (role != null && guild.getSelfMember().canInteract(role)) {
+				rolesToAdd.add(role);
+			}
+		}
+		if (rolesToAdd.isEmpty()) return;
+
+		guild.modifyMemberRoles(member, rolesToAdd, null)
+			.reason("Auto-role")
+			.queue(_ -> {
+				for (Role role : rolesToAdd) {
+					Role trigger = guild.getRoleById(toGrant.get(role.getIdLong()));
+					if (trigger != null) {
+						bot.getGuildLogger().role.onAutoRoleAdded(guild, event.getUser(), trigger, role);
+					}
+				}
+			}, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER, ErrorResponse.MISSING_PERMISSIONS));
+	}
+
+	@Override
+	public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
+		if (event.getUser().isBot()) return;
+		Guild guild = event.getGuild();
+		long guildId = guild.getIdLong();
+		if (db.autoRole.getPairs(guildId).isEmpty()) return;
+
+		Member member = event.getMember();
+		Set<Long> currentRoleIds = member.getRoles().stream().map(Role::getIdLong).collect(Collectors.toSet());
+
+		// targetRoleId -> triggerRoleId that lost it (for logging)
+		Map<Long, Long> toRevoke = new HashMap<>();
+		for (Role trigger : event.getRoles()) {
+			for (Long targetId : db.autoRole.getTargets(guildId, trigger.getIdLong())) {
+				if (!currentRoleIds.contains(targetId)) continue; // member doesn't hold it anyway
+				// Keep the secondary role if another currently-held trigger still grants it
+				Set<Long> otherTriggers = new HashSet<>(db.autoRole.getTriggersFor(guildId, targetId));
+				otherTriggers.retainAll(currentRoleIds);
+				if (otherTriggers.isEmpty()) {
+					toRevoke.putIfAbsent(targetId, trigger.getIdLong());
+				}
+			}
+		}
+		if (toRevoke.isEmpty()) return;
+
+		List<Role> rolesToRemove = new ArrayList<>();
+		for (Long targetId : toRevoke.keySet()) {
+			Role role = guild.getRoleById(targetId);
+			if (role != null && guild.getSelfMember().canInteract(role)) {
+				rolesToRemove.add(role);
+			}
+		}
+		if (rolesToRemove.isEmpty()) return;
+
+		guild.modifyMemberRoles(member, null, rolesToRemove)
+			.reason("Auto-role")
+			.queue(_ -> {
+				for (Role role : rolesToRemove) {
+					Role trigger = guild.getRoleById(toRevoke.get(role.getIdLong()));
+					if (trigger != null) {
+						bot.getGuildLogger().role.onAutoRoleRemoved(guild, event.getUser(), trigger, role);
+					}
+				}
+			}, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MEMBER, ErrorResponse.MISSING_PERMISSIONS));
+	}
+
 }

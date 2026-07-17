@@ -323,6 +323,16 @@ public class GuildLogger {
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.tempRoleAutoRemovedEmbed(locale, targetId, role));
 		}
+
+		public void onAutoRoleAdded(Guild guild, User target, Role trigger, Role secondary) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.autoRoleAddedEmbed(locale, target, trigger, secondary));
+		}
+
+		public void onAutoRoleRemoved(Guild guild, User target, Role trigger, Role secondary) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.autoRoleRemovedEmbed(locale, target, trigger, secondary));
+		}
 	}
 
 	// Group actions

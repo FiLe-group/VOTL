@@ -5,6 +5,7 @@ import dev.fileeditor.votl.utils.ConsoleColor;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import dev.fileeditor.votl.App;
@@ -81,10 +82,24 @@ public class GuildListener extends ListenerAdapter {
 		ignoreExc(() -> db.customRoleRequests.removeGuild(guildId));
 		ignoreExc(() -> db.customRoleAccess.removeGuild(guildId));
 		ignoreExc(() -> db.mediaChannels.removeGuild(guildId));
+		ignoreExc(() -> db.autoRole.removeGuild(guildId));
 		
 		ignoreExc(() -> db.guildSettings.remove(guildId));
 
 		log.info("Automatically removed guild '{}'({}) from db.", event.getGuild().getName(), guildId);
+	}
+
+	@Override
+	public void onRoleDelete(@NotNull RoleDeleteEvent event) {
+		long guildId = event.getGuild().getIdLong();
+		long roleId = event.getRole().getIdLong();
+
+		ignoreExc(() -> db.autoRole.removeRole(guildId, roleId));
+		ignoreExc(() -> db.accessGroups.removeRoleFromAll(roleId));
+		ignoreExc(() -> db.customRoles.remove(roleId));
+		ignoreExc(() -> db.persistent.removeRole(guildId, roleId));
+		ignoreExc(() -> db.roles.remove(roleId));
+		ignoreExc(() -> db.tempRoles.removeRole(roleId));
 	}
 
 	private void ignoreExc(RunnableExc runnable) {

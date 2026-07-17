@@ -612,6 +612,28 @@ public class LogEmbedUtil {
 			.build();
 	}
 
+	@NotNull
+	public MessageEmbed autoRoleAddedEmbed(DiscordLocale locale, User target, Role trigger, Role secondary) {
+		return new LogEmbedBuilder(locale, GREEN_LIGHT)
+			.setHeaderIcon("role.auto_added", target.getEffectiveAvatarUrl())
+			.setUser(target.getIdLong())
+			.addField("role.auto_trigger", trigger.getAsMention())
+			.addField("role.role", secondary.getAsMention())
+			.setId(target.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed autoRoleRemovedEmbed(DiscordLocale locale, User target, Role trigger, Role secondary) {
+		return new LogEmbedBuilder(locale, RED_LIGHT)
+			.setHeaderIcon("role.auto_removed", target.getEffectiveAvatarUrl())
+			.setUser(target.getIdLong())
+			.addField("role.auto_trigger", trigger.getAsMention())
+			.addField("role.role", secondary.getAsMention())
+			.setId(target.getIdLong())
+			.build();
+	}
+
 
 	// Group
 	@NotNull

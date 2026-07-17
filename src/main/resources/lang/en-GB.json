@@ -301,7 +301,10 @@
 			"temp_added": "Role added temporary to user",
 			"temp_updated": "Temporary role updated for user",
 			"temp_removed": "Temporary role removed from user",
-			"temp_delete": "Delete after"
+			"temp_delete": "Delete after",
+			"auto_added": "Auto-role added to user",
+			"auto_removed": "Auto-role removed from user",
+			"auto_trigger": "Trigger role"
 		},
 		"guild": {
 			"name": "Server logs",
@@ -2746,6 +2749,46 @@
 					"usage": "view",
 					"empty": "No temporary assigned roles.",
 					"title": "Temporary roles"
+				}
+			},
+			"autorole": {
+				"help": "Manage automatic role assignment",
+				"usage": "autorole",
+				"add": {
+					"help": "Auto-assign a secondary role when a member receives a trigger role",
+					"usage": "add <@Role> <@Role>",
+					"trigger": {
+						"name": "trigger",
+						"help": "Role that triggers the automatic assignment"
+					},
+					"secondary": {
+						"name": "secondary",
+						"help": "Role to automatically add/remove based on the trigger role"
+					},
+					"same_role": "Trigger and secondary role can't be the same role.",
+					"already_exists": "This auto-role pair already exists.",
+					"cycle": "This pair would create a role assignment loop with an existing rule.",
+					"done": "Auto-role added: members who receive %s will automatically receive %s.\n-# Existing members are not affected retroactively."
+				},
+				"remove": {
+					"help": "Remove an auto-role pair",
+					"usage": "remove <@Role> <@Role>",
+					"trigger": {
+						"name": "trigger",
+						"help": "Trigger role of the pair to remove"
+					},
+					"secondary": {
+						"name": "secondary",
+						"help": "Secondary role of the pair to remove"
+					},
+					"not_found": "No such auto-role pair found.",
+					"done": "Auto-role pair removed."
+				},
+				"view": {
+					"help": "View all auto-role pairs",
+					"usage": "view",
+					"empty": "No auto-role pairs configured.",
+					"title": "Auto-role pairs"
 				}
 			},
 			"custom_role": {
