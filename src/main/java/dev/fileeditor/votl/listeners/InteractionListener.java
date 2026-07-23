@@ -1507,17 +1507,19 @@ public class InteractionListener extends ListenerAdapter {
 		// Check if blacklisted
 		if (bot.getBlacklist().isBlacklisted(event)) return;
 
-		event.deferEdit().queue();
-		String[] modalId = event.getModalId().split(":");
+		if (event.getModalId().startsWith("role_temp") || event.getModalId().startsWith("cr")) {
+			event.deferEdit().queue();
+			String[] modalId = event.getModalId().split(":");
 
-		switch (modalId[0]) {
-			case "role_temp" -> modalTempRole(event, castLong(modalId[1]));
-			case "cr" -> {
-				switch (modalId[1]) {
-					case "request" -> modalCustomRoleRequest(event);
-					case "edit_request" -> modalCustomRoleEditRequest(event);
-					case "modify" -> modalCustomRoleModify(event, Long.parseLong(modalId[2]));
-					case "reject" -> modalCustomRoleReject(event, Long.parseLong(modalId[2]));
+			switch (modalId[0]) {
+				case "role_temp" -> modalTempRole(event, castLong(modalId[1]));
+				case "cr" -> {
+					switch (modalId[1]) {
+						case "request" -> modalCustomRoleRequest(event);
+						case "edit_request" -> modalCustomRoleEditRequest(event);
+						case "modify" -> modalCustomRoleModify(event, Long.parseLong(modalId[2]));
+						case "reject" -> modalCustomRoleReject(event, Long.parseLong(modalId[2]));
+					}
 				}
 			}
 		}
