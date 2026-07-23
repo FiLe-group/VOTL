@@ -440,7 +440,8 @@
 				},
 				"time": "Evaluated in %s ms",
 				"input": "Input:",
-				"output": "Output:"
+				"output": "Output:",
+				"attached": "Output is too large, full output attached below."
 			},
 			"shutdown": {
 				"help": "Safely shuts down the bot",

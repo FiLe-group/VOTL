@@ -1,5 +1,6 @@
 package dev.fileeditor.votl.commands.owner;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 
 import org.codehaus.groovy.runtime.powerassert.PowerAssertionError;
 
@@ -21,6 +24,8 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 
 public class EvalCmd extends SlashCommand {
+	private static final int OUTPUT_LIMIT = 1000;
+
 	public EvalCmd() {
 		this.name = "eval";
 		this.path = "bot.owner.eval";
@@ -59,31 +64,38 @@ public class EvalCmd extends SlashCommand {
 
 		long startTime = System.currentTimeMillis();
 
+		String reply;
+		boolean success;
 		try {
-			String reply = String.valueOf(shell.evaluate(args));
-
-			editEmbed(event, formatEvalEmbed(event, args, reply,
-				lu.getText(event, "bot.owner.eval.time",
-					String.valueOf(System.currentTimeMillis() - startTime))
-	 			, true
-			));
+			reply = String.valueOf(shell.evaluate(args));
+			success = true;
 		} catch (PowerAssertionError | Exception ex) {
-			editEmbed(event, formatEvalEmbed(event, args, ex.getMessage(),
-				lu.getText(event, "bot.owner.eval.time",
-					String.valueOf(System.currentTimeMillis() - startTime))
-				, false
-			));
+			reply = ex.getMessage();
+			success = false;
 		}
+
+		String footer = lu.getText(event, "bot.owner.eval.time", String.valueOf(System.currentTimeMillis() - startTime));
+
+		MessageEditBuilder builder = new MessageEditBuilder()
+			.setEmbeds(formatEvalEmbed(event, args, reply, footer, success));
+		if (reply != null && reply.length() > OUTPUT_LIMIT) {
+			builder.setFiles(FileUpload.fromData(reply.getBytes(StandardCharsets.UTF_8), "output.txt"));
+		}
+		editMsg(event, builder.build());
 	}
 
 	private MessageEmbed formatEvalEmbed(SlashCommandEvent event, String input, String output, String footer, boolean success) {
+		boolean attached = output != null && output.length() > OUTPUT_LIMIT;
+
 		EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
 			.setColor(success ? Constants.COLOR_SUCCESS : Constants.COLOR_FAILURE)
 			.addField(lu.getText(event, "bot.owner.eval.input"),
 				"```groovy\n"+MessageUtil.limitString(input, 1000)+"\n```",
 				false)
 			.addField(lu.getText(event, "bot.owner.eval.output"),
-				"```groovy\n"+MessageUtil.limitString(output, 1000)+"\n```",
+				attached
+					? lu.getText(event, "bot.owner.eval.attached")
+					: "```groovy\n"+MessageUtil.limitString(output, 1000)+"\n```",
 				false)
 			.setFooter(footer, null);
 
