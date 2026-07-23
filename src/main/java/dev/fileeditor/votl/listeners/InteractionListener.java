@@ -2059,9 +2059,9 @@ public class InteractionListener extends ListenerAdapter {
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color1"),
 					TextInput.create("color1", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color1 != null ? request.color1 : "").setRequired(true).build()),
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color2"),
-					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color2 != null ? request.color2 : "").setRequired(false).build()),
+					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color2 != null && !request.color2.isBlank() ? request.color2 : "").setRequired(false).build()),
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon"),
-					TextInput.create("icon", TextInputStyle.SHORT).setMaxLength(512).setValue(request.iconUrl != null ? request.iconUrl : "").setRequired(false).build())
+					TextInput.create("icon", TextInputStyle.SHORT).setMaxLength(512).setValue(request.iconUrl != null && !request.iconUrl.isBlank() ? request.iconUrl : "").setRequired(false).build())
 			)
 			.build();
 		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
