@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AccessCmd extends SlashCommand {
@@ -359,8 +360,8 @@ public class AccessCmd extends SlashCommand {
 			GroupData group = resolveGroup(event, guild.getIdLong());
 			if (group == null) return;
 
-			List<Long> roleIds = bot.getDBUtil().accessGroups.getRolesForGroup(group.groupId());
-			List<Long> userIds = bot.getDBUtil().accessGroups.getUsersForGroup(group.groupId());
+			Set<Long> roleIds = group.roleIds();
+			Set<Long> userIds = group.userIds();
 
 			StringBuilder sb = new StringBuilder();
 
@@ -447,8 +448,8 @@ public class AccessCmd extends SlashCommand {
 				.setTitle(lu.getGuildText(event, path+".title"));
 			StringBuilder sb = new StringBuilder();
 			for (GroupData g : groups) {
-				int roleCount = bot.getDBUtil().accessGroups.getRolesForGroup(g.groupId()).size();
-				int userCount = bot.getDBUtil().accessGroups.getUsersForGroup(g.groupId()).size();
+				int roleCount = g.roleIds().size();
+				int userCount = g.userIds().size();
 				long permCount = Long.bitCount(g.permissions());
 				sb.append("**").append(g.name()).append("**")
 					.append(" — ").append(permCount).append(" perm(s)")
@@ -490,12 +491,11 @@ public class AccessCmd extends SlashCommand {
 				editError(event, "errors.option.role_interact");
 				return;
 			}
-			if (bot.getDBUtil().accessGroups.isRoleInGroup(group.groupId(), role.getIdLong())) {
+			if (group.roleIds().contains(role.getIdLong())) {
 				editError(event, path+".already");
 				return;
 			}
-			int total = bot.getDBUtil().accessGroups.getRolesForGroup(group.groupId()).size()
-				+ bot.getDBUtil().accessGroups.getUsersForGroup(group.groupId()).size();
+			int total = group.roleIds().size() + group.userIds().size();
 			if (total >= Limits.ACCESS_GROUP_MEMBERS) {
 				editErrorLimit(event, "group members", Limits.ACCESS_GROUP_MEMBERS);
 				return;
@@ -547,7 +547,7 @@ public class AccessCmd extends SlashCommand {
 				editError(event, "errors.option.role");
 				return;
 			}
-			if (!bot.getDBUtil().accessGroups.isRoleInGroup(group.groupId(), role.getIdLong())) {
+			if (!group.roleIds().contains(role.getIdLong())) {
 				editError(event, path+".not_in_group");
 				return;
 			}
@@ -602,12 +602,11 @@ public class AccessCmd extends SlashCommand {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
-			if (bot.getDBUtil().accessGroups.isUserInGroup(group.groupId(), member.getIdLong())) {
+			if (group.userIds().contains(member.getIdLong())) {
 				editError(event, path+".already");
 				return;
 			}
-			int total = bot.getDBUtil().accessGroups.getRolesForGroup(group.groupId()).size()
-				+ bot.getDBUtil().accessGroups.getUsersForGroup(group.groupId()).size();
+			int total = group.roleIds().size() + group.userIds().size();
 			if (total >= Limits.ACCESS_GROUP_MEMBERS) {
 				editErrorLimit(event, "group members", Limits.ACCESS_GROUP_MEMBERS);
 				return;
@@ -659,7 +658,7 @@ public class AccessCmd extends SlashCommand {
 				editError(event, "errors.option.user");
 				return;
 			}
-			if (!bot.getDBUtil().accessGroups.isUserInGroup(group.groupId(), user.getIdLong())) {
+			if (!group.userIds().contains(user.getIdLong())) {
 				editError(event, path+".not_in_group");
 				return;
 			}
