@@ -160,10 +160,16 @@ public class UserProfileRender extends Renderer {
 		g.setClip(roundRectangle);
 
 		if (background.getBackgroundFile() != null) {
-			Image scaledInstance = ImageIO.read(new File(background.getBackgroundPath()))
-				.getScaledInstance(MAX_WIDTH, HEIGHT, Image.SCALE_SMOOTH);
-			int x = minimized ? -RandomUtil.getInteger(MAX_WIDTH-WIDTH) : WIDTH; // Move image left to random amount
-			g.drawImage(scaledInstance, x, 0, null);
+			BufferedImage source = ImageIO.read(new File(background.getBackgroundPath()));
+			if (source.getWidth() >= MAX_WIDTH && source.getHeight() >= HEIGHT) {
+				// Image is large enough - crop a randomly positioned WIDTHxHEIGHT window out of it instead of scaling
+				int x = RandomUtil.getInteger(source.getWidth() - WIDTH + 1);
+				int y = RandomUtil.getInteger(source.getHeight() - HEIGHT + 1);
+				g.drawImage(source.getSubimage(x, y, WIDTH, HEIGHT), 0, 0, null);
+			} else {
+				// Image is too small to crop from - stretch it to fill the card instead
+				g.drawImage(source.getScaledInstance(WIDTH, HEIGHT, Image.SCALE_SMOOTH), 0, 0, null);
+			}
 		} else {
 			g.setColor(background.getColors().getBackgroundColor());
 			g.fillRect(0, 0, WIDTH, HEIGHT);
@@ -252,10 +258,10 @@ public class UserProfileRender extends Renderer {
 		g.setFont(Fonts.NotoEmoji.monochrome.deriveFont(Font.PLAIN, 14F));
 		g.setColor(background.getColors().getShadowColor());
 		g.drawString("\uD83D\uDC64", x+22, y-13);
-		g.drawString("\uD83D\uDC4B", x+12, y+22);
+		g.drawString("\uD83D\uDED6", x+12, y+22);
 		g.setColor(background.getColors().getMainTextColor());
 		g.drawString("\uD83D\uDC64", x+20, y-15);
-		g.drawString("\uD83D\uDC4B", x+10, y+20);
+		g.drawString("\uD83D\uDED6", x+10, y+20);
 	}
 
 	private void createXpBar(Graphics2D g) {
@@ -388,8 +394,8 @@ public class UserProfileRender extends Renderer {
 		int x = 20;
 		int y = 340;
 
-		g.setFont(Fonts.Montserrat.medium.deriveFont(Font.PLAIN, 20F));
-		String text = "BETA v2502";
+		g.setFont(Fonts.Montserrat.medium.deriveFont(Font.PLAIN, 14F));
+		String text = "BETA v3";
 
 		g.setColor(background.getColors().getShadowColor());
 		g.drawString(text, x+2, y+2);

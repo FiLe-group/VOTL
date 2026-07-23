@@ -34,9 +34,11 @@ public class UserProfileCmd extends SlashCommand {
 				.addChoice("Dark", 0)
 				.addChoice("Light", 1)
 				.addChoice("Mountains", 2)
+				.addChoice("Red gradient", 3)
+				.addChoice("Random gradient", 4)
 		);
 		addMiddlewares(
-			"throttle:user,1,120"
+			"throttle:user,1,1"
 		);
 	}
 
