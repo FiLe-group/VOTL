@@ -1802,7 +1802,7 @@ public class InteractionListener extends ListenerAdapter {
 	private enum Cooldown {
 		BUTTON_VERIFY(10, CooldownScope.USER),
 		BUTTON_ROLE_SHOW(20, CooldownScope.USER),
-		BUTTON_ROLE_OTHER(2, CooldownScope.USER),
+		BUTTON_ROLE_OTHER(4, CooldownScope.USER),
 		BUTTON_ROLE_CLEAR(4, CooldownScope.USER),
 		BUTTON_ROLE_REMOVE(10, CooldownScope.USER),
 		BUTTON_ROLE_TOGGLE(2, CooldownScope.USER),
@@ -1813,7 +1813,7 @@ public class InteractionListener extends ListenerAdapter {
 		BUTTON_TICKET_CLAIM(20, CooldownScope.USER_CHANNEL),
 		BUTTON_TICKET_UNCLAIM(20, CooldownScope.USER_CHANNEL),
 		BUTTON_TICKET_CREATE(30, CooldownScope.USER),
-		BUTTON_REPORT_DELETE(3, CooldownScope.GUILD),
+		BUTTON_REPORT_DELETE(4, CooldownScope.GUILD),
 		BUTTON_SHOW_STRIKES(30, CooldownScope.USER),
 		BUTTON_SYNC_ACTION(10, CooldownScope.CHANNEL),
 		BUTTON_MODIFY_CONFIRM(10, CooldownScope.USER),
