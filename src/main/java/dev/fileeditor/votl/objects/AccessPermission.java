@@ -24,6 +24,7 @@ public enum AccessPermission {
 	CMD_BAN_INFO(17),
 	CMD_CUSTOM_ROLE(18),
 	CMD_AUTO_ROLE(26),
+	CMD_RANK_ROLES(27),			// PromoteCmd, DemoteCmd
 
 	// Sync group actions
 	SYNC_GROUP_MANAGER(19),		// join/leave/manage server groups
