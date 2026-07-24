@@ -38,7 +38,7 @@ public class UserProfileCmd extends SlashCommand {
 				.addChoice("Random gradient", 4)
 		);
 		addMiddlewares(
-			"throttle:user,1,1"
+			"throttle:user,1,30"
 		);
 	}
 
