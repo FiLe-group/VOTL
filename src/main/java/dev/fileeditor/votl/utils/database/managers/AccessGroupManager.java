@@ -151,28 +151,18 @@ public class AccessGroupManager extends LiteBase {
 	@Nullable
 	public GroupData getGroupById(int groupId) {
 		Map<String, Object> row = selectOne(
-			"SELECT groupId,guildId,name,permissions,maxBanDuration,maxMuteDuration FROM \"%s\" WHERE groupId=%d"
-				.formatted(T_GROUPS, groupId),
-			Set.of("groupId", "guildId", "name", "permissions", "maxBanDuration", "maxMuteDuration")
+			"SELECT guildId FROM \"%s\" WHERE groupId=%d".formatted(T_GROUPS, groupId),
+			Set.of("guildId")
 		);
-		return row == null ? null : parseGroup(row);
+		if (row == null) return null;
+		long guildId = castLong(row.get("guildId"));
+		return getGroupsForGuild(guildId).stream()
+			.filter(g -> g.groupId() == groupId)
+			.findFirst().orElse(null);
 	}
 
 	public int countGroups(long guildId) {
 		return count("SELECT COUNT(*) FROM \"%s\" WHERE guildId=%d".formatted(T_GROUPS, guildId));
-	}
-
-	public List<Long> getRolesForGroup(int groupId) {
-		return select("SELECT roleId FROM \"%s\" WHERE groupId=%d".formatted(T_ROLES, groupId), "roleId", Long.class);
-	}
-
-	public List<Long> getUsersForGroup(int groupId) {
-		return select("SELECT userId FROM \"%s\" WHERE groupId=%d".formatted(T_USERS, groupId), "userId", Long.class);
-	}
-
-	public boolean isRoleInGroup(int groupId, long roleId) {
-		return selectOne("SELECT roleId FROM \"%s\" WHERE groupId=%d AND roleId=%d"
-			.formatted(T_ROLES, groupId, roleId), "roleId", Long.class) != null;
 	}
 
 	/** Returns all role IDs that belong to any group with the given permission flag set. */
@@ -180,14 +170,9 @@ public class AccessGroupManager extends LiteBase {
 	public List<Long> getRolesWithPermission(long guildId, AccessPermission perm) {
 		return getGroupsForGuild(guildId).stream()
 			.filter(g -> (g.permissions() & perm.toBit()) != 0L)
-			.flatMap(g -> getRolesForGroup(g.groupId()).stream())
+			.flatMap(g -> g.roleIds().stream())
 			.distinct()
 			.collect(Collectors.toList());
-	}
-
-	public boolean isUserInGroup(int groupId, long userId) {
-		return selectOne("SELECT userId FROM \"%s\" WHERE groupId=%d AND userId=%d"
-			.formatted(T_USERS, groupId, userId), "userId", Long.class) != null;
 	}
 
 	/**
@@ -230,9 +215,9 @@ public class AccessGroupManager extends LiteBase {
 	// ---- Internal ----
 
 	private boolean matchesMember(GroupData g, long userId, List<Long> roleIds) {
-		if (isUserInGroup(g.groupId(), userId)) return true;
+		if (g.userIds().contains(userId)) return true;
 		for (long roleId : roleIds) {
-			if (isRoleInGroup(g.groupId(), roleId)) return true;
+			if (g.roleIds().contains(roleId)) return true;
 		}
 		return false;
 	}
@@ -249,15 +234,48 @@ public class AccessGroupManager extends LiteBase {
 		return new AccessResult(perms, limits);
 	}
 
+	/**
+	 * Loads every group for the guild along with its full role/user membership in three
+	 * queries total (instead of one query per group plus one per group per member check),
+	 * so {@link #resolveForMember} can do membership matching purely in memory.
+	 */
 	private List<GroupData> loadGroupsForGuild(long guildId) {
-		return select(
+		List<Map<String, Object>> rows = select(
 			"SELECT groupId,guildId,name,permissions,maxBanDuration,maxMuteDuration FROM \"%s\" WHERE guildId=%d"
 				.formatted(T_GROUPS, guildId),
 			Set.of("groupId", "guildId", "name", "permissions", "maxBanDuration", "maxMuteDuration")
-		).stream().map(this::parseGroup).collect(Collectors.toList());
+		);
+		if (rows.isEmpty()) return List.of();
+
+		Map<Integer, Set<Long>> rolesByGroup = groupMembersByGroup(
+			"SELECT r.groupId AS groupId, r.roleId AS roleId FROM \"%s\" r JOIN \"%s\" g ON r.groupId=g.groupId WHERE g.guildId=%d"
+				.formatted(T_ROLES, T_GROUPS, guildId),
+			"roleId"
+		);
+		Map<Integer, Set<Long>> usersByGroup = groupMembersByGroup(
+			"SELECT groupId,userId FROM \"%s\" WHERE guildId=%d".formatted(T_USERS, guildId),
+			"userId"
+		);
+
+		return rows.stream()
+			.map(row -> {
+				int groupId = ((Number) row.get("groupId")).intValue();
+				return parseGroup(row,
+					rolesByGroup.getOrDefault(groupId, Set.of()),
+					usersByGroup.getOrDefault(groupId, Set.of()));
+			})
+			.collect(Collectors.toList());
 	}
 
-	private GroupData parseGroup(Map<String, Object> row) {
+	private Map<Integer, Set<Long>> groupMembersByGroup(String sql, String memberKey) {
+		return select(sql, Set.of("groupId", memberKey)).stream()
+			.collect(Collectors.groupingBy(
+				row -> ((Number) row.get("groupId")).intValue(),
+				Collectors.mapping(row -> castLong(row.get(memberKey)), Collectors.toUnmodifiableSet())
+			));
+	}
+
+	private GroupData parseGroup(Map<String, Object> row, Set<Long> roleIds, Set<Long> userIds) {
 		Object rawBan  = row.get("maxBanDuration");
 		Object rawMute = row.get("maxMuteDuration");
 		return new GroupData(
@@ -266,7 +284,9 @@ public class AccessGroupManager extends LiteBase {
 			(String) row.get("name"),
 			castLong(row.get("permissions")),
 			rawBan  == null ? null : ((Number) rawBan).longValue(),
-			rawMute == null ? null : ((Number) rawMute).longValue()
+			rawMute == null ? null : ((Number) rawMute).longValue(),
+			roleIds,
+			userIds
 		);
 	}
 
@@ -280,6 +300,8 @@ public class AccessGroupManager extends LiteBase {
 		String name,
 		long permissions,
 		@Nullable Long maxBanSeconds,
-		@Nullable Long maxMuteSeconds
+		@Nullable Long maxMuteSeconds,
+		Set<Long> roleIds,
+		Set<Long> userIds
 	) {}
 }

@@ -440,7 +440,8 @@
 				},
 				"time": "Evaluated in %s ms",
 				"input": "Input:",
-				"output": "Output:"
+				"output": "Output:",
+				"attached": "Output is too large, full output attached below."
 			},
 			"shutdown": {
 				"help": "Safely shuts down the bot",
@@ -3017,6 +3018,108 @@
 					"no_request": "Request not found or already reviewed.",
 					"gradient_not_supported": "This server does not support gradient role colors. The role will not be created."
 				}
+			},
+			"rank_roles": {
+				"help": "Configure rank role ladders used by /promote and /demote",
+				"usage": "rank-roles",
+				"group": {
+					"help": "Manage rank groups",
+					"not_found": "Rank group not found. Use `/rank-roles group list` to see available groups.",
+					"create": {
+						"help": "Create a new rank group",
+						"usage": "group create <name>",
+						"name": {
+							"name": "name",
+							"help": "Group name (alphanumeric, spaces, hyphens; max 32 chars)"
+						},
+						"invalid_name": "Invalid name. Use only letters, numbers, spaces and hyphens (max 32 characters).",
+						"already_exists": "A rank group with that name already exists.",
+						"done": "Rank group **%s** created successfully."
+					},
+					"delete": {
+						"help": "Delete a rank group",
+						"usage": "group delete <group>",
+						"group": {
+							"name": "group",
+							"help": "Group to delete"
+						},
+						"done": "Rank group **%s** deleted."
+					},
+					"list": {
+						"help": "List all rank groups and their role ladder",
+						"usage": "group list",
+						"title": "Rank Groups",
+						"none": "*No rank groups configured. Use `/rank-roles group create` to add one.*",
+						"none_roles": "*No roles in ladder yet.*"
+					}
+				},
+				"role": {
+					"help": "Manage the role ladder of a rank group",
+					"add": {
+						"help": "Add a role to the top of a rank group's ladder",
+						"usage": "role add <group> <@role>",
+						"group": {
+							"name": "group",
+							"help": "Target rank group"
+						},
+						"role": {
+							"name": "role",
+							"help": "Role to add"
+						},
+						"already": "That role is already in this rank group.",
+						"done": "Role %s added to rank group **%s**."
+					},
+					"remove": {
+						"help": "Remove a role from a rank group's ladder",
+						"usage": "role remove <group> <@role>",
+						"group": {
+							"name": "group",
+							"help": "Target rank group"
+						},
+						"role": {
+							"name": "role",
+							"help": "Role to remove"
+						},
+						"not_in_group": "That role is not in this rank group.",
+						"done": "Role %s removed from rank group **%s**."
+					}
+				}
+			},
+			"promote": {
+				"help": "Promote a member to the next role in a rank group",
+				"usage": "promote <@member> <group>",
+				"member": {
+					"name": "member",
+					"help": "Member to promote"
+				},
+				"group": {
+					"name": "group",
+					"help": "Rank group to promote within"
+				},
+				"empty_group": "This rank group has no roles configured yet.",
+				"at_top": "This member already has the highest rank in this group.",
+				"role_missing": "The next rank's role no longer exists and was removed from the group. Please try again.",
+				"done": "Promoted %s to %s in rank group **%s**.",
+				"done_removed": "Removed %s's rank in group **%s**.",
+				"failed": "Unable to update roles for this member."
+			},
+			"demote": {
+				"help": "Demote a member to the previous role in a rank group",
+				"usage": "demote <@member> <group>",
+				"member": {
+					"name": "member",
+					"help": "Member to demote"
+				},
+				"group": {
+					"name": "group",
+					"help": "Rank group to demote within"
+				},
+				"empty_group": "This rank group has no roles configured yet.",
+				"not_ranked": "This member doesn't have any rank in this group.",
+				"role_missing": "The previous rank's role no longer exists and was removed from the group. Please try again.",
+				"done": "Demoted %s to %s in rank group **%s**.",
+				"done_removed": "Removed %s's rank in group **%s**.",
+				"failed": "Unable to update roles for this member."
 			}
 		},
 		"games": {

@@ -1220,7 +1220,7 @@ public class LogEmbedUtil {
 			}
 			String text = lu.getLocalizedNullable(locale, "logger.keys."+key);
 			if (text == null) {
-				LOG.info("Missing audit log change key: {}", key);
+				//LOG.info("Missing audit log change key: {}", key);
 				continue;
 			}
 			Object oldValue = change.getOldValue();

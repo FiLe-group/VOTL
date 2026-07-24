@@ -67,6 +67,7 @@ public class DBUtil {
 	public final CustomRoleAccessManager customRoleAccess;
 	public final MediaChannelsManager mediaChannels;
 	public final AutoRoleManager autoRole;
+	public final RankRolesManager rankRoles;
 
 	public final BotBlacklistManager blacklist;
 
@@ -116,6 +117,7 @@ public class DBUtil {
 		customRoleAccess = new CustomRoleAccessManager(connectionUtil);
 		mediaChannels = new MediaChannelsManager(connectionUtil);
 		autoRole = new AutoRoleManager(connectionUtil);
+		rankRoles = new RankRolesManager(connectionUtil);
 
 		blacklist = new BotBlacklistManager(connectionUtil);
 	}

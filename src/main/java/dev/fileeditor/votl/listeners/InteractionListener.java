@@ -1507,17 +1507,19 @@ public class InteractionListener extends ListenerAdapter {
 		// Check if blacklisted
 		if (bot.getBlacklist().isBlacklisted(event)) return;
 
-		event.deferEdit().queue();
-		String[] modalId = event.getModalId().split(":");
+		if (event.getModalId().startsWith("role_temp") || event.getModalId().startsWith("cr")) {
+			event.deferEdit().queue();
+			String[] modalId = event.getModalId().split(":");
 
-		switch (modalId[0]) {
-			case "role_temp" -> modalTempRole(event, castLong(modalId[1]));
-			case "cr" -> {
-				switch (modalId[1]) {
-					case "request" -> modalCustomRoleRequest(event);
-					case "edit_request" -> modalCustomRoleEditRequest(event);
-					case "modify" -> modalCustomRoleModify(event, Long.parseLong(modalId[2]));
-					case "reject" -> modalCustomRoleReject(event, Long.parseLong(modalId[2]));
+			switch (modalId[0]) {
+				case "role_temp" -> modalTempRole(event, castLong(modalId[1]));
+				case "cr" -> {
+					switch (modalId[1]) {
+						case "request" -> modalCustomRoleRequest(event);
+						case "edit_request" -> modalCustomRoleEditRequest(event);
+						case "modify" -> modalCustomRoleModify(event, Long.parseLong(modalId[2]));
+						case "reject" -> modalCustomRoleReject(event, Long.parseLong(modalId[2]));
+					}
 				}
 			}
 		}
@@ -1802,7 +1804,7 @@ public class InteractionListener extends ListenerAdapter {
 	private enum Cooldown {
 		BUTTON_VERIFY(10, CooldownScope.USER),
 		BUTTON_ROLE_SHOW(20, CooldownScope.USER),
-		BUTTON_ROLE_OTHER(2, CooldownScope.USER),
+		BUTTON_ROLE_OTHER(4, CooldownScope.USER),
 		BUTTON_ROLE_CLEAR(4, CooldownScope.USER),
 		BUTTON_ROLE_REMOVE(10, CooldownScope.USER),
 		BUTTON_ROLE_TOGGLE(2, CooldownScope.USER),
@@ -1813,7 +1815,7 @@ public class InteractionListener extends ListenerAdapter {
 		BUTTON_TICKET_CLAIM(20, CooldownScope.USER_CHANNEL),
 		BUTTON_TICKET_UNCLAIM(20, CooldownScope.USER_CHANNEL),
 		BUTTON_TICKET_CREATE(30, CooldownScope.USER),
-		BUTTON_REPORT_DELETE(3, CooldownScope.GUILD),
+		BUTTON_REPORT_DELETE(4, CooldownScope.GUILD),
 		BUTTON_SHOW_STRIKES(30, CooldownScope.USER),
 		BUTTON_SYNC_ACTION(10, CooldownScope.CHANNEL),
 		BUTTON_MODIFY_CONFIRM(10, CooldownScope.USER),
@@ -1859,7 +1861,7 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	@NotNull
-	private String getCooldownErrorString(Cooldown cooldown, GenericInteractionCreateEvent event, int remaining) {
+	private String getCooldownErrorString(Cooldown cooldown, GenericInteractionCreateEvent event, int remainingSeconds) {
 		CooldownScope scope = cooldown.getScope();
 		String descriptor;
 		if (scope.equals(CooldownScope.USER_GUILD) && event.getGuild()==null)
@@ -1872,7 +1874,7 @@ public class InteractionListener extends ListenerAdapter {
 			descriptor = null;
 
 		return lu.getLocalized(event.getUserLocale(), "errors.cooldown.cooldown_button")
-			.formatted(descriptor == null ? "" : descriptor, TimeFormat.RELATIVE.after(remaining));
+			.formatted(descriptor == null ? "" : descriptor, TimeFormat.RELATIVE.after(remainingSeconds*1000L));
 	}
 
 
@@ -2059,9 +2061,9 @@ public class InteractionListener extends ListenerAdapter {
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color1"),
 					TextInput.create("color1", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color1 != null ? request.color1 : "").setRequired(true).build()),
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color2"),
-					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color2 != null ? request.color2 : "").setRequired(false).build()),
+					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color2 != null && !request.color2.isBlank() ? request.color2 : "").setRequired(false).build()),
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon"),
-					TextInput.create("icon", TextInputStyle.SHORT).setMaxLength(512).setValue(request.iconUrl != null ? request.iconUrl : "").setRequired(false).build())
+					TextInput.create("icon", TextInputStyle.SHORT).setMaxLength(512).setValue(request.iconUrl != null && !request.iconUrl.isBlank() ? request.iconUrl : "").setRequired(false).build())
 			)
 			.build();
 		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));

@@ -19,11 +19,11 @@
       "image": null,
       "colors": {
         "background": "#f3f3f3",
-        "mainText": "#2a2a2acc",
-        "secondaryText": "#626262cc",
-        "experienceBackground": "#747f8d60",
-        "experienceForeground": "#7289da66",
-        "experienceSeparator": "#8c90e2b3"
+        "mainText": "#232323cc",
+        "secondaryText": "#4b4b4bcc",
+        "experienceBackground": "#747f8d40",
+        "experienceForeground": "#7289da60",
+        "experienceSeparator": "#3a3a7d60"
       }
     },
     {
@@ -34,6 +34,32 @@
         "background": "#373746",
         "mainText": "#e2e2dcd9",
         "secondaryText": "#a6a6a6d9"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Red gradient",
+      "image": "red.jpg",
+      "colors": {
+        "background": "#373746",
+        "mainText": "#e2e2dcd9",
+        "secondaryText": "#a6a6a6d9",
+        "experienceBackground": "#25252460",
+        "experienceForeground": "#b8b7b666",
+        "experienceSeparator": "#e2e2e2b3"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Random gradient",
+      "image": "random-1.jpg",
+      "colors": {
+        "background": "#373746",
+        "mainText": "#e2e2dcd9",
+        "secondaryText": "#a6a6a6d9",
+        "experienceBackground": "#25252460",
+        "experienceForeground": "#b8b7b666",
+        "experienceSeparator": "#e2e2e2b3"
       }
     }
   ]

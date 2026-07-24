@@ -83,7 +83,8 @@ public class GuildListener extends ListenerAdapter {
 		ignoreExc(() -> db.customRoleAccess.removeGuild(guildId));
 		ignoreExc(() -> db.mediaChannels.removeGuild(guildId));
 		ignoreExc(() -> db.autoRole.removeGuild(guildId));
-		
+		ignoreExc(() -> db.rankRoles.removeGuild(guildId));
+
 		ignoreExc(() -> db.guildSettings.remove(guildId));
 
 		log.info("Automatically removed guild '{}'({}) from db.", event.getGuild().getName(), guildId);
@@ -96,6 +97,7 @@ public class GuildListener extends ListenerAdapter {
 
 		ignoreExc(() -> db.autoRole.removeRole(guildId, roleId));
 		ignoreExc(() -> db.accessGroups.removeRoleFromAll(roleId));
+		ignoreExc(() -> db.rankRoles.removeRoleFromAll(roleId));
 		ignoreExc(() -> db.customRoles.remove(roleId));
 		ignoreExc(() -> db.persistent.removeRole(guildId, roleId));
 		ignoreExc(() -> db.roles.remove(roleId));
