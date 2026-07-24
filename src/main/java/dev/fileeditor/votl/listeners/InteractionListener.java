@@ -1861,7 +1861,7 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	@NotNull
-	private String getCooldownErrorString(Cooldown cooldown, GenericInteractionCreateEvent event, int remaining) {
+	private String getCooldownErrorString(Cooldown cooldown, GenericInteractionCreateEvent event, int remainingSeconds) {
 		CooldownScope scope = cooldown.getScope();
 		String descriptor;
 		if (scope.equals(CooldownScope.USER_GUILD) && event.getGuild()==null)
@@ -1874,7 +1874,7 @@ public class InteractionListener extends ListenerAdapter {
 			descriptor = null;
 
 		return lu.getLocalized(event.getUserLocale(), "errors.cooldown.cooldown_button")
-			.formatted(descriptor == null ? "" : descriptor, TimeFormat.RELATIVE.after(remaining));
+			.formatted(descriptor == null ? "" : descriptor, TimeFormat.RELATIVE.after(remainingSeconds*1000L));
 	}
 
 
