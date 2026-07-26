@@ -68,17 +68,20 @@ public class AutoRoleCmd extends SlashCommand {
 			}
 
 			// Check roles
+			if (trigger.isPublicRole() || !event.getMember().canInteract(trigger) || !guild.getSelfMember().canInteract(trigger)) {
+				editError(event, "errors.option.role_interact", "Role: %s".formatted(trigger.getAsMention()));
+				return;
+			}
+
 			final boolean whitelistEnabled = bot.getDBUtil().getGuildSettings(guild).isRoleWhitelistEnabled();
-			for (Role r : List.of(trigger, secondary)) {
-				String denyReason = bot.getCheckUtil().denyRole(r, guild, event.getMember(), true);
-				if (denyReason != null) {
-					editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(r.getAsMention(), denyReason));
-					return;
-				}
-				if (whitelistEnabled && !bot.getDBUtil().roles.existsRole(r.getIdLong())) {
-					editError(event, "errors.role_not_whitelisted", "Role: %s".formatted(r.getAsMention()));
-					return;
-				}
+			String denyReason = bot.getCheckUtil().denyRole(secondary, guild, event.getMember(), true);
+			if (denyReason != null) {
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(secondary.getAsMention(), denyReason));
+				return;
+			}
+			if (whitelistEnabled && !bot.getDBUtil().roles.existsRole(secondary.getIdLong())) {
+				editError(event, "errors.role_not_whitelisted", "Role: %s".formatted(secondary.getAsMention()));
+				return;
 			}
 
 			long guildId = guild.getIdLong();
