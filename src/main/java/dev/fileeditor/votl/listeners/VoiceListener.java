@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildDeafenEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildMuteEvent;
@@ -24,6 +25,7 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.logs.LogType;
+import dev.fileeditor.votl.utils.VoiceUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import org.jetbrains.annotations.NotNull;
@@ -102,7 +104,7 @@ public class VoiceListener extends ListenerAdapter {
 
 		// if left custom vc
 		AudioChannelUnion channelLeft = event.getChannelLeft();
-		if (channelLeft != null && db.voice.existsChannel(channelLeft.getIdLong()) && channelLeft.getMembers().isEmpty()) {
+		if (channelLeft != null && db.voice.existsChannel(channelLeft.getIdLong()) && VoiceUtil.hasNoUsers(channelLeft)) {
 			channelLeft.delete().reason("Custom channel, empty").queueAfter(500, TimeUnit.MILLISECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
 			db.voice.remove(channelLeft.getIdLong());
 		}
@@ -158,7 +160,7 @@ public class VoiceListener extends ListenerAdapter {
 			.or(() -> Optional.ofNullable(voiceSettings.getDefaultName()))
 			.orElse(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.default_name"))
 			.replace("{user}", member.getEffectiveName());
-		channelName = channelName.substring(0, Math.min(100, channelName.length()));
+		channelName = VoiceUtil.formatChannelName(channelName);
 
 		Integer channelLimit = Optional.ofNullable(db.user.getLimit(userId))
 			.or(() -> Optional.ofNullable(voiceSettings.getDefaultLimit()))
@@ -174,8 +176,14 @@ public class VoiceListener extends ListenerAdapter {
 				channel -> {
 					db.voice.add(userId, channel.getIdLong());
 					try {
-						guild.moveVoiceMember(member, channel).queueAfter(500, TimeUnit.MICROSECONDS, null, new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED));
-					} catch (Throwable ignored) {}
+						// If the member disconnected before we could move them in, the channel would
+						// never receive a leave event, so reclaim it here instead of waiting for the
+						// periodic cleanup job.
+						guild.moveVoiceMember(member, channel)
+							.queueAfter(500, TimeUnit.MILLISECONDS, null, _ -> reclaimChannel(channel));
+					} catch (Throwable ignored) {
+						reclaimChannel(channel);
+					}
 				},
 				failure -> member.getUser()
 					.openPrivateChannel()
@@ -186,6 +194,13 @@ public class VoiceListener extends ListenerAdapter {
 					)
 					.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
 			);
+	}
+
+	private void reclaimChannel(VoiceChannel channel) {
+		db.voice.remove(channel.getIdLong());
+		channel.delete()
+			.reason("Custom channel, owner never joined")
+			.queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
 	}
 
 	private void sendPrivateMessage(Member member, DiscordLocale locale, String message) {

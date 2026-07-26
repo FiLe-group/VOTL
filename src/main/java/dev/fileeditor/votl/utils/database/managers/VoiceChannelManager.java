@@ -2,6 +2,7 @@ package dev.fileeditor.votl.utils.database.managers;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import dev.fileeditor.votl.utils.VoiceUtil;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 import net.dv8tion.jda.api.JDA;
@@ -94,8 +95,8 @@ public class VoiceChannelManager extends LiteBase {
 			VoiceChannel voiceChannel = jda.getVoiceChannelById(channelId);
 			if (voiceChannel == null) {
 				remove(channelId);
-			} else if (voiceChannel.getMembers().isEmpty()) {
-				voiceChannel.delete().queue();
+			} else if (VoiceUtil.hasNoUsers(voiceChannel)) {
+				voiceChannel.delete().reason("Custom channel, empty").queue();
 				remove(channelId);
 			}
 		});

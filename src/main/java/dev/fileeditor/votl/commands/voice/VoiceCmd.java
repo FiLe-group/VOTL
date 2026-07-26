@@ -10,6 +10,7 @@ import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.VoiceUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -119,10 +120,10 @@ public class VoiceCmd extends SlashCommand {
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
 					if (verifyRole != null) {
-						vc.upsertPermissionOverride(verifyRole).grant(Permission.VOICE_CONNECT).queue();
+						VoiceUtil.resetInheritedPermission(vc, verifyRole, Permission.VOICE_CONNECT);
 					}
 				} else {
-					vc.upsertPermissionOverride(event.getGuild().getPublicRole()).clear(Permission.VOICE_CONNECT).queue();
+					VoiceUtil.resetInheritedPermission(vc, event.getGuild().getPublicRole(), Permission.VOICE_CONNECT);
 				}
 			} catch (InsufficientPermissionException ex) {
 				editPermError(event, ex.getPermission(), true);
@@ -209,10 +210,10 @@ public class VoiceCmd extends SlashCommand {
 				if (verifyRoleId != null) {
 					Role verifyRole = event.getGuild().getRoleById(verifyRoleId);
 					if (verifyRole != null) {
-						vc.upsertPermissionOverride(verifyRole).grant(Permission.VIEW_CHANNEL).queue();
+						VoiceUtil.resetInheritedPermission(vc, verifyRole, Permission.VIEW_CHANNEL);
 					}
 				} else {
-					vc.upsertPermissionOverride(event.getGuild().getPublicRole()).clear(Permission.VIEW_CHANNEL).queue();
+					VoiceUtil.resetInheritedPermission(vc, event.getGuild().getPublicRole(), Permission.VIEW_CHANNEL);
 				}
 			} catch (InsufficientPermissionException ex) {
 				editPermError(event, ex.getPermission(), true);
@@ -272,14 +273,14 @@ public class VoiceCmd extends SlashCommand {
 			return;
 		}
 
-		name = name.replace("{user}", event.getMember().getEffectiveName());
+		name = VoiceUtil.formatChannelName(name.replace("{user}", event.getMember().getEffectiveName()));
 
 		var vc = event.getGuild().getVoiceChannelById(channelId);
 		if (vc == null) {
 			editError(event, "errors.no_channel");
 			return;
 		}
-		vc.getManager().setName(name.substring(0, Math.min(100, name.length()))).queue();
+		vc.getManager().setName(name).queue();
 
 		try {
 			bot.getDBUtil().user.setName(userId, name);
@@ -542,11 +543,12 @@ public class VoiceCmd extends SlashCommand {
 				return;
 			}
 			VoiceChannelManager vcManager = vc.getManager();
+			List<Member> toDisconnect = new ArrayList<>();
 
 			for (Member member : members) {
 				vcManager = vcManager.putPermissionOverride(member, null, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL));
 				if (vc.getMembers().contains(member)) {
-					event.getGuild().kickVoiceMember(member).queue();
+					toDisconnect.add(member);
 				}
 				mentionStrings.add(member.getEffectiveName());
 			}
@@ -560,11 +562,17 @@ public class VoiceCmd extends SlashCommand {
 				}
 			}
 
-			vcManager.queue(_ ->
+			vcManager.queue(_ -> {
+				// Only disconnect once the denial has actually landed, otherwise the member is
+				// briefly ejected while still permitted, and can rejoin before it applies.
+				//noinspection DataFlowIssue
+				toDisconnect.forEach(member -> event.getGuild().kickVoiceMember(member).queue());
+
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 					.setDescription(lu.getTargetText(event, path+".done", mentionStrings))
 					.build()
-				),
+				);
+			},
 				_ -> editPermError(event, Permission.MANAGE_PERMISSIONS, true)
 			);
 		}
