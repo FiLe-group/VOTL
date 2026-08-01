@@ -2114,7 +2114,10 @@
 		"ticketing": {
 			"embeds": {
 				"role_title": "Getting/Removing roles",
-				"role_value": "🟢 Obtaining a role:\n> Click on the button below and select the desired roles. New ticket will be created for your request.\n\n🔴 Removing a role:\n> Click on the button below and select the roles you want to remove.\n\n📣 Alerts:\n> Click on the buttons below if you want to be notified of events on the server or other.",
+				"role_request": "### 🟢 Obtaining a role\n> Click on the button and select the desired roles.\n> New ticket will be created for your request.",
+				"role_remove": "### 🔴 Removing a role\n> Click on the button and select the roles you wish to remove.",
+				"role_toggle": "### 📣 Alerts\n> Click on the buttons below if you want to be notified of events on the server or other.",
+				"role_custom": "### 🌺 Personal roles\n> Click on the buttons below to request or edit your personal role.",
 				"button_request": "Request roles",
 				"button_remove": "Remove roles",
 				"other": "__Other role__"
@@ -2166,20 +2169,28 @@
 				"usage": "rolespanel",
 				"create": {
 					"help": "Create role requests panel in selected channel",
-					"usage": "create <#Channel>",
+					"usage": "create <#Channel> [custom roles]",
 					"channel": {
 						"name": "channel",
 						"help": "Select channel in which to create the panel"
+					},
+					"custom_roles": {
+						"name": "custom_roles",
+						"help": "Include the personal (custom) roles section, disabled by default"
 					},
 					"empty_roles": "No roles assigned as usable for requesting via tickets.",
 					"done": "Panel created in %s!"
 				},
 				"update": {
 					"help": "Update existing role requests panel",
-					"usage": "update <#Channel>",
+					"usage": "update <#Channel> [custom roles]",
 					"channel": {
 						"name": "channel",
 						"help": "Select channel in which panel is located"
+					},
+					"custom_roles": {
+						"name": "custom_roles",
+						"help": "Include the personal (custom) roles section, disabled by default"
 					},
 					"not_found": "Existing panel not found in selected channel",
 					"empty_roles": "No roles assigned as usable for requesting via tickets.",
@@ -2855,7 +2866,7 @@
 					},
 					"embed_text": "Click the button below to request your personal custom role!",
 					"button_text": "Request Custom Role",
-					"edit_button_text": "Edit My Custom Role",
+					"edit_button_text": "Edit Custom Role",
 					"done": "Panel posted in %s."
 				},
 				"grant": {
