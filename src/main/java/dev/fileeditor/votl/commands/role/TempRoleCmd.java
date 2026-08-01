@@ -102,7 +102,7 @@ public class TempRoleCmd extends SlashCommand {
 			// Check if already added
 			long roleId = role.getIdLong();
 			long userId = target.getIdLong();
-			if (bot.getDBUtil().tempRoles.expireAt(roleId, userId) != null) {
+			if (bot.getDBUtil().tempRoles.expiresAt(roleId, userId) != null) {
 				editError(event, path+".already_set");
 				return;
 			}
@@ -187,7 +187,7 @@ public class TempRoleCmd extends SlashCommand {
 			}
 
 			// Check time
-			Instant time = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), target.getIdLong());
+			Instant time = bot.getDBUtil().tempRoles.expiresAt(role.getIdLong(), target.getIdLong());
 			if (time == null) {
 				editError(event, path+".not_found");
 				return;
@@ -254,7 +254,7 @@ public class TempRoleCmd extends SlashCommand {
 			}
 
 			// Check time
-			Instant oldTime = bot.getDBUtil().tempRoles.expireAt(role.getIdLong(), target.getIdLong());
+			Instant oldTime = bot.getDBUtil().tempRoles.expiresAt(role.getIdLong(), target.getIdLong());
 			if (oldTime == null) {
 				editError(event, path+".not_found");
 				return;
@@ -326,7 +326,7 @@ public class TempRoleCmd extends SlashCommand {
 		}
 
 		private String getLine(Map<String, Object> map) {
-			Instant time = Instant.ofEpochSecond((Integer) map.get("expireAfter"));
+			Instant time = Instant.ofEpochSecond((Integer) map.get("expiresAt"));
 			return "<@&%s> | <@%s> | %s\n".formatted(map.get("roleId"), map.get("userId"), TimeFormat.DATE_TIME_SHORT.format(time));
 		}
 	}

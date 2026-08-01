@@ -40,7 +40,7 @@ public class TempRoleManager extends LiteBase {
 	}
 
 	@Nullable
-	public Instant expireAt(long roleId, long userId) {
+	public Instant expiresAt(long roleId, long userId) {
 		Integer data = selectOne("SELECT expiresAt FROM %s WHERE (roleId=%s AND userId=%s)".formatted(table, roleId, userId), "expiresAt", Integer.class);
 		if (data == null) return null;
 		return Instant.ofEpochSecond(data);
@@ -51,7 +51,7 @@ public class TempRoleManager extends LiteBase {
 	}
 
 	public List<Map<String, Object>> getAll(long guildId) {
-		return select("SELECT * FROM %s WHERE (guildId=%s)".formatted(table, guildId), Set.of("roleId", "userId", "expireAfter"));
+		return select("SELECT * FROM %s WHERE (guildId=%s)".formatted(table, guildId), Set.of("roleId", "userId", "expiresAt"));
 	}
 
 	public boolean shouldDelete(long roleId) {
