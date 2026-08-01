@@ -666,6 +666,7 @@
 						"permit": "Permit",
 						"reject": "Reject",
 						"perms": "Permissions",
+						"edit": "Edit channel",
 						"delete": "Delete channel",
 						"panel_title": "Personal voice channels",
 						"panel_text": "> To create your personal voice channel, join <#%s>.\n> You can control it either by pressing the buttons below or using my slash commands.",
@@ -1142,16 +1143,19 @@
 				"cooldown": "Creating voice channels to quickly, wait a bit! Or you already own a voice channel.",
 				"failed": "Failed to create the voice channel.\n> %s",
 				"not_in_voice": "You are not connected to any voice channel.",
+				"not_owner": "You don't own this voice channel.",
 				"panel": {
 					"lock": "Channel locked!",
 					"unlock": "Channel unlocked!",
 					"ghost": "Channel ghosted!",
 					"unghost": "Channel unghosted!",
-					"modal": "Provide information",
+					"modal": "Edit voice channel",
 					"name_label": "Channel name",
 					"name_done": "Channel renamed to {name}!",
-					"limit_label": "Channel limit",
+					"limit_label": "Channel user limit (0-99, 0 = unlimited)",
 					"limit_done": "Channel user limit set to {limit}!",
+					"limit_invalid": "User limit must be a whole number between 0 and 99.",
+					"no_changes": "Nothing to change — the values you submitted are the current ones.",
 					"permit_label": "Select members and/or roles to which grand access to your channel.",
 					"permit_done": "Successfully permitted {targets} to connect to your channel!",
 					"reject_label": "Select members and/or roles to whom deny access to your channel.",
@@ -1251,6 +1255,11 @@
 					"invalid_args": "You didn't mention role/-s or any member/-s.",
 					"not_self": "You can't remove yourself or me.",
 					"done": "Successfully rejected {targets} from connecting to your channel!"
+				},
+				"delete": {
+					"help": "Delete your VoiceChannel",
+					"usage": "delete",
+					"done": "Voice channel `%s` deleted!"
 				},
 				"perms": {
 					"help": "Manage your VoiceChannel's permissions",

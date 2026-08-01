@@ -37,7 +37,8 @@ public class VoiceCmd extends SlashCommand {
 		this.children = new SlashCommand[]{
 			new Lock(), new Unlock(), new Ghost(), new Unghost(),
 			new NameSet(), new NameReset(), new LimitSet(), new LimitReset(),
-			new Claim(), new Permit(), new Reject(), new PermsView(), new PermsReset()
+			new Claim(), new Permit(), new Reject(), new PermsView(), new PermsReset(),
+			new Delete()
 		};
 		this.category = CmdCategory.VOICE;
 		this.module = CmdModule.VOICE;
@@ -546,6 +547,8 @@ public class VoiceCmd extends SlashCommand {
 			List<Member> toDisconnect = new ArrayList<>();
 
 			for (Member member : members) {
+				// Rejecting a moderator would undo their bypass, since member overrides beat role ones.
+				if (VoiceUtil.hasBypass(bot, member)) continue;
 				vcManager = vcManager.putPermissionOverride(member, null, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL));
 				if (vc.getMembers().contains(member)) {
 					toDisconnect.add(member);
@@ -556,7 +559,7 @@ public class VoiceCmd extends SlashCommand {
 			for (Role role : roles) {
 				EnumSet<Permission> rolePerms = EnumSet.copyOf(role.getPermissions());
 				rolePerms.retainAll(adminPerms);
-				if (rolePerms.isEmpty()) {
+				if (rolePerms.isEmpty() && !VoiceUtil.isBypassRole(bot, role)) {
 					vcManager = vcManager.putPermissionOverride(role, null, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL));
 					mentionStrings.add(role.getName());
 				}
@@ -691,6 +694,40 @@ public class VoiceCmd extends SlashCommand {
 		}
 	}
 
+	private class Delete extends SlashCommand {
+		public Delete() {
+			this.name = "delete";
+			this.path = "bot.voice.voice.delete";
+			this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL};
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Member author = event.getMember();
+			assert event.getGuild() != null & author != null;
+
+			VoiceUtil.DeleteTarget target = VoiceUtil.resolveDeleteTarget(bot, author);
+			if (target.channel() == null) {
+				editError(event, Objects.requireNonNull(target.errorPath()));
+				return;
+			}
+			VoiceChannel vc = target.channel();
+
+			bot.getDBUtil().voice.remove(vc.getIdLong());
+			try {
+				vc.delete().reason("Deleted by "+author.getUser().getName()).queue();
+			} catch (InsufficientPermissionException ex) {
+				editPermError(event, ex.getPermission(), true);
+				return;
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, path+".done", vc.getName()))
+				.build()
+			);
+		}
+	}
+
 	private class PermsReset extends SlashCommand {
 		public PermsReset() {
 			this.name = "reset";
@@ -716,9 +753,10 @@ public class VoiceCmd extends SlashCommand {
 				return;
 			}
 			try {
-				vc.getManager()
-					.sync()
-					.putPermissionOverride(author, ownerPerms, null)
+				// Syncing wipes every override, so the moderator bypass has to be written back.
+				VoiceUtil.applyBypassOverrides(bot, event.getGuild(), vc.getManager()
+						.sync()
+						.putPermissionOverride(author, ownerPerms, null))
 					.queue();
 			} catch (InsufficientPermissionException ex) {
 				editPermError(event, ex.getPermission(), true);

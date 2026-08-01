@@ -13,22 +13,18 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager;
 import dev.fileeditor.votl.utils.database.managers.LevelManager;
+import dev.fileeditor.votl.utils.VoiceUtil;
 import dev.fileeditor.votl.utils.file.lang.LangUtil;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.container.Container;
-import net.dv8tion.jda.api.components.separator.Separator;
-import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -300,32 +296,8 @@ public class SetupCmd extends SlashCommand {
 				return;
 			}
 
-			Button lock = Button.danger("voice:lock", lu.getGuildText(event, path+".lock")).withEmoji(Emoji.fromUnicode("🔒"));
-			Button unlock = Button.success("voice:unlock", lu.getGuildText(event, path+".unlock")).withEmoji(Emoji.fromUnicode("🔓"));
-			Button ghost = Button.danger("voice:ghost", lu.getGuildText(event, path+".ghost")).withEmoji(Emoji.fromUnicode("👻"));
-			Button unghost = Button.success("voice:unghost", lu.getGuildText(event, path+".unghost")).withEmoji(Emoji.fromUnicode("👁️"));
-			Button permit = Button.success("voice:permit", lu.getGuildText(event, path+".permit")).withEmoji(Emoji.fromUnicode("➕"));
-			Button reject = Button.danger("voice:reject", lu.getGuildText(event, path+".reject")).withEmoji(Emoji.fromUnicode("➖"));
-			Button perms = Button.secondary("voice:perms", lu.getGuildText(event, path+".perms")).withEmoji(Emoji.fromUnicode("⚙️"));
-			Button delete = Button.danger("voice:delete", lu.getGuildText(event, path+".delete")).withEmoji(Emoji.fromUnicode("🗑️"));
-
 			Long channelId = bot.getDBUtil().getVoiceSettings(event.getGuild()).getChannelId();
-			Container container = Container.of(
-					TextDisplay.of("## "+lu.getGuildText(event, path+".panel_title")),
-					TextDisplay.of(lu.getGuildText(event, path+".panel_text", channelId)),
-					Separator.createDivider(Separator.Spacing.LARGE),
-					TextDisplay.of(lu.getGuildText(event, path+".section_access")),
-					ActionRow.of(unlock, lock),
-					Separator.createDivider(Separator.Spacing.SMALL),
-					TextDisplay.of(lu.getGuildText(event, path+".section_visibility")),
-					ActionRow.of(unghost, ghost),
-					Separator.createDivider(Separator.Spacing.SMALL),
-					TextDisplay.of(lu.getGuildText(event, path+".section_members")),
-					ActionRow.of(permit, reject, perms),
-					Separator.createDivider(Separator.Spacing.LARGE),
-					ActionRow.of(delete)
-				)
-				.withAccentColor(Constants.COLOR_DEFAULT);
+			Container container = VoiceUtil.buildPanel(lu, lu.getGuildLocale(event.getGuild()), channelId);
 
 			channel.sendMessageComponents(container).useComponentsV2().queue();
 

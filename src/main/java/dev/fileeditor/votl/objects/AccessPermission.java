@@ -35,6 +35,7 @@ public enum AccessPermission {
 
 	// Elevated capability
 	LIMIT_OVERRIDE(22),			// no duration limits on bans/mutes
+	VOICE_BYPASS(28),			// see/join locked and hidden custom voice channels, delete any of them
 
 	// Built-in tier checks (command-level only, never stored in DB)
 	ADMIN(23, true),			// Discord Administrator permission or higher

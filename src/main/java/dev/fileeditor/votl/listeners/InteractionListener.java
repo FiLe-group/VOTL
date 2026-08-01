@@ -27,6 +27,7 @@ import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.Emote;
 import dev.fileeditor.votl.objects.constants.Constants;
+import dev.fileeditor.votl.utils.VoiceUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.ServerBlacklistManager;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
@@ -203,6 +204,15 @@ public class InteractionListener extends ListenerAdapter {
 						sendErrorLive(event, "bot.voice.listener.not_in_voice");
 						return;
 					}
+					Metrics.interactionReceived.labelValue("voice:"+actions[1]).inc();
+
+					// Delete resolves its own target, so a moderator with VOICE_BYPASS can remove the
+					// channel they are sitting in rather than only one they own.
+					if (actions[1].equals("delete")) {
+						runButtonInteraction(event, null, () -> buttonVoiceDelete(event));
+						return;
+					}
+
 					Long channelId = db.voice.getChannel(event.getUser().getIdLong());
 					if (channelId == null) {
 						sendErrorLive(event, "errors.no_channel");
@@ -211,7 +221,6 @@ public class InteractionListener extends ListenerAdapter {
 					VoiceChannel vc = event.getGuild().getVoiceChannelById(channelId);
 					if (vc == null) return;
 
-					Metrics.interactionReceived.labelValue("voice:"+actions[1]).inc();
 					switch (actions[1]) {
 						case "lock" -> runButtonInteraction(event, null, () -> buttonVoiceLock(event, vc));
 						case "unlock" -> runButtonInteraction(event, null, () -> buttonVoiceUnlock(event, vc));
@@ -220,7 +229,7 @@ public class InteractionListener extends ListenerAdapter {
 						case "permit" -> runButtonInteraction(event, null, () -> buttonVoicePermit(event));
 						case "reject" -> runButtonInteraction(event, null, () -> buttonVoiceReject(event));
 						case "perms" -> runButtonInteraction(event, null, () -> buttonVoicePerms(event, vc));
-						case "delete" -> runButtonInteraction(event, null, () -> buttonVoiceDelete(event, vc));
+						case "edit" -> runModalButtonInteraction(event, null, () -> buttonVoiceEdit(event, vc));
 					}
 				}
 				case "blacklist" -> {
@@ -1136,10 +1145,110 @@ public class InteractionListener extends ListenerAdapter {
 		);
 	}
 
-	private void buttonVoiceDelete(ButtonInteractionEvent event, VoiceChannel vc) {
-		bot.getDBUtil().voice.remove(vc.getIdLong());
+	private void buttonVoiceEdit(ButtonInteractionEvent event, VoiceChannel vc) {
+		DiscordLocale locale = event.getUserLocale();
+		// Both fields are pre-filled with the current values and optional, so clearing one leaves
+		// that setting untouched instead of wiping it.
+		Modal modal = Modal.create("voice:edit", lu.getLocalized(locale, "bot.voice.listener.panel.modal"))
+			.addComponents(
+				Label.of(lu.getLocalized(locale, "bot.voice.listener.panel.name_label"),
+					TextInput.create("name", TextInputStyle.SHORT)
+						.setValue(vc.getName())
+						.setMaxLength(100)
+						.setRequired(false)
+						.build()),
+				Label.of(lu.getLocalized(locale, "bot.voice.listener.panel.limit_label"),
+					TextInput.create("limit", TextInputStyle.SHORT)
+						.setValue(String.valueOf(vc.getUserLimit()))
+						.setMaxLength(2)
+						.setRequired(false)
+						.build())
+			)
+			.build();
+		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
+	}
 
-		vc.delete().reason("Channel owner request").queue();
+	private void modalVoiceEdit(ModalInteractionEvent event) {
+		assert event.getGuild() != null && event.getMember() != null;
+		long userId = event.getMember().getIdLong();
+
+		Long channelId = db.voice.getChannel(userId);
+		VoiceChannel vc = channelId == null ? null : event.getGuild().getVoiceChannelById(channelId);
+		if (vc == null) {
+			sendError(event, "errors.no_channel");
+			return;
+		}
+
+		String rawName = Optional.ofNullable(event.getValue("name")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		String rawLimit = Optional.ofNullable(event.getValue("limit")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+
+		VoiceChannelManager manager = vc.getManager();
+		List<String> changes = new ArrayList<>();
+
+		if (rawName != null && !rawName.isBlank()) {
+			String name = VoiceUtil.formatChannelName(rawName.replace("{user}", event.getMember().getEffectiveName()));
+			if (!name.equals(vc.getName())) {
+				manager = manager.setName(name);
+				try {
+					db.user.setName(userId, name);
+				} catch (SQLException ex) {
+					LOG.warn("Failed to persist voice channel name for {}", userId, ex);
+				}
+				changes.add(lu.getGuildText(event, "bot.voice.listener.panel.name_done").replace("{name}", name));
+			}
+		}
+
+		if (rawLimit != null && !rawLimit.isBlank()) {
+			int limit;
+			try {
+				limit = Integer.parseInt(rawLimit);
+			} catch (NumberFormatException ex) {
+				sendError(event, "bot.voice.listener.panel.limit_invalid");
+				return;
+			}
+			if (limit < 0 || limit > 99) {
+				sendError(event, "bot.voice.listener.panel.limit_invalid");
+				return;
+			}
+			if (limit != vc.getUserLimit()) {
+				manager = manager.setUserLimit(limit);
+				try {
+					db.user.setLimit(userId, limit);
+				} catch (SQLException ex) {
+					LOG.warn("Failed to persist voice channel limit for {}", userId, ex);
+				}
+				changes.add(lu.getGuildText(event, "bot.voice.listener.panel.limit_done").replace("{limit}", String.valueOf(limit)));
+			}
+		}
+
+		if (changes.isEmpty()) {
+			sendError(event, "bot.voice.listener.panel.no_changes");
+			return;
+		}
+
+		final MessageEmbed embed = new EmbedBuilder()
+			.setColor(Constants.COLOR_SUCCESS)
+			.setDescription(String.join("\n", changes))
+			.build();
+		manager.queue(
+			_ -> event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue(),
+			_ -> event.getHook()
+				.sendMessage(bot.getEmbedUtil().createPermError(event, Permission.MANAGE_CHANNEL, true))
+				.setEphemeral(true).queue()
+		);
+	}
+
+	private void buttonVoiceDelete(ButtonInteractionEvent event) {
+		assert event.getMember() != null;
+		VoiceUtil.DeleteTarget target = VoiceUtil.resolveDeleteTarget(bot, event.getMember());
+		if (target.channel() == null) {
+			sendError(event, Objects.requireNonNull(target.errorPath()));
+			return;
+		}
+		VoiceChannel vc = target.channel();
+
+		bot.getDBUtil().voice.remove(vc.getIdLong());
+		vc.delete().reason("Deleted by "+event.getUser().getName()).queue();
 		sendSuccess(event, "bot.voice.listener.panel.delete");
 	}
 
@@ -1508,12 +1617,16 @@ public class InteractionListener extends ListenerAdapter {
 		// Check if blacklisted
 		if (bot.getBlacklist().isBlacklisted(event)) return;
 
-		if (event.getModalId().startsWith("role_temp") || event.getModalId().startsWith("cr")) {
+		if (event.getModalId().startsWith("role_temp") || event.getModalId().startsWith("cr")
+			|| event.getModalId().startsWith("voice")) {
 			event.deferEdit().queue();
 			String[] modalId = event.getModalId().split(":");
 
 			switch (modalId[0]) {
 				case "role_temp" -> modalTempRole(event, castLong(modalId[1]));
+				case "voice" -> {
+					if ("edit".equals(modalId[1])) modalVoiceEdit(event);
+				}
 				case "cr" -> {
 					switch (modalId[1]) {
 						case "request" -> modalCustomRoleRequest(event);
@@ -1747,6 +1860,8 @@ public class InteractionListener extends ListenerAdapter {
 					text = lu.getTargetText(event, "bot.voice.listener.panel.permit_done", mentionStrings);
 				} else {
 					for (Member member : members) {
+						// Rejecting a moderator would undo their bypass, since member overrides beat role ones.
+						if (VoiceUtil.hasBypass(bot, member)) continue;
 						manager = manager.putPermissionOverride(member, null, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL));
 						if (vc.getMembers().contains(member)) {
 							guild.kickVoiceMember(member).queue();
@@ -1757,7 +1872,7 @@ public class InteractionListener extends ListenerAdapter {
 					for (Role role : roles) {
 						EnumSet<Permission> rolePerms = EnumSet.copyOf(role.getPermissions());
 						rolePerms.retainAll(adminPerms);
-						if (rolePerms.isEmpty()) {
+						if (rolePerms.isEmpty() && !VoiceUtil.isBypassRole(bot, role)) {
 							manager = manager.putPermissionOverride(role, null, EnumSet.of(Permission.VOICE_CONNECT, Permission.VIEW_CHANNEL));
 							mentionStrings.add(role.getName());
 						}
@@ -2604,7 +2719,7 @@ public class InteractionListener extends ListenerAdapter {
 		String reviewPath = "bot.roles.custom_role.review";
 		channel.retrieveMessageById(request.messageId).queue(msg -> {
 			var embeds = msg.getEmbeds();
-			EmbedBuilder builder = embeds.isEmpty() ? bot.getEmbedUtil().getEmbed() : new EmbedBuilder(embeds.get(0));
+			EmbedBuilder builder = embeds.isEmpty() ? bot.getEmbedUtil().getEmbed() : new EmbedBuilder(embeds.getFirst());
 			builder.setColor(approved ? Constants.COLOR_SUCCESS : Constants.COLOR_FAILURE)
 				.addField(lu.getText(event, reviewPath+".status"),
 					lu.getText(event, approved ? reviewPath+".status_approved" : reviewPath+".status_rejected"), true)

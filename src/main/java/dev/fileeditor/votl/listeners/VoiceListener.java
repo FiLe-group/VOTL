@@ -7,13 +7,16 @@ import java.util.concurrent.TimeUnit;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.utils.database.managers.GuildVoiceManager.VoiceSettings;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.requests.restaction.ChannelAction;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildDeafenEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildMuteEvent;
@@ -166,34 +169,56 @@ public class VoiceListener extends ListenerAdapter {
 			.or(() -> Optional.ofNullable(voiceSettings.getDefaultLimit()))
 			.orElse(0);
 
-		guild.createVoiceChannel(channelName)
+		ChannelAction<VoiceChannel> action = guild.createVoiceChannel(channelName)
 			.reason(member.getUser().getEffectiveName()+" private channel")
 			.setUserlimit(channelLimit)
 			.setParent(category)
 			.syncPermissionOverrides()
-			.addPermissionOverride(member, ownerPerms, null)
-			.queue(
-				channel -> {
-					db.voice.add(userId, channel.getIdLong());
-					try {
-						// If the member disconnected before we could move them in, the channel would
-						// never receive a leave event, so reclaim it here instead of waiting for the
-						// periodic cleanup job.
-						guild.moveVoiceMember(member, channel)
-							.queueAfter(500, TimeUnit.MILLISECONDS, null, _ -> reclaimChannel(channel));
-					} catch (Throwable ignored) {
-						reclaimChannel(channel);
-					}
-				},
-				failure -> member.getUser()
-					.openPrivateChannel()
-					.flatMap(channel ->
-						channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.failed")
-							.formatted(failure.getMessage())
-						)
+			.addPermissionOverride(member, ownerPerms, null);
+
+		// Moderator bypass: keep roles holding VOICE_BYPASS able to see and join the channel even
+		// after its owner locks or hides it.
+		for (long roleId : db.accessGroups.getRolesWithPermission(guild.getIdLong(), AccessPermission.VOICE_BYPASS)) {
+			Role role = guild.getRoleById(roleId);
+			if (role == null) continue;
+			action = action.addPermissionOverride(role, VoiceUtil.bypassPerms, null);
+		}
+
+		action.queue(
+			channel -> {
+				db.voice.add(userId, channel.getIdLong());
+				try {
+					// If the member disconnected before we could move them in, the channel would
+					// never receive a leave event, so reclaim it here instead of waiting for the
+					// periodic cleanup job.
+					guild.moveVoiceMember(member, channel)
+						.queueAfter(500, TimeUnit.MILLISECONDS,
+							_ -> sendPanel(channel, guildLocale, voiceSettings.getChannelId()),
+							_ -> reclaimChannel(channel));
+				} catch (Throwable ignored) {
+					reclaimChannel(channel);
+				}
+			},
+			failure -> member.getUser()
+				.openPrivateChannel()
+				.flatMap(channel ->
+					channel.sendMessage(bot.getLocaleUtil().getLocalized(guildLocale, "bot.voice.listener.failed")
+						.formatted(failure.getMessage())
 					)
-					.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
-			);
+				)
+				.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER))
+		);
+	}
+
+	/**
+	 * Posts the management panel into the channel's built-in voice text chat, so the owner can
+	 * control it without leaving the channel. Best effort — a guild that denies the bot sending
+	 * there still gets a working channel.
+	 */
+	private void sendPanel(VoiceChannel channel, DiscordLocale locale, Long masterChannelId) {
+		channel.sendMessageComponents(VoiceUtil.buildPanel(bot.getLocaleUtil(), locale, masterChannelId))
+			.useComponentsV2()
+			.queue(null, new ErrorHandler().ignore(ErrorResponse.MISSING_PERMISSIONS, ErrorResponse.MISSING_ACCESS, ErrorResponse.UNKNOWN_CHANNEL));
 	}
 
 	private void reclaimChannel(VoiceChannel channel) {
