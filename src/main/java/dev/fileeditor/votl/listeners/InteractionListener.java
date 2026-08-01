@@ -1129,6 +1129,7 @@ public class InteractionListener extends ListenerAdapter {
 						embedBuilder2 = embedBuilder2.appendDescription(t);
 					}
 				}
+				embeds.add(embedBuilder2.build());
 
 				event.getHook().sendMessageEmbeds(embeds).setEphemeral(true).queue();
 			}

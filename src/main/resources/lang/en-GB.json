@@ -667,8 +667,11 @@
 						"reject": "Reject",
 						"perms": "Permissions",
 						"delete": "Delete channel",
-						"embed_title": "Personal voice channels",
-						"embed_value": "To create your personal voice channel, join <#%s>.\n\nYou can control your voice channel either by pressing buttons bellow or using my slash commands.",
+						"panel_title": "Personal voice channels",
+						"panel_text": "> To create your personal voice channel, join <#%s>.\n> You can control it either by pressing the buttons below or using my slash commands.",
+						"section_access": "### 🔓 Access\n> Open your channel for everyone or close it, so only permitted users can join.",
+						"section_visibility": "### 👻 Visibility\n> Show or hide your channel from those who can't join it.",
+						"section_members": "### ⚙️ Members\n> Permit or reject specific users, or review who currently has access.",
 						"done": "Panel created in %s!"
 					},
 					"name": {

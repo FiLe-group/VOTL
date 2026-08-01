@@ -16,10 +16,12 @@ import dev.fileeditor.votl.utils.database.managers.LevelManager;
 import dev.fileeditor.votl.utils.file.lang.LangUtil;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.separator.Separator;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
@@ -307,20 +309,25 @@ public class SetupCmd extends SlashCommand {
 			Button perms = Button.secondary("voice:perms", lu.getGuildText(event, path+".perms")).withEmoji(Emoji.fromUnicode("⚙️"));
 			Button delete = Button.danger("voice:delete", lu.getGuildText(event, path+".delete")).withEmoji(Emoji.fromUnicode("🗑️"));
 
-			ActionRow row1 = ActionRow.of(unlock, lock);
-			ActionRow row2 = ActionRow.of(unghost, ghost);
-			ActionRow row4 = ActionRow.of(permit, reject, perms);
-			ActionRow row5 = ActionRow.of(delete);
-
 			Long channelId = bot.getDBUtil().getVoiceSettings(event.getGuild()).getChannelId();
-			channel.sendMessageEmbeds(new EmbedBuilder()
-					.setColor(Constants.COLOR_DEFAULT)
-					.setTitle(lu.getGuildText(event, path+".embed_title"))
-					.setDescription(lu.getGuildText(event, path+".embed_value", channelId))
-					.build()
+			Container container = Container.of(
+					TextDisplay.of("## "+lu.getGuildText(event, path+".panel_title")),
+					TextDisplay.of(lu.getGuildText(event, path+".panel_text", channelId)),
+					Separator.createDivider(Separator.Spacing.LARGE),
+					TextDisplay.of(lu.getGuildText(event, path+".section_access")),
+					ActionRow.of(unlock, lock),
+					Separator.createDivider(Separator.Spacing.SMALL),
+					TextDisplay.of(lu.getGuildText(event, path+".section_visibility")),
+					ActionRow.of(unghost, ghost),
+					Separator.createDivider(Separator.Spacing.SMALL),
+					TextDisplay.of(lu.getGuildText(event, path+".section_members")),
+					ActionRow.of(permit, reject, perms),
+					Separator.createDivider(Separator.Spacing.LARGE),
+					ActionRow.of(delete)
 				)
-				.setComponents(row1, row2, row4, row5)
-				.queue();
+				.withAccentColor(Constants.COLOR_DEFAULT);
+
+			channel.sendMessageComponents(container).useComponentsV2().queue();
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", channel.getAsMention()))
