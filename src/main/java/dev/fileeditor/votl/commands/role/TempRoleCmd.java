@@ -66,15 +66,14 @@ public class TempRoleCmd extends SlashCommand {
 				editError(event, "errors.option.member");
 				return;
 			}
-			Member mod = event.getMember();
-			assert mod != null;
+			assert event.getMember() != null;
 			if (target.getUser().isBot()
 				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}
-			if (!guild.getSelfMember().canInteract(target)
-				|| (!mod.equals(target) && !mod.canInteract(target))) {
+			// Target's own position is irrelevant - access is gated by the role being assigned
+			if (!guild.getSelfMember().canInteract(target)) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
@@ -173,8 +172,8 @@ public class TempRoleCmd extends SlashCommand {
 				editError(event, "errors.option.user_self");
 				return;
 			}
-			if (!guild.getSelfMember().canInteract(target)
-				|| (!mod.equals(target) && !mod.canInteract(target))) {
+			// Target's own position is irrelevant - access is gated by the role being canceled
+			if (!guild.getSelfMember().canInteract(target)) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
@@ -183,6 +182,11 @@ public class TempRoleCmd extends SlashCommand {
 			Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, "errors.option.role");
+				return;
+			}
+			String denyReason = bot.getCheckUtil().denyRole(role, guild, mod, false);
+			if (denyReason != null) {
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
 				return;
 			}
 
@@ -240,8 +244,8 @@ public class TempRoleCmd extends SlashCommand {
 				editError(event, "errors.option.user_self");
 				return;
 			}
-			if (!guild.getSelfMember().canInteract(target)
-				|| (!mod.equals(target) && !mod.canInteract(target))) {
+			// Target's own position is irrelevant - access is gated by the role being extended
+			if (!guild.getSelfMember().canInteract(target)) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
@@ -250,6 +254,11 @@ public class TempRoleCmd extends SlashCommand {
 			Role role = event.optRole("role");
 			if (role == null) {
 				editError(event, "errors.option.role");
+				return;
+			}
+			String denyReason = bot.getCheckUtil().denyRole(role, guild, mod, false);
+			if (denyReason != null) {
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(role.getAsMention(), denyReason));
 				return;
 			}
 

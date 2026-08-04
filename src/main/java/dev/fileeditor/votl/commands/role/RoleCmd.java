@@ -67,15 +67,14 @@ public class RoleCmd extends SlashCommand {
 				editError(event, "errors.option.member");
 				return;
 			}
-			Member mod = event.getMember();
-			assert mod != null;
+			assert event.getMember() != null;
 			if (target.getUser().isBot()
 				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}
-			if (!guild.getSelfMember().canInteract(target)
-				|| (!mod.equals(target) && !mod.canInteract(target))) {
+			// Target's own position is irrelevant - access is gated by the roles being granted
+			if (!guild.getSelfMember().canInteract(target)) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
@@ -148,15 +147,14 @@ public class RoleCmd extends SlashCommand {
 				editError(event, "errors.option.member");
 				return;
 			}
-			Member mod = event.getMember();
-			assert mod != null;
+			assert event.getMember() != null;
 			if (target.getUser().isBot()
 				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}
-			if (!guild.getSelfMember().canInteract(target)
-				|| (!mod.equals(target) && !mod.canInteract(target))) {
+			// Target's own position is irrelevant - access is gated by the roles being removed
+			if (!guild.getSelfMember().canInteract(target)) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}
@@ -301,15 +299,14 @@ public class RoleCmd extends SlashCommand {
 				editError(event, "errors.option.member");
 				return;
 			}
-			Member mod = event.getMember();
-			assert mod != null;
+			assert event.getMember() != null;
 			if (target.getUser().isBot()
 				|| target.equals(guild.getSelfMember())) {
 				editError(event, "errors.option.user_self");
 				return;
 			}
-			if (!guild.getSelfMember().canInteract(target)
-				|| (!mod.equals(target) && !mod.canInteract(target))) {
+			// Target's own position is irrelevant - the menu below only offers roles the mod may manage
+			if (!guild.getSelfMember().canInteract(target)) {
 				editError(event, "errors.option.member_interact");
 				return;
 			}

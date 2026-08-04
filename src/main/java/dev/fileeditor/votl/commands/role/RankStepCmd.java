@@ -61,8 +61,8 @@ abstract class RankStepCmd extends SlashCommand {
 			editError(event, "errors.option.user_self");
 			return;
 		}
-		if (!guild.getSelfMember().canInteract(target)
-			|| (!mod.equals(target) && !mod.canInteract(target))) {
+		// Target's own position is irrelevant - access is gated by the ladder role being granted
+		if (!guild.getSelfMember().canInteract(target)) {
 			editError(event, "errors.option.member_interact");
 			return;
 		}
@@ -123,6 +123,14 @@ abstract class RankStepCmd extends SlashCommand {
 		}
 		final Role finalAddRole = addRole;
 		final Role finalRemoveRole = removeRoleId == null ? null : guild.getRoleById(removeRoleId);
+		if (finalRemoveRole != null) {
+			// The rank the target currently holds must also be within the mod's reach
+			String denyReason = bot.getCheckUtil().denyRole(finalRemoveRole, guild, mod, false);
+			if (denyReason != null) {
+				editError(event, "errors.option.role_interact", "Role: %s\n> %s".formatted(finalRemoveRole.getAsMention(), denyReason));
+				return;
+			}
+		}
 
 		// Strip every ladder role the member currently holds, then add the new one (if any)
 		Set<Long> ladderSet = new HashSet<>(ladder);
