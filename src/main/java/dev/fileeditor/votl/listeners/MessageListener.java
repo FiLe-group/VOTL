@@ -10,11 +10,13 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.AccessPermission;
+import dev.fileeditor.votl.objects.MediaChannelMode;
 import dev.fileeditor.votl.objects.MediaType;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.CastUtil;
 
+import dev.fileeditor.votl.utils.database.managers.MediaChannelsManager.MediaChannelSettings;
 import dev.fileeditor.votl.utils.message.MediaLinkUtil;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 import net.dv8tion.jda.api.audit.ActionType;
@@ -57,45 +59,7 @@ public class MessageListener extends ListenerAdapter {
 			var mediaSettings = bot.getDBUtil().mediaChannels.getChannel(guildId, event.getChannel().getIdLong());
 			assert event.getMember() != null;
 			if (mediaSettings != null && !bot.getCheckUtil().hasAccess(event.getMember(), AccessPermission.ADMIN)) {
-				var message = event.getMessage();
-				if (message.getContentRaw().isEmpty() && message.getAttachments().isEmpty()) {
-					replyMediaChannel(message, "reason_not_media");
-					return;
-				}
-
-				// Attachments checks
-				if (!message.getAttachments().isEmpty()) {
-					var attachments = message.getAttachments();
-					// Check if attachment limit is reached
-					if (mediaSettings.getMaxAttachments() > -1 && attachments.size() > mediaSettings.getMaxAttachments()) {
-						replyMediaChannel(message, "reason_max_attachements", attachments.size(), mediaSettings.getMaxAttachments());
-						return;
-					}
-					// Check if attachment type is allowed
-					for (var a : attachments) {
-						var mediaType = MediaType.fromExtension(a.getFileExtension());
-						if (mediaType.isEmpty() || !mediaSettings.getAllowedMedia().contains(mediaType.get())) {
-							replyMediaChannel(message, "reason_bad_attachement", "."+a.getFileExtension());
-							return;
-						}
-					}
-				}
-				// Text checks
-				if (!message.getContentRaw().isEmpty()) {
-					// Check if contains no links
-					if (mediaSettings.getAllowedMedia().isEmpty() && MessageUtil.hasLink(message.getContentRaw())) {
-						replyMediaChannel(message, "reason_has_links");
-						return;
-					}
-					// Check if contains only 1 link and no other text
-					if (!mediaSettings.allowedText()) {
-						var mediaType = MediaLinkUtil.detectMediaType(message.getContentRaw());
-						if (mediaType.isEmpty() || !mediaSettings.getAllowedMedia().contains(mediaType.get())) {
-							replyMediaChannel(message, "reason_bad_link");
-							return;
-						}
-					}
-				}
+				if (enforceMediaChannel(event.getMessage(), mediaSettings)) return;
 			}
 		}
 
@@ -122,6 +86,72 @@ public class MessageListener extends ListenerAdapter {
 		if (!bot.getBlacklist().isBlacklisted(event.getAuthor())) {
 			bot.getLevelUtil().rewardMessagePlayer(event);
 		}
+	}
+
+	/**
+	 * Applies the channel's mode to a message, removing it if it doesn't fit.
+	 *
+	 * @return {@code true} if the message broke the channel's rules and was removed.
+	 */
+	private boolean enforceMediaChannel(Message message, MediaChannelSettings settings) {
+		// Slash commands are interactions and not messages, so nothing a member sends here may stay
+		if (settings.getMode() == MediaChannelMode.COMMANDS_ONLY) {
+			replyMediaChannel(message, "reason_commands_only");
+			return true;
+		}
+
+		var attachments = message.getAttachments();
+		var content = MediaLinkUtil.scanContent(message.getContentRaw());
+
+		// Comments only - no attachments and no links, media or not
+		if (settings.getMode() == MediaChannelMode.COMMENTS_ONLY) {
+			if (!attachments.isEmpty()) {
+				replyMediaChannel(message, "reason_has_attachments");
+				return true;
+			}
+			if (content.hasLinks()) {
+				replyMediaChannel(message, "reason_has_links");
+				return true;
+			}
+			if (!content.hasText()) {
+				replyMediaChannel(message, "reason_not_text");
+				return true;
+			}
+			return false;
+		}
+
+		// Media modes - the message must carry media, as an attachment or as a link Discord displays
+		if (attachments.isEmpty() && !content.hasMediaLinks()) {
+			replyMediaChannel(message, "reason_not_media");
+			return true;
+		}
+		// Check if attachment limit is reached
+		if (settings.getMaxAttachments() > -1 && attachments.size() > settings.getMaxAttachments()) {
+			replyMediaChannel(message, "reason_max_attachements", attachments.size(), settings.getMaxAttachments());
+			return true;
+		}
+		// Check if attachment type is allowed
+		for (var a : attachments) {
+			var mediaType = MediaType.fromExtension(a.getFileExtension());
+			if (mediaType.isEmpty() || !settings.getAllowedMedia().contains(mediaType.get())) {
+				replyMediaChannel(message, "reason_bad_attachement", "."+a.getFileExtension());
+				return true;
+			}
+		}
+		// Check if linked media type is allowed
+		for (var mediaType : content.mediaLinks()) {
+			if (!settings.getAllowedMedia().contains(mediaType)) {
+				replyMediaChannel(message, "reason_bad_link");
+				return true;
+			}
+		}
+		// Media only - anything besides the media itself is a comment
+		if (settings.getMode() == MediaChannelMode.MEDIA_ONLY && (content.hasText() || content.otherLinks() > 0)) {
+			replyMediaChannel(message, "reason_no_comments");
+			return true;
+		}
+
+		return false;
 	}
 
 	private void replyMediaChannel(Message message, String pathEnd, Object... args) {

@@ -4,6 +4,7 @@ import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
+import dev.fileeditor.votl.objects.MediaChannelMode;
 import dev.fileeditor.votl.objects.MediaType;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
@@ -33,6 +34,24 @@ public class MediaChannelCmd extends SlashCommand {
 	@Override
 	protected void execute(SlashCommandEvent event) {}
 
+	/**
+	 * Renders the channel's mode and, for the media modes, which media types
+	 * are kept and how many attachments one message may hold.
+	 */
+	private String describeSettings(SlashCommandEvent event, MediaChannelMode mode, EnumSet<MediaType> allowedMedia, int maxAttachments) {
+		StringBuilder builder = new StringBuilder("> ").append(lu.getText(event, mode.getPath()));
+		if (mode.allowsMedia()) {
+			builder.append("\n> ");
+			for (var v : MediaType.values()) {
+				builder.append(v.getEmoji())
+					.append(allowedMedia.contains(v) ? Constants.SUCCESS : Constants.FAILURE)
+					.append(' ');
+			}
+			builder.append("| MAX ").append(maxAttachments);
+		}
+		return builder.toString();
+	}
+
 	private class AddChannel extends SlashCommand {
 		public AddChannel() {
 			this.name = "add";
@@ -40,15 +59,16 @@ public class MediaChannelCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.CHANNEL, "channel", lu.getText(path+".channel.help"), true)
 					.setChannelTypes(ChannelType.TEXT),
-				new OptionData(OptionType.INTEGER, "allowed_media", lu.getText(path+".allowed_media.help"), true)
+				new OptionData(OptionType.INTEGER, "mode", lu.getText(path+".mode.help"), true)
+					.addChoices(MediaChannelMode.asChoices(lu)),
+				// Only taken into account by the media modes
+				new OptionData(OptionType.INTEGER, "allowed_media", lu.getText(path+".allowed_media.help"))
 					.addChoice("Any media", MediaType.allMedia())
-					.addChoice("Text messages only (any links will be deleted)", 0) // Note: ANY MESSAGES CONTAINING LINKS WILL BE DELETED
 					.addChoice("Images only", MediaType.encode(EnumSet.of(MediaType.IMAGE)))
 					.addChoice("GIFs only", MediaType.encode(EnumSet.of(MediaType.ANIMATED)))
 					.addChoice("Video only", MediaType.encode(EnumSet.of(MediaType.VIDEO)))
 					.addChoice("Audio only", MediaType.encode(EnumSet.of(MediaType.AUDIO)))
 					.addChoice("Visual content (img+gif+vid)", MediaType.encode(EnumSet.of(MediaType.IMAGE, MediaType.ANIMATED, MediaType.VIDEO))),
-				new OptionData(OptionType.BOOLEAN, "allowed_text", lu.getText(path+".allowed_text.help")),
 				new OptionData(OptionType.INTEGER, "max_attachments", lu.getText(path+".max_attachments.help"))
 					.setRequiredRange(0, 10)
 			);
@@ -70,45 +90,22 @@ public class MediaChannelCmd extends SlashCommand {
 				return;
 			}
 
+			var mode = MediaChannelMode.byValue(event.optInteger("mode", 0));
 			var allowedMedia = MediaType.decode(event.optInteger("allowed_media", MediaType.allMedia()));
-			var allowedText = event.optBoolean("allowed_text", true);
-			var maxAttachments = event.optInteger("max_attachments", 10);
-
-			if (allowedMedia.isEmpty() && !allowedText) {
-				editError(event, path+".bad_combination");
-				return;
-			}
-
-			// Override max attachments if no media is allowed (THIS INCLUDES ANY LINKS)
-			if (allowedMedia.isEmpty()) {
-				maxAttachments = 0;
-			}
+			// Attachments are only ever kept by the media modes
+			var maxAttachments = mode.allowsMedia() ? event.optInteger("max_attachments", 10) : 0;
 
 			try {
-				bot.getDBUtil().mediaChannels.addChannel(guildId, channel.getIdLong(), allowedMedia, allowedText, maxAttachments);
+				bot.getDBUtil().mediaChannels.addChannel(guildId, channel.getIdLong(), allowedMedia, mode, maxAttachments);
 			} catch (SQLException e) {
 				editErrorDatabase(event, e, "Failed to add media channel");
 				return;
 			}
 
-			var embed = bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done", channel.getAsMention()))
-				.appendDescription("\n\n`");
-			for (var v : MediaType.values()) {
-				embed.appendDescription(v.getEmoji()).appendDescription("|");
-			}
-			embed.appendDescription("\uD83D\uDCAC|MAX`\n`");
-
-			for (var v : MediaType.values()) {
-				embed.appendDescription(allowedMedia.contains(v) ? Constants.SUCCESS : Constants.FAILURE)
-					.appendDescription("|");
-			}
-			embed.appendDescription("%s|%d`".formatted(
-				allowedText ? Constants.SUCCESS : Constants.FAILURE,
-				maxAttachments
-			));
-
-			editEmbed(event, embed.build());
+				.appendDescription("\n\n"+describeSettings(event, mode, allowedMedia, maxAttachments))
+				.build());
 		}
 	}
 
@@ -167,25 +164,12 @@ public class MediaChannelCmd extends SlashCommand {
 
 			EmbedBuilder embed = bot.getEmbedUtil().getEmbed()
 				.setTitle(lu.getText(event, path+".embed_title"))
-				.setDescription("`");
+				.setDescription("");
 
-			for (var v : MediaType.values()) {
-				embed.appendDescription(v.getEmoji()).appendDescription("|");
-			}
-			embed.appendDescription("\uD83D\uDCAC|MAX`\n");
-
-			channels.forEach((id, settings) -> {
-				embed.appendDescription("`");
-				for (var v : MediaType.values()) {
-					embed.appendDescription(settings.getAllowedMedia().contains(v) ? Constants.SUCCESS : Constants.FAILURE)
-						.appendDescription("|");
-				}
-				embed.appendDescription("%s|%d` - <#%s>\n".formatted(
-					settings.allowedText() ? Constants.SUCCESS : Constants.FAILURE,
-					settings.getMaxAttachments(),
-					id
-				));
-			});
+			channels.forEach((id, settings) -> embed.appendDescription("<#%s>\n%s\n\n".formatted(
+				id,
+				describeSettings(event, settings.getMode(), settings.getAllowedMedia(), settings.getMaxAttachments())
+			)));
 
 			editEmbed(event, embed.build());
 		}

@@ -2,6 +2,7 @@ package dev.fileeditor.votl.utils.database.managers;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import dev.fileeditor.votl.objects.MediaChannelMode;
 import dev.fileeditor.votl.objects.MediaType;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
@@ -17,7 +18,7 @@ import static dev.fileeditor.votl.utils.CastUtil.*;
 public class MediaChannelsManager extends LiteBase {
 
 	private final Set<String> columns = Set.of(
-		"channelId", "allowedMedia", "allowedText", "maxAttachments"
+		"channelId", "allowedMedia", "channelMode", "maxAttachments"
 	);
 
 	// Cache - per guild, per channel
@@ -30,10 +31,10 @@ public class MediaChannelsManager extends LiteBase {
 		super(cu, "mediaChannels");
 	}
 
-	public void addChannel(long guildId, long channelId, EnumSet<MediaType> allowedMedia, boolean allowedText, int maxAttachments) throws SQLException {
+	public void addChannel(long guildId, long channelId, EnumSet<MediaType> allowedMedia, MediaChannelMode mode, int maxAttachments) throws SQLException {
 		cache.invalidate(guildId);
-		execute("INSERT INTO %s(guildId, channelId, allowedMedia, allowedText, maxAttachments) VALUES (%s, %s, %s, %s, %s)".formatted(
-			table, guildId, channelId, MediaType.encode(allowedMedia), allowedText?1:0, maxAttachments
+		execute("INSERT INTO %s(guildId, channelId, allowedMedia, channelMode, maxAttachments) VALUES (%s, %s, %s, %s, %s)".formatted(
+			table, guildId, channelId, MediaType.encode(allowedMedia), mode.getValue(), maxAttachments
 		));
 	}
 
@@ -76,18 +77,18 @@ public class MediaChannelsManager extends LiteBase {
 
 	public static class MediaChannelSettings {
 		private final EnumSet<MediaType> allowedMedia;
-		private final boolean allowedText;
+		private final MediaChannelMode mode;
 		private final int maxAttachments;
 
 		public MediaChannelSettings() {
 			this.allowedMedia = EnumSet.allOf(MediaType.class);
-			this.allowedText = true;
+			this.mode = MediaChannelMode.MEDIA_WITH_COMMENTS;
 			this.maxAttachments = -1; // Disable check
 		}
 
 		public MediaChannelSettings(Map<String, Object> data) {
 			this.allowedMedia = MediaType.decode(getOrDefault(data.get("allowedMedia"), 0));
-			this.allowedText = getOrDefault(data.get("allowedText"), 1) == 1;
+			this.mode = MediaChannelMode.byValue(getOrDefault(data.get("channelMode"), 0));
 			this.maxAttachments = getOrDefault(data.get("maxAttachments"), -1);
 		}
 
@@ -95,8 +96,8 @@ public class MediaChannelsManager extends LiteBase {
 			return allowedMedia;
 		}
 
-		public boolean allowedText() {
-			return allowedText;
+		public MediaChannelMode getMode() {
+			return mode;
 		}
 
 		public int getMaxAttachments() {

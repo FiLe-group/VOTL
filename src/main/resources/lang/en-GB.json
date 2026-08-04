@@ -127,6 +127,12 @@
 		"toggle": "Toggleable",
 		"custom": "Custom"
 	},
+	"media_mode": {
+		"media_with_comments": "Media with comments",
+		"media_only": "Media without comments",
+		"comments_only": "Message without media",
+		"commands_only": "Bot commands only"
+	},
 	"case_type": {
 		"ban": "Ban",
 		"unban": "Unban",
@@ -3375,25 +3381,24 @@
 				"help": "Manage media channels",
 				"add": {
 					"help": "Add a media channel",
-					"usage": "add <#Channel> <Type> [allow text?] [max attachments]",
+					"usage": "add <#Channel> <Mode> [allowed media] [max attachments]",
 					"channel": {
 						"name": "channel",
 						"help": "Select a channel"
 					},
+					"mode": {
+						"name": "mode",
+						"help": "What members are allowed to send in this channel"
+					},
 					"allowed_media": {
 						"name": "allowed_media",
 						"help": "What type of media will be allowed in this channel"
-					},
-					"allowed_text": {
-						"name": "allowed_text",
-						"help": "Is text allowed alongside any attachment?"
 					},
 					"max_attachments": {
 						"name": "max_attachments",
 						"help": "How many attachments can one message contain"
 					},
 					"max_channels": "Max media channels reached - %d/**%d**.",
-					"bad_combination": "Either any media type or text messages must be allowed.",
 					"done": "Successfully added new media channel %s."
 				},
 				"remove": {
@@ -3417,7 +3422,11 @@
 					"reason_max_attachements": "Message contains too many attachments - %s out of %s",
 					"reason_bad_attachement": "Message contains attachment which is not allowed in this channel - %s",
 					"reason_has_links": "Links are not allowed in this channel",
-					"reason_bad_link": "Message contains link which is not allowed in this channel"
+					"reason_bad_link": "Message contains link which is not allowed in this channel",
+					"reason_has_attachments": "Attachments are not allowed in this channel",
+					"reason_not_text": "Message doesn't contains any text",
+					"reason_no_comments": "Only media attachments/links are allowed in this channel, without any comments",
+					"reason_commands_only": "Only bot commands are allowed in this channel"
 				}
 			}
 		}

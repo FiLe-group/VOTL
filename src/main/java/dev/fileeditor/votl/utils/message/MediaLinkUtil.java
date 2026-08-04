@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -29,23 +31,55 @@ public final class MediaLinkUtil {
 		"open.spotify.com", "spotify.com"
 	);
 
-	private static final Pattern URL_PATTERN = Pattern.compile("^(https?://\\S+)$");
+	// Groups: optional embed suppressing brackets around the link itself
+	private static final Pattern URL_PATTERN = Pattern.compile("(<?)(https?://[^\\s<>]+)(>?)");
+	// Sentence punctuation that follows a link rather than being a part of it
+	private static final Pattern TRAILING_PUNCTUATION = Pattern.compile("[.,!?;:)\\]]+$");
 
+	/**
+	 * Splits message content into the links it contains and the text left around them.
+	 *
+	 * @param content raw message content.
+	 * @return scan of the provided content, never null.
+	 */
 	@NotNull
-	public static Optional<MediaType> detectMediaType(@Nullable String message) {
-		if (message == null) return Optional.empty();
+	public static ContentScan scanContent(@Nullable String content) {
+		if (content == null || content.isBlank()) return ContentScan.EMPTY;
 
-		String trimmed = message.strip();
-		if (trimmed.isBlank()) return Optional.empty();
+		List<MediaType> mediaLinks = new ArrayList<>();
+		int otherLinks = 0;
+		StringBuilder text = new StringBuilder();
 
-		if (trimmed.contains("\n") || trimmed.contains("\t")) {
-			return Optional.empty();
+		var matcher = URL_PATTERN.matcher(content);
+		int textStart = 0;
+		while (matcher.find()) {
+			text.append(content, textStart, matcher.start());
+			textStart = matcher.end();
+
+			// <url> wrapping suppresses Discord embeds entirely, so such a link never displays media
+			boolean suppressed = "<".equals(matcher.group(1)) && ">".equals(matcher.group(3));
+			var mediaType = suppressed ? Optional.<MediaType>empty() : detectMediaType(matcher.group(2));
+
+			if (mediaType.isPresent()) mediaLinks.add(mediaType.get());
+			else otherLinks++;
 		}
+		text.append(content, textStart, content.length());
 
-		// <url> wrapping suppresses Discord embeds entirely
-		if (trimmed.startsWith("<") && trimmed.endsWith(">")) return Optional.empty();
+		return new ContentScan(List.copyOf(mediaLinks), otherLinks, text.toString().strip());
+	}
 
-		if (!URL_PATTERN.matcher(trimmed).matches()) return Optional.empty();
+	/**
+	 * Resolves what media, if any, Discord will display for a single link.
+	 *
+	 * @param url link without any embed suppressing brackets.
+	 * @return detected media type, or empty if the link displays nothing.
+	 */
+	@NotNull
+	public static Optional<MediaType> detectMediaType(@Nullable String url) {
+		if (url == null || url.isBlank()) return Optional.empty();
+
+		String trimmed = TRAILING_PUNCTUATION.matcher(url.strip()).replaceAll("");
+		if (trimmed.isBlank()) return Optional.empty();
 
 		URI uri;
 		try {
@@ -76,6 +110,27 @@ public final class MediaLinkUtil {
 	private static String stripQuery(String path) {
 		int q = path.indexOf('?');
 		return q == -1 ? path : path.substring(0, q);
+	}
+
+	/**
+	 * @param mediaLinks         type of each link that displays media, in the order they appear.
+	 * @param otherLinks         amount of links that display nothing (suppressed or unsupported).
+	 * @param textWithoutLinks   what is left of the content once every link is cut out.
+	 */
+	public record ContentScan(@NotNull List<MediaType> mediaLinks, int otherLinks, @NotNull String textWithoutLinks) {
+		private static final ContentScan EMPTY = new ContentScan(List.of(), 0, "");
+
+		public boolean hasMediaLinks() {
+			return !mediaLinks.isEmpty();
+		}
+
+		public boolean hasLinks() {
+			return !mediaLinks.isEmpty() || otherLinks > 0;
+		}
+
+		public boolean hasText() {
+			return !textWithoutLinks.isBlank();
+		}
 	}
 
 }
