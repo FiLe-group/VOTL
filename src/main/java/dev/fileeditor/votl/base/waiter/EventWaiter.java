@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -238,11 +239,18 @@ public class EventWaiter implements EventListener {
         while(c != null)
         {
             final Set<WaitingEvent> set = waitingEvents.get(c);
-            if(set != null)
+            if(set != null && !set.isEmpty())
             {
-                // WaitingEvent#attempt invocations that return true have passed their condition tests
-                // and executed the action. We remove the ones that have successfully run (those that returns true)
-                set.removeIf(wEvent -> wEvent.attempt(event));
+                // Iterate a snapshot: an action may register a new waiter into this same set, and the
+                // set's iterator is weakly consistent, so a live traversal could hand that brand new
+                // waiter the very same event it was armed in response to.
+                // Claiming the waiter with remove() before running it also keeps the action to a
+                // single execution when its timeout or another event fires concurrently.
+                for (WaitingEvent wEvent : List.copyOf(set))
+                {
+                    if(wEvent.condition().test(event) && set.remove(wEvent))
+                        wEvent.action().accept(event);
+                }
             }
             if(event instanceof ShutdownEvent && shutdownAutomatically)
             {
@@ -269,14 +277,6 @@ public class EventWaiter implements EventListener {
         threadpool.shutdown();
     }
 
-    private record WaitingEvent<T extends GenericEvent>(Predicate<T> condition, Consumer<T> action) {
-        boolean attempt(T event) {
-            if (condition.test(event)) {
-                action.accept(event);
-                return true;
-            }
-            return false;
-        }
-    }
+    private record WaitingEvent<T extends GenericEvent>(Predicate<T> condition, Consumer<T> action) {}
 }
 
