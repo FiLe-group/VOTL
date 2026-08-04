@@ -23,6 +23,7 @@ import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
 import dev.fileeditor.votl.utils.encoding.EncodingUtil;
+import dev.fileeditor.votl.utils.invite.InviteInfo;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogKey;
 import net.dv8tion.jda.api.entities.Guild;
@@ -672,10 +673,15 @@ public class GuildLogger {
 		}
 
 		public void onJoined(Member member) {
+			onJoined(member, null);
+		}
+
+		/** @param invite Resolved invite information, or {@code null} when the guild does not track invites. */
+		public void onJoined(Member member, @Nullable InviteInfo invite) {
 			final Guild guild = member.getGuild();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.memberJoin(locale, member));
+			sendLog(guild, type, () -> logUtil.memberJoin(locale, member, invite));
 		}
 
 		public void onLeft(Guild guild, Member cachedMember, User user) {

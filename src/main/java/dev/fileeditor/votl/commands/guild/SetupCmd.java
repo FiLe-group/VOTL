@@ -41,7 +41,7 @@ public class SetupCmd extends SlashCommand {
 			new VoiceCreate(), new VoiceSelect(), new VoicePanel(),
 			new VoiceName(), new VoiceLimit(),
 			new Strikes(), new InformLevel(), new RoleWhitelist(),
-			new Levels(), new Drama(), new Language()
+			new Levels(), new Drama(), new Language(), new InviteTracker()
 		};
 		this.category = CmdCategory.GUILD;
 		this.requiredPermission = AccessPermission.ADMIN;
@@ -490,6 +490,47 @@ public class SetupCmd extends SlashCommand {
 			// Reply
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", enabled?Constants.SUCCESS:Constants.FAILURE))
+				.build());
+		}
+	}
+
+	private class InviteTracker extends SlashCommand {
+		public InviteTracker() {
+			this.name = "invite_tracker";
+			this.path = "bot.guild.setup.invite_tracker";
+			this.options = List.of(
+				new OptionData(OptionType.BOOLEAN, "enable", lu.getText(path+".enable.help"), true)
+			);
+		}
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Guild guild = event.getGuild();
+			assert guild != null;
+			boolean enabled = event.optBoolean("enable");
+			// DB
+			try {
+				bot.getDBUtil().guildSettings.setInviteTracker(guild.getIdLong(), enabled);
+			} catch (SQLException ex) {
+				editErrorDatabase(event, ex, "set invite tracker");
+				return;
+			}
+			// Load or drop the invite snapshot right away
+			StringBuilder response = new StringBuilder(
+				lu.getGuildText(event, path+".done", enabled?Constants.SUCCESS:Constants.FAILURE)
+			);
+			if (enabled) {
+				if (guild.getSelfMember().hasPermission(Permission.MANAGE_SERVER)) {
+					bot.getInviteTracker().prime(guild, 0);
+				} else {
+					// Without it invites cannot be read, so every join would log as unavailable
+					response.append("\n").append(lu.getGuildText(event, path+".no_perm"));
+				}
+			} else {
+				bot.getInviteTracker().remove(guild.getIdLong());
+			}
+			// Reply
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(response.toString())
 				.build());
 		}
 	}

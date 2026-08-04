@@ -26,7 +26,7 @@ public class GuildSettingsManager extends LiteBase {
 		"color", "lastWebhookId", "appealLink", "reportChannelId",
 		"strikeExpire", "strikeCooldown", "modulesOff",
 		"informBan", "informKick", "informMute", "informStrike", "informDelstrike",
-		"roleWhitelist", "drama", "dramaChannel", "locale"
+		"roleWhitelist", "drama", "dramaChannel", "locale", "inviteTracker"
 	);
 
 	// Cache
@@ -128,6 +128,11 @@ public class GuildSettingsManager extends LiteBase {
 		execute("INSERT INTO %s(guildId, dramaChannel) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET dramaChannel=%<s".formatted(table, guildId, channelId==null ? "NULL" : channelId));
 	}
 
+	public void setInviteTracker(long guildId, boolean enabled) throws SQLException {
+		invalidateCache(guildId);
+		execute("INSERT INTO %s(guildId, inviteTracker) VALUES (%s, %d) ON CONFLICT(guildId) DO UPDATE SET inviteTracker=%<d".formatted(table, guildId, enabled?1:0));
+	}
+
 	public void setLocale(long guildId, @Nullable DiscordLocale locale) throws SQLException {
 		invalidateCache(guildId);
 		execute("INSERT INTO %s(guildId, locale) VALUES (%s, %s) ON CONFLICT(guildId) DO UPDATE SET locale=%<s".formatted(table, guildId, locale==null ? "NULL" : quote(locale.getLocale())));
@@ -143,7 +148,7 @@ public class GuildSettingsManager extends LiteBase {
 		private final int color, strikeExpire, strikeCooldown, modulesOff;
 		private final String appealLink;
 		@NotNull private final ModerationInformLevel informBan, informKick, informMute, informStrike, informDelstrike;
-		private final boolean roleWhitelist;
+		private final boolean roleWhitelist, inviteTracker;
 		@NotNull private final DramaLevel dramaLevel;
 		@NotNull private final DiscordLocale locale;
 
@@ -161,6 +166,7 @@ public class GuildSettingsManager extends LiteBase {
 			this.informStrike = ModerationInformLevel.DEFAULT;
 			this.informDelstrike = ModerationInformLevel.NONE;
 			this.roleWhitelist = false;
+			this.inviteTracker = false;
 			this.dramaLevel = DramaLevel.OFF;
 			this.dramaChannelId = null;
 			this.locale = DiscordLocale.UNKNOWN;
@@ -180,6 +186,7 @@ public class GuildSettingsManager extends LiteBase {
 			this.informStrike = ModerationInformLevel.byLevel(getOrDefault(data.get("informStrike"), 1));
 			this.informDelstrike = ModerationInformLevel.byLevel(getOrDefault(data.get("informDelstrike"), 0));
 			this.roleWhitelist = getOrDefault(data.get("roleWhitelist"), 0) == 1;
+			this.inviteTracker = getOrDefault(data.get("inviteTracker"), 0) == 1;
 			this.dramaLevel = DramaLevel.byLevel(getOrDefault(data.get("drama"), 0));
 			this.dramaChannelId = getOrDefault(data.get("dramaChannel"), null);
 			this.locale = resolveOrDefault(data.get("locale"), s->DiscordLocale.from((String) s), DiscordLocale.UNKNOWN);
@@ -253,6 +260,11 @@ public class GuildSettingsManager extends LiteBase {
 
 		public boolean isRoleWhitelistEnabled() {
 			return roleWhitelist;
+		}
+
+		/** Whether member join logs should name the invite that was used. */
+		public boolean isInviteTrackerEnabled() {
+			return inviteTracker;
 		}
 
 		@Nullable

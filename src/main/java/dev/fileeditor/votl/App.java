@@ -28,6 +28,7 @@ import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.file.FileManager;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 import dev.fileeditor.votl.utils.imagegen.UserBackgroundHandler;
+import dev.fileeditor.votl.utils.invite.InviteTracker;
 import dev.fileeditor.votl.utils.level.LevelUtil;
 import dev.fileeditor.votl.utils.logs.GuildLogger;
 import dev.fileeditor.votl.utils.logs.LogEmbedUtil;
@@ -75,6 +76,7 @@ public class App {
 	private final GroupHelper groupHelper;
 	private final ModerationUtil moderationUtil;
 	private final LevelUtil levelUtil;
+	private final InviteTracker inviteTracker;
 
 	private final Blacklist blacklist;
 
@@ -120,6 +122,7 @@ public class App {
 		ticketUtil		= new TicketUtil(this);
 		moderationUtil	= new ModerationUtil(dbUtil, localeUtil);
 		levelUtil		= new LevelUtil(this);
+		inviteTracker	= new InviteTracker();
 
 		logEmbedUtil	= new LogEmbedUtil();
 		guildLogger		= new GuildLogger(this);
@@ -136,7 +139,7 @@ public class App {
 		AuditListener auditListener = new AuditListener(dbUtil, guildLogger);
 		MemberListener memberListener = new MemberListener(this);
 		MessageListener messageListener = new MessageListener(this);
-		EventListener eventListener = new EventListener(dbUtil);
+		EventListener eventListener = new EventListener(this);
 
 		LOG.info("Preparing blacklist");
 		blacklist = new Blacklist(this);
@@ -309,6 +312,10 @@ public class App {
 
 	public LevelUtil getLevelUtil() {
 		return levelUtil;
+	}
+
+	public InviteTracker getInviteTracker() {
+		return inviteTracker;
 	}
 
 	public Blacklist getBlacklist() {

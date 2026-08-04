@@ -18,6 +18,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CaseType;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import dev.fileeditor.votl.utils.invite.InviteInfo;
 
 import dev.fileeditor.votl.utils.database.managers.CaseManager;
 import net.dv8tion.jda.api.audit.ActionType;
@@ -40,6 +41,9 @@ import org.slf4j.LoggerFactory;
 
 public class MemberListener extends ListenerAdapter {
 
+	/** Cap on how long a join log waits for the invite lookup before going out without it. */
+	private static final long INVITE_RESOLVE_TIMEOUT_SEC = 3;
+
 	private final Logger log = (Logger) LoggerFactory.getLogger(MemberListener.class);
 
 	private final App bot;
@@ -54,7 +58,14 @@ public class MemberListener extends ListenerAdapter {
 	public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
 		// Log
 		if (db.getLogSettings(event.getGuild()).enabled(LogType.MEMBER)) {
-			bot.getGuildLogger().member.onJoined(event.getMember());
+			// Bots are added through OAuth and never consume an invite, so don't spend a request on them
+			if (db.getGuildSettings(event.getGuild()).isInviteTrackerEnabled() && !event.getUser().isBot()) {
+				bot.getInviteTracker().resolve(event.getGuild())
+					.completeOnTimeout(InviteInfo.of(InviteInfo.Source.UNAVAILABLE), INVITE_RESOLVE_TIMEOUT_SEC, TimeUnit.SECONDS)
+					.thenAccept(invite -> bot.getGuildLogger().member.onJoined(event.getMember(), invite));
+			} else {
+				bot.getGuildLogger().member.onJoined(event.getMember());
+			}
 		}
 
 		long userId = event.getUser().getIdLong();

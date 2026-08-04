@@ -5,6 +5,8 @@ import dev.fileeditor.votl.utils.ConsoleColor;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.events.guild.invite.GuildInviteCreateEvent;
+import net.dv8tion.jda.api.events.guild.invite.GuildInviteDeleteEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -35,7 +37,20 @@ public class GuildListener extends ListenerAdapter {
 			log.info(ConsoleColor.format("%redAuto-left new guild '{}'({}) BLACKLIST!%reset"), guild.getName(), guild.getId());
 		} else {
 			log.info(ConsoleColor.format("%greenJoined guild '{}'({})%reset"), guild.getName(), guild.getId());
+			if (db.getGuildSettings(guild).isInviteTrackerEnabled()) {
+				bot.getInviteTracker().prime(guild, 0);
+			}
 		}
+	}
+
+	@Override
+	public void onGuildInviteCreate(@NotNull GuildInviteCreateEvent event) {
+		bot.getInviteTracker().onInviteCreate(event);
+	}
+
+	@Override
+	public void onGuildInviteDelete(@NotNull GuildInviteDeleteEvent event) {
+		bot.getInviteTracker().onInviteDelete(event.getGuild().getIdLong(), event.getCode());
 	}
 
 	@Override
@@ -84,6 +99,7 @@ public class GuildListener extends ListenerAdapter {
 		ignoreExc(() -> db.mediaChannels.removeGuild(guildId));
 		ignoreExc(() -> db.autoRole.removeGuild(guildId));
 		ignoreExc(() -> db.rankRoles.removeGuild(guildId));
+		ignoreExc(() -> bot.getInviteTracker().remove(guildId));
 
 		ignoreExc(() -> db.guildSettings.remove(guildId));
 

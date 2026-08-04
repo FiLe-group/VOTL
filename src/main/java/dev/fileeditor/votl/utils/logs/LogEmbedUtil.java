@@ -9,7 +9,6 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.ExpType;
@@ -18,6 +17,7 @@ import dev.fileeditor.votl.objects.logs.LogEvent;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+import dev.fileeditor.votl.utils.invite.InviteInfo;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 
@@ -41,12 +41,9 @@ import net.dv8tion.jda.internal.utils.tuple.Pair;
 import com.jayway.jsonpath.JsonPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
- import org.slf4j.LoggerFactory;
 
 @SuppressWarnings({"FieldCanBeLocal", "UnusedReturnValue"})
 public class LogEmbedUtil {
-
-	private final static Logger LOG = (Logger) LoggerFactory.getLogger(LogEmbedUtil.class);
 
 	private final @NotNull LocaleUtil lu;
 
@@ -1065,12 +1062,37 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
-	public MessageEmbed memberJoin(DiscordLocale locale, Member member) {
-		return new LogEmbedBuilder(locale, GREEN_LIGHT)
+	public MessageEmbed memberJoin(DiscordLocale locale, Member member, @Nullable InviteInfo invite) {
+		LogEmbedBuilder builder = new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeaderIcon(LogEvent.MEMBER_JOIN, member.getEffectiveAvatarUrl(), member.getUser().getName())
 			.setDescription("<@%s>".formatted(member.getId()))
-			.setId(member.getId())
-			.build();
+			.setId(member.getId());
+		if (invite != null) {
+			builder.addField("member.invite", inviteValue(locale, invite));
+			// Only a matched invite has an author; the vanity URL has none
+			if (invite.source() == InviteInfo.Source.INVITE) {
+				builder.addField("member.invite_by", invite.inviterId() == null ? "-" : "<@%s>".formatted(invite.inviterId()));
+			}
+			if (invite.uses() >= 0) {
+				builder.addField("member.invite_uses", "%d / %s".formatted(
+					invite.uses(), invite.maxUses() > 0 ? String.valueOf(invite.maxUses()) : "∞"
+				));
+			}
+		}
+		return builder.build();
+	}
+
+	@NotNull
+	private String inviteValue(DiscordLocale locale, InviteInfo invite) {
+		return switch (invite.source()) {
+			case INVITE -> invite.channelId() == null
+				? "`%s`".formatted(invite.code())
+				: "`%s`\n<#%d>".formatted(invite.code(), invite.channelId());
+			case VANITY -> "%s (`%s`)".formatted(localized(locale, "member.invite_vanity"), invite.code());
+			case WIDGET_OR_DISCOVERY -> localized(locale, "member.invite_direct");
+			case UNAVAILABLE -> localized(locale, "member.invite_unavailable");
+			case AMBIGUOUS, NOT_CACHED -> localized(locale, "member.invite_unknown");
+		};
 	}
 
 	@NotNull

@@ -25,3 +25,4 @@ CREATE TABLE "customRoleSettings" ("guildId" INTEGER NOT NULL UNIQUE, "requestsC
 ALTER TABLE "customRoleRequests" ADD "requestType" INTEGER DEFAULT 0
 CREATE TABLE "autoRole" ("guildId" INTEGER NOT NULL, "triggerRoleId" INTEGER NOT NULL, "targetRoleId" INTEGER NOT NULL, UNIQUE("guildId","triggerRoleId","targetRoleId"))
 CREATE TABLE "rankGroups" ("groupId" INTEGER PRIMARY KEY AUTOINCREMENT, "guildId" INTEGER NOT NULL, "name" TEXT NOT NULL, UNIQUE("guildId","name")); CREATE TABLE "rankGroupRoles" ("entryId" INTEGER PRIMARY KEY AUTOINCREMENT, "groupId" INTEGER NOT NULL, "roleId" INTEGER NOT NULL, UNIQUE("groupId","roleId"), FOREIGN KEY ("groupId") REFERENCES "rankGroups"("groupId") ON DELETE CASCADE)
+ALTER TABLE "guild" ADD "inviteTracker" INTEGER NOT NULL DEFAULT 0
