@@ -93,7 +93,7 @@ public class AutopunishCmd extends SlashCommand {
 			
 			List<PunishAction> actions = new ArrayList<>();
 			List<String> data = new ArrayList<>();
-			StringBuilder builder = new StringBuilder(lu.getGuildText(event, path+".title", strikeCount));
+			StringBuilder builder = new StringBuilder();
 			if (event.optBoolean("kick", false)) {
 				actions.add(PunishAction.KICK);
 				builder.append(lu.getGuildText(event, path+".vkick"));
@@ -206,7 +206,12 @@ public class AutopunishCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "add action");
 				return;
 			}
-			editEmbed(event, bot.getEmbedUtil().getEmbed().setColor(Constants.COLOR_SUCCESS).setDescription(builder.toString()).build());
+			bot.getGuildLogger().botLogs.onAutopunishAdded(event.getGuild(), event.getUser(), strikeCount, builder.toString());
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed()
+				.setColor(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, path+".title", strikeCount)+builder)
+				.build());
 		}
 	}
 
@@ -235,6 +240,8 @@ public class AutopunishCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "remove action");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onAutopunishRemoved(event.getGuild(), event.getUser(), strikeCount);
+
 			editEmbed(event, bot.getEmbedUtil().getEmbed()
 				.setColor(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", strikeCount))

@@ -79,6 +79,7 @@ public class RankRolesCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "create rank group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onRankGroupCreated(guild, event.getUser(), name);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", name))
@@ -113,6 +114,7 @@ public class RankRolesCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "delete rank group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onRankGroupDeleted(guild, event.getUser(), group.name());
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", group.name()))
@@ -217,6 +219,7 @@ public class RankRolesCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "add role to rank group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onRankRoleAdded(guild, event.getUser(), role, group.name());
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention(), group.name()))
@@ -268,6 +271,7 @@ public class RankRolesCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "remove role from rank group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onRankRoleRemoved(guild, event.getUser(), role, group.name());
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention(), group.name()))

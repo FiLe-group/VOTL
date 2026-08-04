@@ -36,6 +36,7 @@ import net.dv8tion.jda.api.entities.Guild.NotificationLevel;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
+import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 import com.jayway.jsonpath.JsonPath;
@@ -812,26 +813,208 @@ public class LogEmbedUtil {
 
 	// Bot settings
 	@NotNull
-	public MessageEmbed accessAdded(DiscordLocale locale, User mod, User userTarget, Role roleTarget, String levelName) {
+	public MessageEmbed accessAdded(DiscordLocale locale, User mod, User userTarget, Role roleTarget, String groupName) {
 		String targetMention = userTarget!=null ? userTarget.getAsMention() : roleTarget.getAsMention();
 		String targetId = userTarget!=null ? userTarget.getId() : roleTarget.getId();
 		return new LogEmbedBuilder(locale, GREEN_DARK)
 			.setHeaderIcon("bot.access_added", userTarget != null ? userTarget.getEffectiveAvatarUrl() : null)
 			.addField("target", targetMention)
-			.addField("bot.access_level", levelName)
+			.addField("bot.access_group", groupName)
 			.setEnforcer(mod.getIdLong())
 			.setId(targetId)
 			.build();
 	}
 
 	@NotNull
-	public MessageEmbed accessRemoved(DiscordLocale locale, User mod, User userTarget, Role roleTarget, String levelName) {
+	public MessageEmbed accessRemoved(DiscordLocale locale, User mod, User userTarget, Role roleTarget, String groupName) {
 		String targetMention = userTarget!=null ? userTarget.getAsMention() : roleTarget.getAsMention();
 		String targetId = userTarget!=null ? userTarget.getId() : roleTarget.getId();
 		return new LogEmbedBuilder(locale, RED_DARK)
 			.setHeaderIcon("bot.access_removed", userTarget != null ? userTarget.getEffectiveAvatarUrl() : null)
 			.addField("target", targetMention)
-			.addField("bot.access_level", levelName)
+			.addField("bot.access_group", groupName)
+			.setEnforcer(mod.getIdLong())
+			.setId(targetId)
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed accessGroupCreated(DiscordLocale locale, User mod, String groupName) {
+		return new LogEmbedBuilder(locale, GREEN_DARK)
+			.setHeader("bot.access_group_created", groupName)
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed accessGroupDeleted(DiscordLocale locale, User mod, String groupName) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeader("bot.access_group_deleted", groupName)
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed autopunishAdded(DiscordLocale locale, User mod, int strikeCount, String actions) {
+		return new LogEmbedBuilder(locale, GREEN_DARK)
+			.setHeader("bot.autopunish_added", strikeCount)
+			.addField("bot.autopunish_actions", actions, false)
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed autopunishRemoved(DiscordLocale locale, User mod, int strikeCount) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeader("bot.autopunish_removed", strikeCount)
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed persistentRoleAdded(DiscordLocale locale, User mod, Role role) {
+		return new LogEmbedBuilder(locale, GREEN_DARK)
+			.setHeader("bot.persistent_added")
+			.addField("role.role", role.getAsMention())
+			.setEnforcer(mod.getIdLong())
+			.setId(role.getId())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed persistentRoleRemoved(DiscordLocale locale, User mod, Role role) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeader("bot.persistent_removed")
+			.addField("role.role", role.getAsMention())
+			.setEnforcer(mod.getIdLong())
+			.setId(role.getId())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed autoRoleAdded(DiscordLocale locale, User mod, Role trigger, Role secondary) {
+		return new LogEmbedBuilder(locale, GREEN_DARK)
+			.setHeader("bot.autorole_added")
+			.addField("role.auto_trigger", trigger.getAsMention())
+			.addField("bot.autorole_secondary", secondary.getAsMention())
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed autoRoleRemoved(DiscordLocale locale, User mod, Role trigger, Role secondary) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeader("bot.autorole_removed")
+			.addField("role.auto_trigger", trigger.getAsMention())
+			.addField("bot.autorole_secondary", secondary.getAsMention())
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed rankGroupCreated(DiscordLocale locale, User mod, String groupName) {
+		return new LogEmbedBuilder(locale, GREEN_DARK)
+			.setHeader("bot.rank_group_created", groupName)
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed rankGroupDeleted(DiscordLocale locale, User mod, String groupName) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeader("bot.rank_group_deleted", groupName)
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed rankRoleAdded(DiscordLocale locale, User mod, Role role, String groupName) {
+		return new LogEmbedBuilder(locale, GREEN_DARK)
+			.setHeader("bot.rank_role_added")
+			.addField("role.role", role.getAsMention())
+			.addField("bot.rank_group", groupName)
+			.setEnforcer(mod.getIdLong())
+			.setId(role.getId())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed rankRoleRemoved(DiscordLocale locale, User mod, Role role, String groupName) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeader("bot.rank_role_removed")
+			.addField("role.role", role.getAsMention())
+			.addField("bot.rank_group", groupName)
+			.setEnforcer(mod.getIdLong())
+			.setId(role.getId())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed levelRoleSet(DiscordLocale locale, User mod, int level, Role role, ExpType expType) {
+		return new LogEmbedBuilder(locale, GREEN_DARK)
+			.setHeader("bot.level_role_set")
+			.addField("bot.level_value", String.valueOf(level))
+			.addField("role.role", role.getAsMention())
+			.addField("bot.level_exp_type", expType.name())
+			.setEnforcer(mod.getIdLong())
+			.setId(role.getId())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed levelRoleRemoved(DiscordLocale locale, User mod, int level) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeader("bot.level_role_removed")
+			.addField("bot.level_value", String.valueOf(level))
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed verifyRoleSet(DiscordLocale locale, User mod, Role role) {
+		return new LogEmbedBuilder(locale, AMBER_DARK)
+			.setHeader("bot.verify_role_set")
+			.addField("role.role", role.getAsMention())
+			.setEnforcer(mod.getIdLong())
+			.setId(role.getId())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed verifyAdditionalSet(DiscordLocale locale, User mod, String roles) {
+		return new LogEmbedBuilder(locale, AMBER_DARK)
+			.setHeader("bot.verify_additional_set")
+			.addField("role.roles", roles)
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed verifyAdditionalCleared(DiscordLocale locale, User mod) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeader("bot.verify_additional_cleared")
+			.setEnforcer(mod.getIdLong())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed customRoleGranted(DiscordLocale locale, User mod, long targetId, long expiresAt) {
+		return new LogEmbedBuilder(locale, GREEN_LIGHT)
+			.setHeader("bot.custom_role_granted")
+			.setUser(targetId)
+			.addField("bot.custom_role_expires", expiresAt==0
+				? lu.getLocalized(locale, "misc.permanently")
+				: TimeFormat.DATE_TIME_SHORT.format(Instant.ofEpochSecond(expiresAt)))
+			.setEnforcer(mod.getIdLong())
+			.setId(targetId)
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed customRoleRevoked(DiscordLocale locale, User mod, long targetId) {
+		return new LogEmbedBuilder(locale, RED_LIGHT)
+			.setHeader("bot.custom_role_revoked")
+			.setUser(targetId)
 			.setEnforcer(mod.getIdLong())
 			.setId(targetId)
 			.build();

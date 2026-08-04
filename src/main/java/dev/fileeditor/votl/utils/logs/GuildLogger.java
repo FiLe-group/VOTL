@@ -872,5 +872,110 @@ public class GuildLogger {
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.customRoleRejectedEmbed(locale, reviewerId, userId, roleName, reason));
 		}
+
+		public void onCustomRoleGranted(Guild guild, User mod, long targetId, long expiresAt) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.customRoleGranted(locale, mod, targetId, expiresAt));
+		}
+
+		public void onCustomRoleRevoked(Guild guild, User mod, long targetId) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.customRoleRevoked(locale, mod, targetId));
+		}
+
+		public void onAccessGroupCreated(Guild guild, User mod, String groupName) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.accessGroupCreated(locale, mod, groupName));
+		}
+
+		public void onAccessGroupDeleted(Guild guild, User mod, String groupName) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.accessGroupDeleted(locale, mod, groupName));
+		}
+
+		public void onAccessAdded(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, String groupName) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.accessAdded(locale, mod, userTarget, roleTarget, groupName));
+		}
+
+		public void onAccessRemoved(Guild guild, User mod, @Nullable User userTarget, @Nullable Role roleTarget, String groupName) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.accessRemoved(locale, mod, userTarget, roleTarget, groupName));
+		}
+
+		public void onAutopunishAdded(Guild guild, User mod, int strikeCount, String actions) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.autopunishAdded(locale, mod, strikeCount, actions));
+		}
+
+		public void onAutopunishRemoved(Guild guild, User mod, int strikeCount) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.autopunishRemoved(locale, mod, strikeCount));
+		}
+
+		public void onPersistentRoleAdded(Guild guild, User mod, Role role) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.persistentRoleAdded(locale, mod, role));
+		}
+
+		public void onPersistentRoleRemoved(Guild guild, User mod, Role role) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.persistentRoleRemoved(locale, mod, role));
+		}
+
+		public void onAutoRoleAdded(Guild guild, User mod, Role trigger, Role secondary) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.autoRoleAdded(locale, mod, trigger, secondary));
+		}
+
+		public void onAutoRoleRemoved(Guild guild, User mod, Role trigger, Role secondary) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.autoRoleRemoved(locale, mod, trigger, secondary));
+		}
+
+		public void onRankGroupCreated(Guild guild, User mod, String groupName) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.rankGroupCreated(locale, mod, groupName));
+		}
+
+		public void onRankGroupDeleted(Guild guild, User mod, String groupName) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.rankGroupDeleted(locale, mod, groupName));
+		}
+
+		public void onRankRoleAdded(Guild guild, User mod, Role role, String groupName) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.rankRoleAdded(locale, mod, role, groupName));
+		}
+
+		public void onRankRoleRemoved(Guild guild, User mod, Role role, String groupName) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.rankRoleRemoved(locale, mod, role, groupName));
+		}
+
+		public void onLevelRoleSet(Guild guild, User mod, int level, Role role, ExpType expType) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.levelRoleSet(locale, mod, level, role, expType));
+		}
+
+		public void onLevelRoleRemoved(Guild guild, User mod, int level) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.levelRoleRemoved(locale, mod, level));
+		}
+
+		public void onVerifyRoleSet(Guild guild, User mod, Role role) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.verifyRoleSet(locale, mod, role));
+		}
+
+		public void onVerifyAdditionalSet(Guild guild, User mod, String roles) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.verifyAdditionalSet(locale, mod, roles));
+		}
+
+		public void onVerifyAdditionalCleared(Guild guild, User mod) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.verifyAdditionalCleared(locale, mod));
+		}
 	}
 }

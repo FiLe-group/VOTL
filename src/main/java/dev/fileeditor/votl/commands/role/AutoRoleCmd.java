@@ -108,6 +108,7 @@ public class AutoRoleCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "add auto-role pair");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onAutoRoleAdded(guild, event.getUser(), trigger, secondary);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", trigger.getAsMention(), secondary.getAsMention()))
@@ -169,6 +170,7 @@ public class AutoRoleCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "remove auto-role pair");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onAutoRoleRemoved(guild, event.getUser(), trigger, secondary);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done"))

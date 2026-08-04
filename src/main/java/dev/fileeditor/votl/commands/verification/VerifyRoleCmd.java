@@ -66,6 +66,7 @@ public class VerifyRoleCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "set verify role");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onVerifyRoleSet(guild, event.getUser(), role);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention()))
@@ -118,11 +119,12 @@ public class VerifyRoleCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "set additional roles");
 				return;
 			}
+			final String roleMentions = roles.stream().map(Role::getAsMention).collect(Collectors.joining(" "));
+			bot.getGuildLogger().botLogs.onVerifyAdditionalSet(guild, event.getUser(), roleMentions);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
-				.setDescription(lu.getGuildText(event, path+".done",
-					roles.stream().map(Role::getAsMention).collect(Collectors.joining(" ")))
-				).build());
+				.setDescription(lu.getGuildText(event, path+".done", roleMentions))
+				.build());
 		}
 	}
 
@@ -140,7 +142,10 @@ public class VerifyRoleCmd extends SlashCommand {
 				bot.getDBUtil().verifySettings.setAdditionalRoles(event.getGuild().getIdLong(), null);
 			} catch (SQLException ex) {
 				editErrorDatabase(event, ex, "Failed to update database");
+				return;
 			}
+			bot.getGuildLogger().botLogs.onVerifyAdditionalCleared(event.getGuild(), event.getUser());
+
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done"))
 				.build()

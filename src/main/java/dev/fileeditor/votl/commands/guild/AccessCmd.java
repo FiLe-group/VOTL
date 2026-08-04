@@ -88,6 +88,7 @@ public class AccessCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "create group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onAccessGroupCreated(guild, event.getUser(), name);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", name))
@@ -123,6 +124,7 @@ public class AccessCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "delete group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onAccessGroupDeleted(guild, event.getUser(), group.name());
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", group.name()))
@@ -507,6 +509,7 @@ public class AccessCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "add role to group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onAccessAdded(guild, event.getUser(), null, role, group.name());
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention(), group.name()))
@@ -558,6 +561,7 @@ public class AccessCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "remove role from group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onAccessRemoved(guild, event.getUser(), null, role, group.name());
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention(), group.name()))
@@ -618,6 +622,7 @@ public class AccessCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "add user to group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onAccessAdded(guild, event.getUser(), member.getUser(), null, group.name());
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", member.getAsMention(), group.name()))
@@ -669,6 +674,7 @@ public class AccessCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "remove user from group");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onAccessRemoved(guild, event.getUser(), user, null, group.name());
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", user.getAsMention(), group.name()))

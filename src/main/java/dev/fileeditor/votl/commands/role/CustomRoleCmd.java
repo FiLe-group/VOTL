@@ -293,6 +293,7 @@ public class CustomRoleCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "grant custom role access");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onCustomRoleGranted(guild, event.getUser(), target.getIdLong(), expiresAt);
 
 			String description = expiresAt == 0
 				? lu.getText(event, path+".done_permanent").formatted(target.getAsMention())
@@ -341,6 +342,8 @@ public class CustomRoleCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "revoke custom role access");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onCustomRoleRevoked(guild, event.getUser(), userId);
+
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getText(event, path+".done").formatted(target.getAsMention()))
 				.build());

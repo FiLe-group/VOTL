@@ -76,6 +76,8 @@ public class LevelRolesCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "level roles set");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onLevelRoleSet(event.getGuild(), event.getUser(), level, role, type);
+
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention(), level))
 				.build()
@@ -109,6 +111,8 @@ public class LevelRolesCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "level roles remove");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onLevelRoleRemoved(event.getGuild(), event.getUser(), level);
+
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", level))
 				.build()

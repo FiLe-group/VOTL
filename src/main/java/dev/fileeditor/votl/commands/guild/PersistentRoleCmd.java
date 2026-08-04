@@ -73,6 +73,8 @@ public class PersistentRoleCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "add persistent role");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onPersistentRoleAdded(event.getGuild(), event.getUser(), role);
+
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention()))
 				.build());
@@ -100,6 +102,8 @@ public class PersistentRoleCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "remove persistent role");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onPersistentRoleRemoved(event.getGuild(), event.getUser(), role);
+
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", role.getAsMention()))
 				.build());
