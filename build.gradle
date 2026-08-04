@@ -24,15 +24,15 @@ dependencies {
 		exclude module: 'tink'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-	implementation 'ch.qos.logback:logback-classic:1.5.38'			// Logging (required by JDA)
+	implementation 'ch.qos.logback:logback-classic:1.6.1'			// Logging (required by JDA)
 
 	// Tools
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:3.0.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.53.2.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.53.2.1'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
-	implementation 'org.jsoup:jsoup:1.22.2'							// HTML tools
+	implementation 'org.jsoup:jsoup:1.23.1'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
 	implementation 'io.github.java-diff-utils:java-diff-utils:4.17'	// Diff finder
 	// https://mvnrepository.com/artifact/org.json/json
@@ -56,7 +56,7 @@ dependencies {
 
 	// Testing
 	// Source: https://mvnrepository.com/artifact/org.junit/junit-bom
-	testImplementation platform('org.junit:junit-bom:6.1.1')
+	testImplementation platform('org.junit:junit-bom:6.1.2')
 	// Source: https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	// Source: https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher
