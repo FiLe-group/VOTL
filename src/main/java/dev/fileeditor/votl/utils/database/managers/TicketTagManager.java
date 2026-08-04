@@ -64,6 +64,11 @@ public class TicketTagManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId=%s)".formatted(table, guildId));
 	}
 
+	/** Unsets the target category of every tag pointing at it (e.g. category was deleted). */
+	public void clearLocation(long categoryId) throws SQLException {
+		execute("UPDATE %s SET location=NULL WHERE (location=%s)".formatted(table, quote(categoryId)));
+	}
+
 	public void updateTag(int tagId, Integer tagType, String buttonText, String emoji, Long categoryId, String message, String supportRoleIds, String ticketName, Integer buttonStyle) throws SQLException {
 		List<String> values = new ArrayList<>();
 		if (tagType != null) 
@@ -168,7 +173,7 @@ public class TicketTagManager extends LiteBase {
 		@Nullable
 		private String setNewline(String text) {
 			if (text==null) return null;
-			return text.replaceAll("<br>", "\n");
+			return text.replace("<br>", "\n");
 		}
 
 		public EmbedBuilder getPreviewEmbed(Function<String, String> locale, Integer tagId) {

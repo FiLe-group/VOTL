@@ -43,6 +43,13 @@ public class GuildLogsManager extends LiteBase {
 		execute("UPDATE %s SET %s=NULL WHERE (guildId=%d)".formatted(table, type.getName(), guildId));
 	}
 
+	/** Disables every log which points at this channel (e.g. channel with its webhook was deleted). */
+	public void removeChannel(long guildId, long channelId) throws SQLException {
+		for (Map.Entry<LogType, Long> entry : getSettings(guildId).getChannels().entrySet()) {
+			if (entry.getValue() == channelId) removeLogWebhook(entry.getKey(), guildId);
+		}
+	}
+
 	public void removeGuild(long guildId) throws SQLException {
 		invalidateCache(guildId);
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));

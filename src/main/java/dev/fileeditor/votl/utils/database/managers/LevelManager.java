@@ -71,6 +71,18 @@ public class LevelManager extends LiteBase {
 		execute("INSERT INTO %s(guildId, exemptChannels) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET exemptChannels=%<s".formatted(TABLE_SETTINGS, guildId, quote(channelIds)));
 	}
 
+	public void removeExemptChannel(long guildId, long channelId) throws SQLException {
+		LevelSettings settings = getSettings(guildId);
+		if (!settings.isExemptChannel(channelId)) return;
+
+		setExemptChannels(guildId, settings.getExemptChannels()
+			.stream()
+			.filter(id -> id != channelId)
+			.map(String::valueOf)
+			.collect(Collectors.joining(";"))
+		);
+	}
+
 	public void setVoiceEnabled(long guildId, boolean enabled) throws SQLException {
 		invalidateSettings(guildId);
 		execute("INSERT INTO %s(guildId, voiceEnabled) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET voiceEnabled=%<d".formatted(TABLE_SETTINGS, guildId, enabled?1:0));
@@ -84,7 +96,6 @@ public class LevelManager extends LiteBase {
 	@NotNull
 	public PlayerData getPlayer(long guildId, long userId) {
 		String key = PlayerObject.asKey(guildId, userId);
-		//noinspection DataFlowIssue
 		return playersCache.get(key, _ -> getPlayerData(guildId, userId));
 	}
 

@@ -8,8 +8,6 @@ import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.events.guild.GuildAuditLogEntryCreateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-import java.sql.SQLException;
-
 public class AuditListener extends ListenerAdapter {
 	
 	private final DBUtil db;
@@ -37,15 +35,7 @@ public class AuditListener extends ListenerAdapter {
 				logger.channel.onChannelUpdate(entry);
 			}
 			case CHANNEL_DELETE -> {
-				// remove from DB
-				long guildId = event.getGuild().getIdLong();
-				long channelId = entry.getTargetIdLong();
-				try {
-					db.logExemptions.removeExemption(guildId, channelId);
-					db.mediaChannels.removeChannel(guildId, channelId);
-					db.games.removeChannel(channelId);
-					db.voice.remove(channelId);
-				} catch (SQLException ignored) {}
+				// DB cleanup is done by GuildListener#onChannelDelete
 
 				// check if enabled log
 				if (!db.getLogSettings(event.getGuild()).enabled(LogType.CHANNEL)) return;

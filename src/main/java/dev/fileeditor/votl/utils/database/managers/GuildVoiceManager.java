@@ -39,6 +39,16 @@ public class GuildVoiceManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId=%d)".formatted(table, guildId));
 	}
 
+	public void removeChannel(long guildId) throws SQLException {
+		invalidateCache(guildId);
+		execute("UPDATE %s SET channelId=NULL WHERE (guildId=%d)".formatted(table, guildId));
+	}
+
+	public void removeCategory(long guildId) throws SQLException {
+		invalidateCache(guildId);
+		execute("UPDATE %s SET categoryId=NULL WHERE (guildId=%d)".formatted(table, guildId));
+	}
+
 	public void setName(long guildId, String defaultName) throws SQLException {
 		invalidateCache(guildId);
 		execute("INSERT INTO %s(guildId, defaultName) VALUES (%d, %s) ON CONFLICT(guildId) DO UPDATE SET defaultName=%<s"

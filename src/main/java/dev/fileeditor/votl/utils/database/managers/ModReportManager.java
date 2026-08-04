@@ -26,6 +26,10 @@ public class ModReportManager extends LiteBase {
 		execute("DELETE FROM %s WHERE (guildId = %d)".formatted(table, guildId));
 	}
 
+	public void removeChannel(long channelId) throws SQLException {
+		execute("DELETE FROM %s WHERE (channelId = %d)".formatted(table, channelId));
+	}
+
 	public void updateNext(long channelId, LocalDateTime nextReport) throws SQLException {
 		execute("UPDATE %s SET nextReport = %d WHERE (channelId = %d)"
 			.formatted(table, nextReport.toEpochSecond(ZoneOffset.UTC), channelId));

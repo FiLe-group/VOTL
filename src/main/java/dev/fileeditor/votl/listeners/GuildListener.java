@@ -3,6 +3,8 @@ package dev.fileeditor.votl.listeners;
 import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.utils.ConsoleColor;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.invite.GuildInviteCreateEvent;
@@ -12,7 +14,10 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.utils.database.DBUtil;
+import dev.fileeditor.votl.utils.database.managers.GuildSettingsManager.GuildSettings;
+import dev.fileeditor.votl.utils.database.managers.GuildVoiceManager.VoiceSettings;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
@@ -104,6 +109,48 @@ public class GuildListener extends ListenerAdapter {
 		ignoreExc(() -> db.guildSettings.remove(guildId));
 
 		log.info("Automatically removed guild '{}'({}) from db.", event.getGuild().getName(), guildId);
+	}
+
+	@Override
+	public void onChannelDelete(@NotNull ChannelDeleteEvent event) {
+		if (!event.isFromGuild()) return;
+
+		long guildId = event.getGuild().getIdLong();
+		long channelId = event.getChannel().getIdLong();
+
+		// Removes every reference to this channel from bot's DB
+		ignoreExc(() -> db.logExemptions.removeExemption(guildId, channelId));
+		ignoreExc(() -> db.logs.removeChannel(guildId, channelId));
+		ignoreExc(() -> db.mediaChannels.removeChannel(guildId, channelId));
+		ignoreExc(() -> db.games.removeChannel(channelId));
+		ignoreExc(() -> db.modReport.removeChannel(channelId));
+		ignoreExc(() -> db.levels.removeExemptChannel(guildId, channelId));
+		db.voice.remove(channelId);
+		db.tickets.forceCloseTicket(channelId);
+
+		GuildSettings guildSettings = db.getGuildSettings(guildId);
+		if (matches(guildSettings.getReportChannelId(), channelId))
+			ignoreExc(() -> db.guildSettings.setReportChannelId(guildId, null));
+		if (matches(guildSettings.getDramaChannelId(), channelId))
+			ignoreExc(() -> db.guildSettings.setDramaChannelId(guildId, null));
+
+		if (matches(db.customRoleSettings.getSettings(guildId).getRequestsChannelId(), channelId))
+			ignoreExc(() -> db.customRoleSettings.setRequestsChannel(guildId, null));
+
+		VoiceSettings voiceSettings = db.guildVoice.getSettings(guildId);
+		if (matches(voiceSettings.getChannelId(), channelId))
+			ignoreExc(() -> db.guildVoice.removeChannel(guildId));
+
+		if (event.getChannelType() == ChannelType.CATEGORY) {
+			// Category deletion does not delete its children, only unsets their parent
+			if (matches(voiceSettings.getCategoryId(), channelId))
+				ignoreExc(() -> db.guildVoice.removeCategory(guildId));
+			ignoreExc(() -> db.ticketTags.clearLocation(channelId));
+		}
+	}
+
+	private boolean matches(@Nullable Long settingId, long channelId) {
+		return settingId != null && settingId == channelId;
 	}
 
 	@Override
