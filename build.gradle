@@ -70,6 +70,20 @@ java {
 	}
 }
 
+// Downloads every dependency without needing the sources.
+// Lets the Dockerfile cache dependencies in a layer of their own.
+tasks.register('resolveDependencies') {
+	group = 'build setup'
+	description = 'Resolves and downloads all dependencies'
+	doLast {
+		// Only the project's own classpaths — plugin-internal configurations
+		// (such as Shadow's R8) resolve from repositories we do not declare.
+		['compileClasspath', 'runtimeClasspath', 'testCompileClasspath', 'testRuntimeClasspath']
+			.collect { configurations.getByName(it) }
+			.each { it.resolve() }
+	}
+}
+
 // jar's Manifest
 tasks.jar {
 	enabled = false

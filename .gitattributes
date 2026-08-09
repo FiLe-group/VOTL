@@ -6,3 +6,11 @@
 # These are explicitly windows files and should use crlf
 *.bat           text eol=crlf
 
+# These must keep LF even on Windows checkouts, or they break as soon as they
+# run on Linux (the Docker build runs gradlew directly).
+gradlew         text eol=lf
+*.sh            text eol=lf
+
+# Backslash line continuations are safer with LF endings.
+Dockerfile      text eol=lf
+

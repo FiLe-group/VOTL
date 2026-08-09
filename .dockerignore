@@ -1,34 +1,52 @@
-# Include any files or directories that you don't want to be copied to your
-# container here (e.g., local build artifacts, temporary files, etc.).
+# Files and directories that must not be sent to the Docker build context.
 #
 # For more help, visit the .dockerignore file reference guide at
 # https://docs.docker.com/go/build-context-dockerignore/
 
-**/.classpath
-**/.dockerignore
-**/.env
+# Build output and caches
+build/
+bin/
+.gradle/
+out/
+*.jar
+*.class
+hs_err_pid*
+
+# ...but the wrapper jar is required to run the build
+!gradle/wrapper/gradle-wrapper.jar
+
+# Runtime data — contains config.json (bot token) and server.db
+data/
+logs/
+
+# VCS
 **/.git
 **/.gitignore
-**/.project
-**/.settings
-**/.toolstarget
-**/.vs
-**/.vscode
-**/.next
-**/.cache
-**/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/charts
+**/.gitattributes
+
+# IDE / editor
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+*.iml
+
+# Docker / compose — not needed inside the image
+**/Dockerfile*
+**/.dockerignore
 **/docker-compose*
 **/compose.y*ml
-**/target
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
-**/obj
-**/secrets.dev.yaml
-**/values.dev.yaml
-**/vendor
-LICENSE
+
+# Local secrets
+**/.env
+**/secrets*.y*ml
+
+# Docs and launchers
+docs/
 README.md
+LICENSE.md
+CLAUDE.md
+.claude/
+*.sh
+*.bat

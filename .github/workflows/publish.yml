@@ -3,11 +3,16 @@ name: Publish Release
 on:
   workflow_dispatch:
     inputs:
-      shapshot:
+      snapshot:
         description: 'Is this pre-release version?'
         required: false
         default: false
         type: boolean
+
+# Releases must not be cancelled halfway through.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   build_release:
@@ -55,7 +60,7 @@ jobs:
           # Generate release notes. There needs to be a previous version for it to diff against.
           generateReleaseNotes: true
           # Optionally marks this release as prerelease. Set to true to enable.
-          prerelease: ${{ inputs.shapshot }}
+          prerelease: ${{ inputs.snapshot }}
           # Indicates if existing release artifacts should be replaced. Defaults to true.
           replacesArtifacts: true
           # An optional tag for the release. If this is omitted the git ref will be used (if it is a tag).
@@ -94,6 +99,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           provenance: true
           sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

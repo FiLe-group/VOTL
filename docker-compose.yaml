@@ -3,6 +3,10 @@ services:
     build:
       context: .
     restart: on-failure:2
+    # This mount covers /opt/votl, replacing the ownership the image sets up.
+    # On a Linux host the directory must be writable by the `votl` user in the
+    # image, otherwise data/server.db cannot be created:
+    #   sudo chown -R 10101:10102 <host-dir>
     volumes:
       - C:\votl:/opt/votl
     develop:
