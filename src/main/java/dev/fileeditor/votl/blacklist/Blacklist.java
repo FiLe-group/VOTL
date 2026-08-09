@@ -96,7 +96,7 @@ public class Blacklist {
 	}
 
 	public void addToBlacklist(Scope scope, long id, @Nullable String reason, boolean dnt) {
-		if (scope.equals(Scope.GUILD)) {
+		if (scope.equals(Scope.GUILD) && dnt) {
 			throw new IllegalArgumentException("Cannot add to blacklist with DNT when scope is GUILD");
 		}
 		BlacklistEntity entity = getEntity(id);

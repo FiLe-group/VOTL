@@ -19,7 +19,7 @@ public class BotBlacklist extends SlashCommand {
 		this.options = List.of(
 			new OptionData(OptionType.BOOLEAN, "add", lu.getText(path+".add.help"), true),
 			new OptionData(OptionType.STRING, "id", lu.getText(path+".id.help"), true),
-			new OptionData(OptionType.INTEGER, "type", lu.getText(path+".type.help"))
+			new OptionData(OptionType.INTEGER, "type", lu.getText(path+".type.help"), true)
 				.addChoice("User", 0)
 				.addChoice("Guild", 1),
 			new OptionData(OptionType.STRING, "reason", lu.getText(path+".reason.help")),
