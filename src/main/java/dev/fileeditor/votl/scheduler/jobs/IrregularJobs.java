@@ -16,6 +16,7 @@ public class IrregularJobs extends Job {
 	private final RemoveExpiredPersistentRoles removeExpiredPersistentRoles = new RemoveExpiredPersistentRoles();
 	private final GenerateReport generateReport = new GenerateReport();
 	private final ProcessCustomRoles processCustomRoles = new ProcessCustomRoles();
+	private final RepeatMessages repeatMessages = new RepeatMessages();
 
 	public IrregularJobs(App bot) {
 		super(bot, 1, 10, TimeUnit.MINUTES);
@@ -31,7 +32,8 @@ public class IrregularJobs extends Job {
 			removeExpiredStrikes,
 			removeExpiredPersistentRoles,
 			generateReport,
-			processCustomRoles
+			processCustomRoles,
+			repeatMessages
 		);
 	}
 

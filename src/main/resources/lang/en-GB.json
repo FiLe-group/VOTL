@@ -3377,6 +3377,51 @@
 			}
 		},
 		"tool": {
+			"repeat_message": {
+				"help": "Manage repeating messages",
+				"usage": "repeat_message",
+				"add": {
+					"help": "Copy a message and repeat it in its channel",
+					"usage": "add <message link/ID> <interval> [skip if last]",
+					"message": {
+						"name": "message",
+						"help": "Link to the message, or its ID if it is in this channel"
+					},
+					"interval": {
+						"name": "interval",
+						"help": "How often to repeat it (6h - 30d), e.g. 12h, 3d, 1w"
+					},
+					"skip_if_last": {
+						"name": "skip_if_last",
+						"help": "Skip the run if nobody has posted since the previous copy"
+					},
+					"bad_interval": "Interval must be between **6 hours** and **30 days**.",
+					"invalid_link": "Provide a message link, or a message ID from this channel.",
+					"wrong_guild": "That message link points to another server.",
+					"not_found": "Message not found. Check the link/ID and that I can read that channel.",
+					"empty_message": "That message has no text or embeds to copy. Attachments are not copied.",
+					"done": "Created repeating message `#%s` in %s."
+				},
+				"remove": {
+					"help": "Stop a repeating message",
+					"usage": "remove <ID>",
+					"id": {
+						"name": "id",
+						"help": "Which repeating message to remove"
+					},
+					"not_exists": "No repeating message with such ID on this server.",
+					"done": "Removed repeating message `#%s`."
+				},
+				"view": {
+					"help": "List all repeating messages",
+					"usage": "view",
+					"empty": "No repeating messages setup.",
+					"embed_title": "Repeating Messages",
+					"next": "next:",
+					"skip_if_last": "Skip if last",
+					"embed_only": "*Embed only*"
+				}
+			},
 			"media_channel": {
 				"help": "Manage media channels",
 				"add": {

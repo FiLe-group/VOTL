@@ -68,6 +68,7 @@ public class DBUtil {
 	public final MediaChannelsManager mediaChannels;
 	public final AutoRoleManager autoRole;
 	public final RankRolesManager rankRoles;
+	public final RepeatMessageManager repeatMessages;
 
 	public final BotBlacklistManager blacklist;
 
@@ -118,6 +119,7 @@ public class DBUtil {
 		mediaChannels = new MediaChannelsManager(connectionUtil);
 		autoRole = new AutoRoleManager(connectionUtil);
 		rankRoles = new RankRolesManager(connectionUtil);
+		repeatMessages = new RepeatMessageManager(connectionUtil);
 
 		blacklist = new BotBlacklistManager(connectionUtil);
 	}

@@ -104,6 +104,7 @@ public class GuildListener extends ListenerAdapter {
 		ignoreExc(() -> db.mediaChannels.removeGuild(guildId));
 		ignoreExc(() -> db.autoRole.removeGuild(guildId));
 		ignoreExc(() -> db.rankRoles.removeGuild(guildId));
+		ignoreExc(() -> db.repeatMessages.removeGuild(guildId));
 		ignoreExc(() -> bot.getInviteTracker().remove(guildId));
 
 		ignoreExc(() -> db.guildSettings.remove(guildId));
@@ -122,6 +123,7 @@ public class GuildListener extends ListenerAdapter {
 		ignoreExc(() -> db.logExemptions.removeExemption(guildId, channelId));
 		ignoreExc(() -> db.logs.removeChannel(guildId, channelId));
 		ignoreExc(() -> db.mediaChannels.removeChannel(guildId, channelId));
+		ignoreExc(() -> db.repeatMessages.removeChannel(guildId, channelId));
 		ignoreExc(() -> db.games.removeChannel(channelId));
 		ignoreExc(() -> db.modReport.removeChannel(channelId));
 		ignoreExc(() -> db.levels.removeExemptChannel(guildId, channelId));
