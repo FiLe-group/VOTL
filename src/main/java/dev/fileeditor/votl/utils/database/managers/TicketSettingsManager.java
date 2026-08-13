@@ -22,7 +22,7 @@ public class TicketSettingsManager extends LiteBase {
 		"autocloseTime", "autocloseLeft", "timeToReply",
 		"rowName1", "rowName2", "rowName3",
 		"otherRole", "roleSupport", "deletePing",
-		"allowClose", "transcripts"
+		"allowClose", "transcripts", "delayRolePing"
 	);
 
 	// Cache
@@ -97,6 +97,11 @@ public class TicketSettingsManager extends LiteBase {
 		execute("INSERT INTO %s(guildId, transcripts) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET transcripts=%<d".formatted(table, guildId, value.getValue()));
 	}
 
+	public void setDelayRolePing(long guildId, boolean delayRolePing) throws SQLException {
+		invalidateCache(guildId);
+		execute("INSERT INTO %s(guildId, delayRolePing) VALUES (%d, %d) ON CONFLICT(guildId) DO UPDATE SET delayRolePing=%<d".formatted(table, guildId, delayRolePing ? 1 : 0));
+	}
+
 
 	private void invalidateCache(long guildId) {
 		cache.invalidate(guildId);
@@ -104,7 +109,7 @@ public class TicketSettingsManager extends LiteBase {
 
 	public static class TicketSettings {
 		private final int autocloseTime, timeToReply;
-		private final boolean autocloseLeft, otherRoles, deletePings;
+		private final boolean autocloseLeft, otherRoles, deletePings, delayRolePing;
 		private final List<String> rowText;
 		private final List<Long> roleSupportIds;
 		private final AllowClose allowClose;
@@ -120,6 +125,7 @@ public class TicketSettingsManager extends LiteBase {
 			this.deletePings = true;
 			this.allowClose = AllowClose.EVERYONE;
 			this.transcriptsMode = TranscriptsMode.EXCEPT_ROLES;
+			this.delayRolePing = false;
 		}
 
 		public TicketSettings(Map<String, Object> data) {
@@ -146,6 +152,7 @@ public class TicketSettingsManager extends LiteBase {
 			this.deletePings = getOrDefault(data.get("deletePing"), 1) == 1;
 			this.allowClose = AllowClose.valueOf(getOrDefault(data.get("allowClose"), AllowClose.EVERYONE.value));
 			this.transcriptsMode = TranscriptsMode.valueOf(getOrDefault(data.get("transcripts"), TranscriptsMode.EXCEPT_ROLES.value));
+			this.delayRolePing = getOrDefault(data.get("delayRolePing"), 0) == 1;
 		}
 
 		public Duration getAutocloseTime() {
@@ -178,6 +185,10 @@ public class TicketSettingsManager extends LiteBase {
 
 		public boolean deletePingsEnabled() {
 			return deletePings;
+		}
+
+		public boolean delayRolePingEnabled() {
+			return delayRolePing;
 		}
 
 		@NotNull

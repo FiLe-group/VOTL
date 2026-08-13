@@ -563,21 +563,15 @@ public class InteractionListener extends ListenerAdapter {
 		int ticketId = 1 + db.tickets.lastIdByTag(guildId, 0);
 		event.getChannel().asTextChannel().createThreadChannel(lu.getGuildText(event, "ticket.role")+"-"+ticketId, true).setInvitable(false).queue(
 			channel -> {
+				boolean delayRolePing = db.getTicketSettings(guild).delayRolePingEnabled();
 				db.tickets.addRoleTicket(
 					ticketId, event.getMember().getIdLong(), guildId, channel.getIdLong(),
-					String.join(";", finalRoleIds), bot.getDBUtil().getTicketSettings(guild).getTimeToReply()
+					String.join(";", finalRoleIds), bot.getDBUtil().getTicketSettings(guild).getTimeToReply(),
+					!delayRolePing
 				);
-				
-				StringBuffer mentions = new StringBuffer(event.getMember().getAsMention());
-				// Get support roles
-				mentions.append("||");
-				supportRoleIds.forEach(roleId -> mentions.append(" <@&").append(roleId).append(">"));
-				mentions.append("||");
-				// Send message
-				channel.sendMessage(mentions.toString()).queue(msg -> {
-					if (db.getTicketSettings(guild).deletePingsEnabled())
-						msg.delete().queueAfter(5, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
-				});
+
+				// Ping the requester now; reviewers are pinged immediately too, unless delayed until they reply
+				bot.getTicketUtil().sendRoleTicketPing(channel, event.getMember().getIdLong(), delayRolePing ? Collections.emptyList() : supportRoleIds);
 				
 				String rolesString = String.join(" ", add.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), (otherRole ? lu.getGuildText(event, "bot.ticketing.embeds.other") : ""));
 				String proofString = add.stream().map(role -> db.roles.getDescription(role.getIdLong())).filter(Objects::nonNull).distinct().collect(Collectors.joining("\n- ", "- ", ""));

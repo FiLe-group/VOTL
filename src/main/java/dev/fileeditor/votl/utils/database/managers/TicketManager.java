@@ -22,10 +22,10 @@ public class TicketManager extends LiteBase {
 	 */
 
 	// add new ticket
-	public void addRoleTicket(int ticketId, long userId, long guildId, long channelId, String roleIds, Duration replyTime) {
+	public void addRoleTicket(int ticketId, long userId, long guildId, long channelId, String roleIds, Duration replyTime, boolean pinged) {
 		try {
-			execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, roleIds, replyWait) VALUES (%d, %s, %s, %s, 0, %s, %d)"
-				.formatted(table, ticketId, userId, guildId, channelId, quote(roleIds), replyTime.isPositive() ? Instant.now().plus(replyTime).getEpochSecond() : 0));
+			execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, roleIds, replyWait, rolePinged) VALUES (%d, %s, %s, %s, 0, %s, %d, %d)"
+				.formatted(table, ticketId, userId, guildId, channelId, quote(roleIds), replyTime.isPositive() ? Instant.now().plus(replyTime).getEpochSecond() : 0, pinged ? 1 : 0));
 		} catch (SQLException ignored) {}
 	}
 
@@ -118,6 +118,17 @@ public class TicketManager extends LiteBase {
 	public boolean isRoleTicket(long channelId) {
 		Integer data = selectOne("SELECT tagId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "tagId", Integer.class);
 		return data != null && data == 0;
+	}
+
+	public boolean isRolePinged(long channelId) {
+		Integer data = selectOne("SELECT rolePinged FROM %s WHERE (channelId=%s)".formatted(table, channelId), "rolePinged", Integer.class);
+		return data == null || data == 1;
+	}
+
+	public void setRolePinged(long channelId) {
+		try {
+			execute("UPDATE %s SET rolePinged=1 WHERE (channelId=%s)".formatted(table, channelId));
+		} catch (SQLException ignored) {}
 	}
 
 	public Integer getTag(long channelId) {

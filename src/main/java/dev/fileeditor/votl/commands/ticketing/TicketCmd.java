@@ -668,7 +668,8 @@ public class TicketCmd extends SlashCommand {
 				new OptionData(OptionType.INTEGER, "transcripts_mode", lu.getText(path+".transcripts_mode.help"))
 					.addChoice("All tickets", TicketSettingsManager.TranscriptsMode.ALL.getValue())
 					.addChoice("All, except role requests (default)", TicketSettingsManager.TranscriptsMode.EXCEPT_ROLES.getValue())
-					.addChoice("None", TicketSettingsManager.TranscriptsMode.NONE.getValue())
+					.addChoice("None", TicketSettingsManager.TranscriptsMode.NONE.getValue()),
+				new OptionData(OptionType.BOOLEAN, "delay_role_ping", lu.getText(path+".delay_role_ping.help"))
 			);
 		}
 
@@ -700,7 +701,8 @@ public class TicketCmd extends SlashCommand {
 					.append(MessageUtil.capitalize(settings.getAllowClose().name()))
 					.append("**\n> Transcripts saved: **")
 					.append(MessageUtil.capitalize(settings.getTranscriptsMode().name()).replace("_", " "))
-					.append("**");
+					.append("**\n> Delay reviewer ping until requester replies: ")
+					.append(settings.delayRolePingEnabled()?Constants.SUCCESS:Constants.FAILURE);
 
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setDescription(lu.getGuildText(event, path+".embed_view"))
@@ -782,6 +784,17 @@ public class TicketCmd extends SlashCommand {
 						}
 						response.append(lu.getGuildText(event, path+".changed_transcript", MessageUtil.capitalize(transcriptsMode.name()).replace("_", " ")));
 					}
+				}
+				if (event.hasOption("delay_role_ping")) {
+					final boolean delayRolePing = event.optBoolean("delay_role_ping");
+
+					try {
+						bot.getDBUtil().ticketSettings.setDelayRolePing(event.getGuild().getIdLong(), delayRolePing);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "ticket settings set delay role ping");
+						return;
+					}
+					response.append(lu.getGuildText(event, path+".changed_delay_ping", delayRolePing?Constants.SUCCESS:Constants.FAILURE));
 				}
 
 				if (response.isEmpty()) {

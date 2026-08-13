@@ -54,6 +54,21 @@ public class MessageListener extends ListenerAdapter {
 		if (event.getAuthor().isBot() || !event.isFromGuild()) return; // ignore bots and Private messages
 
 		final long guildId = event.getGuild().getIdLong();
+
+		// Role ticket - fire the delayed reviewer ping on the requester's first reply
+		if (event.getChannelType().isThread()) {
+			long channelId = event.getChannel().getIdLong();
+			var tickets = bot.getDBUtil().tickets;
+			if (tickets.isRoleTicket(channelId) && !tickets.isRolePinged(channelId) && !tickets.isClosed(channelId)) {
+				Long requesterId = tickets.getUserId(channelId);
+				if (requesterId != null && requesterId == event.getAuthor().getIdLong()) {
+					List<Long> supportRoleIds = bot.getDBUtil().ticketSettings.getSettings(guildId).getRoleSupportIds();
+					tickets.setRolePinged(channelId);
+					bot.getTicketUtil().sendRoleTicketPing(event.getChannel().asThreadChannel(), null, supportRoleIds);
+				}
+			}
+		}
+
 		// Media channel check
 		if (event.getChannelType() == ChannelType.TEXT) {
 			var mediaSettings = bot.getDBUtil().mediaChannels.getChannel(guildId, event.getChannel().getIdLong());

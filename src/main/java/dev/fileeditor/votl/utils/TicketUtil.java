@@ -3,6 +3,7 @@ package dev.fileeditor.votl.utils;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -131,6 +132,28 @@ public class TicketUtil {
 		} catch (Throwable t) {
 			failureHandler.accept(t);
 		}
+	}
+
+	/**
+	 * Sends a ping message for a role-request ticket and auto-deletes it if configured to.
+	 * Pass {@code null} requesterId or an empty {@code supportRoleIds} to ping only the other side -
+	 * used to send the requester-only ping on ticket creation and the reviewers-only ping once they've replied,
+	 * when the guild's "delay role ping" setting is enabled.
+	 */
+	public void sendRoleTicketPing(@NotNull GuildMessageChannel channel, @Nullable Long requesterId, @NotNull List<Long> supportRoleIds) {
+		StringBuilder mentions = new StringBuilder();
+		if (requesterId != null) mentions.append("<@").append(requesterId).append(">");
+		if (!supportRoleIds.isEmpty()) {
+			mentions.append("||");
+			supportRoleIds.forEach(roleId -> mentions.append(" <@&").append(roleId).append(">"));
+			mentions.append("||");
+		}
+		if (mentions.isEmpty()) return;
+
+		channel.sendMessage(mentions.toString()).queue(msg -> {
+			if (db.getTicketSettings(channel.getGuild()).deletePingsEnabled())
+				msg.delete().queueAfter(5, TimeUnit.SECONDS, null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_CHANNEL));
+		});
 	}
 
 	public void createTicket(@NotNull ButtonInteractionEvent event, @NotNull GuildMessageChannel channel, @NotNull String mentions, @Nullable String message) {
