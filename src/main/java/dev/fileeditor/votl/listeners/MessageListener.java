@@ -120,31 +120,38 @@ public class MessageListener extends ListenerAdapter {
 			return false;
 		}
 
-		// Media modes - the message must carry media, as an attachment or as a link Discord displays
-		if (attachments.isEmpty() && !content.hasMediaLinks()) {
+		boolean hasMedia = !attachments.isEmpty() || content.hasMediaLinks();
+
+		// Media modes - the message must carry media, as an attachment or as a link Discord displays.
+		// Restricted media mode doesn't require it - text-only messages are left alone.
+		if (settings.getMode().requiresMedia() && !hasMedia) {
 			replyMediaChannel(message, "reason_not_media");
 			return true;
 		}
-		// Check if attachment limit is reached
-		if (settings.getMaxAttachments() > -1 && attachments.size() > settings.getMaxAttachments()) {
-			replyMediaChannel(message, "reason_max_attachements", attachments.size(), settings.getMaxAttachments());
-			return true;
-		}
-		// Check if attachment type is allowed
-		for (var a : attachments) {
-			var mediaType = MediaType.fromExtension(a.getFileExtension());
-			if (mediaType.isEmpty() || !settings.getAllowedMedia().contains(mediaType.get())) {
-				replyMediaChannel(message, "reason_bad_attachement", "."+a.getFileExtension());
+
+		if (hasMedia) {
+			// Check if attachment limit is reached
+			if (settings.getMaxAttachments() > -1 && attachments.size() > settings.getMaxAttachments()) {
+				replyMediaChannel(message, "reason_max_attachements", attachments.size(), settings.getMaxAttachments());
 				return true;
 			}
-		}
-		// Check if linked media type is allowed
-		for (var mediaType : content.mediaLinks()) {
-			if (!settings.getAllowedMedia().contains(mediaType)) {
-				replyMediaChannel(message, "reason_bad_link");
-				return true;
+			// Check if attachment type is allowed
+			for (var a : attachments) {
+				var mediaType = MediaType.fromExtension(a.getFileExtension());
+				if (mediaType.isEmpty() || !settings.getAllowedMedia().contains(mediaType.get())) {
+					replyMediaChannel(message, "reason_bad_attachement", "."+a.getFileExtension());
+					return true;
+				}
+			}
+			// Check if linked media type is allowed
+			for (var mediaType : content.mediaLinks()) {
+				if (!settings.getAllowedMedia().contains(mediaType)) {
+					replyMediaChannel(message, "reason_bad_link");
+					return true;
+				}
 			}
 		}
+
 		// Media only - anything besides the media itself is a comment
 		if (settings.getMode() == MediaChannelMode.MEDIA_ONLY && (content.hasText() || content.otherLinks() > 0)) {
 			replyMediaChannel(message, "reason_no_comments");

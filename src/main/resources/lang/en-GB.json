@@ -131,7 +131,8 @@
 		"media_with_comments": "Media with comments",
 		"media_only": "Media without comments",
 		"comments_only": "Message without media",
-		"commands_only": "Bot commands only"
+		"commands_only": "Bot commands only",
+		"restricted_media": "Any message, restricted media"
 	},
 	"case_type": {
 		"ban": "Ban",

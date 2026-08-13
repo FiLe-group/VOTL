@@ -19,7 +19,9 @@ public enum MediaChannelMode {
 	/** Text is required, attachments and links are removed. */
 	COMMENTS_ONLY(2, "media_mode.comments_only"),
 	/** Nothing may be sent - members can only use slash commands here. */
-	COMMANDS_ONLY(3, "media_mode.commands_only");
+	COMMANDS_ONLY(3, "media_mode.commands_only"),
+	/** Text is always allowed; media is optional but restricted to the allowed types. */
+	RESTRICTED_MEDIA(4, "media_mode.restricted_media");
 
 	private final int value;
 	private final String path;
@@ -46,10 +48,17 @@ public enum MediaChannelMode {
 	}
 
 	/**
-	 * Whether media is expected in this mode, and thus the allowed media types
+	 * Whether media may appear in this mode, and thus the allowed media types
 	 * and the attachment limit are taken into account.
 	 */
 	public boolean allowsMedia() {
+		return this == MEDIA_WITH_COMMENTS || this == MEDIA_ONLY || this == RESTRICTED_MEDIA;
+	}
+
+	/**
+	 * Whether media must be present in every message sent in this mode.
+	 */
+	public boolean requiresMedia() {
 		return this == MEDIA_WITH_COMMENTS || this == MEDIA_ONLY;
 	}
 
