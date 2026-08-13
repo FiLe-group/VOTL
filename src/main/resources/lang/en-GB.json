@@ -2673,7 +2673,7 @@
 					},
 					"delay_role_ping": {
 						"name": "delay_role_ping",
-						"help": "In role requests, ping/add reviewers only after the requester sends a message?"
+						"help": "In role requests, add reviewers only after the requester sends a message?"
 					},
 					"bad_roles": "No roles provided (use @Role) or more than 3.",
 					"embed_view": "**Ticket settings**",
