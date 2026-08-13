@@ -275,7 +275,14 @@
 			"left": "Server left your Group",
 			"removed": "Server was removed from your Group",
 			"renamed": "Group was renamed",
-			"oldname": "Previous Group's name"
+			"oldname": "Previous Group's name",
+			"automod": {
+				"added": "AutoMod rule set to sync",
+				"removed": "AutoMod rule sync removed",
+				"synced": "AutoMod rule synced",
+				"rule_deleted": "Synced AutoMod rule was deleted at the source, removed everywhere",
+				"rule": "Rule"
+			}
 		},
 		"verify": {
 			"name": "Verification logs",
@@ -1809,6 +1816,49 @@
 					"embed_owned": "Owned Groups",
 					"embed_member": "Joined Groups",
 					"none": "*None*"
+				},
+				"automod": {
+					"help": "Sync an AutoMod rule across your Group's member servers",
+					"add": {
+						"help": "Set an AutoMod rule (by ID) to sync across your Group",
+						"usage": "automod add <Owned Group> <Rule ID>",
+						"group_owned": {
+							"name": "group_owned",
+							"help": "Select Group that this server owns"
+						},
+						"rule_id": {
+							"name": "rule_id",
+							"help": "ID of the AutoMod rule in this server to sync"
+						},
+						"already_synced": "This AutoMod rule is already synced for the selected Group.",
+						"rule_not_found": "Couldn't find an AutoMod rule with that ID in this server.",
+						"done": "AutoMod rule **%s** (`%s`) is now synced across Group `%s`."
+					},
+					"remove": {
+						"help": "Stop syncing an AutoMod rule and remove its copy from every member server",
+						"usage": "automod remove <Owned Group> <Rule ID>",
+						"group_owned": {
+							"name": "group_owned",
+							"help": "Select Group that this server owns"
+						},
+						"rule_id": {
+							"name": "rule_id",
+							"help": "Select synced AutoMod rule"
+						},
+						"not_synced": "This AutoMod rule isn't synced for the selected Group.",
+						"done": "Stopped syncing AutoMod rule **%s** (`%s`) for Group `%s`. Removing copies from member servers..."
+					},
+					"view": {
+						"help": "List AutoMod rules synced for a Group",
+						"usage": "automod view <Owned Group>",
+						"group_owned": {
+							"name": "group_owned",
+							"help": "Select Group that this server owns"
+						},
+						"empty": "No AutoMod rules are synced for this Group.",
+						"embed_title": "Synced AutoMod rules for Group '%s' (#%s)",
+						"line": "**%s** (`%s`) | synced to %s/%s server/-s"
+					}
 				}
 			},
 			"modlogs": {

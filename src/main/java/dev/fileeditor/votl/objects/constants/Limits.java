@@ -6,9 +6,9 @@ public final class Limits {
 	}
 
 	public static final int GAME_CHANNELS = 10;
-	public static final int ACCESS_GROUPS = 10;
+	public static final int ACCESS_GROUPS = 6;
 	public static final int ACCESS_GROUP_MEMBERS = 10;
-	public static final int AUTOPUNISHMENTS = 20;
+	public static final int AUTOPUNISHMENTS = 10;
 	public static final int LOG_EXEMPTIONS = 30;
 	public static final int PERSISTENT_ROLES = 3;
 	public static final int LEVEL_EXEMPTIONS = 30;
@@ -23,6 +23,7 @@ public final class Limits {
 	public static final int RANK_ROLE_GROUPS = 3;
 	public static final int RANK_ROLE_GROUP_ROLES = 10;
 	public static final int REPEAT_MESSAGES = 3;
+	public static final int AUTOMOD_SYNCED_RULES = 1;
 
 	public static final int REASON_CHARS = 300;
 }

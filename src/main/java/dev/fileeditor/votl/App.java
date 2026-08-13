@@ -74,6 +74,7 @@ public class App {
 	private final LocaleUtil localeUtil;
 	private final TicketUtil ticketUtil;
 	private final GroupHelper groupHelper;
+	private final AutoModSyncHelper autoModSyncHelper;
 	private final ModerationUtil moderationUtil;
 	private final LevelUtil levelUtil;
 	private final InviteTracker inviteTracker;
@@ -127,6 +128,7 @@ public class App {
 		logEmbedUtil	= new LogEmbedUtil();
 		guildLogger		= new GuildLogger(this);
 		groupHelper		= new GroupHelper(this);
+		autoModSyncHelper = new AutoModSyncHelper(this);
 
 		eventWaiter		= new EventWaiter();
 
@@ -140,6 +142,7 @@ public class App {
 		MemberListener memberListener = new MemberListener(this);
 		MessageListener messageListener = new MessageListener(this);
 		EventListener eventListener = new EventListener(this);
+		AutoModListener autoModListener = new AutoModListener(this);
 
 		LOG.info("Preparing blacklist");
 		blacklist = new Blacklist(this);
@@ -172,6 +175,7 @@ public class App {
 		commandClient = commandClientBuilder.build();
 
 		final Set<GatewayIntent> intents = Set.of(
+			GatewayIntent.AUTO_MODERATION_CONFIGURATION, // for detecting AutoMod rule updates/deletes made outside the bot, to keep group sync current
 			GatewayIntent.GUILD_EXPRESSIONS,
 			GatewayIntent.GUILD_INVITES,
 			GatewayIntent.GUILD_MEMBERS, // PRIVILEGED: for guild member add/remove/update, cache
@@ -204,7 +208,7 @@ public class App {
 			.addEventListeners(
 				commandClient, eventWaiter, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,
-				auditListener, memberListener, eventListener
+				auditListener, memberListener, eventListener, autoModListener
 			);
 			
 		JDA tempJda;
@@ -304,6 +308,10 @@ public class App {
 
 	public GroupHelper getHelper() {
 		return groupHelper;
+	}
+
+	public AutoModSyncHelper getAutoModSyncHelper() {
+		return autoModSyncHelper;
 	}
 
 	public ModerationUtil getModerationUtil() {

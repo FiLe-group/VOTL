@@ -464,6 +464,40 @@ public class GuildLogger {
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(event);
 			sendLog(event.getGuild(), type, () -> logUtil.groupOwnerRenamedEmbed(locale, event.getMember().getAsMention(), ownerId, ownerIcon, groupId, oldName, newName));
 		}
+
+		public void onAutomodRuleAdded(SlashCommandEvent event, int groupId, String name, long ruleId, String ruleName) {
+			assert event.getGuild() != null;
+			assert event.getMember() != null;
+			long ownerId = event.getGuild().getIdLong();
+			String ownerIcon = event.getGuild().getIconUrl();
+
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(event);
+			sendLog(event.getGuild(), type, () -> logUtil.automodSyncAddedEmbed(locale, event.getMember().getAsMention(), ownerId, ownerIcon, groupId, name, ruleId, ruleName));
+		}
+
+		public void onAutomodRuleRemoved(SlashCommandEvent event, int groupId, String name, long ruleId, String ruleName) {
+			assert event.getGuild() != null;
+			assert event.getMember() != null;
+			long ownerId = event.getGuild().getIdLong();
+			String ownerIcon = event.getGuild().getIconUrl();
+
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getLocale(event);
+			sendLog(event.getGuild(), type, () -> logUtil.automodSyncRemovedEmbed(locale, event.getMember().getAsMention(), ownerId, ownerIcon, groupId, name, ruleId, ruleName));
+		}
+
+		public void onAutomodRuleSynced(Guild owner, int groupId, long ruleId, String ruleName, int success, int max) {
+			String groupName = db.group.getName(groupId);
+
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(owner);
+			sendLog(owner, type, () -> logUtil.automodSyncPushedEmbed(locale, owner.getIdLong(), owner.getIconUrl(), groupId, groupName, ruleId, ruleName, success, max));
+		}
+
+		public void onAutomodRuleDeleted(Guild owner, int groupId, long ruleId, String ruleName) {
+			String groupName = db.group.getName(groupId);
+
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(owner);
+			sendLog(owner, type, () -> logUtil.automodSyncDeletedEmbed(locale, owner.getIdLong(), owner.getIconUrl(), groupId, groupName, ruleId, ruleName));
+		}
 	}
 
 	// Tickets actions

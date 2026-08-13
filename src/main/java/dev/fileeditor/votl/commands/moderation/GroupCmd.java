@@ -31,6 +31,7 @@ import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionE
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
 public class GroupCmd extends SlashCommand {
 	
@@ -41,7 +42,8 @@ public class GroupCmd extends SlashCommand {
 		this.path = "bot.moderation.group";
 		this.children = new SlashCommand[]{
 			new Create(), new Delete(), new Remove(), new GenerateInvite(),
-			new Join(), new Leave(), new Modify(), new Manage(), new View()
+			new Join(), new Leave(), new Modify(), new Manage(), new View(),
+			new AutomodAdd(), new AutomodRemove(), new AutomodView()
 		};
 		this.category = CmdCategory.MODERATION;
 		this.module = CmdModule.MODERATION;
@@ -236,6 +238,7 @@ public class GroupCmd extends SlashCommand {
 					}
 					if (targetGuild != null)
 						bot.getGuildLogger().group.onGuildRemoved(event, targetGuild, groupId, groupName);
+					bot.getAutoModSyncHelper().removeFromGuild(groupId, targetId);
 
 					event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 						.setDescription(lu.getGuildText(event, path+".done", Optional.ofNullable(targetGuild).map(Guild::getName).orElse("*Unknown*"), groupName))
@@ -542,6 +545,7 @@ public class GroupCmd extends SlashCommand {
 				return;
 			}
 			bot.getGuildLogger().group.onGuildJoined(event, groupId, groupName);
+			bot.getAutoModSyncHelper().pushToNewMember(groupId, guildId);
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", groupName))
@@ -584,9 +588,212 @@ public class GroupCmd extends SlashCommand {
 				return;
 			}
 			bot.getGuildLogger().group.onGuildLeft(event, groupId, groupName);
+			bot.getAutoModSyncHelper().removeFromGuild(groupId, event.getGuild().getIdLong());
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", groupName))
+				.build()
+			);
+		}
+	}
+
+	private class AutomodAdd extends SlashCommand {
+		public AutomodAdd() {
+			this.name = "add";
+			this.path = "bot.moderation.group.automod.add";
+			this.subcommandGroup = new SubcommandGroupData("automod", lu.getText("bot.moderation.group.automod.help"));
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
+					.setMinValue(1),
+				new OptionData(OptionType.STRING, "rule_id", lu.getText(path+".rule_id.help"), true)
+					.setRequiredLength(15, 20)
+			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupOwnedAutocomplete(event);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Integer groupId = event.optInteger("group_owned");
+			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+			assert event.getGuild() != null;
+			if (ownerId == null || event.getGuild().getIdLong() != ownerId) {
+				editError(event, "errors.option.group", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
+
+			if (bot.getDBUtil().automodSync.countSyncedRules(groupId) >= Limits.AUTOMOD_SYNCED_RULES) {
+				editErrorLimit(event, "synced automod rules", Limits.AUTOMOD_SYNCED_RULES);
+				return;
+			}
+
+			final long ruleId;
+			try {
+				ruleId = Long.parseLong(Objects.requireNonNull(event.optString("rule_id")));
+			} catch (NumberFormatException ex) {
+				editErrorOther(event, ex.getMessage());
+				return;
+			}
+
+			if (bot.getDBUtil().automodSync.isSynced(groupId, ruleId)) {
+				editError(event, path+".already_synced");
+				return;
+			}
+
+			event.getGuild().retrieveAutoModRuleById(ruleId).queue(
+				rule -> {
+					try {
+						bot.getDBUtil().automodSync.addSyncRule(groupId, ruleId, rule.getName());
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "add automod sync rule");
+						return;
+					}
+					String groupName = bot.getDBUtil().group.getName(groupId);
+					bot.getGuildLogger().group.onAutomodRuleAdded(event, groupId, groupName, ruleId, rule.getName());
+					bot.getAutoModSyncHelper().pushSync(groupId, rule);
+
+					editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+						.setDescription(lu.getGuildText(event, path+".done", rule.getName(), ruleId, groupName))
+						.build()
+					);
+				},
+				_ -> editError(event, path+".rule_not_found")
+			);
+		}
+	}
+
+	private class AutomodRemove extends SlashCommand {
+		public AutomodRemove() {
+			this.name = "remove";
+			this.path = "bot.moderation.group.automod.remove";
+			this.subcommandGroup = new SubcommandGroupData("automod", lu.getText("bot.moderation.group.automod.help"));
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
+					.setMinValue(1),
+				new OptionData(OptionType.STRING, "rule_id", lu.getText(path+".rule_id.help"), true, true)
+			);
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			if (event.getGuild() == null) { event.replyChoices(Collections.emptyList()).queue(); return; }
+			if (event.getFocusedOption().getName().equals("group_owned")) {
+				replyGroupOwnedAutocomplete(event);
+				return;
+			}
+
+			var groupOption = event.getOption("group_owned");
+			int groupId;
+			try {
+				if (groupOption == null) throw new IllegalArgumentException();
+				groupId = groupOption.getAsInt();
+			} catch (Exception ex) {
+				event.replyChoices(Collections.emptyList()).queue();
+				return;
+			}
+			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+			if (ownerId == null || event.getGuild().getIdLong() != ownerId) {
+				event.replyChoices(Collections.emptyList()).queue();
+				return;
+			}
+
+			List<Command.Choice> choices = bot.getDBUtil().automodSync.getSyncedRules(groupId).stream()
+				.map(ruleId -> new Command.Choice(
+					"%s (ID: %s)".formatted(bot.getDBUtil().automodSync.getRuleName(groupId, ruleId), ruleId), String.valueOf(ruleId)))
+				.limit(25)
+				.collect(Collectors.toList());
+			event.replyChoices(choices).queue();
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Integer groupId = event.optInteger("group_owned");
+			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+			assert event.getGuild() != null;
+			if (ownerId == null || event.getGuild().getIdLong() != ownerId) {
+				editError(event, "errors.option.group", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
+
+			final long ruleId;
+			try {
+				ruleId = Long.parseLong(Objects.requireNonNull(event.optString("rule_id")));
+			} catch (NumberFormatException ex) {
+				editErrorOther(event, ex.getMessage());
+				return;
+			}
+
+			if (!bot.getDBUtil().automodSync.isSynced(groupId, ruleId)) {
+				editError(event, path+".not_synced");
+				return;
+			}
+
+			String ruleName = bot.getDBUtil().automodSync.getRuleName(groupId, ruleId);
+			String groupName = bot.getDBUtil().group.getName(groupId);
+
+			bot.getGuildLogger().group.onAutomodRuleRemoved(event, groupId, groupName, ruleId, ruleName);
+			// Deletes copies from every member server asynchronously, then un-registers the sync
+			bot.getAutoModSyncHelper().pushDelete(groupId, ruleId, ruleName, false);
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, path+".done", ruleName, ruleId, groupName))
+				.build()
+			);
+		}
+	}
+
+	private class AutomodView extends SlashCommand {
+		public AutomodView() {
+			this.name = "view";
+			this.path = "bot.moderation.group.automod.view";
+			this.subcommandGroup = new SubcommandGroupData("automod", lu.getText("bot.moderation.group.automod.help"));
+			this.options = List.of(
+				new OptionData(OptionType.INTEGER, "group_owned", lu.getText(path+".group_owned.help"), true, true)
+					.setMinValue(1)
+			);
+			this.ephemeral = true;
+		}
+
+		@Override
+		public void onAutoComplete(CommandAutoCompleteInteractionEvent event) {
+			replyGroupOwnedAutocomplete(event);
+		}
+
+		@Override
+		protected void execute(SlashCommandEvent event) {
+			Integer groupId = event.optInteger("group_owned");
+			Long ownerId = bot.getDBUtil().group.getOwner(groupId);
+			assert event.getGuild() != null;
+			if (ownerId == null || event.getGuild().getIdLong() != ownerId) {
+				editError(event, "errors.option.group", "Group ID: `%d`".formatted(groupId));
+				return;
+			}
+
+			List<Long> ruleIds = bot.getDBUtil().automodSync.getSyncedRules(groupId);
+			if (ruleIds.isEmpty()) {
+				editEmbed(event, bot.getEmbedUtil().getEmbed()
+					.setDescription(lu.getGuildText(event, path+".empty"))
+					.build()
+				);
+				return;
+			}
+
+			String groupName = bot.getDBUtil().group.getName(groupId);
+			int memberCount = bot.getDBUtil().group.countMembers(groupId);
+
+			StringBuilder builder = new StringBuilder();
+			for (long ruleId : ruleIds) {
+				String ruleName = bot.getDBUtil().automodSync.getRuleName(groupId, ruleId);
+				long synced = bot.getDBUtil().automodSync.getTargets(groupId, ruleId).values().stream().filter(Objects::nonNull).count();
+				builder.append(lu.getGuildText(event, path+".line", ruleName, ruleId, synced, memberCount)).append("\n");
+			}
+
+			editEmbed(event, bot.getEmbedUtil().getEmbed()
+				.setTitle(lu.getGuildText(event, path+".embed_title", groupName, groupId))
+				.setDescription(builder.toString())
 				.build()
 			);
 		}

@@ -704,6 +704,45 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
+	public MessageEmbed automodSyncAddedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, int groupId, String name, long ruleId, String ruleName) {
+		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
+			.setColor(GREEN_DARK)
+			.setTitle("group.automod.added")
+			.addField("group.automod.rule", "%s (`%s`)".formatted(ruleName, ruleId))
+			.setEnforcer(adminMention)
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed automodSyncRemovedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, int groupId, String name, long ruleId, String ruleName) {
+		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
+			.setColor(RED_DARK)
+			.setTitle("group.automod.removed")
+			.addField("group.automod.rule", "%s (`%s`)".formatted(ruleName, ruleId))
+			.setEnforcer(adminMention)
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed automodSyncPushedEmbed(DiscordLocale locale, long ownerId, String ownerIcon, int groupId, String name, long ruleId, String ruleName, int success, int max) {
+		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
+			.setColor(GREEN_DARK)
+			.setTitle("group.automod.synced")
+			.addField("group.automod.rule", "%s (`%s`)".formatted(ruleName, ruleId))
+			.addField("moderation.success", success+"/"+max)
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed automodSyncDeletedEmbed(DiscordLocale locale, long ownerId, String ownerIcon, int groupId, String name, long ruleId, String ruleName) {
+		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
+			.setColor(RED_DARK)
+			.setTitle("group.automod.rule_deleted")
+			.addField("group.automod.rule", "%s (`%s`)".formatted(ruleName, ruleId))
+			.build();
+	}
+
+	@NotNull
 	public MessageEmbed groupOwnerRemovedEmbed(DiscordLocale locale, String adminMention, long ownerId, String ownerIcon, String targetName, long targetId, int groupId, String name) {
 		return groupLogBuilder(locale, ownerId, ownerIcon, groupId, name)
 			.setColor(RED_DARK)

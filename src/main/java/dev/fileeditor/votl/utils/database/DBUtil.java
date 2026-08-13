@@ -69,6 +69,7 @@ public class DBUtil {
 	public final AutoRoleManager autoRole;
 	public final RankRolesManager rankRoles;
 	public final RepeatMessageManager repeatMessages;
+	public final AutoModSyncManager automodSync;
 
 	public final BotBlacklistManager blacklist;
 
@@ -120,6 +121,7 @@ public class DBUtil {
 		autoRole = new AutoRoleManager(connectionUtil);
 		rankRoles = new RankRolesManager(connectionUtil);
 		repeatMessages = new RepeatMessageManager(connectionUtil);
+		automodSync = new AutoModSyncManager(connectionUtil);
 
 		blacklist = new BotBlacklistManager(connectionUtil);
 	}

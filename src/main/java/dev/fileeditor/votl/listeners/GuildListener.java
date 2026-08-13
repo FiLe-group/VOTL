@@ -76,9 +76,14 @@ public class GuildListener extends ListenerAdapter {
 				bot.getGuildLogger().group.onDeletion(guildId, ownerIcon, groupId);
 				db.group.clearGroup(groupId);
 			} catch (Exception ignored) {}
+			for (Long ruleId : db.automodSync.getSyncedRules(groupId)) {
+				ignoreExc(() -> db.automodSync.removeTargetsForRule(groupId, ruleId));
+				ignoreExc(() -> db.automodSync.removeSyncRule(groupId, ruleId));
+			}
 		}
 		ignoreExc(() -> db.group.removeGuildFromGroups(guildId));
 		ignoreExc(() -> db.group.deleteGuildGroups(guildId));
+		ignoreExc(() -> db.automodSync.removeGuildTargets(guildId));
 
 		ignoreExc(() -> db.accessGroups.removeGuild(guildId));
 		ignoreExc(() -> db.webhook.removeAll(guildId));
