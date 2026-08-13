@@ -423,7 +423,7 @@ public class CommandClientImpl implements CommandClient, EventListener {
 			}
 			case 3 -> {
 				for (SlashCommand cmd : command.getChildren())
-					if (cmd.isCommandFor(parts[2]) && cmd.getSubcommandGroup().getName().equals(parts[1]))
+					if (cmd.getSubcommandGroup() != null && cmd.getSubcommandGroup().getName().equals(parts[1]) && cmd.isCommandFor(parts[2]))
 						yield cmd;
 				yield null; // Slash command with a group and a child
 			}
