@@ -127,20 +127,21 @@ public class MuteCmd extends SlashCommand {
 		} else {
 			// No case -> override current timeout
 			// No case and not timed out -> timeout
-			target.timeoutFor(duration).reason(reason).queue(_ -> {
+			String auditReason = "By @%s: %s".formatted(mod.getUser().getName(), reason);
+			target.timeoutFor(duration).reason(auditReason).queue(_ -> {
 				// inform
-				final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
+				final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(guild).getDramaLevel();
 				target.getUser().openPrivateChannel().queue(pm -> {
 					final String text = bot.getModerationUtil().getDmText(CaseType.MUTE, guild, reason, duration, mod.getUser(), false);
 					if (text == null) return;
 					pm.sendMessage(text).setSuppressEmbeds(true)
 						.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, _ -> {
 							if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
-								TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+								TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(guild).getDramaChannelId())
 									.map(event.getJDA()::getTextChannelById)
 									.orElse(null);
 								if (dramaChannel != null) {
-									final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.MUTE, event.getGuild(), target, reason, duration);
+									final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.MUTE, guild, target, reason, duration);
 									if (dramaEmbed == null) return;
 									dramaChannel.sendMessage("||%s||".formatted(target.getAsMention()))
 										.addEmbeds(dramaEmbed)

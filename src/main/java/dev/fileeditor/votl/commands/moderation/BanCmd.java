@@ -221,7 +221,8 @@ public class BanCmd extends SlashCommand {
 					.queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 			});
 
-			guild.ban(tu, (event.optBoolean("delete", true) ? 10 : 0), TimeUnit.HOURS).reason(reason).queueAfter(3, TimeUnit.SECONDS, _ -> {
+			String auditReason = "By @%s: %s".formatted(mod.getUser().getName(), reason);
+			guild.ban(tu, (event.optBoolean("delete", true) ? 10 : 0), TimeUnit.HOURS).reason(auditReason).queueAfter(3, TimeUnit.SECONDS, _ -> {
 				// fail-safe check if user has temporal ban (to prevent auto unban)
 				CaseData oldBanData = bot.getDBUtil().cases.getMemberActive(tu.getIdLong(), guild.getIdLong(), CaseType.BAN);
 				if (oldBanData != null) {

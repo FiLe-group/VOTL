@@ -85,7 +85,7 @@ public class KickCmd extends SlashCommand {
 
 		String reason = bot.getModerationUtil().parseReasonMentions(event);
 		// inform user
-		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
+		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(guild).getDramaLevel();
 		if (event.optBoolean("dm", true)) {
 			target.getUser().openPrivateChannel().queue(pm -> {
 				final String text = bot.getModerationUtil().getDmText(CaseType.KICK, guild, reason, null, mod.getUser(), false);
@@ -93,11 +93,11 @@ public class KickCmd extends SlashCommand {
 				pm.sendMessage(text).setSuppressEmbeds(true)
 					.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, _ -> {
 						if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
-							TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+							TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(guild).getDramaChannelId())
 								.map(event.getJDA()::getTextChannelById)
 								.orElse(null);
 							if (dramaChannel != null) {
-								final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), target, reason, null);
+								final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, guild, target, reason, null);
 								if (dramaEmbed == null) return;
 								dramaChannel.sendMessage("||%s||".formatted(target.getAsMention()))
 									.addEmbeds(dramaEmbed)
@@ -120,7 +120,8 @@ public class KickCmd extends SlashCommand {
 			}
 		}
 
-		target.kick().reason(reason).queueAfter(2, TimeUnit.SECONDS, _ -> {
+		String auditReason = "By @%s: %s".formatted(mod.getUser().getName(), reason);
+		target.kick().reason(auditReason).queueAfter(2, TimeUnit.SECONDS, _ -> {
 			// add info to db
 			CaseData kickData;
 			try {
