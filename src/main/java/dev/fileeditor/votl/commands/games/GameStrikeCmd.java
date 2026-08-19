@@ -91,7 +91,7 @@ public class GameStrikeCmd extends SlashCommand {
 			if (lastUpdate != null && lastUpdate.plus(strikeCooldown).isAfter(Instant.now())) {
 				// Cooldown between strikes
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
-					.setDescription(lu.getGuildText(event, path+".cooldown", TimeFormat.RELATIVE.after(strikeCooldown)))
+					.setDescription(lu.getGuildText(event, path+".cooldown", TimeFormat.RELATIVE.format(lastUpdate.plus(strikeCooldown))))
 					.build()
 				);
 				return;

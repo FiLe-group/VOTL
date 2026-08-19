@@ -161,10 +161,9 @@ public abstract class Interaction extends Reflectionable {
 			return;
 		}
 
-		boolean addUser = true;
-		boolean addGuild = true;
+		boolean hasUser = false;
+		boolean hasGuild = false;
 
-		List<String> addMiddlewares = new ArrayList<>();
 		for (String middlewareName : middlewares) {
 			String[] parts = middlewareName.split(":");
 
@@ -176,18 +175,17 @@ public abstract class Interaction extends Reflectionable {
 			var type = ThrottleMiddleware.ThrottleType.fromName(parts[1].split(",")[0]);
 
 			switch (type) {
-				case USER -> addUser = false;
-				case GUILD, CHANNEL -> addGuild = false;
-			}
-
-			if (addUser) {
-				addMiddlewares.add(DEFAULT_USER_LIMIT);
-			}
-			if (addGuild) {
-				addMiddlewares.add(DEFAULT_GUILD_LIMIT);
+				case USER -> hasUser = true;
+				case GUILD, CHANNEL -> hasGuild = true;
 			}
 		}
-		middlewares.addAll(addMiddlewares);
+
+		if (!hasUser) {
+			middlewares.add(DEFAULT_USER_LIMIT);
+		}
+		if (!hasGuild) {
+			middlewares.add(DEFAULT_GUILD_LIMIT);
+		}
 	}
 
 	protected final LocaleUtil lu = bot.getLocaleUtil();

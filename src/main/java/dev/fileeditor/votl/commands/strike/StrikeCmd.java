@@ -92,13 +92,13 @@ public class StrikeCmd extends SlashCommand {
 		}
 
 		// Check if target has strike cooldown
-		Duration strikeCooldown = bot.getDBUtil().getGuildSettings(event.getGuild()).getStrikeCooldown();
+		Duration strikeCooldown = bot.getDBUtil().getGuildSettings(guild).getStrikeCooldown();
 		if (strikeCooldown.isPositive()) {
 			Instant lastUpdate = bot.getDBUtil().strikes.getLastAddition(guild.getIdLong(), target.getIdLong());
 			if (lastUpdate != null && lastUpdate.plus(strikeCooldown).isAfter(Instant.now())) {
 				// Cooldown between strikes
 				editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_FAILURE)
-					.setDescription(lu.getGuildText(event, path+".cooldown", TimeFormat.RELATIVE.after(strikeCooldown).toString()))
+					.setDescription(lu.getGuildText(event, path+".cooldown", TimeFormat.RELATIVE.format(lastUpdate.plus(strikeCooldown))))
 					.build()
 				);
 				return;
@@ -119,7 +119,7 @@ public class StrikeCmd extends SlashCommand {
 		CaseType type = CaseType.byType(20 + strikeAmount);
 
 		// inform
-		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
+		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(guild).getDramaLevel();
 		target.getUser().openPrivateChannel().queue(pm -> {
 			Button button = Button.secondary("strikes:"+guild.getId(), lu.getGuildText(event, "logger_embed.pm.button_strikes"));
 			final String text = bot.getModerationUtil().getDmText(type, guild, reason, null, mod.getUser(), false);
@@ -128,11 +128,11 @@ public class StrikeCmd extends SlashCommand {
 				.setComponents(ActionRow.of(button))
 				.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, _ -> {
 					if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
-						TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+						TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(guild).getDramaChannelId())
 							.map(event.getJDA()::getTextChannelById)
 							.orElse(null);
 						if (dramaChannel != null) {
-							final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, event.getGuild(), target, reason, null);
+							final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.KICK, guild, target, reason, null);
 							if (dramaEmbed == null) return;
 							dramaChannel.sendMessage("||%s||".formatted(target.getAsMention()))
 								.addEmbeds(dramaEmbed)
@@ -142,12 +142,11 @@ public class StrikeCmd extends SlashCommand {
 				}));
 		});
 		if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ALL)) {
-			assert event.getGuild() != null;
-			TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+			TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(guild).getDramaChannelId())
 				.map(event.getJDA()::getTextChannelById)
 				.orElse(null);
 			if (dramaChannel != null) {
-				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(type, event.getGuild(), target, reason, null);
+				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(type, guild, target, reason, null);
 				if (dramaEmbed != null) {
 					dramaChannel.sendMessageEmbeds(dramaEmbed).queue();
 				}
