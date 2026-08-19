@@ -57,11 +57,15 @@ public class GameStrikeCmd extends SlashCommand {
 
 	@Override
 	protected void execute(SlashCommandEvent event) {
-		assert event.getGuild() != null && event.getMember() != null;
+		var guild = event.getGuild();
+		assert guild != null;
 		GuildChannel channel = event.optGuildChannel("channel");
 		assert channel != null;
-		if (bot.getDBUtil().games.getMaxStrikes(channel.getIdLong()) == null) {
-			editError(event, "errors.option.channel", "Channel: %s".formatted(channel.getAsMention()));
+
+		long channelId = channel.getIdLong();
+		final Integer maxStrikes = bot.getDBUtil().games.getMaxStrikes(channelId);
+		if (maxStrikes == null) {
+			editError(event, path+".error_channel", "Channel: %s".formatted(channel.getAsMention()));
 			return;
 		}
 
@@ -72,20 +76,19 @@ public class GameStrikeCmd extends SlashCommand {
 			return;
 		}
 		if (target.getUser().isBot()
-			|| target.equals(event.getGuild().getSelfMember())
+			|| target.equals(guild.getSelfMember())
 			|| target.equals(event.getMember())) {
 			editError(event, "errors.option.user_self");
 			return;
 		}
-		if (!event.getGuild().getSelfMember().canInteract(target)
+		if (!guild.getSelfMember().canInteract(target)
 			|| !event.getMember().canInteract(target)) {
 			editError(event, "errors.option.member_interact");
 			return;
 		}
 
 		// Check strike cooldown
-		long channelId = channel.getIdLong();
-		Duration strikeCooldown = bot.getDBUtil().getGuildSettings(event.getGuild()).getStrikeCooldown();
+		Duration strikeCooldown = bot.getDBUtil().getGuildSettings(guild).getStrikeCooldown();
 		if (strikeCooldown.isPositive()) {
 			Instant lastUpdate = bot.getDBUtil().games.getLastUpdate(channelId, target.getIdLong());
 			if (lastUpdate != null && lastUpdate.plus(strikeCooldown).isAfter(Instant.now())) {
@@ -109,7 +112,7 @@ public class GameStrikeCmd extends SlashCommand {
 
 		String reason = bot.getModerationUtil().parseReasonMentions(event);
 		// Add to DB
-		long guildId = event.getGuild().getIdLong();
+		long guildId = guild.getIdLong();
 
 		final CaseManager.CaseData strikeData;
 		try {
@@ -126,8 +129,7 @@ public class GameStrikeCmd extends SlashCommand {
 
 		// Log
 		final int strikeCount = bot.getDBUtil().games.countStrikes(channelId, target.getIdLong());
-		final int maxStrikes = bot.getDBUtil().games.getMaxStrikes(channelId);
-		bot.getGuildLogger().mod.onNewCase(event.getGuild(), target.getUser(), strikeData, proofData, strikeCount+"/"+maxStrikes);
+		bot.getGuildLogger().mod.onNewCase(guild, target.getUser(), strikeData, proofData, strikeCount+"/"+maxStrikes);
 
 		// Check if reached limit
 		if (strikeCount >= maxStrikes) {
@@ -137,19 +139,19 @@ public class GameStrikeCmd extends SlashCommand {
 		}
 
 		// Inform user and send to drama
-		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaLevel();
+		final GuildSettingsManager.DramaLevel dramaLevel = bot.getDBUtil().getGuildSettings(guild).getDramaLevel();
 		target.getUser().openPrivateChannel().queue(pm -> {
-			final String text = bot.getModerationUtil().getGamestrikeDmText(CaseType.GAME_STRIKE, event.getGuild(), reason, event.getUser(), channel, strikeCount, maxStrikes);
+			final String text = bot.getModerationUtil().getGamestrikeDmText(CaseType.GAME_STRIKE, guild, reason, event.getUser(), channel, strikeCount, maxStrikes);
 			if (text == null) return;
 
 			pm.sendMessage(text).setSuppressEmbeds(true)
 				.queue(null, new ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER, _ -> {
 					if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ONLY_BAD_DM)) {
-						TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+						TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(guild).getDramaChannelId())
 							.map(event.getJDA()::getTextChannelById)
 							.orElse(null);
 						if (dramaChannel != null) {
-							final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.GAME_STRIKE, event.getGuild(), target, reason, null, channel);
+							final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.GAME_STRIKE, guild, target, reason, null, channel);
 							if (dramaEmbed == null) return;
 							dramaChannel.sendMessage("||%s||".formatted(target.getAsMention()))
 								.addEmbeds(dramaEmbed)
@@ -159,12 +161,11 @@ public class GameStrikeCmd extends SlashCommand {
 				}));
 		});
 		if (dramaLevel.equals(GuildSettingsManager.DramaLevel.ALL)) {
-			assert event.getGuild() != null;
-			TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(event.getGuild()).getDramaChannelId())
+			TextChannel dramaChannel = Optional.ofNullable(bot.getDBUtil().getGuildSettings(guild).getDramaChannelId())
 				.map(event.getJDA()::getTextChannelById)
 				.orElse(null);
 			if (dramaChannel != null) {
-				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.GAME_STRIKE, event.getGuild(), target, reason, null, channel);
+				final MessageEmbed dramaEmbed = bot.getModerationUtil().getDramaEmbed(CaseType.GAME_STRIKE, guild, target, reason, null, channel);
 				if (dramaEmbed != null) {
 					dramaChannel.sendMessageEmbeds(dramaEmbed).queue();
 				}

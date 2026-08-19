@@ -3315,6 +3315,7 @@
 					"name": "proof",
 					"help": "Select/Paste image with proofs. Only .png and .jpg/.jpeg are accepted."
 				},
+				"error_channel": "This channel is not registered as game channel.",
 				"cooldown": "**Strike cooldown!**\nPlease, wait before giving new strike.\n\nRetry %s.",
 				"done": "User %s received Game strike in %s."
 			},
