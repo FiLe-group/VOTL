@@ -682,6 +682,121 @@
             width: 90%;
         }
 
+        .chatlog__component-action-row {
+            display: flex;
+            flex-direction: row;
+            margin-top: 0.5em;
+        }
+
+        .chatlog__component-container {
+            max-width: 520px;
+            margin-top: 0.3em;
+            padding: 0.75em 1em;
+            background-color: #2b2d31;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-left: 4px solid #4e5058;
+            border-radius: 8px;
+        }
+
+        .chatlog__component-container > *:first-child {
+            margin-top: 0;
+        }
+
+        .chatlog__component-section {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            max-width: 520px;
+            margin-top: 0.3em;
+        }
+
+        .chatlog__component-section-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chatlog__component-section-accessory {
+            flex-shrink: 0;
+            margin-left: 1em;
+            display: flex;
+            align-items: center;
+        }
+
+        .chatlog__component-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .chatlog__component-text {
+            margin-top: 0.3em;
+        }
+
+        .chatlog__component-media-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 0.3em;
+            max-width: 520px;
+        }
+
+        .chatlog__component-media-gallery-item {
+            display: block;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .chatlog__component-media-gallery-image {
+            display: block;
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: cover;
+        }
+
+        .chatlog__component-separator {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.06);
+            margin: 0.5em 0;
+        }
+
+        .chatlog__component-separator--large {
+            margin: 1em 0;
+        }
+
+        .chatlog__component-separator--invisible {
+            background-color: transparent;
+        }
+
+        .chatlog__markdown-header {
+            display: block;
+            color: #ffffff;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .chatlog__markdown-header--1 {
+            font-size: 1.5em;
+            margin: 0.3em 0;
+        }
+
+        .chatlog__markdown-header--2 {
+            font-size: 1.25em;
+            margin: 0.25em 0;
+        }
+
+        .chatlog__markdown-header--3 {
+            font-size: 1em;
+            margin: 0.2em 0;
+        }
+
+        .chatlog__markdown-subtext {
+            display: block;
+            color: #949ba4;
+            font-size: 0.75em;
+        }
+
     </style>
 
     <link rel="stylesheet"

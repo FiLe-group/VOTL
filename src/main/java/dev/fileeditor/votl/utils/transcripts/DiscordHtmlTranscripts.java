@@ -1,17 +1,29 @@
 package dev.fileeditor.votl.utils.transcripts;
 
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
 
 import dev.fileeditor.votl.utils.encoding.EncodingUtil;
 import net.dv8tion.jda.api.components.Component;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.filedisplay.FileDisplay;
+import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
+import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
+import net.dv8tion.jda.api.components.section.Section;
 import net.dv8tion.jda.api.components.selections.SelectMenu;
+import net.dv8tion.jda.api.components.separator.Separator;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
+import net.dv8tion.jda.api.components.thumbnail.Thumbnail;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -304,8 +316,8 @@ public class DiscordHtmlTranscripts {
                 }
             }
 
-            if (!message.getComponents().isEmpty()) {
-                handleInteractionComponents(document, message, content);
+            for (Component component : message.getComponents()) {
+                renderComponent(document, component, content);
             }
 
             messageGroup.appendChild(content);
@@ -651,80 +663,225 @@ public class DiscordHtmlTranscripts {
         messageGroup.appendChild(reference);
     }
 
-    private static void handleInteractionComponents(Document document, Message message, Element messageGroup) {
-        for (var topComponent : message.getComponents()) {
-            Element components = document.createElement("div");
-            components.attr("style", "flex-direction: row; display: flex; margin-top: .5em");
-
-			// We back up only action rows with buttons and select menus
-			if (!topComponent.getType().equals(Component.Type.ACTION_ROW)) continue;
-
-            for (Component component : topComponent.asActionRow().getComponents()) {
-
-                // Buttons
-                if (component instanceof Button button) {
-                    Element buttonElement = document.createElement("div");
-                    buttonElement.addClass("chatlog__interaction-button");
-                    buttonElement.addClass("chatlog__interaction-button--style-" +
-                            button.getStyle().name().toLowerCase());
-
-                    if (button.getEmoji() != null) {
-                        if (button.getEmoji().getType() == Emoji.Type.CUSTOM) {
-                            Element customEmoji = document.createElement("img");
-                            customEmoji.addClass("chatlog__interaction-button--emoji");
-                            customEmoji.attr("src", button.getEmoji().asCustom().getImageUrl());
-
-                            buttonElement.appendChild(customEmoji);
-                        } else {
-                            Element unicodeEmoji = document.createElement("span");
-                            unicodeEmoji.addClass("chatlog__interaction-button--emoji");
-                            unicodeEmoji.html(button.getEmoji().asUnicode().getName());
-
-                            buttonElement.appendChild(unicodeEmoji);
-                        }
-                    }
-                    if (!button.getLabel().isBlank()) {
-                        Element label = document.createElement("span");
-                        label.html(button.getLabel());
-
-                        buttonElement.appendChild(label);
-                    }
-                    components.appendChild(buttonElement);
-                }
-
-                // SelectMenus
-                if (component instanceof SelectMenu selectMenu) {
-                    Element menuContainer = document.createElement("div");
-                    menuContainer.addClass("chatlog__interaction-menu-container");
-
-                    Element menuElement = document.createElement("div");
-                    menuElement.addClass("chatlog__interaction-menu");
-
-                    Element placeholder = document.createElement("span");
-                    placeholder.html(selectMenu.getPlaceholder() == null ?
-                            "Select an option" : selectMenu.getPlaceholder());
-
-                    menuElement.appendChild(placeholder);
-
-                    Element icon = document.createElement("div");
-                    icon.addClass("chatlog__interaction-menu-icon");
-
-                    Element iconElement = document.createElement("svg");
-                    iconElement.attr("width", "24");
-                    iconElement.attr("height", "24");
-                    iconElement.attr("viewBox", "0 0 24 24");
-                    iconElement.html(
-                            "<path fill=\"currentColor\" d=\"M16.59 8.59003L12 13.17L7.41 8.59003L6 10L12 16L18 10L16.59 8.59003Z\"></path>");
-                    icon.appendChild(iconElement);
-
-                    menuElement.appendChild(icon);
-                    menuContainer.appendChild(menuElement);
-                    components.appendChild(menuContainer);
-                }
-
-            }
-            messageGroup.appendChild(components);
+    /**
+     * Renders one component (top-level, or nested inside a {@link Container}/{@link Section}) into
+     * {@code parent}. Dispatches on the concrete component interface rather than {@link Component.Type},
+     * since Components V2 nests several unrelated types under the same union - see the
+     * <a href="https://discord.com/developers/docs/components/reference">component reference</a>.
+     */
+    private static void renderComponent(Document document, Component component, Element parent) {
+        if (component instanceof Container container) {
+            renderContainer(document, container, parent);
+        } else if (component instanceof Section section) {
+            renderSection(document, section, parent);
+        } else if (component instanceof TextDisplay textDisplay) {
+            renderTextDisplay(document, textDisplay, parent);
+        } else if (component instanceof MediaGallery mediaGallery) {
+            renderMediaGallery(document, mediaGallery, parent);
+        } else if (component instanceof Separator separator) {
+            renderSeparator(document, separator, parent);
+        } else if (component instanceof FileDisplay fileDisplay) {
+            renderFileDisplay(document, fileDisplay, parent);
+        } else if (component instanceof ActionRow actionRow) {
+            renderActionRow(document, actionRow, parent);
         }
+        // Anything else (text inputs, selects outside an action row, ...) is not message-displayable
+    }
+
+    private static void renderContainer(Document document, Container container, Element parent) {
+        Element containerDiv = document.createElement("div");
+        containerDiv.addClass("chatlog__component-container");
+        if (container.isSpoiler()) containerDiv.addClass("chatlog__attachment--hidden");
+        Integer accentColor = container.getAccentColorRaw();
+        if (accentColor != null) {
+            containerDiv.attr("style", "border-left-color: #" + Formatter.toHex(new Color(accentColor)) + ";");
+        }
+        for (Component child : container.getComponents()) {
+            renderComponent(document, child, containerDiv);
+        }
+        parent.appendChild(containerDiv);
+    }
+
+    private static void renderSection(Document document, Section section, Element parent) {
+        Element sectionDiv = document.createElement("div");
+        sectionDiv.addClass("chatlog__component-section");
+
+        Element contentDiv = document.createElement("div");
+        contentDiv.addClass("chatlog__component-section-content");
+        for (Component child : section.getContentComponents()) {
+            renderComponent(document, child, contentDiv);
+        }
+        sectionDiv.appendChild(contentDiv);
+
+        Component accessory = section.getAccessory();
+        Element accessoryDiv = document.createElement("div");
+        accessoryDiv.addClass("chatlog__component-section-accessory");
+        if (accessory instanceof Thumbnail thumbnail) {
+            renderThumbnail(document, thumbnail, accessoryDiv);
+        } else if (accessory instanceof Button button) {
+            accessoryDiv.appendChild(renderButton(document, button));
+        }
+        sectionDiv.appendChild(accessoryDiv);
+
+        parent.appendChild(sectionDiv);
+    }
+
+    private static void renderTextDisplay(Document document, TextDisplay textDisplay, Element parent) {
+        Element textDiv = document.createElement("div");
+        textDiv.addClass("chatlog__component-text");
+
+        Element markdown = document.createElement("div");
+        markdown.addClass("markdown preserve-whitespace");
+        markdown.html(Formatter.format(textDisplay.getContent()));
+
+        textDiv.appendChild(markdown);
+        parent.appendChild(textDiv);
+    }
+
+    private static void renderMediaGallery(Document document, MediaGallery mediaGallery, Element parent) {
+        Element galleryDiv = document.createElement("div");
+        galleryDiv.addClass("chatlog__component-media-gallery");
+        for (MediaGalleryItem item : mediaGallery.getItems()) {
+            Element itemLink = document.createElement("a");
+            itemLink.addClass("chatlog__component-media-gallery-item");
+            if (item.isSpoiler()) itemLink.addClass("chatlog__attachment--hidden");
+            itemLink.attr("href", item.getUrl());
+
+            Element image = document.createElement("img");
+            image.addClass("chatlog__component-media-gallery-image");
+            image.attr("src", item.getUrl());
+            image.attr("alt", item.getDescription() == null ? "Media" : item.getDescription());
+            image.attr("loading", "lazy");
+
+            itemLink.appendChild(image);
+            galleryDiv.appendChild(itemLink);
+        }
+        parent.appendChild(galleryDiv);
+    }
+
+    private static void renderSeparator(Document document, Separator separator, Element parent) {
+        Element separatorDiv = document.createElement("div");
+        separatorDiv.addClass("chatlog__component-separator");
+        if (separator.getSpacing() == Separator.Spacing.LARGE) separatorDiv.addClass("chatlog__component-separator--large");
+        if (!separator.isDivider()) separatorDiv.addClass("chatlog__component-separator--invisible");
+        parent.appendChild(separatorDiv);
+    }
+
+    private static void renderFileDisplay(Document document, FileDisplay fileDisplay, Element parent) {
+        Element attachmentGeneric = document.createElement("div");
+        attachmentGeneric.addClass("chatlog__attachment-generic");
+        if (fileDisplay.isSpoiler()) attachmentGeneric.addClass("chatlog__attachment--hidden");
+
+        Element icon = document.createElement("svg");
+        icon.addClass("chatlog__attachment-generic-icon");
+        Element iconUse = document.createElement("use");
+        iconUse.attr("xlink:href", "#icon-attachment");
+        icon.appendChild(iconUse);
+        attachmentGeneric.appendChild(icon);
+
+        Element name = document.createElement("div");
+        name.addClass("chatlog__attachment-generic-name");
+        Element nameLink = document.createElement("a");
+        nameLink.attr("href", fileDisplay.getUrl());
+        nameLink.text(fileDisplayName(fileDisplay.getUrl()));
+        name.appendChild(nameLink);
+        attachmentGeneric.appendChild(name);
+
+        parent.appendChild(attachmentGeneric);
+    }
+
+    /** {@link FileDisplay} carries only a URL, so the name shown is recovered from its last path segment. */
+    private static String fileDisplayName(String url) {
+        String path = url.split("\\?", 2)[0];
+        String name = path.substring(path.lastIndexOf('/') + 1);
+        try {
+            return URLDecoder.decode(name, StandardCharsets.UTF_8);
+        } catch (Exception ex) {
+            return name;
+        }
+    }
+
+    private static void renderThumbnail(Document document, Thumbnail thumbnail, Element parent) {
+        Element image = document.createElement("img");
+        image.addClass("chatlog__component-thumbnail");
+        if (thumbnail.isSpoiler()) image.addClass("chatlog__attachment--hidden");
+        image.attr("src", thumbnail.getUrl());
+        image.attr("alt", thumbnail.getDescription() == null ? "Thumbnail" : thumbnail.getDescription());
+        image.attr("loading", "lazy");
+        parent.appendChild(image);
+    }
+
+    private static void renderActionRow(Document document, ActionRow actionRow, Element parent) {
+        Element rowDiv = document.createElement("div");
+        rowDiv.addClass("chatlog__component-action-row");
+
+        for (Component component : actionRow.getComponents()) {
+            if (component instanceof Button button) {
+                rowDiv.appendChild(renderButton(document, button));
+            } else if (component instanceof SelectMenu selectMenu) {
+                rowDiv.appendChild(renderSelectMenu(document, selectMenu));
+            }
+        }
+        parent.appendChild(rowDiv);
+    }
+
+    private static Element renderButton(Document document, Button button) {
+        Element buttonElement = document.createElement("div");
+        buttonElement.addClass("chatlog__interaction-button");
+        buttonElement.addClass("chatlog__interaction-button--style-" +
+            button.getStyle().name().toLowerCase());
+
+        if (button.getEmoji() != null) {
+            if (button.getEmoji().getType() == Emoji.Type.CUSTOM) {
+                Element customEmoji = document.createElement("img");
+                customEmoji.addClass("chatlog__interaction-button--emoji");
+                customEmoji.attr("src", button.getEmoji().asCustom().getImageUrl());
+
+                buttonElement.appendChild(customEmoji);
+            } else {
+                Element unicodeEmoji = document.createElement("span");
+                unicodeEmoji.addClass("chatlog__interaction-button--emoji");
+                unicodeEmoji.html(button.getEmoji().asUnicode().getName());
+
+                buttonElement.appendChild(unicodeEmoji);
+            }
+        }
+        if (!button.getLabel().isBlank()) {
+            Element label = document.createElement("span");
+            label.html(button.getLabel());
+
+            buttonElement.appendChild(label);
+        }
+        return buttonElement;
+    }
+
+    private static Element renderSelectMenu(Document document, SelectMenu selectMenu) {
+        Element menuContainer = document.createElement("div");
+        menuContainer.addClass("chatlog__interaction-menu-container");
+
+        Element menuElement = document.createElement("div");
+        menuElement.addClass("chatlog__interaction-menu");
+
+        Element placeholder = document.createElement("span");
+        placeholder.html(selectMenu.getPlaceholder() == null ?
+            "Select an option" : selectMenu.getPlaceholder());
+
+        menuElement.appendChild(placeholder);
+
+        Element icon = document.createElement("div");
+        icon.addClass("chatlog__interaction-menu-icon");
+
+        Element iconElement = document.createElement("svg");
+        iconElement.attr("width", "24");
+        iconElement.attr("height", "24");
+        iconElement.attr("viewBox", "0 0 24 24");
+        iconElement.html(
+            "<path fill=\"currentColor\" d=\"M16.59 8.59003L12 13.17L7.41 8.59003L6 10L12 16L18 10L16.59 8.59003Z\"></path>");
+        icon.appendChild(iconElement);
+
+        menuElement.appendChild(icon);
+        menuContainer.appendChild(menuElement);
+        return menuContainer;
     }
 
     private static void handlePinnedMessages(Document document, Message message, Element messageGroup) {

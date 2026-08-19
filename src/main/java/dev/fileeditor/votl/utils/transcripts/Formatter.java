@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
  * Twitter: @Ryzeon_ 😎
  * GitHub: github.ryzeon.me
  */
-@SuppressWarnings("SpellCheckingInspection")
 public class Formatter {
 
     private Formatter() {
@@ -29,6 +28,10 @@ public class Formatter {
     private static final Pattern CODE = Pattern.compile("```(.+?)```"); // Multi-line code block
     private static final Pattern CODE_1 = Pattern.compile("`(.+?)`"); // Code block
     private static final Pattern QUOTE = Pattern.compile("^>{1,3} (.*)$"); // Quote (one line or multiple)
+    private static final Pattern HEADING_3 = Pattern.compile("(?m)^### (.+)$"); // Small header
+    private static final Pattern HEADING_2 = Pattern.compile("(?m)^## (.+)$"); // Medium header
+    private static final Pattern HEADING_1 = Pattern.compile("(?m)^# (.+)$"); // Large header
+    private static final Pattern SUBTEXT = Pattern.compile("(?m)^-# (.+)$"); // Small grey text
     private static final Pattern MASKED_LINK = Pattern.compile("\\[([^\\[]+)](\\((www|http:|https:)+\\S+\\w\\))"); // Masked links
     private static final Pattern LINK = Pattern.compile("^(?!.*\\[[^]]*]\\([^)]*\\))((www|http:|https:)\\S+\\w)$"); // Link
     private static final Pattern EMOJI = Pattern.compile("<a?:([a-zA-Z0-9_]+):([0-9]+)>"); // Emoji
@@ -46,8 +49,34 @@ public class Formatter {
     }
 
     public static String format(String originalText) {
-        Matcher matcher = STRONG.matcher(originalText);
         String newText = originalText;
+
+        Matcher matcher = HEADING_3.matcher(newText);
+        while (matcher.find()) {
+            String group = matcher.group();
+            newText = newText.replace(group,
+                "<span class=\"chatlog__markdown-header chatlog__markdown-header--3\">" + matcher.group(1) + "</span>");
+        }
+        matcher = HEADING_2.matcher(newText);
+        while (matcher.find()) {
+            String group = matcher.group();
+            newText = newText.replace(group,
+                "<span class=\"chatlog__markdown-header chatlog__markdown-header--2\">" + matcher.group(1) + "</span>");
+        }
+        matcher = HEADING_1.matcher(newText);
+        while (matcher.find()) {
+            String group = matcher.group();
+            newText = newText.replace(group,
+                "<span class=\"chatlog__markdown-header chatlog__markdown-header--1\">" + matcher.group(1) + "</span>");
+        }
+        matcher = SUBTEXT.matcher(newText);
+        while (matcher.find()) {
+            String group = matcher.group();
+            newText = newText.replace(group,
+                "<span class=\"chatlog__markdown-subtext\">" + matcher.group(1) + "</span>");
+        }
+
+        matcher = STRONG.matcher(originalText);
         while (matcher.find()) {
             String group = matcher.group();
             newText = newText.replace(group,
