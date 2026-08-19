@@ -1,6 +1,6 @@
 package dev.fileeditor.votl.utils.transcripts;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,7 +8,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.List;
 import java.util.function.Consumer;
 
 import dev.fileeditor.votl.utils.encoding.EncodingUtil;

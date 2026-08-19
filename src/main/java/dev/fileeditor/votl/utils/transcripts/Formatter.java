@@ -76,7 +76,7 @@ public class Formatter {
                 "<span class=\"chatlog__markdown-subtext\">" + matcher.group(1) + "</span>");
         }
 
-        matcher = STRONG.matcher(originalText);
+        matcher = STRONG.matcher(newText);
         while (matcher.find()) {
             String group = matcher.group();
             newText = newText.replace(group,
