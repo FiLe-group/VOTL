@@ -58,7 +58,7 @@ public class AccessCmd extends SlashCommand {
 					.setMaxLength(32)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
-			this.requiredPermission = AccessPermission.OWNER;
+			this.requiredPermission = AccessPermission.ADMIN;
 		}
 
 		@Override
@@ -107,7 +107,7 @@ public class AccessCmd extends SlashCommand {
 				new OptionData(OptionType.STRING, "group", lu.getText(path+".group.help"), true, true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
-			this.requiredPermission = AccessPermission.OWNER;
+			this.requiredPermission = AccessPermission.ADMIN;
 		}
 
 		@Override
@@ -150,7 +150,7 @@ public class AccessCmd extends SlashCommand {
 					.setMaxLength(32)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
-			this.requiredPermission = AccessPermission.OWNER;
+			this.requiredPermission = AccessPermission.ADMIN;
 		}
 
 		@Override
@@ -203,7 +203,7 @@ public class AccessCmd extends SlashCommand {
 				new OptionData(OptionType.BOOLEAN, "value", lu.getText(path+".value.help"), true)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
-			this.requiredPermission = AccessPermission.OWNER;
+			this.requiredPermission = AccessPermission.ADMIN;
 		}
 
 		@Override
@@ -225,6 +225,11 @@ public class AccessCmd extends SlashCommand {
 			}
 			if (perm.hidden) {
 				editError(event, "bot.guild.access.group.permission.invalid");
+				return;
+			}
+			if ((perm == AccessPermission.SYNC_GROUP_MANAGER || perm == AccessPermission.BLACKLIST_MANAGE)
+				&& !bot.getCheckUtil().hasAccess(event.getMember(), AccessPermission.OWNER)) {
+				editError(event, "errors.interaction.no_access");
 				return;
 			}
 
@@ -254,8 +259,11 @@ public class AccessCmd extends SlashCommand {
 				replyGroupAutocomplete(event);
 			} else {
 				String query = event.getFocusedOption().getValue().toUpperCase();
+				boolean isOwner = event.getMember() != null
+					&& bot.getCheckUtil().hasAccess(event.getMember(), AccessPermission.OWNER);
 				List<Command.Choice> choices = Arrays.stream(AccessPermission.values())
 					.filter(p -> !p.hidden)
+					.filter(p -> isOwner || (p != AccessPermission.SYNC_GROUP_MANAGER && p != AccessPermission.BLACKLIST_MANAGE))
 					.filter(p -> p.name().contains(query))
 					.limit(25)
 					.map(p -> new Command.Choice(p.name().toLowerCase(), p.name()))
@@ -280,7 +288,7 @@ public class AccessCmd extends SlashCommand {
 					.setMaxLength(16)
 			);
 			this.subcommandGroup = new SubcommandGroupData("group", lu.getText("bot.guild.access.group.help"));
-			this.requiredPermission = AccessPermission.OWNER;
+			this.requiredPermission = AccessPermission.ADMIN;
 		}
 
 		@Override
