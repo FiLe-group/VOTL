@@ -52,7 +52,7 @@ dependencies {
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
-	implementation 'org.apache.groovy:groovy:5.0.8'			    	// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:5.1.0'			    	// Groovy - code evaluation
 
 	// Testing
 	// Source: https://mvnrepository.com/artifact/org.junit/junit-bom
