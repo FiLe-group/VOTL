@@ -3034,7 +3034,7 @@
 					},
 					"icon": {
 						"name": "icon",
-						"help": "Icon image (64x64 px, max 256 KB, optional)"
+						"help": "Icon image (PNG or JPEG, max 128x128, max 256 KB, optional)"
 					},
 					"name": {
 						"name": "name",
@@ -3084,7 +3084,8 @@
 						"color_gradient": "Gradient",
 						"color_gradient_desc": "Two colors blending into each other",
 						"color2": "Secondary Color (#RRGGBB, for gradient)",
-						"icon": "Icon URL (optional)",
+						"icon": "Icon file (png or jpeg, MAX 128x128)",
+						"icon_keep": "Upload a new file to replace the current icon, or leave empty to keep it.",
 						"title": "Request a Custom Role",
 						"color1": "Primary Color (#RRGGBB)",
 						"name": "Role Name"
@@ -3132,7 +3133,8 @@
 				},
 				"errors": {
 					"invalid_hex": "Invalid color format. Use #RRGGBB, e.g. #FF5500.",
-					"icon_wrong_size": "Image must be exactly 64 x 64 pixels.",
+					"icon_wrong_size": "Icon must be at most 128 x 128 pixels.",
+					"icon_wrong_type": "Icon must be a PNG or JPEG image.",
 					"icon_too_large": "Image exceeds the 256 KB size limit.",
 					"no_access": "You do not have access to request a custom role.",
 					"no_setup": "Custom roles are not set up on this server.",

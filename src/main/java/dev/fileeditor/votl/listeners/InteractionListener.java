@@ -6,7 +6,6 @@ import dev.fileeditor.votl.commands.role.CustomRoleCmd;
 import dev.fileeditor.votl.utils.database.managers.CustomRoleRequestsManager.CustomRoleRequest;
 import dev.fileeditor.votl.utils.database.managers.CustomRoleSettingsManager.CustomRoleSettings;
 
-import java.net.URI;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
@@ -41,6 +40,7 @@ import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.attachmentupload.AttachmentUpload;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.components.selections.EntitySelectMenu;
@@ -2076,14 +2076,13 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		String name      = Optional.ofNullable(event.getValue("name")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
+		String name = Optional.ofNullable(event.getValue("name")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
 		String colorMode = Optional.ofNullable(event.getValue("colorMode")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("solid");
-		String color1    = Optional.ofNullable(event.getValue("color1")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
-		String color2    = Optional.ofNullable(event.getValue("color2")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
-		String icon      = Optional.ofNullable(event.getValue("icon")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		String color1 = Optional.ofNullable(event.getValue("color1")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
+		String color2 = Optional.ofNullable(event.getValue("color2")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		Message.Attachment iconAttachment = getIconAttachment(event.getValue("icon"));
 		if ("solid".equals(colorMode)) color2 = null;
 		if (color2 != null && color2.isBlank()) color2 = null;
-		if (icon   != null && icon.isBlank())   icon   = null;
 
 		if (!CustomRoleCmd.isValidHex(color1)) {
 			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Primary: " + color1);
@@ -2093,7 +2092,12 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Secondary: " + color2);
 			return;
 		}
-		if (icon != null && !event.getGuild().getFeatures().contains("ROLE_ICONS")) {
+		String iconError = CustomRoleCmd.validateIconAttachment(iconAttachment);
+		if (iconError != null) {
+			sendError(event, iconError);
+			return;
+		}
+		if (iconAttachment != null && !event.getGuild().getFeatures().contains("ROLE_ICONS")) {
 			sendError(event, "bot.roles.custom_role.errors.level_required");
 			return;
 		}
@@ -2101,16 +2105,18 @@ public class InteractionListener extends ListenerAdapter {
 		color1 = CustomRoleCmd.normalizeHex(color1);
 		if (color2 != null) color2 = CustomRoleCmd.normalizeHex(color2);
 
+		// iconUrl is a placeholder until postReviewEmbed re-hosts the file on the review message
+		String initialIconUrl = iconAttachment != null ? iconAttachment.getUrl() : null;
 		long requestId;
 		try {
-			requestId = db.customRoleRequests.create(guildId, userId, name, color1, color2, null, icon);
+			requestId = db.customRoleRequests.create(guildId, userId, name, color1, color2, null, initialIconUrl);
 		} catch (SQLException ex) {
 			LOG.warn("Failed to create custom role request", ex);
 			sendError(event, "errors.database");
 			return;
 		}
 
-		postReviewEmbed(event, event.getGuild(), settings, requestId, event.getMember(), name, color1, color2, icon, false);
+		postReviewEmbed(event, event.getGuild(), settings, requestId, event.getMember(), name, color1, color2, iconAttachment, false);
 
 		bot.getGuildLogger().botLogs.onCustomRoleRequested(event.getGuild(), userId, name, color1, color2, requestId, false);
 
@@ -2134,7 +2140,7 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		createCustomRole(event, event.getGuild(), request, event.getMember().getIdLong());
+		createCustomRole(event, event.getGuild(), request, event.getMember().getIdLong(), null);
 	}
 
 	private void buttonCustomRoleModify(ButtonInteractionEvent event, long requestId) {
@@ -2173,7 +2179,8 @@ public class InteractionListener extends ListenerAdapter {
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color2"),
 					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color2 != null && !request.color2.isBlank() ? request.color2 : "").setRequired(false).build()),
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon"),
-					TextInput.create("icon", TextInputStyle.SHORT).setMaxLength(512).setValue(request.iconUrl != null && !request.iconUrl.isBlank() ? request.iconUrl : "").setRequired(false).build())
+					lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon_keep"),
+					AttachmentUpload.create("icon").setMaxValues(1).build())
 			)
 			.build();
 		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
@@ -2192,14 +2199,13 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		String name      = Optional.ofNullable(event.getValue("name")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(request.roleName);
+		String name = Optional.ofNullable(event.getValue("name")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(request.roleName);
 		String colorMode = Optional.ofNullable(event.getValue("colorMode")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("solid");
-		String color1    = Optional.ofNullable(event.getValue("color1")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
-		String color2    = Optional.ofNullable(event.getValue("color2")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
-		String icon      = Optional.ofNullable(event.getValue("icon")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		String color1 = Optional.ofNullable(event.getValue("color1")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
+		String color2 = Optional.ofNullable(event.getValue("color2")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		Message.Attachment iconAttachment = getIconAttachment(event.getValue("icon"));
 		if ("solid".equals(colorMode)) color2 = null;
 		if (color2 != null && color2.isBlank()) color2 = null;
-		if (icon   != null && icon.isBlank())   icon   = null;
 
 		if (!CustomRoleCmd.isValidHex(color1)) {
 			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Primary: " + color1);
@@ -2209,12 +2215,39 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Secondary: " + color2);
 			return;
 		}
+		String iconError = CustomRoleCmd.validateIconAttachment(iconAttachment);
+		if (iconError != null) {
+			sendError(event, iconError);
+			return;
+		}
 
-		color1 = CustomRoleCmd.normalizeHex(color1);
-		if (color2 != null) color2 = CustomRoleCmd.normalizeHex(color2);
+		final String fName = name;
+		final String fColor1 = CustomRoleCmd.normalizeHex(color1);
+		final String fColor2 = color2 != null ? CustomRoleCmd.normalizeHex(color2) : null;
+		final String keepIconUrl = request.iconUrl;
+		final long reviewerId = event.getMember().getIdLong();
 
+		if (iconAttachment != null) {
+			// New icon uploaded during review: decode it now, then continue on the callback thread
+			iconAttachment.getProxy().downloadAsIcon().whenComplete((newIcon, err) -> {
+				if (err != null) {
+					LOG.warn("Failed to read uploaded custom role icon for request {}", requestId, err);
+					sendError(event, "errors.error", err.getMessage());
+					return;
+				}
+				applyModifiedRequest(event, requestId, fName, fColor1, fColor2, iconAttachment.getUrl(), newIcon, reviewerId);
+			});
+		} else {
+			// Keep whatever icon the request already carries
+			applyModifiedRequest(event, requestId, fName, fColor1, fColor2, keepIconUrl, null, reviewerId);
+		}
+	}
+
+	private void applyModifiedRequest(ModalInteractionEvent event, long requestId, String name,
+									  String color1, @Nullable String color2, @Nullable String iconUrl,
+									  @Nullable net.dv8tion.jda.api.entities.Icon iconOverride, long reviewerId) {
 		try {
-			db.customRoleRequests.updateDetails(requestId, name, color1, color2, icon);
+			db.customRoleRequests.updateDetails(requestId, name, color1, color2, iconUrl);
 		} catch (SQLException ex) {
 			LOG.warn("Failed to update custom role request details", ex);
 			sendError(event, "errors.database");
@@ -2227,7 +2260,8 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.no_request");
 			return;
 		}
-		createCustomRole(event, event.getGuild(), updated, event.getMember().getIdLong());
+		assert event.getGuild() != null;
+		createCustomRole(event, event.getGuild(), updated, reviewerId, iconOverride);
 	}
 
 	private void buttonCustomRoleReject(ButtonInteractionEvent event, long requestId) {
@@ -2326,11 +2360,10 @@ public class InteractionListener extends ListenerAdapter {
 		}
 
 		var lastApproved = db.customRoleRequests.getLatestApprovedByUser(userId, guildId);
-		String prefillName   = lastApproved != null ? lastApproved.roleName : "";
+		String prefillName = lastApproved != null ? lastApproved.roleName : "";
 		String prefillColor1 = lastApproved != null ? lastApproved.color1 : null;
 		String prefillColor2 = lastApproved != null ? lastApproved.color2 : null;
-		String prefillIcon   = lastApproved != null ? lastApproved.iconUrl : null;
-		boolean wasGradient  = lastApproved != null && lastApproved.color2 != null;
+		boolean wasGradient = lastApproved != null && lastApproved.color2 != null;
 
 		var locale = event.getUserLocale();
 		var modal = net.dv8tion.jda.api.modals.Modal.create("cr:edit_request",
@@ -2354,7 +2387,8 @@ public class InteractionListener extends ListenerAdapter {
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color2"),
 					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(prefillColor2).setRequired(false).build()),
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon"),
-					TextInput.create("icon", TextInputStyle.SHORT).setMaxLength(512).setValue(prefillIcon).setRequired(false).build())
+					lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon_keep"),
+					AttachmentUpload.create("icon").setMaxValues(1).build())
 			)
 			.build();
 		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
@@ -2383,14 +2417,13 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		String name      = Optional.ofNullable(event.getValue("name")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
+		String name = Optional.ofNullable(event.getValue("name")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
 		String colorMode = Optional.ofNullable(event.getValue("colorMode")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("solid");
-		String color1    = Optional.ofNullable(event.getValue("color1")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
-		String color2    = Optional.ofNullable(event.getValue("color2")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
-		String icon      = Optional.ofNullable(event.getValue("icon")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		String color1 = Optional.ofNullable(event.getValue("color1")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse("");
+		String color2 = Optional.ofNullable(event.getValue("color2")).map(ModalMapping::getAsOptionalString).map(String::strip).orElse(null);
+		Message.Attachment iconAttachment = getIconAttachment(event.getValue("icon"));
 		if ("solid".equals(colorMode)) color2 = null;
 		if (color2 != null && color2.isBlank()) color2 = null;
-		if (icon   != null && icon.isBlank())   icon   = null;
 
 		if (!CustomRoleCmd.isValidHex(color1)) {
 			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Primary: " + color1);
@@ -2400,7 +2433,13 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.invalid_hex", "Secondary: " + color2);
 			return;
 		}
-		if (icon != null && !event.getGuild().getFeatures().contains("ROLE_ICONS")) {
+		String iconError = CustomRoleCmd.validateIconAttachment(iconAttachment);
+		if (iconError != null) {
+			sendError(event, iconError);
+			return;
+		}
+		// Only a newly uploaded file changes the icon; leaving it empty keeps the role's current icon untouched.
+		if (iconAttachment != null && !event.getGuild().getFeatures().contains("ROLE_ICONS")) {
 			sendError(event, "bot.roles.custom_role.errors.level_required");
 			return;
 		}
@@ -2408,16 +2447,18 @@ public class InteractionListener extends ListenerAdapter {
 		color1 = CustomRoleCmd.normalizeHex(color1);
 		if (color2 != null) color2 = CustomRoleCmd.normalizeHex(color2);
 
+		// iconUrl is a placeholder until postReviewEmbed re-hosts the file on the review message
+		String initialIconUrl = iconAttachment != null ? iconAttachment.getUrl() : null;
 		long requestId;
 		try {
-			requestId = db.customRoleRequests.create(guildId, userId, name, color1, color2, null, icon, 1);
+			requestId = db.customRoleRequests.create(guildId, userId, name, color1, color2, null, initialIconUrl, 1);
 		} catch (SQLException ex) {
 			LOG.warn("Failed to create custom role edit request", ex);
 			sendError(event, "errors.database");
 			return;
 		}
 
-		postReviewEmbed(event, event.getGuild(), settings, requestId, event.getMember(), name, color1, color2, icon, true);
+		postReviewEmbed(event, event.getGuild(), settings, requestId, event.getMember(), name, color1, color2, iconAttachment, true);
 
 		bot.getGuildLogger().botLogs.onCustomRoleRequested(event.getGuild(), userId, name, color1, color2, requestId, true);
 
@@ -2429,7 +2470,8 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private void applyCustomRoleEdit(IReplyCallback event, net.dv8tion.jda.api.entities.Guild guild,
-	                                 CustomRoleRequest request, long reviewerId) {
+									 CustomRoleRequest request, long reviewerId,
+									 @Nullable net.dv8tion.jda.api.entities.Icon iconOverride) {
 		String name   = request.roleName;
 		String color1 = request.color1;
 		String color2 = request.color2;
@@ -2449,7 +2491,7 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.gradient_not_supported");
 			return;
 		}
-		if (request.iconUrl != null && !request.iconUrl.isBlank() && !guild.getFeatures().contains("ROLE_ICONS")) {
+		if (requestHasIcon(request, iconOverride) && !guild.getFeatures().contains("ROLE_ICONS")) {
 			sendError(event, "bot.roles.custom_role.errors.level_required");
 			return;
 		}
@@ -2477,25 +2519,8 @@ public class InteractionListener extends ListenerAdapter {
 
 		manager.reason("Custom role edit approved by " + (event.getMember() != null ? event.getMember().getEffectiveName() : "reviewer"))
 			.queue(_ -> {
-				// Handle icon update
-				String iconUrl = request.iconUrl;
-				if (iconUrl != null && !iconUrl.isBlank()) {
-					try {
-						var conn = URI.create(iconUrl).toURL().openConnection();
-						conn.setConnectTimeout(5000);
-						conn.setReadTimeout(5000);
-						byte[] bytes = conn.getInputStream().readAllBytes();
-						if (bytes.length <= 256 * 1024) {
-							var icon = net.dv8tion.jda.api.entities.Icon.from(bytes);
-							existingRole.getManager().setIcon(icon).queue(null,
-								t -> LOG.warn("Failed to update icon on custom role {}", existingRoleId, t));
-						} else {
-							LOG.warn("Icon too large for custom role edit {}, skipping", existingRoleId);
-						}
-					} catch (Exception ex) {
-						LOG.warn("Failed to fetch icon for custom role edit {}", existingRoleId, ex);
-					}
-				}
+				// Handle icon update — only when a new icon was requested; otherwise leave the role's current icon
+				applyRequestIcon(guild, request, iconOverride, existingRole);
 
 				// DB
 				try {
@@ -2536,9 +2561,10 @@ public class InteractionListener extends ListenerAdapter {
 	}
 
 	private void createCustomRole(IReplyCallback event, net.dv8tion.jda.api.entities.Guild guild,
-	                              CustomRoleRequest request, long reviewerId) {
+								  CustomRoleRequest request, long reviewerId,
+								  @Nullable net.dv8tion.jda.api.entities.Icon iconOverride) {
 		if (request.isEditRequest()) {
-			applyCustomRoleEdit(event, guild, request, reviewerId);
+			applyCustomRoleEdit(event, guild, request, reviewerId, iconOverride);
 			return;
 		}
 
@@ -2561,7 +2587,7 @@ public class InteractionListener extends ListenerAdapter {
 			sendError(event, "bot.roles.custom_role.errors.gradient_not_supported");
 			return;
 		}
-		if (request.iconUrl != null && !request.iconUrl.isBlank() && !guild.getFeatures().contains("ROLE_ICONS")) {
+		if (requestHasIcon(request, iconOverride) && !guild.getFeatures().contains("ROLE_ICONS")) {
 			sendError(event, "bot.roles.custom_role.errors.level_required");
 			return;
 		}
@@ -2586,25 +2612,8 @@ public class InteractionListener extends ListenerAdapter {
 					}
 				}
 
-				// Handle icon — fetch from URL if present
-				String iconUrl = request.iconUrl;
-				if (iconUrl != null && !iconUrl.isBlank()) {
-					try {
-						var conn = URI.create(iconUrl).toURL().openConnection();
-						conn.setConnectTimeout(5000);
-						conn.setReadTimeout(5000);
-						byte[] bytes = conn.getInputStream().readAllBytes();
-						if (bytes.length <= 256 * 1024) {
-							var icon = net.dv8tion.jda.api.entities.Icon.from(bytes);
-							role.getManager().setIcon(icon).queue(null,
-								t -> LOG.warn("Failed to set icon on custom role {}", role.getIdLong(), t));
-						} else {
-							LOG.warn("Icon too large for custom role {}, skipping", role.getIdLong());
-						}
-					} catch (Exception ex) {
-						LOG.warn("Failed to fetch icon for custom role {}", role.getIdLong(), ex);
-					}
-				}
+				// Handle icon — from the review message attachment (or a fresh upload during review)
+				applyRequestIcon(guild, request, iconOverride, role);
 
 				// Assign to owner
 				long ownerId = request.userId;
@@ -2657,11 +2666,100 @@ public class InteractionListener extends ListenerAdapter {
 			});
 	}
 
+	// Extracts the first uploaded attachment from a custom-role modal's icon field, or null if none.
+	@Nullable
+	private Message.Attachment getIconAttachment(@Nullable ModalMapping mapping) {
+		if (mapping == null) return null;
+		var list = mapping.getAsAttachmentList();
+		return list.isEmpty() ? null : list.getFirst();
+	}
+
+	private static boolean requestHasIcon(CustomRoleRequest request, @Nullable net.dv8tion.jda.api.entities.Icon iconOverride) {
+		return iconOverride != null || (request.iconUrl != null && !request.iconUrl.isBlank());
+	}
+
+	// Resolves the icon for an approved request and applies it to the role.
+	// Order of preference: a fresh upload made during review, then the file attached to the
+	// review message, then the stored URL as a last resort. Does nothing when there is no icon.
+	private void applyRequestIcon(net.dv8tion.jda.api.entities.Guild guild, CustomRoleRequest request,
+								  @Nullable net.dv8tion.jda.api.entities.Icon iconOverride, Role role) {
+		resolveRequestIcon(guild, request, iconOverride, resolved -> {
+			if (resolved == null) return;
+			role.getManager().setIcon(resolved).queue(null,
+				t -> LOG.warn("Failed to set icon on custom role {}", role.getIdLong(), t));
+		});
+	}
+
+	private void resolveRequestIcon(net.dv8tion.jda.api.entities.Guild guild, CustomRoleRequest request,
+									@Nullable net.dv8tion.jda.api.entities.Icon iconOverride,
+									java.util.function.Consumer<net.dv8tion.jda.api.entities.Icon> callback) {
+		if (iconOverride != null) {
+			callback.accept(iconOverride);
+			return;
+		}
+		if (request.iconUrl == null || request.iconUrl.isBlank()) {
+			callback.accept(null);
+			return;
+		}
+
+		CustomRoleSettings settings = db.customRoleSettings.getSettings(guild.getIdLong());
+		TextChannel channel = request.messageId != null && settings.getRequestsChannelId() != null
+			? guild.getTextChannelById(settings.getRequestsChannelId())
+			: null;
+		if (channel == null) {
+			downloadIcon(request.iconUrl, callback);
+			return;
+		}
+
+		channel.retrieveMessageById(request.messageId).queue(msg -> {
+			Message.Attachment att = msg.getAttachments().stream()
+				.filter(Message.Attachment::isImage)
+				.findFirst()
+				.orElse(null);
+			if (att == null) {
+				downloadIcon(request.iconUrl, callback);
+				return;
+			}
+			att.getProxy().downloadAsIcon().whenComplete((icon, err) -> {
+				if (err != null) {
+					LOG.warn("Failed to download custom role icon from review message {}", request.messageId, err);
+					downloadIcon(request.iconUrl, callback);
+				} else {
+					callback.accept(icon);
+				}
+			});
+		}, err -> {
+			LOG.warn("Failed to retrieve review message {} for custom role icon", request.messageId, err);
+			downloadIcon(request.iconUrl, callback);
+		});
+	}
+
+	private void downloadIcon(String url, java.util.function.Consumer<net.dv8tion.jda.api.entities.Icon> callback) {
+		try {
+			new net.dv8tion.jda.api.utils.FileProxy(url).download().whenComplete((stream, err) -> {
+				if (err != null || stream == null) {
+					LOG.warn("Failed to download custom role icon from {}", url, err);
+					callback.accept(null);
+					return;
+				}
+				try (stream) {
+					callback.accept(net.dv8tion.jda.api.entities.Icon.from(stream.readAllBytes()));
+				} catch (Exception ex) {
+					LOG.warn("Failed to read custom role icon from {}", url, ex);
+					callback.accept(null);
+				}
+			});
+		} catch (Exception ex) {
+			LOG.warn("Failed to download custom role icon from {}", url, ex);
+			callback.accept(null);
+		}
+	}
+
 	private void postReviewEmbed(ModalInteractionEvent event, net.dv8tion.jda.api.entities.Guild guild,
 	                             CustomRoleSettings settings, long requestId,
 	                             net.dv8tion.jda.api.entities.Member requester,
 	                             String name, String color1, @Nullable String color2,
-	                             @Nullable String iconUrl, boolean isEdit) {
+								 @Nullable Message.Attachment icon, boolean isEdit) {
 		var reviewChannel = Optional.ofNullable(settings.getRequestsChannelId()).map(guild::getTextChannelById).orElse(null);
 		if (reviewChannel == null) return;
 
@@ -2680,9 +2778,11 @@ public class InteractionListener extends ListenerAdapter {
 		if (color2 != null) {
 			embed.addField(lu.getText(event, "bot.roles.custom_role.review.color_secondary"), color2, true);
 		}
-		if (iconUrl != null) {
-			embed.addField(lu.getText(event, "bot.roles.custom_role.review.icon"), iconUrl, false)
-				.setImage(iconUrl);
+		net.dv8tion.jda.api.utils.FileUpload iconUpload = null;
+		if (icon != null) {
+			String fileName = "icon." + CustomRoleCmd.iconExtension(icon);
+			iconUpload = icon.getProxy().downloadAsFileUpload(fileName);
+			embed.setImage("attachment://" + fileName);
 		}
 		embed.setFooter(lu.getText(event, "bot.roles.custom_role.review.footer").formatted(guild.getName()));
 
@@ -2692,13 +2792,18 @@ public class InteractionListener extends ListenerAdapter {
 			Button.danger("cr:reject:" + requestId, lu.getText(event, "bot.roles.custom_role.review.btn_reject"))
 		);
 
-		reviewChannel.sendMessage(
-			new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-				.setContent(ping)
-				.setEmbeds(embed.build())
-				.setComponents(ActionRow.of(buttons))
-				.build()
-		).queue(msg -> ignoreExc(() -> db.customRoleRequests.setMessageId(requestId, msg.getIdLong())));
+		var messageBuilder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+			.setContent(ping)
+			.setEmbeds(embed.build())
+			.setComponents(ActionRow.of(buttons));
+		if (iconUpload != null) messageBuilder.setFiles(iconUpload);
+
+		reviewChannel.sendMessage(messageBuilder.build()).queue(msg -> {
+			ignoreExc(() -> db.customRoleRequests.setMessageId(requestId, msg.getIdLong()));
+			if (!msg.getAttachments().isEmpty()) {
+				ignoreExc(() -> db.customRoleRequests.setIconUrl(requestId, msg.getAttachments().getFirst().getUrl()));
+			}
+		});
 	}
 
 	// Updates the posted review embed with the final decision (color, status, reviewer) and disables its buttons

@@ -12,15 +12,13 @@ import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +28,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 public class CustomRoleCmd extends SlashCommand {
 
@@ -479,26 +479,18 @@ public class CustomRoleCmd extends SlashCommand {
 				return;
 			}
 
-			String iconUrl = null;
-			try (var attachment = event.optAttachment("icon")) {
-				if (attachment != null) {
-					if (!attachment.isImage()) {
-						editError(event, "bot.roles.custom_role.errors.icon_invalid");
-						return;
-					}
-					if (attachment.getSize() > 256 * 1024) {
-						editError(event, "bot.roles.custom_role.errors.icon_too_large");
-						return;
-					}
-					if (!guild.getFeatures().contains("ROLE_ICONS")) {
-						editError(event, "bot.roles.custom_role.errors.level_required");
-						return;
-					}
-					iconUrl = attachment.getUrl();
-				}
+			Message.Attachment icon = event.optAttachment("icon");
+			String iconError = validateIconAttachment(icon);
+			if (iconError != null) {
+				editError(event, iconError);
+				return;
+			}
+			if (icon != null && !guild.getFeatures().contains("ROLE_ICONS")) {
+				editError(event, "bot.roles.custom_role.errors.level_required");
+				return;
 			}
 
-			submitRequest(event, guildId, userId, name, color1, color2, colorNotes, iconUrl);
+			submitRequest(event, guildId, userId, name, color1, color2, colorNotes, icon);
 		}
 	}
 
@@ -568,15 +560,17 @@ public class CustomRoleCmd extends SlashCommand {
 
 	private void submitRequest(SlashCommandEvent event, long guildId, long userId,
 							   String name, String color1, @Nullable String color2,
-	                           @Nullable String colorNotes, @Nullable String iconUrl) {
+							   @Nullable String colorNotes, @Nullable Message.Attachment icon) {
 		Guild guild = event.getGuild();
 		assert guild != null && event.getMember() != null;
 
 		var settings = bot.getDBUtil().customRoleSettings.getSettings(guildId);
 
+		// iconUrl is a placeholder until the review message re-hosts the file below
+		String initialIconUrl = icon != null ? icon.getUrl() : null;
 		long requestId;
 		try {
-			requestId = bot.getDBUtil().customRoleRequests.create(guildId, userId, name, color1, color2, colorNotes, iconUrl);
+			requestId = bot.getDBUtil().customRoleRequests.create(guildId, userId, name, color1, color2, colorNotes, initialIconUrl);
 		} catch (SQLException ex) {
 			editErrorDatabase(event, ex, "create custom role request");
 			return;
@@ -602,9 +596,12 @@ public class CustomRoleCmd extends SlashCommand {
 		if (colorNotes != null) {
 			reviewEmbed.addField(lu.getGuildText(event, "bot.roles.custom_role.review.color_notes"), colorNotes, false);
 		}
-		if (iconUrl != null) {
-			reviewEmbed.addField(lu.getGuildText(event, "bot.roles.custom_role.review.icon"), iconUrl, false)
-				.setImage(iconUrl);
+
+		FileUpload iconUpload = null;
+		if (icon != null) {
+			String fileName = "icon." + iconExtension(icon);
+			iconUpload = icon.getProxy().downloadAsFileUpload(fileName);
+			reviewEmbed.setImage("attachment://" + fileName);
 		}
 		reviewEmbed.setFooter(lu.getGuildText(event, "bot.roles.custom_role.review.footer").formatted(guild.getName()));
 
@@ -614,15 +611,18 @@ public class CustomRoleCmd extends SlashCommand {
 		buttons.add(Button.danger("cr:reject:" + requestId, lu.getGuildText(event, "bot.roles.custom_role.review.btn_reject")));
 
 		final long fRequestId = requestId;
-		requestsChannel.sendMessage(
-			new MessageCreateBuilder()
-				.setContent(ping)
-				.setEmbeds(reviewEmbed.build())
-				.setComponents(ActionRow.of(buttons))
-				.build()
-		).queue(msg -> {
+		MessageCreateBuilder messageBuilder = new MessageCreateBuilder()
+			.setContent(ping)
+			.setEmbeds(reviewEmbed.build())
+			.setComponents(ActionRow.of(buttons));
+		if (iconUpload != null) messageBuilder.setFiles(iconUpload);
+
+		requestsChannel.sendMessage(messageBuilder.build()).queue(msg -> {
 			try {
 				bot.getDBUtil().customRoleRequests.setMessageId(fRequestId, msg.getIdLong());
+				if (!msg.getAttachments().isEmpty()) {
+					bot.getDBUtil().customRoleRequests.setIconUrl(fRequestId, msg.getAttachments().getFirst().getUrl());
+				}
 			} catch (SQLException ignored) {}
 		});
 
@@ -641,6 +641,39 @@ public class CustomRoleCmd extends SlashCommand {
 	/** Normalizes a hex string to #RRGGBB format. */
 	public static String normalizeHex(String hex) {
 		return "#" + (hex.startsWith("#") ? hex.substring(1) : hex).toUpperCase();
+	}
+
+	/**
+	 * Validates a custom-role icon attachment: PNG or JPEG, at most 128x128, at most 256 KB.
+	 *
+	 * @return a locale error key if invalid, or {@code null} when acceptable (including a {@code null} attachment).
+	 */
+	@Nullable
+	public static String validateIconAttachment(@Nullable Message.Attachment icon) {
+		if (icon == null) return null;
+		String type = Optional.ofNullable(icon.getContentType()).orElse("");
+		int sep = type.indexOf(';');
+		if (sep != -1) type = type.substring(0, sep);
+		type = type.strip().toLowerCase(Locale.ROOT);
+		if (!type.equals("image/png") && !type.equals("image/jpeg")) {
+			return "bot.roles.custom_role.errors.icon_wrong_type";
+		}
+		if (icon.getWidth() > 128 || icon.getHeight() > 128) {
+			return "bot.roles.custom_role.errors.icon_wrong_size";
+		}
+		if (icon.getSize() > 256 * 1024) {
+			return "bot.roles.custom_role.errors.icon_too_large";
+		}
+		return null;
+	}
+
+	/** File extension to use when re-uploading a validated icon onto the review message. */
+	public static String iconExtension(Message.Attachment icon) {
+		String ext = icon.getFileExtension();
+		if (ext != null && (ext.equalsIgnoreCase("png") || ext.equalsIgnoreCase("jpg") || ext.equalsIgnoreCase("jpeg"))) {
+			return ext.toLowerCase(Locale.ROOT);
+		}
+		return Optional.ofNullable(icon.getContentType()).orElse("").toLowerCase(Locale.ROOT).contains("png") ? "png" : "jpg";
 	}
 
 }

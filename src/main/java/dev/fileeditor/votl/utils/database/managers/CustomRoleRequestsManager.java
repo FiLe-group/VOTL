@@ -73,6 +73,10 @@ public class CustomRoleRequestsManager extends LiteBase {
 		execute("UPDATE %s SET messageId=%d WHERE (requestId=%d)".formatted(table, messageId, requestId));
 	}
 
+	public void setIconUrl(long requestId, @Nullable String iconUrl) throws SQLException {
+		execute("UPDATE %s SET iconUrl=%s WHERE (requestId=%d)".formatted(table, quote(iconUrl), requestId));
+	}
+
 	public void approve(long requestId, long reviewerId) throws SQLException {
 		execute("UPDATE %s SET status=1, reviewerId=%d WHERE (requestId=%d)".formatted(table, reviewerId, requestId));
 	}
