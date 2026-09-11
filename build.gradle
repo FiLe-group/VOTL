@@ -19,7 +19,7 @@ repositories {
 dependencies {
 	// JDA library and additions
 	// https://mvnrepository.com/artifact/net.dv8tion/JDA
-	implementation('net.dv8tion:JDA:6.5.0') {						// JDA library
+	implementation('net.dv8tion:JDA:6.6.0') {						// JDA library
 		exclude module: 'opus-java'
 		exclude module: 'tink'
 	}
@@ -52,7 +52,7 @@ dependencies {
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
-	implementation 'org.apache.groovy:groovy:5.1.1'			    	// Groovy - code evaluation
+	implementation 'org.apache.groovy:groovy:5.1.2'			    	// Groovy - code evaluation
 
 	// Testing
 	// Source: https://mvnrepository.com/artifact/org.junit/junit-bom
