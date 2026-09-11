@@ -2047,7 +2047,7 @@ public class InteractionListener extends ListenerAdapter {
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.color2"),
 					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setRequired(false).build()),
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon"),
-					TextInput.create("icon", TextInputStyle.SHORT).setMaxLength(512).setRequired(false).build())
+					AttachmentUpload.create("icon").setMaxValues(1).setRequired(false).build())
 			)
 			.build();
 		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
@@ -2180,7 +2180,7 @@ public class InteractionListener extends ListenerAdapter {
 					TextInput.create("color2", TextInputStyle.SHORT).setMaxLength(7).setPlaceholder("#RRGGBB").setValue(request.color2 != null && !request.color2.isBlank() ? request.color2 : "").setRequired(false).build()),
 				Label.of(lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon"),
 					lu.getLocalized(locale, "bot.roles.custom_role.modal.request.icon_keep"),
-					AttachmentUpload.create("icon").setMaxValues(1).build())
+					AttachmentUpload.create("icon").setMaxValues(1).setRequired(false).build())
 			)
 			.build();
 		event.replyModal(modal).queue(null, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
