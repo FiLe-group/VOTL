@@ -115,6 +115,7 @@ public class RolesManageCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "add managed role");
 					return;
 				}
+				bot.getGuildLogger().botLogs.onManagedRoleAdded(event.getGuild(), event.getUser().getIdLong(), role, RoleType.ASSIGN);
 				sendSuccess(event, lu.getGuildText(event, RoleType.ASSIGN.getPath()), role);
 			} else if (type.equals(RoleType.TOGGLE.toString())) {
 				if (bot.getDBUtil().roles.getToggleable(guildId).size() >= 5) {
@@ -128,6 +129,7 @@ public class RolesManageCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "add managed role");
 					return;
 				}
+				bot.getGuildLogger().botLogs.onManagedRoleAdded(event.getGuild(), event.getUser().getIdLong(), role, RoleType.TOGGLE);
 				sendSuccess(event, lu.getGuildText(event, RoleType.ASSIGN.getPath()), role);
 			} else if (type.equals(RoleType.CUSTOM.toString())) {
 				if (bot.getDBUtil().roles.countRoles(guildId, RoleType.CUSTOM) >= Limits.CUSTOM_ROLES) {
@@ -140,6 +142,7 @@ public class RolesManageCmd extends SlashCommand {
 					editErrorDatabase(event, ex, "add managed role");
 					return;
 				}
+				bot.getGuildLogger().botLogs.onManagedRoleAdded(event.getGuild(), event.getUser().getIdLong(), role, RoleType.CUSTOM);
 				sendSuccess(event, lu.getGuildText(event, RoleType.ASSIGN.getPath()), role);
 			} else {
 				editError(event, path+".no_type");
@@ -241,6 +244,7 @@ public class RolesManageCmd extends SlashCommand {
 				editError(event, path+".no_options");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onManagedRoleUpdated(event.getGuild(), event.getUser().getIdLong(), role);
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".embed_title", role.getAsMention()))
 				.appendDescription(response.toString())
@@ -284,6 +288,7 @@ public class RolesManageCmd extends SlashCommand {
 				editErrorDatabase(event, ex, "remove managed role");
 				return;
 			}
+			bot.getGuildLogger().botLogs.onManagedRoleRemoved(event.getGuild(), event.getUser().getIdLong(), roleIdLong);
 			editEmbed(event, bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
 				.setDescription(lu.getGuildText(event, path+".done", roleId))
 				.build());

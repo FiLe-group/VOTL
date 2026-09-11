@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.ExpType;
+import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogEvent;
 import dev.fileeditor.votl.objects.logs.MessageData;
@@ -985,6 +986,37 @@ public class LogEmbedUtil {
 			.addField("bot.rank_group", groupName)
 			.setEnforcer(mod.getIdLong())
 			.setId(role.getId())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed managedRoleAdded(DiscordLocale locale, long modId, Role role, RoleType roleType) {
+		return new LogEmbedBuilder(locale, GREEN_DARK)
+			.setHeader("bot.managed_role_added")
+			.addField("role.role", role.getAsMention())
+			.addField("bot.managed_role_type", lu.getLocalized(locale, roleType.getPath()))
+			.setEnforcer(modId)
+			.setId(role.getId())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed managedRoleUpdated(DiscordLocale locale, long modId, Role role) {
+		return new LogEmbedBuilder(locale, AMBER_LIGHT)
+			.setHeader("bot.managed_role_updated")
+			.addField("role.role", role.getAsMention())
+			.setEnforcer(modId)
+			.setId(role.getId())
+			.build();
+	}
+
+	@NotNull
+	public MessageEmbed managedRoleRemoved(DiscordLocale locale, long modId, long roleId) {
+		return new LogEmbedBuilder(locale, RED_DARK)
+			.setHeader("bot.managed_role_removed")
+			.addField("role.role", "<@&"+roleId+">")
+			.setEnforcer(modId)
+			.setId(String.valueOf(roleId))
 			.build();
 	}
 

@@ -16,6 +16,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.ExpType;
+import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.CaseProofUtil;
@@ -985,6 +986,21 @@ public class GuildLogger {
 		public void onRankRoleRemoved(Guild guild, User mod, Role role, String groupName) {
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
 			sendLog(guild, type, () -> logUtil.rankRoleRemoved(locale, mod, role, groupName));
+		}
+
+		public void onManagedRoleAdded(Guild guild, long modId, Role role, RoleType roleType) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.managedRoleAdded(locale, modId, role, roleType));
+		}
+
+		public void onManagedRoleUpdated(Guild guild, long modId, Role role) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.managedRoleUpdated(locale, modId, role));
+		}
+
+		public void onManagedRoleRemoved(Guild guild, long modId, long roleId) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			sendLog(guild, type, () -> logUtil.managedRoleRemoved(locale, modId, roleId));
 		}
 
 		public void onLevelRoleSet(Guild guild, User mod, int level, Role role, ExpType expType) {
