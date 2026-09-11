@@ -35,7 +35,7 @@ public class AutoRoleCmd extends SlashCommand {
 		};
 		this.category = CmdCategory.ROLES;
 		this.module = CmdModule.ROLES;
-		this.requiredPermission = AccessPermission.CMD_AUTO_ROLE;
+		this.requiredPermission = AccessPermission.ADMIN;
 	}
 
 	@Override

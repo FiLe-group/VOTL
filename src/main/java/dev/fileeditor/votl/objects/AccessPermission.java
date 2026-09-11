@@ -23,7 +23,7 @@ public enum AccessPermission {
 	CMD_TEMP_ROLE(16),
 	CMD_BAN_INFO(17),
 	CMD_CUSTOM_ROLE(18),
-	CMD_AUTO_ROLE(26),
+	// CMD_AUTO_ROLE - deprecated, replaced with Admin perm
 	CMD_RANK_ROLES(27),			// PromoteCmd, DemoteCmd
 
 	// Sync group actions
