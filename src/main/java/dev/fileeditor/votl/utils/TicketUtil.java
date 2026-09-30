@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -11,6 +12,7 @@ import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager;
+import dev.fileeditor.votl.utils.database.managers.TicketTagManager;
 import dev.fileeditor.votl.utils.transcripts.DiscordHtmlTranscripts;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -24,7 +26,10 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.requests.Route;
 import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.utils.data.DataObject;
+import net.dv8tion.jda.internal.requests.RestActionImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -132,6 +137,79 @@ public class TicketUtil {
 		} catch (Throwable t) {
 			failureHandler.accept(t);
 		}
+	}
+
+	/**
+	 * Checks if a ticket, whose channel is missing from cache, can be treated as deleted.
+	 * Archived threads are not cached by JDA, so thread tickets and tickets
+	 * from unavailable guilds are never assumed to be deleted.
+	 */
+	public boolean isChannelDeleted(long channelId) {
+		Long guildId = db.tickets.getGuildId(channelId);
+		if (guildId == null || bot.JDA.getGuildById(guildId) == null) return false;
+		return !isThreadTicket(channelId);
+	}
+
+	/**
+	 * Handles an open ticket, whose channel is missing from cache.
+	 * Deleted channel - ticket is closed in DB. Archived thread - it is unarchived,
+	 * which puts it back into cache, so it is processed normally on the next run.
+	 */
+	public void handleMissingChannel(long channelId) {
+		Long guildId = db.tickets.getGuildId(channelId);
+		if (guildId == null || bot.JDA.getGuildById(guildId) == null) return; // Guild not loaded
+		if (!isThreadTicket(channelId)) {
+			db.tickets.forceCloseTicket(channelId);
+			return;
+		}
+		unarchiveThread(channelId, () -> {}, () -> db.tickets.forceCloseTicket(channelId));
+	}
+
+	/**
+	 * Closes a ticket, whose thread is archived and missing from cache.
+	 * Thread is unarchived first, then closed normally once JDA caches it again.
+	 * @param onDeleted Thread no longer exists
+	 */
+	public void closeArchivedTicket(long channelId, @Nullable User userClosed, @Nullable String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @NotNull Runnable onDeleted) {
+		unarchiveThread(channelId, () -> closeWhenCached(channelId, userClosed, reasonClosed, failureHandler, 5), onDeleted);
+	}
+
+	private void closeWhenCached(long channelId, @Nullable User userClosed, @Nullable String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, int attemptsLeft) {
+		if (bot.JDA.getChannelById(GuildMessageChannel.class, channelId) != null) {
+			closeTicket(channelId, userClosed, reasonClosed, failureHandler);
+		} else if (attemptsLeft > 0) {
+			// Thread is cached when gateway update arrives, which may come after the request's response
+			CompletableFuture.delayedExecutor(2, TimeUnit.SECONDS)
+				.execute(() -> closeWhenCached(channelId, userClosed, reasonClosed, failureHandler, attemptsLeft-1));
+		} else {
+			failureHandler.accept(new IllegalStateException("Ticket thread %s is not cached after unarchiving".formatted(channelId)));
+		}
+	}
+
+	/**
+	 * Unarchives ticket's thread, that is missing from cache - JDA does not cache archived threads,
+	 * so it is done with a raw request. Deleted thread responds with Unknown Channel.
+	 * @param onExists Thread exists - unarchived, or failed for another reason
+	 * @param onDeleted Thread no longer exists
+	 */
+	public void unarchiveThread(long channelId, @NotNull Runnable onExists, @NotNull Runnable onDeleted) {
+		Route.CompiledRoute route = Route.Channels.MODIFY_CHANNEL.compile(String.valueOf(channelId));
+		new RestActionImpl<Void>(bot.JDA, route, DataObject.empty().put("archived", false))
+			.queue(_ -> onExists.run(), failure -> {
+				if (ErrorResponse.UNKNOWN_CHANNEL.test(failure)) {
+					onDeleted.run();
+				} else {
+					App.getLogger().warn("Failed to unarchive ticket thread {}", channelId, failure);
+					onExists.run();
+				}
+			});
+	}
+
+	private boolean isThreadTicket(long channelId) {
+		Integer tagId = db.tickets.getTag(channelId);
+		if (tagId == null || tagId == 0) return true; // Role request tickets are threads
+		TicketTagManager.Tag tag = db.ticketTags.getTagInfo(tagId);
+		return tag == null || tag.getTagType() == 1; // Unknown tag - can't tell, assume thread
 	}
 
 	/**

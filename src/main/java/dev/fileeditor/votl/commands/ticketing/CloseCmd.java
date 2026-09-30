@@ -41,11 +41,7 @@ public class CloseCmd extends SlashCommand {
 			editError(event, "errors.not_ticket");
 			return;
 		}
-		if (bot.getDBUtil().tickets.isClosed(channelId)) {
-			// Ticket is closed
-			event.getChannel().delete().queue();
-			return;
-		}
+		// Tickets already marked closed, but with channel still present, are closed fully below
 
 		// Check access
 		final boolean isAuthor = authorId.equals(event.getUser().getIdLong());

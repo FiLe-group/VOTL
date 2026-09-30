@@ -28,7 +28,7 @@ public class MarkTickets implements Task {
 		bot.getDBUtil().tickets.getOpenedChannels().forEach(channelId -> {
 			GuildMessageChannel channel = bot.JDA.getChannelById(GuildMessageChannel.class, channelId);
 			if (channel == null) {
-				bot.getDBUtil().tickets.forceCloseTicket(channelId);
+				bot.getTicketUtil().handleMissingChannel(channelId);
 				return;
 			}
 

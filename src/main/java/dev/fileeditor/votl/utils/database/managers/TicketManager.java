@@ -111,6 +111,10 @@ public class TicketManager extends LiteBase {
 		return selectOne("SELECT userId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "userId", Long.class);
 	}
 
+	public Long getGuildId(long channelId) {
+		return selectOne("SELECT guildId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "guildId", Long.class);
+	}
+
 	public Integer getTicketId(long channelId) {
 		return selectOne("SELECT ticketId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "ticketId", Integer.class);
 	}

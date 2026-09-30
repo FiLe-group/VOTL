@@ -5,12 +5,14 @@ import dev.fileeditor.votl.utils.ConsoleColor;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
+import net.dv8tion.jda.api.events.channel.update.ChannelUpdateArchivedEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.invite.GuildInviteCreateEvent;
 import net.dv8tion.jda.api.events.guild.invite.GuildInviteDeleteEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.utils.database.DBUtil;
@@ -154,6 +156,21 @@ public class GuildListener extends ListenerAdapter {
 				ignoreExc(() -> db.guildVoice.removeCategory(guildId));
 			ignoreExc(() -> db.ticketTags.clearLocation(channelId));
 		}
+	}
+
+	@Override
+	public void onChannelUpdateArchived(@NotNull ChannelUpdateArchivedEvent event) {
+		if (!event.isFromGuild() || !Boolean.TRUE.equals(event.getNewValue())) return;
+
+		// Keep open ticket threads active - archived threads are removed from cache
+		long channelId = event.getChannel().getIdLong();
+		if (db.tickets.isClosed(channelId)) return;
+		event.getChannel().asThreadChannel().getManager()
+			.setArchived(false)
+			.queue(null, failure -> {
+				if (ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
+				log.warn("Failed to unarchive ticket thread {}", channelId, failure);
+			});
 	}
 
 	private boolean matches(@Nullable Long settingId, long channelId) {

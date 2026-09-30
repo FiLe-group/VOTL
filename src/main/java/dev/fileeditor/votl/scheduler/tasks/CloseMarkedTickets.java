@@ -16,7 +16,7 @@ public class CloseMarkedTickets implements Task {
 		bot.getDBUtil().tickets.getCloseMarkedTickets().forEach(channelId -> {
 			GuildChannel channel = bot.JDA.getGuildChannelById(channelId);
 			if (channel == null) {
-				bot.getDBUtil().tickets.forceCloseTicket(channelId);
+				bot.getTicketUtil().handleMissingChannel(channelId);
 				return;
 			}
 

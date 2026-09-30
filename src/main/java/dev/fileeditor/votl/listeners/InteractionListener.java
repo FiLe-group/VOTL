@@ -352,18 +352,10 @@ public class InteractionListener extends ListenerAdapter {
 		assert guild != null && event.getMember() != null;
 
 		Long channelId = db.tickets.getOpenedChannel(event.getMember().getIdLong(), guild.getIdLong(), 0);
-		if (channelId != null) {
-			ThreadChannel channel = guild.getThreadChannelById(channelId);
-			if (channel != null) {
-				event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_FAILURE)
-					.setDescription(lu.getGuildText(event, "bot.ticketing.listener.ticket_exists", channel.getAsMention()))
-					.build()
-				).setEphemeral(true).queue();
-				return;
-			}
-			ignoreExc(() -> db.tickets.closeTicket(Instant.now(), channelId, "BOT: Channel deleted (not found)"));
-		}
+		checkOpenedTicket(event, channelId, () -> sendRoleSelection(event, guild));
+	}
 
+	private void sendRoleSelection(ButtonInteractionEvent event, Guild guild) {
 		List<ActionRow> actionRows = new ArrayList<>();
 		// String select menu IDs "menu:role_row:1/2/3"
 		for (int row = 1; row <= 3; row++) {
@@ -568,7 +560,10 @@ public class InteractionListener extends ListenerAdapter {
 		});
 
 		int ticketId = 1 + db.tickets.lastIdByTag(guildId, 0);
-		event.getChannel().asTextChannel().createThreadChannel(lu.getGuildText(event, "ticket.role")+"-"+ticketId, true).setInvitable(false).queue(
+		event.getChannel().asTextChannel().createThreadChannel(lu.getGuildText(event, "ticket.role")+"-"+ticketId, true)
+			.setInvitable(false)
+			.setAutoArchiveDuration(ThreadChannel.AutoArchiveDuration.TIME_1_WEEK)
+			.queue(
 			channel -> {
 				boolean delayRolePing = db.getTicketSettings(guild).delayRolePingEnabled();
 				db.tickets.addRoleTicket(
@@ -711,13 +706,15 @@ public class InteractionListener extends ListenerAdapter {
 	private void buttonTicketClose(ButtonInteractionEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
 		long channelId = event.getChannelIdLong();
-		if (db.tickets.isClosed(channelId)) {
-			// Ticket is closed
+		Long authorId = db.tickets.getUserId(channelId);
+		if (authorId == null) {
+			// Not a ticket
 			event.getChannel().delete().queue();
 			return;
 		}
+		// Tickets already marked closed, but with channel still present, are closed fully below
 		// Check who can close tickets
-		final boolean isAuthor = db.tickets.getUserId(channelId).equals(event.getUser().getIdLong());
+		final boolean isAuthor = authorId.equals(event.getUser().getIdLong());
 		if (!isAuthor) {
 			switch (db.getTicketSettings(event.getGuild()).getAllowClose()) {
 				case EVERYONE -> {}
@@ -855,18 +852,48 @@ public class InteractionListener extends ListenerAdapter {
 		int tagId = Integer.parseInt(event.getComponentId().split(":")[1]);
 
 		Long channelId = db.tickets.getOpenedChannel(event.getMember().getIdLong(), guildId, tagId);
-		if (channelId != null) {
-			GuildChannel channel = event.getGuild().getGuildChannelById(channelId);
-			if (channel != null) {
-				event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_FAILURE)
-					.setDescription(lu.getGuildText(event, "bot.ticketing.listener.ticket_exists", channel.getAsMention()))
-					.build()
-				).setEphemeral(true).queue();
-				return;
-			}
-			ignoreExc(() -> db.tickets.closeTicket(Instant.now(), channelId, "BOT: Channel deleted (not found)"));
+		checkOpenedTicket(event, channelId, () -> createTagTicket(event, guildId, tagId));
+	}
+
+	/**
+	 * Replies with the user's existing ticket, or runs {@code onNoTicket} if there is none.
+	 * Ticket channel missing from cache may be an archived thread - it is unarchived instead of closing the ticket.
+	 */
+	private void checkOpenedTicket(ButtonInteractionEvent event, @Nullable Long channelId, Runnable onNoTicket) {
+		assert event.getGuild() != null;
+		if (channelId == null) {
+			onNoTicket.run();
+			return;
+		}
+		GuildChannel channel = event.getGuild().getGuildChannelById(channelId);
+		if (channel != null) {
+			replyTicketExists(event, channel.getAsMention());
+			return;
 		}
 
+		Runnable closeMissing = () -> {
+			ignoreExc(() -> db.tickets.closeTicket(Instant.now(), channelId, "BOT: Channel deleted (not found)"));
+			onNoTicket.run();
+		};
+		if (bot.getTicketUtil().isChannelDeleted(channelId)) {
+			closeMissing.run();
+		} else {
+			bot.getTicketUtil().unarchiveThread(channelId,
+				() -> replyTicketExists(event, "<#%s>".formatted(channelId)),
+				closeMissing
+			);
+		}
+	}
+
+	private void replyTicketExists(ButtonInteractionEvent event, String channelMention) {
+		event.getHook().sendMessageEmbeds(new EmbedBuilder().setColor(Constants.COLOR_FAILURE)
+			.setDescription(lu.getGuildText(event, "bot.ticketing.listener.ticket_exists", channelMention))
+			.build()
+		).setEphemeral(true).queue();
+	}
+
+	private void createTagTicket(ButtonInteractionEvent event, long guildId, int tagId) {
+		assert event.getGuild() != null;
 		Tag tag = db.ticketTags.getTagInfo(tagId);
 		if (tag == null) {
 			sendTicketError(event, "Unknown tag with ID: "+tagId);
@@ -891,7 +918,10 @@ public class InteractionListener extends ListenerAdapter {
 		String ticketName = (tag.getTicketName()+ticketId).replace("{username}", user.getName());
 		if (tag.getTagType() == 1) {
 			// Thread ticket
-			event.getChannel().asTextChannel().createThreadChannel(ticketName, true).setInvitable(false).queue(channel -> {
+			event.getChannel().asTextChannel().createThreadChannel(ticketName, true)
+				.setInvitable(false)
+				.setAutoArchiveDuration(ThreadChannel.AutoArchiveDuration.TIME_1_WEEK)
+				.queue(channel -> {
 				db.tickets.addTicket(
 					ticketId, user.getIdLong(), guildId, channel.getIdLong(), tagId,
 					bot.getDBUtil().getTicketSettings(event.getGuild()).getTimeToReply()

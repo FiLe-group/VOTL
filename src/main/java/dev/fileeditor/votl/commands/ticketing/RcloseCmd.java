@@ -5,11 +5,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Stream;
 
+import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.AccessPermission;
 import dev.fileeditor.votl.objects.CmdModule;
 import dev.fileeditor.votl.objects.constants.CmdCategory;
+import dev.fileeditor.votl.objects.constants.Constants;
 
 import dev.fileeditor.votl.objects.constants.Limits;
 import dev.fileeditor.votl.utils.message.TimeUtil;
@@ -19,6 +21,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 
 public class RcloseCmd extends SlashCommand {
 	
@@ -49,8 +52,18 @@ public class RcloseCmd extends SlashCommand {
 			return;
 		}
 		if (bot.getDBUtil().tickets.isClosed(channelId)) {
-			// Ticket is closed
-			event.getChannel().delete().queue();
+			// Ticket is already marked closed, but channel still present - close it fully now
+			String reason = event.optString("reason", lu.getGuildText(event, "bot.ticketing.listener.closed_support"));
+			event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getEmbed(Constants.COLOR_SUCCESS)
+				.setDescription(lu.getGuildText(event, "bot.ticketing.listener.delete_countdown"))
+				.build()
+			).queue(msg ->
+				bot.getTicketUtil().closeTicket(channelId, event.getUser(), reason, failure -> {
+					if (ErrorResponse.UNKNOWN_MESSAGE.test(failure) || ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
+					msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.close_failed")).queue();
+					App.getLogger().error("Couldn't close ticket with channelID:{}", channelId, failure);
+				}
+			));
 			return;
 		}
 

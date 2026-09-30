@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Logger;
@@ -161,22 +162,30 @@ public class MemberListener extends ListenerAdapter {
 		if (db.getTicketSettings(event.getGuild()).autocloseLeftEnabled()) {
 			final String reason = "Ticket's author left the server";
 			db.tickets.getOpenedChannel(userId, guildId).forEach(channelId -> {
-				GuildMessageChannel channel = event.getGuild().getChannelById(GuildMessageChannel.class, channelId);
-				if (channel == null) {
-					// Channel already gone - only close in DB
+				Runnable closeInDb = () -> {
 					try {
 						db.tickets.closeTicket(Instant.now(), channelId, reason);
 					} catch (SQLException ignored) {}
+				};
+				Consumer<Throwable> failureHandler = failure -> {
+					closeInDb.run();
+					if (ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
+					log.warn("Failed to close ticket {} after author left", channelId, failure);
+				};
+
+				GuildMessageChannel channel = event.getGuild().getChannelById(GuildMessageChannel.class, channelId);
+				if (channel == null) {
+					if (bot.getTicketUtil().isChannelDeleted(channelId)) {
+						// Channel already gone - only close in DB
+						closeInDb.run();
+					} else {
+						// Archived thread - unarchive, then close normally
+						bot.getTicketUtil().closeArchivedTicket(channelId, null, reason, failureHandler, closeInDb);
+					}
 					return;
 				}
 				// Standard close - creates transcript and logs
-				bot.getTicketUtil().closeTicket(channelId, null, reason, failure -> {
-					try {
-						db.tickets.closeTicket(Instant.now(), channelId, reason);
-					} catch (SQLException ignored) {}
-					if (ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
-					log.warn("Failed to close ticket {} after author left", channelId, failure);
-				});
+				bot.getTicketUtil().closeTicket(channelId, null, reason, failureHandler);
 			});
 		}
 	}
