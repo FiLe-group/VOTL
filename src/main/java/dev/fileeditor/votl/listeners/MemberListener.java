@@ -26,7 +26,7 @@ import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
@@ -159,12 +159,24 @@ public class MemberListener extends ListenerAdapter {
 		} catch (SQLException ignored) {}
 
 		if (db.getTicketSettings(event.getGuild()).autocloseLeftEnabled()) {
+			final String reason = "Ticket's author left the server";
 			db.tickets.getOpenedChannel(userId, guildId).forEach(channelId -> {
-				try {
-					db.tickets.closeTicket(Instant.now(), channelId, "Ticket's author left the server");
-				} catch (SQLException ignored) {}
-				GuildChannel channel = event.getGuild().getGuildChannelById(channelId);
-				if (channel != null) channel.delete().reason("Author left").queue();
+				GuildMessageChannel channel = event.getGuild().getChannelById(GuildMessageChannel.class, channelId);
+				if (channel == null) {
+					// Channel already gone - only close in DB
+					try {
+						db.tickets.closeTicket(Instant.now(), channelId, reason);
+					} catch (SQLException ignored) {}
+					return;
+				}
+				// Standard close - creates transcript and logs
+				bot.getTicketUtil().closeTicket(channelId, null, reason, failure -> {
+					try {
+						db.tickets.closeTicket(Instant.now(), channelId, reason);
+					} catch (SQLException ignored) {}
+					if (ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
+					log.warn("Failed to close ticket {} after author left", channelId, failure);
+				});
 			});
 		}
 	}
