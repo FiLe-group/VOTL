@@ -6,6 +6,8 @@ import dev.fileeditor.votl.contracts.middleware.Middleware;
 import dev.fileeditor.votl.middleware.global.IsModuleEnabled;
 import dev.fileeditor.votl.middleware.global.RunCommand;
 import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,8 @@ public class MiddlewareStack {
 		this.interaction = interaction;
 		this.event = event;
 
-		event.deferReply(interaction.isEphemeralReply()).queue();
+		event.deferReply(interaction.isEphemeralReply()).queue(null,
+			new ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION));
 
 		middlewares.add(new MiddlewareContainer(runCommand));
 
