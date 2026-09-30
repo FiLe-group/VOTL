@@ -11,6 +11,9 @@ public class CloseEmptyTickets implements Task {
 
 	private static final Logger LOG = (Logger) LoggerFactory.getLogger(CloseEmptyTickets.class);
 
+	// How many latest messages to search for author's reply
+	private static final int HISTORY_LIMIT = 10;
+
 	@Override
 	public void handle(App bot) {
 		bot.getDBUtil().tickets.getReplyExpiredTickets().forEach(channelId -> {
@@ -19,23 +22,32 @@ public class CloseEmptyTickets implements Task {
 				bot.getTicketUtil().handleMissingChannel(channelId);
 				return;
 			}
-			channel.getIterableHistory()
-				.takeAsync(3)
-				.thenAcceptAsync(list -> {
-					boolean isAllBot = list.stream()
-						.allMatch(msg -> msg.getAuthor().isBot());
+			Long authorId = bot.getDBUtil().tickets.getUserId(channelId);
+			if (authorId == null) return;
 
-					if (isAllBot) {
-						// Last message is bot - close ticket
+			channel.getIterableHistory()
+				.takeAsync(HISTORY_LIMIT)
+				.thenAcceptAsync(list -> {
+					boolean authorReplied = list.stream()
+						.anyMatch(msg -> msg.getAuthor().getIdLong() == authorId);
+
+					if (authorReplied) {
+						// Author has replied - stop waiting
+						bot.getDBUtil().tickets.setWaitTime(channelId, -1L);
+					} else {
+						// No reply from author - close ticket
 						bot.getTicketUtil().closeTicket(channelId, null, "activity", failure -> {
 							bot.getDBUtil().tickets.setWaitTime(channelId, -1L);
 							if (ErrorResponse.UNKNOWN_MESSAGE.test(failure) || ErrorResponse.UNKNOWN_CHANNEL.test(failure)) return;
 							LOG.error("Failed to delete channel {}", channelId, failure);
 						});
-					} else {
-						// There is human reply
-						bot.getDBUtil().tickets.setWaitTime(channelId, -1L);
 					}
+				})
+				.exceptionally(failure -> {
+					// Stop waiting, so it is not retried (and logged) every run
+					bot.getDBUtil().tickets.setWaitTime(channelId, -1L);
+					LOG.warn("Failed to check reply in ticket {}", channelId, failure);
+					return null;
 				});
 		});
 	}
