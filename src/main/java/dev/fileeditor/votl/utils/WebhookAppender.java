@@ -63,10 +63,23 @@ public class WebhookAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 		lastSend = event.getTimeStamp();
 	}
 
+	/**
+	 * Sends a status message (not an error) to the webhook.
+	 */
+	public void sendStatus(@NotNull String message) {
+		if (url == null) return;
+		send(message, 5763719); // green
+	}
+
 	private void send(@NotNull String message) {
+		send(message, 16711680); // red
+	}
+
+	private void send(@NotNull String message, int color) {
 		// Replace json variables
-		String json = "{\"embeds\": [{\"color\": 16711680, \"description\": {message}}]}";
-		String payload = json.replace("{message}", JSONObject.quote(message));
+		String json = "{\"embeds\": [{\"color\": {color}, \"description\": {message}}]}";
+		String payload = json.replace("{color}", String.valueOf(color))
+			.replace("{message}", JSONObject.quote(message));
 
 		// Create HTTP POST request
 		Request request = new Request.Builder()

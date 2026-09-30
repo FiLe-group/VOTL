@@ -84,6 +84,8 @@ public class App {
 	private Instant shutdownTime = null;
 	private ExitCodes shutdownCode = ExitCodes.RESTART;
 
+	private WebhookAppender webhookAppender = null;
+
 	@SuppressWarnings("BusyWait")
 	public App(CliSettings cliSettings) {
 		App.instance = this;
@@ -375,6 +377,13 @@ public class App {
 		System.exit(exitCode.v);
 	}
 
+	/**
+	 * Sends a status message to the error log webhook, if it is configured.
+	 */
+	public void sendWebhookStatus(String message) {
+		if (webhookAppender != null) webhookAppender.sendStatus(message);
+	}
+
 	private void createWebhookAppender() {
 		String url = getFileManager().getNullableString("config", "webhook");
 		if (url == null) return;
@@ -384,7 +393,7 @@ public class App {
 		ple.setPattern("%d{dd.MM.yyyy HH:mm:ss} [%thread] [%logger{0}] %ex{10}%n");
 		ple.setContext(lc);
 		ple.start();
-		WebhookAppender webhookAppender = new WebhookAppender();
+		webhookAppender = new WebhookAppender();
 		webhookAppender.setUrl(url);
 		webhookAppender.setEncoder(ple);
 		webhookAppender.setContext(lc);

@@ -2,12 +2,15 @@ package dev.fileeditor.votl.listeners;
 
 import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.AppInfo;
 import dev.fileeditor.votl.metrics.Metrics;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.events.session.SessionRecreateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.TimeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +56,21 @@ public class EventListener extends ListenerAdapter {
 		} catch (Throwable ex) {
 			LOG.error("Error priming invite cache", ex);
 		}
+
+		// Notify
+		StringBuilder message = new StringBuilder("**Bot is online**")
+			.append("\n> Version: `").append(AppInfo.VERSION).append("`")
+			.append("\n> Guilds: ").append(event.getGuildAvailableCount());
+		if (event.getGuildUnavailableCount() > 0)
+			message.append(" (").append(event.getGuildUnavailableCount()).append(" unavailable)");
+		message.append("\n> Time: ").append(TimeFormat.DATE_TIME_SHORT.now());
+		bot.sendWebhookStatus(message.toString());
+	}
+
+	@Override
+	public void onSessionRecreate(@NotNull SessionRecreateEvent event) {
+		// Previous session could not be resumed - cache was rebuilt
+		bot.sendWebhookStatus("**Bot reconnected** (new session)\n> Time: %s".formatted(TimeFormat.DATE_TIME_SHORT.now()));
 	}
 
 }
