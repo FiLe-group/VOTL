@@ -74,6 +74,7 @@
 	"misc": {
 		"and": "and",
 		"unknown": "Unknown",
+		"disabled": "Disabled",
 		"command": {
 			"help": "no help available",
 			"usage": "no usage description"
@@ -2688,6 +2689,7 @@
 					},
 					"bad_roles": "No roles provided (use @Role) or more than 3.",
 					"embed_view": "**Ticket settings**",
+					"view": "\n> Autoclose time: **%s**\n> Autoclose on left: %s\n> Time to reply: **%s**\n\n> Allow other roles: %s\n\n> Support roles: %s\n\n> Delete pings: %s\n> Allow close: **%s**\n> Transcripts saved: **%s**\n> Delay reviewer ping until requester replies: %s",
 					"embed_changes": "**Updated ticket settings**",
 					"changed_delete": "\n> Delete pings after ticket creation: %s",
 					"changed_other": "\n> Allow other roles requests: %s",

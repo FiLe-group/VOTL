@@ -682,27 +682,24 @@ public class TicketCmd extends SlashCommand {
 				// Return overview
 				TicketSettingsManager.TicketSettings settings = bot.getDBUtil().getTicketSettings(event.getGuild());
 
-				response.append("\n> Autoclose time: **")
-					.append(TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), settings.getAutocloseTime()))
-					.append("**\n> Autoclose on left: ")
-					.append(settings.autocloseLeftEnabled()?Constants.SUCCESS:Constants.FAILURE)
-					.append("\n> Time to reply: **")
-					.append(TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), settings.getTimeToReply()))
-					.append("**\n\n> Allow other roles: ")
-					.append(settings.otherRoleEnabled()?Constants.SUCCESS:Constants.FAILURE)
-					.append("\n\n> Support roles: ")
-					.append(settings.getRoleSupportIds()
+				response.append(lu.getGuildText(event, path+".view",
+					settings.getAutocloseTime().isZero()
+						? lu.getLocalized(event.getUserLocale(), "misc.disabled")
+						: TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), settings.getAutocloseTime()),
+					settings.autocloseLeftEnabled()?Constants.SUCCESS:Constants.FAILURE,
+					settings.getTimeToReply().isZero()
+						? lu.getLocalized(event.getUserLocale(), "misc.disabled")
+						: TimeUtil.durationToLocalizedString(lu, event.getUserLocale(), settings.getTimeToReply()),
+					settings.otherRoleEnabled()?Constants.SUCCESS:Constants.FAILURE,
+					settings.getRoleSupportIds()
 						.stream()
 						.map(String::valueOf)
-						.collect(Collectors.joining("`, `", "`", "`")))
-					.append("\n\n> Delete pings: ")
-					.append(settings.deletePingsEnabled()?Constants.SUCCESS:Constants.FAILURE)
-					.append("\n> Allow close: **")
-					.append(MessageUtil.capitalize(settings.getAllowClose().name()))
-					.append("**\n> Transcripts saved: **")
-					.append(MessageUtil.capitalize(settings.getTranscriptsMode().name()).replace("_", " "))
-					.append("**\n> Delay reviewer ping until requester replies: ")
-					.append(settings.delayRolePingEnabled()?Constants.SUCCESS:Constants.FAILURE);
+						.collect(Collectors.joining("`, `", "`", "`")),
+					settings.deletePingsEnabled()?Constants.SUCCESS:Constants.FAILURE,
+					MessageUtil.capitalize(settings.getAllowClose().name()),
+					MessageUtil.capitalize(settings.getTranscriptsMode().name()).replace("_", " "),
+					settings.delayRolePingEnabled()?Constants.SUCCESS:Constants.FAILURE
+				));
 
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
 					.setDescription(lu.getGuildText(event, path+".embed_view"))
