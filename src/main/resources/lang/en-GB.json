@@ -1651,6 +1651,7 @@
 				"select": "Select group/-s",
 				"no_user": "Unknown user.",
 				"expired": "This user is not banned permanently or the ban has already expired.\nTry banning this user `/ban`",
+				"no_kick": "No recent kick of this user was found in the audit log.\nTry kicking this user `/kick`",
 				"ban": {
 					"title": "**Ban this user in all Group's servers?**\n{EMOTE_WARNING} *This does not adds the user to the group's blacklist.*",
 					"done": "Ban sync in progress! Results will be posted in logs channel."

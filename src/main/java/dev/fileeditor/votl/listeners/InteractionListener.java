@@ -40,6 +40,8 @@ import dev.fileeditor.votl.utils.message.MessageUtil;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.audit.ActionType;
+import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.attachmentupload.AttachmentUpload;
 import net.dv8tion.jda.api.components.buttons.Button;
@@ -92,6 +94,8 @@ public class InteractionListener extends ListenerAdapter {
 	private final int MAX_GROUP_SELECT = 1;
 	// Sync kick/ban/blacklist buttons stop working once their message is older than this
 	private final int SYNC_BUTTON_MAX_AGE_HOURS = 72;
+	// Audit reason prefix added by /kick, stripped before the reason is synced
+	private static final Pattern KICK_REASON_PREFIX = Pattern.compile("^By @\\S+: ");
 
 	public InteractionListener(App bot, EventWaiter waiter) {
 		this.bot = bot;
@@ -1482,13 +1486,6 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
-		String targetId = event.getComponentId().split(":")[1];
-		CaseData caseData = db.cases.getMemberActive(Long.parseLong(targetId), event.getGuild().getIdLong(), CaseType.BAN);
-		if (caseData == null || !caseData.getDuration().isZero()) {
-			sendError(event, "bot.moderation.sync.expired");
-			return;
-		}
-
 		long guildId = event.getGuild().getIdLong();
 		List<Integer> groupIds = new ArrayList<>();
 		groupIds.addAll(bot.getDBUtil().group.getOwnedGroups(guildId));
@@ -1498,6 +1495,34 @@ public class InteractionListener extends ListenerAdapter {
 			return;
 		}
 
+		// The kick must be in the audit log and no older than the button itself may be
+		String targetId = event.getComponentId().split(":")[1];
+		long targetIdLong = Long.parseLong(targetId);
+		OffsetDateTime cutoff = OffsetDateTime.now().minusHours(SYNC_BUTTON_MAX_AGE_HOURS);
+		event.getGuild().retrieveAuditLogs()
+			.type(ActionType.KICK)
+			.limit(100)
+			.queue(entries -> {
+					AuditLogEntry kick = entries.stream()
+						.filter(entry -> entry.getTargetIdLong() == targetIdLong)
+						.findFirst()
+						.filter(entry -> entry.getTimeCreated().isAfter(cutoff))
+						.orElse(null);
+					if (kick == null) {
+						sendError(event, "bot.moderation.sync.no_kick");
+						return;
+					}
+					// Kicks made by the bot are stored as "By @mod: reason" - keep only the reason
+					String reason = Optional.ofNullable(kick.getReason())
+						.map(r -> KICK_REASON_PREFIX.matcher(r).replaceFirst(""))
+						.filter(r -> !r.isBlank())
+						.orElse("-");
+					sendSyncKickMenu(event, groupIds, targetId, reason);
+				},
+				failure -> sendError(event, "errors.unknown", failure.getMessage()));
+	}
+
+	private void sendSyncKickMenu(ButtonInteractionEvent event, List<Integer> groupIds, String targetId, String reason) {
 		MessageEmbed embed = bot.getEmbedUtil().getEmbed()
 			.setColor(Constants.COLOR_WARNING)
 			.setDescription(lu.getGuildText(event, "bot.moderation.sync.kick.title"))
@@ -1522,7 +1547,9 @@ public class InteractionListener extends ListenerAdapter {
 					List<Integer> selected = selectEvent.getValues().stream().map(Integer::parseInt).toList();
 
 					event.getJDA().retrieveUserById(targetId).queue(target -> {
-						selected.forEach(groupId -> bot.getHelper().runKick(groupId, event.getGuild(), target, caseData.getReason(), event.getUser()));
+						var guild = event.getGuild();
+						assert guild != null;
+						selected.forEach(groupId -> bot.getHelper().runKick(groupId, guild, target, reason, event.getUser()));
 						// Reply
 						selectEvent.getHook().editOriginalEmbeds(
 							bot.getEmbedUtil().getEmbed()
