@@ -148,7 +148,6 @@ public class ModerationUtil {
 		return new EmbedBuilder().setColor(Constants.COLOR_DEFAULT)
 			.setAuthor(target.getEffectiveName(), target.getEffectiveAvatarUrl())
 			.setDescription(formatText(text, guild, level >= 2 ? reason : null, level >= 2 ? duration : null, null))
-			.setTimestamp(Instant.now())
 			.build();
 	}
 

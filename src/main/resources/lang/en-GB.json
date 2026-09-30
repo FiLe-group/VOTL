@@ -388,7 +388,12 @@
 				"Eyy {user}, you just leveled up! You're now **{type} Level {level}**",
 				"\uD83C\uDF1F You just reached **{type} Level {level}** {user}! Congrats \uD83C\uDF1F",
 				"You're on \uD83D\uDD25 {user}, you've just reached **{type} Level {level}**",
-				"Congratulations {user} \uD83C\uDF89 You just leveled up! You're now **{type} Level {level}**"
+				"Congratulations {user} \uD83C\uDF89 You just leveled up! You're now **{type} Level {level}**",
+				"Level up, {user}! Welcome to **{type} Level {level}** \uD83D\uDE80",
+				"Look at you go, {user}! **{type} Level {level}** unlocked",
+				"\uD83C\uDFC6 {user} just climbed to **{type} Level {level}**!",
+				"Another one! {user} is now **{type} Level {level}** \u2728",
+				"Nice work {user}, keep it up! You've hit **{type} Level {level}**"
 			]
 		},
 		"bot": {
