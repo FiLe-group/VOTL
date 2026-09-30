@@ -9,6 +9,7 @@ import dev.fileeditor.votl.utils.database.managers.CustomRoleSettingsManager.Cus
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -89,6 +90,8 @@ public class InteractionListener extends ListenerAdapter {
 
 	private final Set<Permission> adminPerms = Set.of(Permission.ADMINISTRATOR, Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS, Permission.MANAGE_ROLES, Permission.MANAGE_WEBHOOKS);
 	private final int MAX_GROUP_SELECT = 1;
+	// Sync kick/ban/blacklist buttons stop working once their message is older than this
+	private final int SYNC_BUTTON_MAX_AGE_HOURS = 72;
 
 	public InteractionListener(App bot, EventWaiter waiter) {
 		this.bot = bot;
@@ -1246,9 +1249,25 @@ public class InteractionListener extends ListenerAdapter {
 		sendSuccess(event, "bot.voice.listener.panel.delete");
 	}
 
+	/**
+	 * Replies with an error and returns {@code true} when the button's message was posted
+	 * more than {@link #SYNC_BUTTON_MAX_AGE_HOURS} hours ago.
+	 */
+	private boolean isSyncButtonExpired(ButtonInteractionEvent event) {
+		if (event.getMessage().getTimeCreated().isAfter(OffsetDateTime.now().minusHours(SYNC_BUTTON_MAX_AGE_HOURS))) return false;
+		event.getHook().sendMessageEmbeds(bot.getEmbedUtil().getEmbed()
+			.setColor(Constants.COLOR_FAILURE)
+			.setTitle(lu.getText(event, "errors.title"))
+			.setDescription(lu.getText(event, "errors.interaction.button_expired", SYNC_BUTTON_MAX_AGE_HOURS))
+			.build()
+		).setEphemeral(true).queue();
+		return true;
+	}
+
 	// Blacklist
 	private void buttonBlacklist(ButtonInteractionEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
+		if (isSyncButtonExpired(event)) return;
 		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.BLACKLIST_MANAGE)) {
 			sendError(event, "errors.interaction.no_access");
 			return;
@@ -1324,6 +1343,7 @@ public class InteractionListener extends ListenerAdapter {
 
 	private void buttonSyncBan(ButtonInteractionEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
+		if (isSyncButtonExpired(event)) return;
 		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.BLACKLIST_MANAGE)) {
 			sendError(event, "errors.interaction.no_access");
 			return;
@@ -1456,6 +1476,7 @@ public class InteractionListener extends ListenerAdapter {
 
 	private void buttonSyncKick(ButtonInteractionEvent event) {
 		assert event.getGuild() != null && event.getMember() != null;
+		if (isSyncButtonExpired(event)) return;
 		if (!bot.getCheckUtil().resolve(event.getMember()).has(AccessPermission.BLACKLIST_MANAGE)) {
 			sendError(event, "errors.interaction.no_access");
 			return;

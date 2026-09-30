@@ -47,7 +47,8 @@
 			"no_access": "You cannot perform this action because you do not have the required access.",
 			"ban_no_permanent": "You are not allowed to issue permanent bans.",
 			"ban_exceeds_limit": "Your ban duration limit is **%s**. Please use a shorter duration.",
-			"mute_exceeds_limit": "Your mute duration limit is **%s**. Please use a shorter duration."
+			"mute_exceeds_limit": "Your mute duration limit is **%s**. Please use a shorter duration.",
+			"button_expired": "This button has expired - it only works within %d hours of the message being posted."
 		},
 		"timed_out": "Timed out",
 		"proof_type": "Incorrect proof file type provided. Only .png and .jpg/.jpeg are accepted.",
