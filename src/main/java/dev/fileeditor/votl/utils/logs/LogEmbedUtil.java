@@ -824,9 +824,11 @@ public class LogEmbedUtil {
 	private String transcriptText(DiscordLocale locale, @Nullable TicketTranscript transcript, boolean fileNote) {
 		if (transcript == null) return "";
 		if (transcript.url() != null) {
+			String expires = transcript.expiresAt() == null ? ""
+				: " " + localized(locale, "ticket.transcript_expires").replace("{time}", formatTime(transcript.expiresAt(), true));
 			return "\n\n" + localized(locale, "ticket.transcript_link")
 				.replace("{url}", transcript.url())
-				.replace("{expires}", transcript.expiresIn());
+				.replace("{expires}", expires);
 		}
 		return fileNote ? "\n\n" + localized(locale, "ticket.transcript_file") : "";
 	}

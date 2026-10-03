@@ -80,9 +80,9 @@ public class TicketUtil {
 	/**
 	 * Generated transcript.
 	 * @param url Zipline link sent to the author, null if not uploaded - then the author receives the file
-	 * @param expiresIn how long the link stays available, e.g. "90d"
+	 * @param expiresAt when the link stops working, null if unknown
 	 */
-	public record TicketTranscript(DiscordHtmlTranscripts.Transcript transcript, @Nullable String url, String expiresIn) {}
+	public record TicketTranscript(DiscordHtmlTranscripts.Transcript transcript, @Nullable String url, @Nullable Instant expiresAt) {}
 
 	/**
 	 * Generates the transcript.
@@ -97,11 +97,11 @@ public class TicketUtil {
 				return;
 			}
 			if (!useZipline) {
-				action.accept(new TicketTranscript(transcript, null, zipline.getTranscriptExpiresIn()));
+				action.accept(new TicketTranscript(transcript, null, null));
 				return;
 			}
 			zipline.uploadTranscript(transcript.data())
-				.thenAccept(url -> action.accept(new TicketTranscript(transcript, url, zipline.getTranscriptExpiresIn())))
+				.thenAccept(url -> action.accept(new TicketTranscript(transcript, url, url == null ? null : zipline.getTranscriptExpiresAt())))
 				.exceptionally(ex -> {
 					failureHandler.accept(ex);
 					return null;

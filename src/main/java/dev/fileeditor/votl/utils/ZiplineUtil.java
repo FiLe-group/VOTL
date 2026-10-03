@@ -3,12 +3,15 @@ package dev.fileeditor.votl.utils;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import dev.fileeditor.votl.utils.exception.FormatterException;
 import dev.fileeditor.votl.utils.file.FileManager;
+import dev.fileeditor.votl.utils.message.TimeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
@@ -50,6 +53,8 @@ public class ZiplineUtil {
 	private final @Nullable String uploadUrl;
 	private final @Nullable String token;
 	private final @NotNull String transcriptExpiresIn;
+	// Same value as a duration, to display the expiry date. Null if it can't be parsed.
+	private final @Nullable Duration transcriptExpiry;
 
 	public ZiplineUtil(@NotNull FileManager fileManager) {
 		var baseUrl = fileManager.getNullableString("config", "zipline-url");
@@ -64,6 +69,17 @@ public class ZiplineUtil {
 		this.transcriptExpiresIn = Objects.requireNonNullElse(
 			fileManager.getNullableString("config", "zipline-transcript-expiry"), TRANSCRIPT_EXPIRES_IN
 		);
+		this.transcriptExpiry = parseExpiry(transcriptExpiresIn);
+	}
+
+	@Nullable
+	private Duration parseExpiry(String expiresIn) {
+		try {
+			Duration duration = TimeUtil.stringToDuration(expiresIn, true);
+			if (!duration.isZero()) return duration;
+		} catch (FormatterException ignored) {}
+		log.warn("Can't parse zipline-transcript-expiry \"{}\" (use e.g. 90d or 12w), the expiry date won't be shown.", expiresIn);
+		return null;
 	}
 
 	public boolean isEnabled() {
@@ -155,6 +171,13 @@ public class ZiplineUtil {
 
 	public @NotNull String getTranscriptExpiresIn() {
 		return transcriptExpiresIn;
+	}
+
+	/**
+	 * @return when a transcript uploaded now expires, null if unknown
+	 */
+	public @Nullable Instant getTranscriptExpiresAt() {
+		return transcriptExpiry == null ? null : Instant.now().plus(transcriptExpiry);
 	}
 
 	/**
