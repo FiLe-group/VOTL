@@ -5,12 +5,29 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
 
 public class TicketManager extends LiteBase {
+
+	// Checked on every message in threads - most are not tickets
+	private static final int NOT_TICKET = -1;
+	// Channel ID -> tag ID, or NOT_TICKET. Tag never changes after creation.
+	private final Cache<Long, Integer> tagCache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.expireAfterAccess(1, TimeUnit.HOURS)
+		.build();
+	// Role tickets with reviewers already pinged. Only ever changes from not pinged to pinged.
+	private final Cache<Long, Boolean> pingedCache = Caffeine.newBuilder()
+		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
+		.expireAfterAccess(1, TimeUnit.HOURS)
+		.build();
 	
 	public TicketManager(ConnectionUtil cu) {
 		super(cu, "ticket");
@@ -27,6 +44,7 @@ public class TicketManager extends LiteBase {
 			execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, roleIds, replyWait, rolePinged) VALUES (%d, %s, %s, %s, 0, %s, %d, %d)"
 				.formatted(table, ticketId, userId, guildId, channelId, quote(roleIds), replyTime.isPositive() ? Instant.now().plus(replyTime).getEpochSecond() : 0, pinged ? 1 : 0));
 		} catch (SQLException ignored) {}
+		tagCache.invalidate(channelId);
 	}
 
 	public void addTicket(int ticketId, long userId, long guildId, long channelId, int tagId, Duration replyTime) {
@@ -34,6 +52,7 @@ public class TicketManager extends LiteBase {
 			execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, replyWait) VALUES (%d, %s, %s, %s, %d, %d)"
 				.formatted(table, ticketId, userId, guildId, channelId, tagId, replyTime.isPositive() ? Instant.now().plus(replyTime).getEpochSecond() : 0));
 		} catch (SQLException ignored) {}
+		tagCache.invalidate(channelId);
 	}
 
 	// get last ticket's ID
@@ -120,23 +139,35 @@ public class TicketManager extends LiteBase {
 	}
 
 	public boolean isRoleTicket(long channelId) {
-		Integer data = selectOne("SELECT tagId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "tagId", Integer.class);
-		return data != null && data == 0;
+		Integer tagId = getTag(channelId);
+		return tagId != null && tagId == 0;
 	}
 
 	public boolean isRolePinged(long channelId) {
+		// Only the pinged state is cached, as it is final
+		if (pingedCache.getIfPresent(channelId) != null) return true;
 		Integer data = selectOne("SELECT rolePinged FROM %s WHERE (channelId=%s)".formatted(table, channelId), "rolePinged", Integer.class);
-		return data == null || data == 1;
+		boolean pinged = data == null || data == 1;
+		if (pinged) pingedCache.put(channelId, true);
+		return pinged;
 	}
 
 	public void setRolePinged(long channelId) {
 		try {
 			execute("UPDATE %s SET rolePinged=1 WHERE (channelId=%s)".formatted(table, channelId));
+			pingedCache.put(channelId, true);
 		} catch (SQLException ignored) {}
 	}
 
+	/**
+	 * @return tag ID, or null if the channel is not a ticket
+	 */
 	public Integer getTag(long channelId) {
-		return selectOne("SELECT tagId FROM %s WHERE (channelId=%s)".formatted(table, channelId), "tagId", Integer.class);
+		int tagId = tagCache.get(channelId, id -> {
+			Integer data = selectOne("SELECT tagId FROM %s WHERE (channelId=%s)".formatted(table, id), "tagId", Integer.class);
+			return data == null ? NOT_TICKET : data;
+		});
+		return tagId == NOT_TICKET ? null : tagId;
 	}
 
 	public int countTicketsByMod(long guildId, long modId, long afterEpoch, long beforeEpoch, boolean roleTag) {
