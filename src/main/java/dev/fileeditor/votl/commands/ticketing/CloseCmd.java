@@ -58,14 +58,15 @@ public class CloseCmd extends SlashCommand {
 				}
 				case DIRECT_SUPPORT_ROLES -> {
 					// Check if user is ticket support or has Admin+ access
-					int tagId = bot.getDBUtil().tickets.getTag(channelId);
+					Integer tagId = bot.getDBUtil().tickets.getTag(channelId);
 					List<Long> supportRoleIds;
-					if (tagId==0) {
-						// Role request ticket
+					if (tagId == null || tagId == 0) {
+						// Role request ticket (no tag recorded - fall back to the same support roles)
 						supportRoleIds = bot.getDBUtil().getTicketSettings(event.getGuild()).getRoleSupportIds();
 					} else {
 						// Standard ticket
 						supportRoleIds = Stream.of(bot.getDBUtil().ticketTags.getSupportRolesString(tagId).split(";"))
+							.filter(v -> !v.isBlank())
 							.map(Long::parseLong)
 							.toList();
 					}

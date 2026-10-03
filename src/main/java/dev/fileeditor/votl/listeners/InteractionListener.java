@@ -728,10 +728,10 @@ public class InteractionListener extends ListenerAdapter {
 				}
 				case DIRECT_SUPPORT_ROLES -> {
 					// Check if user is ticket support(or mod if support empty) or has Admin+ access
-					int tagId = db.tickets.getTag(channelId);
+					Integer tagId = db.tickets.getTag(channelId);
 					List<Long> supportRoleIds;
-					if (tagId==0) {
-						// Role request ticket
+					if (tagId == null || tagId == 0) {
+						// Role request ticket (no tag recorded - fall back to the same support roles)
 						supportRoleIds = db.getTicketSettings(event.getGuild()).getRoleSupportIds();
 					} else {
 						// Standard ticket

@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -13,6 +14,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import org.jspecify.annotations.Nullable;
 
 public class TicketManager extends LiteBase {
 
@@ -162,12 +164,12 @@ public class TicketManager extends LiteBase {
 	/**
 	 * @return tag ID, or null if the channel is not a ticket
 	 */
-	public Integer getTag(long channelId) {
-		int tagId = tagCache.get(channelId, id -> {
-			Integer data = selectOne("SELECT tagId FROM %s WHERE (channelId=%s)".formatted(table, id), "tagId", Integer.class);
-			return data == null ? NOT_TICKET : data;
-		});
-		return tagId == NOT_TICKET ? null : tagId;
+	public @Nullable Integer getTag(long channelId) {
+		Integer tagId = tagCache.get(channelId, id -> Objects.requireNonNullElse(
+			selectOne("SELECT tagId FROM %s WHERE (channelId=%s)".formatted(table, id), "tagId", Integer.class),
+			NOT_TICKET
+		));
+		return (tagId == null || tagId == NOT_TICKET) ? null : tagId;
 	}
 
 	public int countTicketsByMod(long guildId, long modId, long afterEpoch, long beforeEpoch, boolean roleTag) {
