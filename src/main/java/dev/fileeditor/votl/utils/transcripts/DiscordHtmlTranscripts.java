@@ -130,15 +130,16 @@ public class DiscordHtmlTranscripts {
         if (!zipline.isEnabled()) return CompletableFuture.completedFuture(null);
 
         Elements avatars = document.select(AVATARS);
-        Map<String, String> sources = new HashMap<>();
+        Set<String> sources = new HashSet<>();
         for (Element avatar : avatars) {
             String src = avatar.attr("src");
             // Default avatars (/embed/avatars/) never change
-            if (src.startsWith("https://cdn.discordapp.com/avatars/")) sources.put(src, src);
+            if (src.startsWith("https://cdn.discordapp.com/avatars/")) sources.add(src);
         }
         if (sources.isEmpty()) return CompletableFuture.completedFuture(null);
 
-        return zipline.rehostAll(sources, zipline.getTranscriptExpiresIn())
+        // Same avatar is uploaded once and reused across transcripts
+        return zipline.rehostAvatars(sources)
             .thenAccept(links -> avatars.forEach(avatar -> {
                 String link = links.get(avatar.attr("src"));
                 if (link != null) avatar.attr("src", link);
