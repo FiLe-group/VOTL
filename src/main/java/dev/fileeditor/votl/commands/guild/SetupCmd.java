@@ -79,7 +79,7 @@ public class SetupCmd extends SlashCommand {
 			}
 
 			editEmbed(event, bot.getEmbedUtil().getEmbed(color.getRGB())
-				.setDescription(lu.getGuildText(event, path+".done", "#"+Integer.toHexString(color.getRGB() & 0xFFFFFF)))
+				.setDescription(lu.getGuildText(event, path+".done", "#%06x".formatted(color.getRGB() & 0xFFFFFF)))
 				.build());
 		}
 	}

@@ -1541,7 +1541,7 @@ public class LogEmbedUtil {
 			case Integer value -> {
 				return switch (key) {
 					case "type" -> formatType(ChannelType.fromId(value));
-					case "color" -> "`#" + Integer.toHexString(value) + "`";
+					case "color" -> "`#%06x`".formatted(value & 0xFFFFFF);
 					case "explicit_content_filter" -> formatType(ExplicitContentLevel.fromKey(value));
 					case "mfa_level" -> formatType(MFALevel.fromKey(value));
 					case "default_message_notifications" -> formatType(NotificationLevel.fromKey(value));
@@ -1570,13 +1570,13 @@ public class LogEmbedUtil {
 						return "holographic";
 					} else if (values.get("secondary_color") != null) {
 						// gradient
-						return "`#%s`-`#%s`".formatted(Integer.toHexString((int) values.get("primary_color")), Integer.toHexString((int) values.get("secondary_color")));
+						return "`#%06x`-`#%06x`".formatted((int) values.get("primary_color") & 0xFFFFFF, (int) values.get("secondary_color") & 0xFFFFFF);
 					} else if (values.get("primary_color").equals(0)) {
 						// transparent
 						return "none";
 					} else {
 						// one color
-						return "`#%s`".formatted(Integer.toHexString((int) values.get("primary_color")));
+						return "`#%06x`".formatted((int) values.get("primary_color") & 0xFFFFFF);
 					}
 				} else {
 					return "";
