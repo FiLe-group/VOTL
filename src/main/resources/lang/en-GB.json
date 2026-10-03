@@ -2694,7 +2694,7 @@
 					},
 					"cloud_transcripts": {
 						"name": "cloud_transcripts",
-						"help": "Upload transcripts to the file cloud and send the ticket author a link instead of the file? Logs always keep the file."
+						"help": "Send the ticket author a file cloud link instead of the transcript file? Logs keep the file."
 					},
 					"bad_roles": "No roles provided (use @Role) or more than 3.",
 					"embed_view": "**Ticket settings**",
