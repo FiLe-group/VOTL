@@ -2,5 +2,8 @@
   "bot-token": "",
   "owner-id": "",
   "dev-servers": [],
-  "webhook": ""
+  "webhook": "",
+  "zipline-url": "",
+  "zipline-token": "",
+  "zipline-transcript-expiry": "90d"
 }

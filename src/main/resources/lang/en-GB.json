@@ -52,6 +52,7 @@
 		},
 		"timed_out": "Timed out",
 		"proof_type": "Incorrect proof file type provided. Only .png and .jpg/.jpeg are accepted.",
+		"temporary_url": "Discord attachment links expire after about a day. Provide a permanent image link instead (for example, from an image hosting site).",
 		"proof_size": "The size of the proof file cannot be larger than 4 MB.",
 		"option": {
 			"channel": "Selected channel not found! Make sure this channel exists and bot can access it.",
@@ -295,7 +296,9 @@
 			"name": "Ticket logs",
 			"closed_title": "Ticket Closed",
 			"closed_value": "**Ticket Name**: {name}\n**Created By**: {created}\n**Closed By**: {closed}\n**Close Reason**: {reason}\n**Claimed By**: {claimed}",
-			"closed_pm": "Ticket closed at **{guild}** server.\n\n**Closed By**: {closed}\n**Close date**: {time}\n**Close Reason**: {reason}\n\n*If available, ticket's transcript is attached to this message.*\n-# To view .html file - download it and open in any browser.",
+			"closed_pm": "Ticket closed at **{guild}** server.\n\n**Closed By**: {closed}\n**Close date**: {time}\n**Close Reason**: {reason}",
+			"transcript_file": "*Ticket's transcript is attached to this message.*\n-# To view .html file - download it and open in any browser.",
+			"transcript_link": "**Transcript**: [Open in browser]({url})\n-# Private link, do not share it. Expires after {expires}.",
 			"autoclosed": "No response, autoclosed",
 			"unclaimed": "UnClaimed",
 			"roles_title": "Roles issued | %s",
@@ -469,6 +472,8 @@
 			"default_message_notifications": "Message notifications",
 			"owner_id": "Owner",
 			"splash_hash": "Splash image",
+			"banner_hash": "Banner",
+			"discovery_splash_hash": "Discovery splash image",
 			"system_channel_id": "System messages channel",
 			"rules_channel_id": "Rules channel",
 			"public_updates_channel_id": "Community updates channel",
@@ -2662,7 +2667,7 @@
 				},
 				"settings": {
 					"help": "Manage global settings for tickets (to view settings - don't select options)",
-					"usage": "settings [delete pings] [other roles] [role tickets support] [allow close] [transcripts] [delay role ping]",
+					"usage": "settings [delete pings] [other roles] [role tickets support] [allow close] [transcripts] [delay role ping] [cloud_transcripts]",
 					"delete_pings": {
 						"name": "delete_pings",
 						"help": "When creating new ticket, delete user/moderator pings?"
@@ -2687,9 +2692,13 @@
 						"name": "delay_role_ping",
 						"help": "In role requests, add reviewers only after the requester sends a message?"
 					},
+					"cloud_transcripts": {
+						"name": "cloud_transcripts",
+						"help": "Upload transcripts to the file cloud and send the ticket author a link instead of the file? Logs always keep the file."
+					},
 					"bad_roles": "No roles provided (use @Role) or more than 3.",
 					"embed_view": "**Ticket settings**",
-					"view": "\n> Autoclose time: **%s**\n> Autoclose on left: %s\n> Time to reply: **%s**\n\n> Allow other roles: %s\n\n> Support roles: %s\n\n> Delete pings: %s\n> Allow close: **%s**\n> Transcripts saved: **%s**\n> Delay reviewer ping until requester replies: %s",
+					"view": "\n> Autoclose time: **%s**\n> Autoclose on left: %s\n> Time to reply: **%s**\n\n> Allow other roles: %s\n\n> Support roles: %s\n\n> Delete pings: %s\n> Allow close: **%s**\n> Transcripts saved: **%s**\n> Delay reviewer ping until requester replies: %s\n> Send transcript to author as cloud link: %s",
 					"embed_changes": "**Updated ticket settings**",
 					"changed_delete": "\n> Delete pings after ticket creation: %s",
 					"changed_other": "\n> Allow other roles requests: %s",
@@ -2697,7 +2706,9 @@
 					"changed_support": "\n> %s will be pinged in role requests.",
 					"changed_close": "\n> Allowed to close tickets: **%s**",
 					"changed_transcript": "\n> Transcripts will be created for **%s** tickets.",
-					"changed_delay_ping": "\n> Delay reviewer ping until requester replies: %s"
+					"changed_delay_ping": "\n> Delay reviewer ping until requester replies: %s",
+					"changed_cloud": "\n> Send transcript to author as cloud link: %s",
+					"cloud_not_configured": "File cloud upload is not configured for this bot. Ask the bot owner to set it up."
 				}
 			},
 			"close": {

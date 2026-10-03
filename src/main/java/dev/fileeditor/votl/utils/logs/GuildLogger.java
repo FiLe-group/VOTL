@@ -7,8 +7,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -20,11 +23,14 @@ import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.objects.logs.LogType;
 import dev.fileeditor.votl.objects.logs.MessageData;
 import dev.fileeditor.votl.utils.CaseProofUtil;
+import dev.fileeditor.votl.utils.TicketUtil.TicketTranscript;
+import dev.fileeditor.votl.utils.ZiplineUtil;
 import dev.fileeditor.votl.utils.database.DBUtil;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 
 import dev.fileeditor.votl.utils.encoding.EncodingUtil;
 import dev.fileeditor.votl.utils.invite.InviteInfo;
+import net.dv8tion.jda.api.audit.AuditLogChange;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogKey;
 import net.dv8tion.jda.api.entities.Guild;
@@ -78,6 +84,58 @@ public class GuildLogger {
 
 	private void sendLog(Guild guild, LogType type, Supplier<MessageEmbed> embedSupplier) {
 		webhookUtil.sendMessageEmbed(guild, type, embedSupplier);
+	}
+
+	/**
+	 * Sends a log, which links to images.
+	 * Removed images are re-hosted on Zipline first (if configured), as Discord's CDN stops serving them.
+	 * @param removed key -> CDN url of the image removed by this action
+	 * @param current key -> CDN url of the image that is still in use
+	 * @param embedFunction receives key -> link to serve
+	 */
+	private void sendLogWithMedia(Guild guild, LogType type, Map<String, String> removed, Map<String, String> current,
+								  Function<Map<String, String>, MessageEmbed> embedFunction) {
+		final ZiplineUtil zipline = bot.getZiplineUtil();
+		final CompletableFuture<Map<String, String>> future;
+		if (removed.isEmpty() || !zipline.isEnabled() || webhookUtil.getWebhookClient(guild, type) == null) {
+			future = CompletableFuture.completedFuture(removed);
+		} else {
+			future = zipline.rehostAll(removed);
+		}
+		future.thenAccept(links -> {
+			Map<String, String> media = new HashMap<>(current);
+			media.putAll(links);
+			sendLog(guild, type, () -> embedFunction.apply(media));
+		}).exceptionally(ex -> {
+			log.warn("Failed to send log with media", ex);
+			return null;
+		});
+	}
+
+	private static final String CDN_IMAGE_URL = "https://cdn.discordapp.com/%s/%s.%s";
+
+	private record ImageLinks(Map<String, String> removed, Map<String, String> current) {}
+
+	/**
+	 * Collects CDN links for image hash changes, keyed by hash.
+	 * @param paths audit log key -> CDN path (e.g. "icon_hash" -> "icons/{guild_id}")
+	 */
+	private static ImageLinks imageLinks(AuditLogEntry entry, Map<String, String> paths) {
+		Map<String, String> removed = new HashMap<>();
+		Map<String, String> current = new HashMap<>();
+		paths.forEach((key, path) -> {
+			AuditLogChange change = entry.getChangeByKey(key);
+			if (change == null) return;
+			String oldHash = change.getOldValue();
+			String newHash = change.getNewValue();
+			if (oldHash != null && !oldHash.isBlank()) removed.put(oldHash, imageUrl(path, oldHash));
+			if (newHash != null && !newHash.isBlank()) current.put(newHash, imageUrl(path, newHash));
+		});
+		return new ImageLinks(removed, current);
+	}
+
+	private static String imageUrl(String path, String hash) {
+		return CDN_IMAGE_URL.formatted(path, hash, hash.startsWith("a_") ? "gif" : "png");
 	}
 
 	@SuppressWarnings("ReturnOfNull")
@@ -510,27 +568,29 @@ public class GuildLogger {
 			sendLog(guild, type, () -> logUtil.ticketCreatedEmbed(locale, messageChannel, author));
 		}
 
-		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId, String reason, FileUpload file) {
-			if (file == null) {
-				onClose(guild, messageChannel, userClosed, authorId, reason);
+		/**
+		 * @param transcript always attached as a file, also linked if uploaded to Zipline
+		 */
+		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId, String reason, @Nullable TicketTranscript transcript) {
+			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
+			final Supplier<MessageEmbed> embed = () -> logUtil.ticketClosedEmbed(locale, messageChannel, userClosed, authorId,
+				db.tickets.getClaimer(messageChannel.getIdLong()), reason, transcript);
+			if (transcript == null) {
+				sendLog(guild, type, embed);
 				return;
 			}
+
+			// Log always keeps the file, as a permanent copy
 
 			IncomingWebhookClientImpl client = getWebhookClient(type, guild);
 			if (client == null) return;
 			try {
-				final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-				client.sendMessageEmbeds(
-					logUtil.ticketClosedEmbed(locale, messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()), reason)
-				).addFiles(file).queue();
+				client.sendMessageEmbeds(embed.get())
+					.addFiles(transcript.transcript().toFileUpload())
+					.queue();
 			} catch (Exception ex) {
 				log.warn("Failed to send ticket close log: {}", ex.getMessage(), ex);
 			}
-		}
-
-		public void onClose(Guild guild, GuildChannel messageChannel, User userClosed, Long authorId, String reason) {
-			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.ticketClosedEmbed(locale, messageChannel, userClosed, authorId, db.tickets.getClaimer(messageChannel.getIdLong()), reason));
 		}
 	}
 
@@ -543,8 +603,16 @@ public class GuildLogger {
 			final long id = guild.getIdLong();
 			final String name = guild.getName();
 
+			final ImageLinks links = imageLinks(entry, Map.of(
+				"icon_hash", "icons/"+id,
+				"splash_hash", "splashes/"+id,
+				"discovery_splash_hash", "discovery-splashes/"+id,
+				"banner_hash", "banners/"+id
+			));
+
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.guildUpdate(locale, id, name, entry.getChanges().values(), entry.getUserIdLong()));
+			sendLogWithMedia(guild, type, links.removed(), links.current(),
+				media -> logUtil.guildUpdate(locale, id, name, entry.getChanges().values(), media, entry.getUserIdLong()));
 		}
 
 		public void onEmojiCreate(AuditLogEntry entry) {
@@ -568,7 +636,10 @@ public class GuildLogger {
 			final long id = entry.getTargetIdLong();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.emojiDelete(locale, id, entry.getChanges().values(), entry.getUserIdLong()));
+			// animated=true serves animated emoji as animated webp, static ones as plain webp
+			final Map<String, String> removed = Map.of("emoji", "https://cdn.discordapp.com/emojis/%s.webp?animated=true".formatted(id));
+			sendLogWithMedia(guild, type, removed, Map.of(),
+				media -> logUtil.emojiDelete(locale, id, entry.getChanges().values(), media.get("emoji"), entry.getUserIdLong()));
 		}
 
 		public void onStickerCreate(AuditLogEntry entry) {
@@ -592,7 +663,23 @@ public class GuildLogger {
 			final long id = entry.getTargetIdLong();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.stickerDelete(locale, id, entry.getChanges().values(), entry.getUserIdLong()));
+			final String stickerUrl = stickerUrl(entry);
+			final Map<String, String> removed = stickerUrl == null ? Map.of() : Map.of("sticker", stickerUrl);
+			sendLogWithMedia(guild, type, removed, Map.of(),
+				media -> logUtil.stickerDelete(locale, id, entry.getChanges().values(), media.get("sticker"), entry.getUserIdLong()));
+		}
+
+		@Nullable
+		private String stickerUrl(AuditLogEntry entry) {
+			final long id = entry.getTargetIdLong();
+			AuditLogChange change = entry.getChangeByKey("format_type");
+			Integer format = change == null ? null : change.getOldValue();
+			if (format == null) format = 1;
+			return switch (format) {
+				case 1, 2 -> "https://cdn.discordapp.com/stickers/%s.png".formatted(id); // PNG, APNG
+				case 4 -> "https://media.discordapp.net/stickers/%s.gif".formatted(id); // GIF
+				default -> null; // Lottie (JSON) - not an image
+			};
 		}
 
 		public void onRoleCreate(AuditLogEntry entry) {
@@ -602,7 +689,8 @@ public class GuildLogger {
 			final String name = change.getNewValue();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.roleCreated(locale, id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
+			final ImageLinks links = imageLinks(entry, Map.of("icon_hash", "role-icons/"+id));
+			sendLog(guild, type, () -> logUtil.roleCreated(locale, id, name, entry.getChanges().values(), links.current(), entry.getUserIdLong(), entry.getReason()));
 		}
 
 		public void onRoleDelete(AuditLogEntry entry) {
@@ -612,7 +700,9 @@ public class GuildLogger {
 			final String name = change.getOldValue();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.roleDeleted(locale, id, name, entry.getChanges().values(), entry.getUserIdLong(), entry.getReason()));
+			final ImageLinks links = imageLinks(entry, Map.of("icon_hash", "role-icons/"+id));
+			sendLogWithMedia(guild, type, links.removed(), links.current(),
+				media -> logUtil.roleDeleted(locale, id, name, entry.getChanges().values(), media, entry.getUserIdLong(), entry.getReason()));
 		}
 
 		public void onRoleUpdate(AuditLogEntry entry) {
@@ -623,7 +713,9 @@ public class GuildLogger {
 			final String name = role.getName();
 
 			final DiscordLocale locale = App.getInstance().getLocaleUtil().getGuildLocale(guild);
-			sendLog(guild, type, () -> logUtil.roleUpdate(locale, id, name, entry.getChanges().values(), entry.getUserIdLong()));
+			final ImageLinks links = imageLinks(entry, Map.of("icon_hash", "role-icons/"+id));
+			sendLogWithMedia(guild, type, links.removed(), links.current(),
+				media -> logUtil.roleUpdate(locale, id, name, entry.getChanges().values(), media, entry.getUserIdLong()));
 		}
 
 	}

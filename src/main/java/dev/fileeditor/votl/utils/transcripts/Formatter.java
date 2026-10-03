@@ -27,14 +27,14 @@ public class Formatter {
     private static final Pattern U = Pattern.compile("__(.+?)__"); // Underline
     private static final Pattern CODE = Pattern.compile("```(.+?)```"); // Multi-line code block
     private static final Pattern CODE_1 = Pattern.compile("`(.+?)`"); // Code block
-    private static final Pattern QUOTE = Pattern.compile("^>{1,3} (.*)$"); // Quote (one line or multiple)
+    private static final Pattern QUOTE = Pattern.compile("^(?:&gt;){1,3} (.*)$"); // Quote (one line or multiple), matched after escaping
     private static final Pattern HEADING_3 = Pattern.compile("(?m)^### (.+)$"); // Small header
     private static final Pattern HEADING_2 = Pattern.compile("(?m)^## (.+)$"); // Medium header
     private static final Pattern HEADING_1 = Pattern.compile("(?m)^# (.+)$"); // Large header
     private static final Pattern SUBTEXT = Pattern.compile("(?m)^-# (.+)$"); // Small grey text
     private static final Pattern MASKED_LINK = Pattern.compile("\\[([^\\[]+)](\\((www|http:|https:)+\\S+\\w\\))"); // Masked links
     private static final Pattern LINK = Pattern.compile("^(?!.*\\[[^]]*]\\([^)]*\\))((www|http:|https:)\\S+\\w)$"); // Link
-    private static final Pattern EMOJI = Pattern.compile("<a?:([a-zA-Z0-9_]+):([0-9]+)>"); // Emoji
+    private static final Pattern EMOJI = Pattern.compile("&lt;(a?:[a-zA-Z0-9_]+:[0-9]+)&gt;"); // Emoji, matched after escaping
 
     // Pattern to detect new lines
     private static final Pattern NEW_LINE = Pattern.compile("\\r\\n|\\r|\\n|\\u2028|\\u2029"); // New line (and it's variants)
@@ -48,8 +48,30 @@ public class Formatter {
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 
+    /**
+     * Escapes HTML special characters, so text can't inject markup.
+     */
+    public static String escape(String text) {
+        StringBuilder builder = new StringBuilder(text.length());
+        for (char c : text.toCharArray()) {
+            switch (c) {
+                case '&' -> builder.append("&amp;");
+                case '<' -> builder.append("&lt;");
+                case '>' -> builder.append("&gt;");
+                case '"' -> builder.append("&quot;");
+                case '\'' -> builder.append("&#39;");
+                default -> builder.append(c);
+            }
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Converts Discord markdown to HTML.
+     * The text is escaped first - only markup produced here ends up in the output.
+     */
     public static String format(String originalText) {
-        String newText = originalText;
+        String newText = escape(originalText);
 
         Matcher matcher = HEADING_3.matcher(newText);
         while (matcher.find()) {
@@ -105,7 +127,7 @@ public class Formatter {
             String group = matcher.group();
 
             newText = newText.replace(group,
-                    "<span class=\"quote\">" + group.replaceFirst(">>>", "").replaceFirst(">", "") + "</span>");
+                    "<span class=\"quote\">" + matcher.group(1) + "</span>");
         }
         matcher = MASKED_LINK.matcher(newText);
         while (matcher.find()) {
@@ -138,7 +160,7 @@ public class Formatter {
         matcher = EMOJI.matcher(newText);
         while(matcher.find()) {
             String group = matcher.group();
-            Emoji emoji = Emoji.fromFormatted(group);
+            Emoji emoji = Emoji.fromFormatted("<" + matcher.group(1) + ">");
             if (emoji.getType() == Emoji.Type.CUSTOM) {
                 CustomEmoji customEmoji = (CustomEmoji)emoji;
                 newText = newText.replace(group,

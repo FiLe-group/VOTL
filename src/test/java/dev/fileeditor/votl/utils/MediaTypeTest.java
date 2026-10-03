@@ -94,4 +94,17 @@ public class MediaTypeTest extends BaseTest {
 		assertEquals(1, withLink.otherLinks());
 	}
 
+	@Test
+	public void testDiscordAttachment() {
+		assertTrue(MediaLinkUtil.isDiscordAttachment("https://cdn.discordapp.com/attachments/1/2/image.png?ex=6&is=6&hm=abc"));
+		assertTrue(MediaLinkUtil.isDiscordAttachment("https://media.discordapp.net/attachments/1/2/image.png"));
+		assertTrue(MediaLinkUtil.isDiscordAttachment(" https://CDN.discordapp.com/ephemeral-attachments/1/2/a.gif "));
+		// Permanent assets
+		assertFalse(MediaLinkUtil.isDiscordAttachment("https://cdn.discordapp.com/icons/1/abc.png"));
+		assertFalse(MediaLinkUtil.isDiscordAttachment("https://cdn.discordapp.com/emojis/1.png"));
+		assertFalse(MediaLinkUtil.isDiscordAttachment("https://i.imgur.com/attachments/a.png"));
+		assertFalse(MediaLinkUtil.isDiscordAttachment(null));
+		assertFalse(MediaLinkUtil.isDiscordAttachment("not a url"));
+	}
+
 }

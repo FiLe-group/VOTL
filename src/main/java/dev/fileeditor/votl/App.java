@@ -78,6 +78,7 @@ public class App {
 	private final ModerationUtil moderationUtil;
 	private final LevelUtil levelUtil;
 	private final InviteTracker inviteTracker;
+	private final ZiplineUtil ziplineUtil;
 
 	private final Blacklist blacklist;
 
@@ -91,6 +92,7 @@ public class App {
 		App.instance = this;
 		this.cliSettings = cliSettings;
 
+		//noinspection JavaPrintToLogpoint
 		System.out.println(AppInfo.getVersionInfo());
 
 		LOG.debug("Starting VOTL instance with debug logging enabled!\n");
@@ -116,7 +118,7 @@ public class App {
 			System.exit(ExitCodes.ERROR.v);
 		}
 		final long ownerId = parseLong(ownerIdString);
-		
+
 		// Define for default
 		dbUtil			= new DBUtil(fileManager);
 		localeUtil		= new LocaleUtil(fileManager);
@@ -126,6 +128,7 @@ public class App {
 		moderationUtil	= new ModerationUtil(dbUtil, localeUtil);
 		levelUtil		= new LevelUtil(this);
 		inviteTracker	= new InviteTracker();
+		ziplineUtil		= new ZiplineUtil(fileManager);
 
 		logEmbedUtil	= new LogEmbedUtil();
 		guildLogger		= new GuildLogger(this);
@@ -212,7 +215,7 @@ public class App {
 				guildListener, voiceListener, moderationListener, messageListener,
 				auditListener, memberListener, eventListener, autoModListener
 			);
-			
+
 		JDA tempJda;
 
 		// try to log in
@@ -302,6 +305,10 @@ public class App {
 
 	public LogEmbedUtil getLogEmbedUtil() {
 		return logEmbedUtil;
+	}
+
+	public ZiplineUtil getZiplineUtil() {
+		return ziplineUtil;
 	}
 
 	public TicketUtil getTicketUtil() {

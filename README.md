@@ -46,9 +46,15 @@ Inside folder `data` file `config.json` must be configured with data as stated b
     "dev-servers": [
         "dev server's IDs"
     ],
-    "webhook": "link to webhook, if you want to receive ERROR level logs"
+    "webhook": "link to webhook, if you want to receive ERROR level logs",
+    "zipline-url": "optional, Zipline instance URL (e.g. https://zipline.example.com)",
+    "zipline-token": "optional, Zipline API token",
+    "zipline-transcript-expiry": "optional, how long ticket transcripts stay on Zipline (default 90d)"
 }
 ```
+If `zipline-url` and `zipline-token` are set:
+- images removed from Discord (deleted emojis and stickers, deleted or replaced role icons, replaced server icons/banners/splashes) are re-uploaded to Zipline and linked in logs. These files expire after 14 days.
+- servers can opt in with `/ticket settings cloud_transcripts:True` (off by default). Ticket transcripts and the avatars in them are then uploaded to Zipline under a random UUID name, and the ticket author's DM gets a link instead of the file. The log channel always gets the file (plus the link, when uploaded). If the upload fails, the author gets the file as before.
 
 ## Inspiration/Credits
 Thanks to Chew ([JDA-Chewtils](https://github.com/Chew/JDA-Chewtils) and Chewbotcca bot) and jagrosh (JDA-Utilities)  

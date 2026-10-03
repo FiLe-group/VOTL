@@ -8,8 +8,11 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import dev.fileeditor.votl.App;
+import dev.fileeditor.votl.utils.ZiplineUtil;
 import dev.fileeditor.votl.utils.encoding.EncodingUtil;
 import net.dv8tion.jda.api.components.Component;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
@@ -38,6 +41,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by Ryzeon
@@ -46,6 +52,8 @@ import org.jsoup.nodes.Element;
  * Date: 1/3/2023 @ 10:50
  */
 public class DiscordHtmlTranscripts {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DiscordHtmlTranscripts.class);
 
     private static DiscordHtmlTranscripts instance;
     private final List<String>
@@ -60,7 +68,20 @@ public class DiscordHtmlTranscripts {
         return instance;
     }
 
-    public void queueCreateTranscript(GuildMessageChannel channel, @NotNull Consumer<FileUpload> action, @NotNull Consumer<? super Throwable> failure) {
+    /**
+     * Generated transcript HTML.
+     */
+    public record Transcript(byte[] data, String fileName) {
+        public FileUpload toFileUpload() {
+            return FileUpload.fromData(data, fileName);
+        }
+    }
+
+    /**
+     * @param useZipline upload avatars to Zipline
+     * @param action receives the transcript, or null if the channel has too little history
+     */
+    public void queueCreateTranscript(GuildMessageChannel channel, boolean useZipline, @NotNull Consumer<Transcript> action, @NotNull Consumer<? super Throwable> failure) {
         channel.getIterableHistory()
             .deadline(System.currentTimeMillis() + 3000)
             .takeAsync(200)
@@ -76,14 +97,52 @@ public class DiscordHtmlTranscripts {
                 }
                 if (skip) action.accept(null);
                 else {
+                    final Document document;
                     try {
-                        final String filename = EncodingUtil.encodeTranscript(channel.getIdLong());
-                        action.accept(FileUpload.fromData(generateFromMessages(list), filename));
+                        document = buildDocument(list);
                     } catch(Exception ex) {
                         failure.accept(ex);
+                        return;
                     }
+                    final String filename = EncodingUtil.encodeTranscript(channel.getIdLong());
+                    CompletableFuture<Void> avatars = useZipline ? rehostAvatars(document) : CompletableFuture.completedFuture(null);
+                    avatars.whenComplete((_, ex) -> {
+                        // On failure keep the Discord links
+                        if (ex != null) LOG.warn("Failed to re-host transcript avatars", ex);
+                        try {
+                            action.accept(new Transcript(document.outerHtml().getBytes(StandardCharsets.UTF_8), filename));
+                        } catch(Exception e) {
+                            failure.accept(e);
+                        }
+                    });
                 }
             });
+    }
+
+    private static final String AVATARS = "img.chatlog__author-avatar, img.chatlog__reference-avatar";
+
+    /**
+     * Uploads user avatars to Zipline (if configured), as Discord deletes old avatars after a user changes theirs.
+     * Attachments are intentionally left alone - re-hosting user uploaded files could be abused.
+     */
+    private CompletableFuture<Void> rehostAvatars(Document document) {
+        ZiplineUtil zipline = App.getInstance().getZiplineUtil();
+        if (!zipline.isEnabled()) return CompletableFuture.completedFuture(null);
+
+        Elements avatars = document.select(AVATARS);
+        Map<String, String> sources = new HashMap<>();
+        for (Element avatar : avatars) {
+            String src = avatar.attr("src");
+            // Default avatars (/embed/avatars/) never change
+            if (src.startsWith("https://cdn.discordapp.com/avatars/")) sources.put(src, src);
+        }
+        if (sources.isEmpty()) return CompletableFuture.completedFuture(null);
+
+        return zipline.rehostAll(sources, zipline.getTranscriptExpiresIn())
+            .thenAccept(links -> avatars.forEach(avatar -> {
+                String link = links.get(avatar.attr("src"));
+                if (link != null) avatar.attr("src", link);
+            }));
     }
 
     private InputStream findFile() {
@@ -112,6 +171,10 @@ public class DiscordHtmlTranscripts {
      *         does not have the permission {@link net.dv8tion.jda.api.Permission#MESSAGE_HISTORY MESSAGE_HISTORY}
      */
     public InputStream generateFromMessages(Collection<Message> messages) throws IOException, InsufficientPermissionException {
+        return new ByteArrayInputStream(buildDocument(messages).outerHtml().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private Document buildDocument(Collection<Message> messages) throws IOException, InsufficientPermissionException {
         InputStream htmlTemplate = findFile();
         if (messages.isEmpty()) {
             throw new IllegalArgumentException("No messages to generate a transcript from");
@@ -120,6 +183,8 @@ public class DiscordHtmlTranscripts {
         GuildChannel channel = messages.iterator().next().getChannel().asGuildMessageChannel();
 
         Document document = Jsoup.parse(htmlTemplate, "UTF-8", "template.html");
+        // Remember trusted template elements, before any message content is added
+        TranscriptSanitizer sanitizer = new TranscriptSanitizer(document);
         document.outputSettings().indentAmount(0).prettyPrint(true);
 		Objects.requireNonNull(document.getElementsByClass("preamble__guild-icon").first()).attr("src", Objects.requireNonNullElse(channel.getGuild().getIconUrl(), "")); // set guild icon
 
@@ -322,7 +387,8 @@ public class DiscordHtmlTranscripts {
             messageGroup.appendChild(content);
             chatLog.appendChild(messageGroup);
         }
-        return new ByteArrayInputStream(document.outerHtml().getBytes(StandardCharsets.UTF_8));
+        sanitizer.sanitize(document);
+        return document;
     }
 
     private static void handleFooter(Document document, MessageEmbed embed, Element embedContentContainer) {
@@ -411,7 +477,7 @@ public class DiscordHtmlTranscripts {
 			assert field.getName() != null;
             Element embedFieldNameMarkdown = document.createElement("div");
             embedFieldNameMarkdown.addClass("markdown preserve-whitespace");
-            embedFieldNameMarkdown.html(field.getName());
+            embedFieldNameMarkdown.text(field.getName());
 
             embedFieldName.appendChild(embedFieldNameMarkdown);
             embedField.appendChild(embedFieldName);
@@ -590,7 +656,7 @@ public class DiscordHtmlTranscripts {
         Element reference = document.createElement("div");
         reference.addClass("chatlog__reference");
         reference.attr("style", "cursor: pointer;");
-        reference.attr("onclick", "scrollToMessage(event, '" + referenceMessage.getId() + "')");
+        reference.attr("data-scroll-to", referenceMessage.getId());
 
         User author = referenceMessage.getAuthor();
 
@@ -602,7 +668,7 @@ public class DiscordHtmlTranscripts {
 
         Element name = document.createElement("span");
         name.addClass("chatlog__reference-name");
-        name.html(author.getName());
+        name.text(author.getName());
 
         reference.appendChild(avatar);
         reference.appendChild(name);
@@ -610,7 +676,7 @@ public class DiscordHtmlTranscripts {
         if (!referenceMessage.getContentDisplay().isEmpty()) {
             Element referenceContent = document.createElement("div");
             referenceContent.addClass("chatlog__reference-content");
-            referenceContent.html(referenceMessage.getContentDisplay().length() > 42
+            referenceContent.text(referenceMessage.getContentDisplay().length() > 42
                     ? referenceMessage.getContentDisplay().substring(0, 42) + "..."
                     : referenceMessage.getContentDisplay());
 
@@ -651,12 +717,12 @@ public class DiscordHtmlTranscripts {
 
         Element name = document.createElement("span");
         name.addClass("chatlog__reference-name");
-        name.html(author.getName());
+        name.text(author.getName());
 
         reference.appendChild(avatar);
         reference.appendChild(name);
 
-        reference.append("<span>used <b>/" + interaction.getName() + "</b></span>");
+        reference.append("<span>used <b>/" + Formatter.escape(interaction.getName()) + "</b></span>");
 
         messageGroup.appendChild(referenceSymbol);
         messageGroup.appendChild(reference);
@@ -840,14 +906,14 @@ public class DiscordHtmlTranscripts {
             } else {
                 Element unicodeEmoji = document.createElement("span");
                 unicodeEmoji.addClass("chatlog__interaction-button--emoji");
-                unicodeEmoji.html(button.getEmoji().asUnicode().getName());
+                unicodeEmoji.text(button.getEmoji().asUnicode().getName());
 
                 buttonElement.appendChild(unicodeEmoji);
             }
         }
         if (!button.getLabel().isBlank()) {
             Element label = document.createElement("span");
-            label.html(button.getLabel());
+            label.text(button.getLabel());
 
             buttonElement.appendChild(label);
         }
@@ -862,7 +928,7 @@ public class DiscordHtmlTranscripts {
         menuElement.addClass("chatlog__interaction-menu");
 
         Element placeholder = document.createElement("span");
-        placeholder.html(selectMenu.getPlaceholder() == null ?
+        placeholder.text(selectMenu.getPlaceholder() == null ?
             "Select an option" : selectMenu.getPlaceholder());
 
         menuElement.appendChild(placeholder);
@@ -895,7 +961,7 @@ public class DiscordHtmlTranscripts {
 
         Element pinned = document.createElement("div");
         pinned.addClass("chatlog__messages");
-        pinned.html("<b style='color:white'>" + message.getAuthor().getName() + "</b> pinned a message to this channel.");
+        pinned.html("<b style='color:white'>" + Formatter.escape(message.getAuthor().getName()) + "</b> pinned a message to this channel.");
 
         messageGroup.appendChild(pinContainer);
         messageGroup.appendChild(pinned);

@@ -107,6 +107,31 @@ public final class MediaLinkUtil {
 		return Optional.empty();
 	}
 
+	private static final Set<String> DISCORD_CDN_HOSTS = Set.of(
+		"cdn.discordapp.com", "media.discordapp.net", "cdn.discordapp.net", "media.discordapp.com"
+	);
+
+	/**
+	 * Discord attachment links are signed and expire after about a day,
+	 * so they can't be stored for later use.
+	 *
+	 * @return {@code true} if the link points to a Discord message attachment.
+	 */
+	public static boolean isDiscordAttachment(@Nullable String url) {
+		if (url == null || url.isBlank()) return false;
+		URI uri;
+		try {
+			uri = URI.create(url.strip());
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+		String host = uri.getHost();
+		String path = uri.getPath();
+		if (host == null || path == null) return false;
+		return DISCORD_CDN_HOSTS.contains(host.toLowerCase())
+			&& (path.startsWith("/attachments/") || path.startsWith("/ephemeral-attachments/"));
+	}
+
 	private static String stripQuery(String path) {
 		int q = path.indexOf('?');
 		return q == -1 ? path : path.substring(0, q);

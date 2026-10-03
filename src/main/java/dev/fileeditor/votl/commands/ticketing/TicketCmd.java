@@ -19,6 +19,7 @@ import dev.fileeditor.votl.utils.database.managers.TicketPanelManager.Panel;
 import dev.fileeditor.votl.utils.database.managers.TicketSettingsManager;
 import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
 
+import dev.fileeditor.votl.utils.message.MediaLinkUtil;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 import dev.fileeditor.votl.utils.message.TimeUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -92,6 +93,10 @@ public class TicketCmd extends SlashCommand {
 				editError(event, path+".image_not_valid", "Received invalid URL: `%s`".formatted(image));
 				return;
 			}
+			if (MediaLinkUtil.isDiscordAttachment(image)) {
+				editError(event, "errors.temporary_url", "Received URL: `%s`".formatted(image));
+				return;
+			}
 
 			final int panelId;
 			try {
@@ -144,6 +149,10 @@ public class TicketCmd extends SlashCommand {
 
 			if (isInvalidURL(image)) {
 				editError(event, path+".image_not_valid", "Received invalid URL: `%s`".formatted(image));
+				return;
+			}
+			if (MediaLinkUtil.isDiscordAttachment(image)) {
+				editError(event, "errors.temporary_url", "Received URL: `%s`".formatted(image));
 				return;
 			}
 			
@@ -669,7 +678,8 @@ public class TicketCmd extends SlashCommand {
 					.addChoice("All tickets", TicketSettingsManager.TranscriptsMode.ALL.getValue())
 					.addChoice("All, except role requests (default)", TicketSettingsManager.TranscriptsMode.EXCEPT_ROLES.getValue())
 					.addChoice("None", TicketSettingsManager.TranscriptsMode.NONE.getValue()),
-				new OptionData(OptionType.BOOLEAN, "delay_role_ping", lu.getText(path+".delay_role_ping.help"))
+				new OptionData(OptionType.BOOLEAN, "delay_role_ping", lu.getText(path+".delay_role_ping.help")),
+				new OptionData(OptionType.BOOLEAN, "cloud_transcripts", lu.getText(path+".cloud_transcripts.help"))
 			);
 		}
 
@@ -698,7 +708,8 @@ public class TicketCmd extends SlashCommand {
 					settings.deletePingsEnabled()?Constants.SUCCESS:Constants.FAILURE,
 					MessageUtil.capitalize(settings.getAllowClose().name()),
 					MessageUtil.capitalize(settings.getTranscriptsMode().name()).replace("_", " "),
-					settings.delayRolePingEnabled()?Constants.SUCCESS:Constants.FAILURE
+					settings.delayRolePingEnabled()?Constants.SUCCESS:Constants.FAILURE,
+					settings.ziplineEnabled()?Constants.SUCCESS:Constants.FAILURE
 				));
 
 				editEmbed(event, bot.getEmbedUtil().getEmbed()
@@ -792,6 +803,22 @@ public class TicketCmd extends SlashCommand {
 						return;
 					}
 					response.append(lu.getGuildText(event, path+".changed_delay_ping", delayRolePing?Constants.SUCCESS:Constants.FAILURE));
+				}
+				if (event.hasOption("cloud_transcripts")) {
+					final boolean zipline = event.optBoolean("cloud_transcripts");
+					// Can always be disabled, enabling requires bot's Zipline config
+					if (zipline && !bot.getZiplineUtil().isEnabled()) {
+						editError(event, path+".cloud_not_configured");
+						return;
+					}
+
+					try {
+						bot.getDBUtil().ticketSettings.setZipline(event.getGuild().getIdLong(), zipline);
+					} catch (SQLException ex) {
+						editErrorDatabase(event, ex, "ticket settings set zipline");
+						return;
+					}
+					response.append(lu.getGuildText(event, path+".changed_cloud", zipline?Constants.SUCCESS:Constants.FAILURE));
 				}
 
 				if (response.isEmpty()) {

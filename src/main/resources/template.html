@@ -799,10 +799,14 @@
 
     </style>
 
+    <!-- Pinned versions with integrity hashes: a changed file on the CDN is refused by the browser -->
     <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/solarized-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/solarized-dark.min.css"
+        integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"
+        integrity="sha384-4l+9bhb7rakZ18megzl0/DWczL8ojbDl1jIEzBVffeMho9A6xB/lkqt1K0PC8Jin" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@15.1.0/dist/twemoji.min.js"
+        integrity="sha384-o28+zJO3/45GHIy+9TFKGaYnbt0KQcFRzyBrb0WSSrz7bPGwGI1d64worBiXPgXw" crossorigin="anonymous"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.pre--multiline').forEach(block => hljs.highlightBlock(block));
@@ -847,6 +851,14 @@
                 element.classList.remove('chatlog__attachment--hidden');
             }
         }
+
+        // Inline event handlers (onclick="...") are blocked by the Content-Security-Policy
+        document.addEventListener('click', function (event) {
+            var reference = event.target.closest('[data-scroll-to]');
+            if (reference) scrollToMessage(event, reference.getAttribute('data-scroll-to'));
+            var spoiler = event.target.closest('.spoiler-text--hidden, .chatlog__attachment--hidden');
+            if (spoiler) showSpoiler(event, spoiler);
+        });
     </script>
 
     <svg style="display: none">

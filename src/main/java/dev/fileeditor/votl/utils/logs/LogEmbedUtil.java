@@ -16,6 +16,7 @@ import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.objects.logs.LogEvent;
 import dev.fileeditor.votl.objects.logs.MessageData;
+import dev.fileeditor.votl.utils.TicketUtil.TicketTranscript;
 import dev.fileeditor.votl.utils.database.managers.CaseManager.CaseData;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
 import dev.fileeditor.votl.utils.invite.InviteInfo;
@@ -191,6 +192,11 @@ public class LogEmbedUtil {
 
 		public LogEmbedBuilder appendDescription(String text) {
 			builder.appendDescription(text);
+			return this;
+		}
+
+		public LogEmbedBuilder setThumbnail(@Nullable String url) {
+			builder.setThumbnail(url);
 			return this;
 		}
 
@@ -783,7 +789,7 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
-	public MessageEmbed ticketClosedEmbed(DiscordLocale locale, GuildChannel channel, User userClosed, Long authorId, Long claimerId, String reasonClosed) {
+	public MessageEmbed ticketClosedEmbed(DiscordLocale locale, GuildChannel channel, User userClosed, Long authorId, Long claimerId, String reasonClosed, @Nullable TicketTranscript transcript) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader("ticket.closed_title")
 			.setDescription(localized(locale, "ticket.closed_value")
@@ -793,12 +799,13 @@ public class LogEmbedUtil {
 				.replace("{reason}", Optional.ofNullable(reasonClosed).orElse("-"))
 				.replace("{claimed}", Optional.ofNullable(claimerId).map("<@%s>"::formatted).orElse(localized(locale, "ticket.unclaimed")))
 			)
+			.appendDescription(transcriptText(locale, transcript, false))
 			.setFooter("Channel ID: "+channel.getId())
 			.build();
 	}
 
 	@NotNull
-	public MessageEmbed ticketClosedPmEmbed(DiscordLocale locale, GuildChannel channel, Instant timeClosed, User userClosed, String reasonClosed) {
+	public MessageEmbed ticketClosedPmEmbed(DiscordLocale locale, GuildChannel channel, Instant timeClosed, User userClosed, String reasonClosed, @Nullable TicketTranscript transcript) {
 		return new LogEmbedBuilder(locale, WHITE)
 			.setDescription(localized(locale, "ticket.closed_pm")
 				.replace("{guild}", channel.getGuild().getName())
@@ -806,8 +813,22 @@ public class LogEmbedUtil {
 				.replace("{time}", formatTime(timeClosed, false))
 				.replace("{reason}", reasonClosed)
 			)
+			.appendDescription(transcriptText(locale, transcript, true))
 			.setFooter(channel.getName())
 			.build();
+	}
+
+	/**
+	 * @param fileNote mention the attached file, when there is no link
+	 */
+	private String transcriptText(DiscordLocale locale, @Nullable TicketTranscript transcript, boolean fileNote) {
+		if (transcript == null) return "";
+		if (transcript.url() != null) {
+			return "\n\n" + localized(locale, "ticket.transcript_link")
+				.replace("{url}", transcript.url())
+				.replace("{expires}", transcript.expiresIn());
+		}
+		return fileNote ? "\n\n" + localized(locale, "ticket.transcript_file") : "";
 	}
 
 
@@ -1190,11 +1211,11 @@ public class LogEmbedUtil {
 
 	//  Role
 	@NotNull
-	public MessageEmbed roleCreated(DiscordLocale locale, long roleId, String roleName, Collection<AuditLogChange> changes, long userId, String reason) {
+	public MessageEmbed roleCreated(DiscordLocale locale, long roleId, String roleName, Collection<AuditLogChange> changes, Map<String, String> media, long userId, String reason) {
 		return new LogEmbedBuilder(locale, GREEN_LIGHT)
 			.setHeader(LogEvent.ROLE_CREATE, roleName)
 			.setDescription("<@&"+roleId+">\n")
-			.appendDescription(changesText(locale, changes))
+			.appendDescription(changesText(locale, changes, media))
 			.setReasonNull(reason)
 			.setEnforcer(userId)
 			.setFooter("Role ID: %s\nUser ID: %s".formatted(roleId, userId))
@@ -1202,10 +1223,10 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
-	public MessageEmbed roleDeleted(DiscordLocale locale, long roleId, String roleName, Collection<AuditLogChange> changes, long userId, String reason) {
+	public MessageEmbed roleDeleted(DiscordLocale locale, long roleId, String roleName, Collection<AuditLogChange> changes, Map<String, String> media, long userId, String reason) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader(LogEvent.ROLE_DELETE, roleName)
-			.setDescription(changesText(locale, changes))
+			.setDescription(changesText(locale, changes, media))
 			.setReasonNull(reason)
 			.setEnforcer(userId)
 			.setFooter("Role ID: %s\nUser ID: %s".formatted(roleId, userId))
@@ -1213,11 +1234,11 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
-	public MessageEmbed roleUpdate(DiscordLocale locale, long roleId, String roleName, Collection<AuditLogChange> changes, long userId) {
+	public MessageEmbed roleUpdate(DiscordLocale locale, long roleId, String roleName, Collection<AuditLogChange> changes, Map<String, String> media, long userId) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader(LogEvent.ROLE_UPDATE, roleName)
 			.setDescription("<@&"+roleId+">\n")
-			.appendDescription(changesText(locale, changes))
+			.appendDescription(changesText(locale, changes, media))
 			.setEnforcer(userId)
 			.setFooter("Role ID: %s\nUser ID: %s".formatted(roleId, userId))
 			.build();
@@ -1225,10 +1246,10 @@ public class LogEmbedUtil {
 
 	//  Server
 	@NotNull
-	public MessageEmbed guildUpdate(DiscordLocale locale, long guildId, String guildName, Collection<AuditLogChange> changes, long userId) {
+	public MessageEmbed guildUpdate(DiscordLocale locale, long guildId, String guildName, Collection<AuditLogChange> changes, Map<String, String> media, long userId) {
 		return new LogEmbedBuilder(locale, AMBER_LIGHT)
 			.setHeader(LogEvent.GUILD_UPDATE, guildName)
-			.setDescription(changesText(locale, changes).replace("{guild}", String.valueOf(guildId)))
+			.setDescription(changesText(locale, changes, media).replace("{guild}", String.valueOf(guildId)))
 			.setEnforcer(userId)
 			.setFooter("Server ID: %s\nUser ID: %s".formatted(guildId, userId))
 			.build();
@@ -1255,10 +1276,12 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
-	public MessageEmbed emojiDelete(DiscordLocale locale, long emojiId, Collection<AuditLogChange> changes, long userId) {
+	public MessageEmbed emojiDelete(DiscordLocale locale, long emojiId, Collection<AuditLogChange> changes, @Nullable String mediaUrl, long userId) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader(LogEvent.EMOJI_DELETE)
 			.setDescription(changesText(locale, changes))
+			.appendDescription(mediaUrl == null ? "" : "[Image](%s)".formatted(mediaUrl))
+			.setThumbnail(mediaUrl)
 			.setEnforcer(userId)
 			.setFooter("Emoji ID: %s\nUser ID: %s".formatted(emojiId, userId))
 			.build();
@@ -1285,10 +1308,12 @@ public class LogEmbedUtil {
 	}
 
 	@NotNull
-	public MessageEmbed stickerDelete(DiscordLocale locale, long stickerId, Collection<AuditLogChange> changes, long userId) {
+	public MessageEmbed stickerDelete(DiscordLocale locale, long stickerId, Collection<AuditLogChange> changes, @Nullable String mediaUrl, long userId) {
 		return new LogEmbedBuilder(locale, RED_LIGHT)
 			.setHeader(LogEvent.STICKER_DELETE)
 			.setDescription(changesText(locale, changes))
+			.appendDescription(mediaUrl == null ? "" : "[Image](%s)".formatted(mediaUrl))
+			.setThumbnail(mediaUrl)
 			.setEnforcer(userId)
 			.setFooter("Sticker ID: %s\nUser ID: %s".formatted(stickerId, userId))
 			.build();
@@ -1470,18 +1495,25 @@ public class LogEmbedUtil {
 
 	// TOOLS
 	private String changesText(DiscordLocale locale, Collection<AuditLogChange> changes) {
+		return changesText(locale, changes, Map.of());
+	}
+
+	/**
+	 * @param media Image hash -> link to serve for it (see {@link GuildLogger}).
+	 */
+	private String changesText(DiscordLocale locale, Collection<AuditLogChange> changes, Map<String, String> media) {
 		StringBuilder builder = new StringBuilder();
 		for (AuditLogChange change : changes) {
 			String key = change.getKey();
 			switch (key) {
 				case "$add" -> {
 					String text = lu.getLocalized(locale, "logger.keys.add_roles");
-					builder.append("**").append(text).append("**: ").append(formatValue(key, change.getNewValue())).append("\n");
+					builder.append("**").append(text).append("**: ").append(formatValue(key, change.getNewValue(), media)).append("\n");
 					continue;
 				}
 				case "$remove" -> {
 					String text = lu.getLocalized(locale, "logger.keys.remove_roles");
-					builder.append("**").append(text).append("**: ").append(formatValue(key, change.getNewValue())).append("\n");
+					builder.append("**").append(text).append("**: ").append(formatValue(key, change.getNewValue(), media)).append("\n");
 					continue;
 				}
 				case "permissions" -> {
@@ -1503,13 +1535,13 @@ public class LogEmbedUtil {
 			Object newValue = change.getNewValue();
 			if (oldValue == null) {
 				// Created
-				builder.append("➕ **").append(text).append("**: ").append(formatValue(key, newValue));
+				builder.append("➕ **").append(text).append("**: ").append(formatValue(key, newValue, media));
 			} else if (newValue == null || newValue.toString().isBlank()) {
 				// Deleted
-				builder.append("➖ **").append(text).append("**: ").append(formatValue(key, oldValue));
+				builder.append("➖ **").append(text).append("**: ").append(formatValue(key, oldValue, media));
 			} else {
 				// Changed
-				builder.append("**").append(text).append("**: ||").append(formatValue(key, oldValue)).append("|| -> ").append(formatValue(key, newValue));
+				builder.append("**").append(text).append("**: ||").append(formatValue(key, oldValue, media)).append("|| -> ").append(formatValue(key, newValue, media));
 			}
 			builder.append("\n");
 		}
@@ -1520,7 +1552,7 @@ public class LogEmbedUtil {
 	private final String guildIconLink = "[Image](https://cdn.discordapp.com/icons/{guild}/%s.png)";
 	private final String guildSplashLink = "[Image](https://cdn.discordapp.com/splashes/{guild}/%s.png)";
 
-	private String formatValue(String key, @Nullable Object object) {
+	private String formatValue(String key, @Nullable Object object, Map<String, String> media) {
 		if (object == null) return "";
 		switch (object) {
 			case Boolean value -> {
@@ -1528,6 +1560,7 @@ public class LogEmbedUtil {
 			}
 			case String value -> {
 				if (value.isEmpty()) return Constants.NONE;
+				if (key.endsWith("_hash") && media.containsKey(value)) return "[Image](%s)".formatted(media.get(value));
 				return switch (key) {
 					case "afk_channel_id", "system_channel_id", "rules_channel_id", "public_updates_channel_id" ->
 						"<#" + value + ">";

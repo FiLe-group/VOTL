@@ -15,6 +15,7 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 
 import dev.fileeditor.votl.utils.exception.CheckException;
+import dev.fileeditor.votl.utils.message.MediaLinkUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
@@ -199,6 +200,10 @@ public class VerifyPanelCmd extends SlashCommand {
 
 			if (!imageUrl.equals("NULL") && !URL_PATTERN.matcher(imageUrl).matches()) {
 				editError(event, path+".unknown_url", "URL: "+imageUrl);
+				return;
+			}
+			if (MediaLinkUtil.isDiscordAttachment(imageUrl)) {
+				editError(event, "errors.temporary_url", "URL: "+imageUrl);
 				return;
 			}
 			try {

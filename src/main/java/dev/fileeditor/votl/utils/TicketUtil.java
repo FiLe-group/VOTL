@@ -27,7 +27,6 @@ import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.Route;
-import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.data.DataObject;
 import net.dv8tion.jda.internal.requests.RestActionImpl;
 import org.jetbrains.annotations.NotNull;
@@ -46,14 +45,17 @@ public class TicketUtil {
 		GuildMessageChannel channel = bot.JDA.getChannelById(GuildMessageChannel.class, channelId);
 		if (channel == null) return; // already gone :(
 
-		TicketSettingsManager.TranscriptsMode transcriptsMode = bot.getDBUtil().getTicketSettings(channel.getGuild()).getTranscriptsMode();
+		TicketSettingsManager.TicketSettings settings = bot.getDBUtil().getTicketSettings(channel.getGuild());
+		TicketSettingsManager.TranscriptsMode transcriptsMode = settings.getTranscriptsMode();
+		// Send the ticket author a link instead of the file. Enabled per server, and requires Zipline config
+		final boolean useZipline = settings.ziplineEnabled() && bot.getZiplineUtil().isEnabled();
 		if (db.tickets.isRoleTicket(channelId)) {
 			// Role request ticket
 			if (transcriptsMode.equals(TicketSettingsManager.TranscriptsMode.ALL)) {
 				// With transcript
-				DiscordHtmlTranscripts transcripts = DiscordHtmlTranscripts.getInstance();
-				transcripts.queueCreateTranscript(channel,
-					file -> closeTicketRole(channel, userClosed, reasonClosed, failureHandler, file),
+				// Role tickets have no author DM, so nothing to link
+				createTranscript(channel, false,
+					transcript -> closeTicketRole(channel, userClosed, reasonClosed, failureHandler, transcript),
 					failureHandler
 				);
 			} else {
@@ -67,16 +69,47 @@ public class TicketUtil {
 				closeTicketStandard(channel, userClosed, reasonClosed, failureHandler, null);
 			} else {
 				// With transcript
-				DiscordHtmlTranscripts transcripts = DiscordHtmlTranscripts.getInstance();
-				transcripts.queueCreateTranscript(channel,
-					file -> closeTicketStandard(channel, userClosed, reasonClosed, failureHandler, file),
+				createTranscript(channel, useZipline,
+					transcript -> closeTicketStandard(channel, userClosed, reasonClosed, failureHandler, transcript),
 					failureHandler
 				);
 			}
 		}
 	}
 
-	private void closeTicketRole(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable FileUpload file) {
+	/**
+	 * Generated transcript.
+	 * @param url Zipline link sent to the author, null if not uploaded - then the author receives the file
+	 * @param expiresIn how long the link stays available, e.g. "90d"
+	 */
+	public record TicketTranscript(DiscordHtmlTranscripts.Transcript transcript, @Nullable String url, String expiresIn) {}
+
+	/**
+	 * Generates the transcript.
+	 * @param useZipline upload the transcript to Zipline, so the author receives a link instead of the file
+	 * @param action receives the transcript, or null if there was nothing to transcribe
+	 */
+	private void createTranscript(GuildMessageChannel channel, boolean useZipline, Consumer<TicketTranscript> action, Consumer<? super Throwable> failureHandler) {
+		final ZiplineUtil zipline = bot.getZiplineUtil();
+		DiscordHtmlTranscripts.getInstance().queueCreateTranscript(channel, useZipline, transcript -> {
+			if (transcript == null) {
+				action.accept(null);
+				return;
+			}
+			if (!useZipline) {
+				action.accept(new TicketTranscript(transcript, null, zipline.getTranscriptExpiresIn()));
+				return;
+			}
+			zipline.uploadTranscript(transcript.data())
+				.thenAccept(url -> action.accept(new TicketTranscript(transcript, url, zipline.getTranscriptExpiresIn())))
+				.exceptionally(ex -> {
+					failureHandler.accept(ex);
+					return null;
+				});
+		}, failureHandler);
+	}
+
+	private void closeTicketRole(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable TicketTranscript transcript) {
 		final Instant now = Instant.now();
 		final Guild guild = channel.getGuild();
 		final String finalReason = reasonClosed==null ? "-" : (
@@ -94,7 +127,7 @@ public class TicketUtil {
 
 					long authorId = db.tickets.getUserId(channel.getIdLong());
 
-					bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, finalReason, file);
+					bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, finalReason, transcript);
 				},
 				failureHandler
 			);
@@ -103,7 +136,7 @@ public class TicketUtil {
 		}
 	}
 
-	private void closeTicketStandard(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable FileUpload file) {
+	private void closeTicketStandard(@NotNull GuildMessageChannel channel, @Nullable User userClosed, String reasonClosed, @NotNull Consumer<? super Throwable> failureHandler, @Nullable TicketTranscript transcript) {
 		final Instant now = Instant.now();
 		final Guild guild = channel.getGuild();
 		final String finalReason = reasonClosed==null ? "-" : (
@@ -122,15 +155,15 @@ public class TicketUtil {
 					long authorId = db.tickets.getUserId(channel.getIdLong());
 
 					bot.JDA.retrieveUserById(authorId).queue(user -> user.openPrivateChannel().queue(pm -> {
-						MessageEmbed embed = bot.getLogEmbedUtil().ticketClosedPmEmbed(guild.getLocale(), channel, now, userClosed, finalReason);
-						if (file == null) {
+						MessageEmbed embed = bot.getLogEmbedUtil().ticketClosedPmEmbed(guild.getLocale(), channel, now, userClosed, finalReason, transcript);
+						if (transcript == null || transcript.url() != null) {
 							pm.sendMessageEmbeds(embed).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 						} else {
-							pm.sendMessageEmbeds(embed).setFiles(file).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
+							pm.sendMessageEmbeds(embed).setFiles(transcript.transcript().toFileUpload()).queue(null, new ErrorHandler().ignore(ErrorResponse.CANNOT_SEND_TO_USER));
 						}
 					}));
 
-					bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, finalReason, file);
+					bot.getGuildLogger().ticket.onClose(guild, channel, userClosed, authorId, finalReason, transcript);
 				},
 				failureHandler
 			);
