@@ -124,6 +124,12 @@ public class TempRoleCmd extends SlashCommand {
 				editPermError(event, Permission.MANAGE_ROLES, false);
 				return;
 			}
+			// A role someone else holds (or is due to hold) must not be deleted when this assignment expires
+			if (delete && (guild.getMembersWithRoles(role).stream().anyMatch(m -> m.getIdLong() != userId)
+				|| bot.getDBUtil().tempRoles.countOthers(roleId, userId) > 0)) {
+				editError(event, path+".delete_shared", "Role: %s".formatted(role.getAsMention()));
+				return;
+			}
 			Instant until = Instant.now().plus(duration);
 
 			guild.addRoleToMember(target, role).reason("Assigned temporary role | by %s".formatted(event.getMember().getEffectiveName())).queue(_ -> {

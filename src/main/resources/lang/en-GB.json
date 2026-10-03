@@ -2848,6 +2848,7 @@
 						"name": "delete",
 						"help": "Delete this role, after time has passed? (default-false)"
 					},
+					"delete_shared": "This role is held by other members, so it can't be deleted after expiration.",
 					"already_set": "Member already assigned this role.",
 					"time_limit": "Provided time must be between 10m <-> 400d.",
 					"done": "Temporary assigned user %s role %s until %s."

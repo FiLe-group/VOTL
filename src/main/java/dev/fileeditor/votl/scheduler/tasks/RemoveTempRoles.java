@@ -28,7 +28,7 @@ public class RemoveTempRoles implements Task {
 			}
 
 			final long userId = castLong(data.get("userId"));
-			if (bot.getDBUtil().tempRoles.shouldDelete(roleId)) {
+			if (bot.getDBUtil().tempRoles.shouldDelete(roleId, userId) && isSafeToDelete(bot, role, userId)) {
 				try {
 					role.delete()
 						.reason("Role expired")
@@ -50,6 +50,17 @@ public class RemoveTempRoles implements Task {
 			// Log
 			bot.getGuildLogger().role.onTempRoleAutoRemoved(role.getGuild(), userId, role);
 		});
+	}
+
+	// Deleting the role takes it from everyone - only allowed when nobody but this member holds it or is due to.
+	// Otherwise, the role is just removed from this member, as for any other temporary role.
+	private boolean isSafeToDelete(App bot, Role role, long userId) {
+		boolean heldByOthers = role.getGuild().getMembersWithRoles(role).stream().anyMatch(m -> m.getIdLong() != userId);
+		if (heldByOthers || bot.getDBUtil().tempRoles.countOthers(role.getIdLong(), userId) > 0) {
+			LOG.warn("Temporary role '{}' marked for deletion is held by other members, removing it from '{}' only", role.getIdLong(), userId);
+			return false;
+		}
+		return true;
 	}
 
 	private <T extends Throwable> void failed(Role role, Long userId, T exception) {

@@ -17,7 +17,7 @@ public class TempRoleManager extends LiteBase {
 	}
 
 	public void add(long guildId, long roleId, long userId, boolean deleteAfter, Instant expiresAt) throws SQLException {
-		execute("INSERT INTO %s(guildId, roleId, userId, deleteAfter, expiresAt) VALUES (%s, %s, %s, %d, %d) ON CONFLICT(roleId, userId) DO UPDATE SET expiresAt=%<d;"
+		execute("INSERT INTO %s(guildId, roleId, userId, deleteAfter, expiresAt) VALUES (%s, %s, %s, %d, %d) ON CONFLICT(roleId, userId) DO UPDATE SET deleteAfter=excluded.deleteAfter, expiresAt=excluded.expiresAt;"
 			.formatted(table, guildId, roleId, userId, (deleteAfter ? 1 : 0), expiresAt.getEpochSecond()));
 	}
 
@@ -54,8 +54,14 @@ public class TempRoleManager extends LiteBase {
 		return select("SELECT * FROM %s WHERE (guildId=%s)".formatted(table, guildId), Set.of("roleId", "userId", "expiresAt"));
 	}
 
-	public boolean shouldDelete(long roleId) {
-		Integer data = selectOne("SELECT deleteAfter FROM %s WHERE (roleId=%s)".formatted(table, roleId), "deleteAfter", Integer.class);
+	// Temporary assignments of this role to members other than userId
+	public int countOthers(long roleId, long userId) {
+		return count("SELECT COUNT(*) FROM %s WHERE (roleId=%s AND userId!=%s)".formatted(table, roleId, userId));
+	}
+
+	// Checks this exact assignment - another member's entry for the same role must not decide its deletion
+	public boolean shouldDelete(long roleId, long userId) {
+		Integer data = selectOne("SELECT deleteAfter FROM %s WHERE (roleId=%s AND userId=%s)".formatted(table, roleId, userId), "deleteAfter", Integer.class);
 		return data != null && data == 1;
 	}
 }
