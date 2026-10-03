@@ -63,32 +63,44 @@
             line-height: 1.2;
         }
 
+        .spoiler-toggle {
+            display: none;
+        }
+
         .spoiler-text {
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 3px;
         }
 
-        .spoiler-text--hidden {
+        .spoiler-text:has(> .spoiler-toggle:not(:checked)) {
             cursor: pointer;
             background-color: #202225;
-            color: rgba(0, 0, 0, 0);
         }
 
-        .spoiler-text--hidden:hover {
+        .spoiler-text:has(> .spoiler-toggle:not(:checked)):hover {
             background-color: rgba(32, 34, 37, 0.8);
         }
 
-        .spoiler-text--hidden::selection {
-            color: rgba(0, 0, 0, 0);
-        }
-
-        .spoiler-text--hidden * {
+        .spoiler-text:has(> .spoiler-toggle:not(:checked)) * {
             color: rgba(0, 0, 0, 0);
             background-color: transparent;
+            pointer-events: none;
         }
 
-        .spoiler-text--hidden img {
+        .spoiler-text:has(> .spoiler-toggle:not(:checked)) *::selection {
+            color: rgba(0, 0, 0, 0);
+        }
+
+        .spoiler-text:has(> .spoiler-toggle:not(:checked)) img {
             opacity: 0;
+        }
+
+        .spoiler-text:has(> .spoiler-toggle:checked) {
+            pointer-events: none;
+        }
+
+        .spoiler-text:has(> .spoiler-toggle:checked) a {
+            pointer-events: auto;
         }
 
         .quote {
@@ -122,10 +134,18 @@
             font-size: 0.85em;
         }
 
+        .mention {
+            border-radius: 3px;
+            padding: 0 2px;
+            color: #c9cdfb;
+            background-color: rgba(88, 101, 242, 0.3);
+            font-weight: 500;
+        }
+
         .timestamp {
             border-radius: 3px;
             padding: 0 2px;
-            background-color: rgba(255, 255, 255, 0.5);
+            background-color: rgba(255, 255, 255, 0.06);
         }
 
         .emoji {
@@ -177,7 +197,7 @@
             grid-template-columns: auto 1fr;
         }
 
-        .chatlog__message-group:hover:not(div.chatlog__message--highlighted) {
+        .chatlog__message-group:hover {
             background-color: #323539;
             border-radius: 5px;
         }
@@ -259,9 +279,26 @@
             transition: background-color 1s ease;
         }
 
-        .chatlog__message--highlighted {
-            background-color: rgba(114, 137, 218, 0.2);
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .chatlog__message-group {
+            scroll-margin-top: 40vh;
+        }
+
+        .chatlog__message-group:target {
             border-radius: 5px;
+            animation: chatlog-highlight 2s ease;
+        }
+
+        @keyframes chatlog-highlight {
+            from {
+                background-color: rgba(114, 137, 218, 0.2);
+            }
+            to {
+                background-color: transparent;
+            }
         }
 
         .chatlog__content {
@@ -280,25 +317,29 @@
         .chatlog__attachment--hidden {
             position: relative;
             overflow: hidden;
-            cursor: pointer;
             box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.1);
         }
 
-        .chatlog__attachment--hidden > :not(.chatlog__attachment-spoiler-caption) {
+        .chatlog__attachment--hidden:has(> .chatlog__spoiler-overlay > .spoiler-toggle:not(:checked)) > :not(.chatlog__spoiler-overlay) {
             filter: blur(44px);
-        }
-
-        .chatlog__attachment--hidden * {
             pointer-events: none;
         }
 
-        .chatlog__attachment-spoiler-caption {
-            display: none;
-            z-index: 999;
+        .chatlog__spoiler-overlay {
+            display: flex;
             position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
+            inset: 0;
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .chatlog__spoiler-overlay:has(> .spoiler-toggle:checked) {
+            display: none;
+        }
+
+        .chatlog__attachment-spoiler-caption {
             padding: 0.4em 0.8em;
             background-color: rgba(0, 0, 0, 0.9);
             border-radius: 20px;
@@ -308,11 +349,7 @@
             letter-spacing: 0.05em;
         }
 
-        .chatlog__attachment--hidden .chatlog__attachment-spoiler-caption {
-            display: block;
-        }
-
-        .chatlog__attachment--hidden:hover .chatlog__attachment-spoiler-caption {
+        .chatlog__spoiler-overlay:hover .chatlog__attachment-spoiler-caption {
             color: #fff;
         }
 
@@ -711,45 +748,6 @@
         window.onload = function() {
             twemoji.parse(document.body);
         }
-    </script>
-
-    <script>
-        function scrollToMessage(event, id) {
-            var element = document.getElementById('message-' + id);
-
-            if (element) {
-                event.preventDefault();
-
-                element.classList.add('chatlog__message--highlighted');
-
-                window.scrollTo({
-                    top: element.getBoundingClientRect().top - document.body.getBoundingClientRect().top - (window.innerHeight / 2),
-                    behavior: 'smooth'
-                });
-
-                window.setTimeout(function () {
-                    element.classList.remove('chatlog__message--highlighted');
-                }, 2000);
-            }
-        }
-
-        function showSpoiler(event, element) {
-            if (element && element.classList.contains('spoiler-text--hidden')) {
-                event.preventDefault();
-                element.classList.remove('spoiler-text--hidden');
-            }
-            if (element && element.classList.contains('chatlog__attachment--hidden')) {
-                event.preventDefault();
-                element.classList.remove('chatlog__attachment--hidden');
-            }
-        }
-
-        document.addEventListener('click', function (event) {
-            var reference = event.target.closest('[data-scroll-to]');
-            if (reference) scrollToMessage(event, reference.getAttribute('data-scroll-to'));
-            var spoiler = event.target.closest('.spoiler-text--hidden, .chatlog__attachment--hidden');
-            if (spoiler) showSpoiler(event, spoiler);
-        });
     </script>
 
     <svg style="display: none">

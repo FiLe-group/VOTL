@@ -177,7 +177,7 @@ public class Formatter {
         }
 
         newText = SPOILER.matcher(newText)
-            .replaceAll("<span class=\"spoiler-text spoiler-text--hidden\">$1</span>");
+            .replaceAll("<label class=\"spoiler-text\"><input type=\"checkbox\" class=\"spoiler-toggle\"><span>$1</span></label>");
 
         matcher = NEW_LINE.matcher(newText);
         while (matcher.find()) {

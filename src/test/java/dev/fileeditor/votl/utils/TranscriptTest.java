@@ -5,9 +5,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
+import java.util.List;
 
 import dev.fileeditor.votl.BaseTest;
 import dev.fileeditor.votl.utils.transcripts.Formatter;
+import dev.fileeditor.votl.utils.transcripts.MentionResolver;
 import dev.fileeditor.votl.utils.transcripts.TranscriptSanitizer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -43,13 +45,35 @@ public class TranscriptTest extends BaseTest {
 
 	@Test
 	public void testFormatterSpoilers() {
-		assertEquals("a <span class=\"spoiler-text spoiler-text--hidden\">secret</span> b", Formatter.format("a ||secret|| b"));
+		assertEquals("a <label class=\"spoiler-text\"><input type=\"checkbox\" class=\"spoiler-toggle\"><span>secret</span></label> b", Formatter.format("a ||secret|| b"));
 		// Multiline and escaped content
-		assertEquals("<span class=\"spoiler-text spoiler-text--hidden\">x<br />&lt;b&gt;</span>", Formatter.format("||x\n<b>||"));
+		assertEquals("<label class=\"spoiler-text\"><input type=\"checkbox\" class=\"spoiler-toggle\"><span>x<br />&lt;b&gt;</span></label>", Formatter.format("||x\n<b>||"));
 		// Unclosed spoiler stays as text
 		assertEquals("||open", Formatter.format("||open"));
 
 		assertEquals("reply [spoiler] text ||", Formatter.hideSpoilers("reply ||secret|| text ||"));
+	}
+
+	@Test
+	public void testMentionResolver() {
+		MentionResolver resolver = new MentionResolver(
+			id -> id == 111111111111111111L ? "Support <b>" : null,
+			id -> id == 222222222222222222L ? "Mods" : null,
+			id -> id == 333333333333333333L ? "general" : null
+		);
+		Element root = Jsoup.parseBodyFragment("<div>"
+			+ Formatter.format("Claimed by <@111111111111111111>, <@!999999999999999999> <@&222222222222222222> <#333333333333333333> </ticket close:444444444444444444>")
+			+ "<br>" + Formatter.format("At <t:0:f>, `<@111111111111111111>`")
+			+ "</div>").body();
+		resolver.resolve(root);
+
+		var mentions = root.select("span.mention").eachText();
+		assertEquals(List.of("@Support <b>", "@unknown-user", "@Mods", "#general", "/ticket close"), mentions);
+		// Names are text, never markup
+		assertTrue(root.select("b").isEmpty());
+		assertEquals("01.01.1970 00:00 UTC", root.selectFirst("span.timestamp").text());
+		// Code is left as is
+		assertEquals("<@111111111111111111>", root.selectFirst(".pre--inline").text());
 	}
 
 	@Test
@@ -65,7 +89,8 @@ public class TranscriptTest extends BaseTest {
 			<a href="javascript:alert(4)">bad</a>
 			<a href="https://example.com">good</a>
 			<iframe src="https://example.com"></iframe>
-			<div data-scroll-to="1" onclick="alert(5)"></div>
+			<a href="#message-1" onclick="alert(5)">reply</a>
+			<label class="spoiler-text"><input type="checkbox" class="spoiler-toggle"><span>s</span></label>
 			<!-- internal note -->
 			""");
 		sanitizer.sanitize(document);
@@ -101,7 +126,9 @@ public class TranscriptTest extends BaseTest {
 		assertNotNull(good);
 		assertTrue(good.attr("rel").contains("noreferrer"));
 		assertNotNull(output.selectFirst("meta[name=referrer][content=no-referrer]"));
-		assertNotNull(output.selectFirst("div[data-scroll-to=1]"));
+		// In-page links and spoiler toggles are kept
+		assertNotNull(output.selectFirst("a[href=#message-1]"));
+		assertNotNull(output.selectFirst("label.spoiler-text > input.spoiler-toggle[type=checkbox]"));
 	}
 
 	private Document loadTemplate() throws IOException {

@@ -232,14 +232,36 @@ public class ZiplineUtil {
 
 	/**
 	 * v4: {"files":[{"id":..,"url":".."}]}, v3: {"files":[".."]}
+	 * @return link to the raw file
 	 */
 	@Nullable
-	private static String parseUrl(String text) {
+	static String parseUrl(String text) {
 		JSONArray files = new JSONObject(text).optJSONArray("files");
 		if (files == null || files.isEmpty()) return null;
 		Object first = files.get(0);
-		if (first instanceof JSONObject obj) return obj.optString("url", null);
-		return first.toString();
+		if (first instanceof JSONObject obj) {
+			String url = obj.optString("url", null);
+			return url == null ? null : toRawUrl(url, "/raw/");
+		}
+		return toRawUrl(first.toString(), "/r/");
+	}
+
+	/**
+	 * The returned link (default /u/) can redirect to Zipline's view page - text files (transcripts) are
+	 * shown as code, and images break when embedded. The raw route always serves the file itself.
+	 * @param rawRoute v4: /raw/, v3: /r/
+	 */
+	static String toRawUrl(String url, String rawRoute) {
+		try {
+			URI uri = URI.create(url);
+			String path = uri.getRawPath();
+			if (uri.getScheme() == null || uri.getRawAuthority() == null || path == null) return url;
+			String name = path.substring(path.lastIndexOf('/') + 1);
+			if (name.isEmpty()) return url;
+			return uri.getScheme() + "://" + uri.getRawAuthority() + rawRoute + name;
+		} catch (IllegalArgumentException ex) {
+			return url;
+		}
 	}
 
 	private static String fileName(String url) {

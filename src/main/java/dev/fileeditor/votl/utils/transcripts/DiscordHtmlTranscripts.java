@@ -268,7 +268,7 @@ public class DiscordHtmlTranscripts {
             messageContent.attr("title", "Message sent: " + message.getTimeCreated()
                     .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")));
 
-            if (!message.getContentDisplay().isEmpty()) {
+            if (!message.getContentRaw().isEmpty()) {
                 Element messageContentContent = document.createElement("div");
                 messageContentContent.addClass("chatlog__content");
 
@@ -277,7 +277,8 @@ public class DiscordHtmlTranscripts {
 
                 Element messageContentContentMarkdownSpan = document.createElement("span");
                 messageContentContentMarkdownSpan.addClass("preserve-whitespace");
-                messageContentContentMarkdownSpan.html(Formatter.format(message.getContentDisplay()));
+                // Raw content - mentions and timestamps are resolved below, with the embeds
+                messageContentContentMarkdownSpan.html(Formatter.format(message.getContentRaw()));
 
                 messageContentContentMarkdown.appendChild(messageContentContentMarkdownSpan);
                 messageContentContent.appendChild(messageContentContentMarkdown);
@@ -388,6 +389,7 @@ public class DiscordHtmlTranscripts {
             messageGroup.appendChild(content);
             chatLog.appendChild(messageGroup);
         }
+        MentionResolver.of(channel.getGuild()).resolve(chatLog);
         sanitizer.sanitize(document);
         return document;
     }
@@ -655,10 +657,9 @@ public class DiscordHtmlTranscripts {
         referenceSymbol.addClass("chatlog__reference-symbol");
 
         // create reference
-        Element reference = document.createElement("div");
+        Element reference = document.createElement("a");
         reference.addClass("chatlog__reference");
-        reference.attr("style", "cursor: pointer;");
-        reference.attr("data-scroll-to", referenceMessage.getId());
+        reference.attr("href", "#message-" + referenceMessage.getId());
 
         User author = referenceMessage.getAuthor();
 
@@ -812,8 +813,6 @@ public class DiscordHtmlTranscripts {
         galleryDiv.addClass("chatlog__component-media-gallery");
         for (MediaGalleryItem item : mediaGallery.getItems()) {
             Element itemLink = document.createElement("a");
-            itemLink.addClass("chatlog__component-media-gallery-item");
-            if (item.isSpoiler()) hideSpoiler(document, itemLink);
             itemLink.attr("href", item.getUrl());
 
             Element image = document.createElement("img");
@@ -823,7 +822,17 @@ public class DiscordHtmlTranscripts {
             image.attr("loading", "lazy");
 
             itemLink.appendChild(image);
-            galleryDiv.appendChild(itemLink);
+            if (item.isSpoiler()) {
+                // Spoiler overlay can't be inside a link
+                Element wrapper = document.createElement("div");
+                wrapper.addClass("chatlog__component-media-gallery-item");
+                wrapper.appendChild(itemLink);
+                hideSpoiler(document, wrapper);
+                galleryDiv.appendChild(wrapper);
+            } else {
+                itemLink.addClass("chatlog__component-media-gallery-item");
+                galleryDiv.appendChild(itemLink);
+            }
         }
         parent.appendChild(galleryDiv);
     }
@@ -889,12 +898,15 @@ public class DiscordHtmlTranscripts {
 
     /**
      * Blurs the element's content behind a "SPOILER" caption, until clicked.
+     * Works without scripts - Zipline serves files sandboxed.
      */
     private static void hideSpoiler(Document document, Element element) {
         element.addClass("chatlog__attachment--hidden");
-        Element caption = document.createElement("span");
-        caption.addClass("chatlog__attachment-spoiler-caption").text("SPOILER");
-        element.appendChild(caption);
+        Element overlay = document.createElement("label");
+        overlay.addClass("chatlog__spoiler-overlay");
+        overlay.appendElement("input").attr("type", "checkbox").addClass("spoiler-toggle");
+        overlay.appendElement("span").addClass("chatlog__attachment-spoiler-caption").text("SPOILER");
+        element.appendChild(overlay);
     }
 
     private static void renderActionRow(Document document, ActionRow actionRow, Element parent) {
