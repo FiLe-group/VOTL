@@ -278,8 +278,8 @@ public class TicketUtil {
 		MessageEmbed embed = new EmbedBuilder().setColor(db.getGuildSettings(guild).getColor())
 			.setDescription(message)
 			.build();
-		Button close = Button.danger("ticket:close", bot.getLocaleUtil().getText(event, "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled();
-		Button claim = Button.primary("ticket:claim", bot.getLocaleUtil().getText(event, "ticket.claim"));
+		Button close = Button.danger("ticket:close", bot.getLocaleUtil().getGuildText(event, "ticket.close")).withEmoji(Emoji.fromUnicode("🔒")).asDisabled();
+		Button claim = Button.primary("ticket:claim", bot.getLocaleUtil().getGuildText(event, "ticket.claim"));
 		channel.sendMessageEmbeds(embed)
 			.setAllowedMentions(Collections.emptyList())
 			.setComponents(

@@ -160,7 +160,7 @@
 	"ticket": {
 		"close": "Закрыть",
 		"claim": "Занять",
-		"claimed": "Claimed by: %s",
+		"claimed": "Занят: %s",
 		"unclaim": "Освободить",
 		"cancel": "Отменить",
 		"rename": "Переименовать",
