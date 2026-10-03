@@ -14,8 +14,10 @@ import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.nodes.Attribute;
+import org.jsoup.nodes.Comment;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 
 /**
  * Hardens a generated transcript. Transcripts can be served from a web origin (Zipline),
@@ -70,6 +72,13 @@ public class TranscriptSanitizer {
 	}
 
 	public void sanitize(@NotNull Document document) {
+		// Comments are visible in page source
+		List<Node> comments = new ArrayList<>();
+		document.forEachNode(node -> {
+			if (node instanceof Comment) comments.add(node);
+		});
+		comments.forEach(Node::remove);
+
 		// Active elements not from the template
 		for (Element element : document.select(ACTIVE_ELEMENTS)) {
 			if (!trusted.contains(element)) element.remove();

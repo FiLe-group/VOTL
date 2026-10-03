@@ -66,6 +66,7 @@ public class TranscriptTest extends BaseTest {
 			<a href="https://example.com">good</a>
 			<iframe src="https://example.com"></iframe>
 			<div data-scroll-to="1" onclick="alert(5)"></div>
+			<!-- internal note -->
 			""");
 		sanitizer.sanitize(document);
 
@@ -89,6 +90,7 @@ public class TranscriptTest extends BaseTest {
 		}
 
 		assertTrue(output.select("iframe").isEmpty());
+		assertFalse(output.outerHtml().contains("<!--"), "Comments must be removed");
 		for (Element element : output.getAllElements()) {
 			for (Attribute attribute : element.attributes()) {
 				assertFalse(attribute.getKey().startsWith("on"), attribute.toString());
