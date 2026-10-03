@@ -7,33 +7,34 @@
     <meta name="viewport" content="width=device-width">
 
     <style>
+        /* Fonts pinned to a commit (Tyrrrz/DiscordFonts, 2023-02-18), so their content can't change */
         @font-face {
             font-family: Whitney;
-            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@master/whitney-300.woff);
+            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@79ec62606664e0bfffa32489c4b9bfb75d4893fe/whitney-300.woff);
             font-weight: 300;
         }
 
         @font-face {
             font-family: Whitney;
-            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@master/whitney-400.woff);
+            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@79ec62606664e0bfffa32489c4b9bfb75d4893fe/whitney-400.woff);
             font-weight: 400;
         }
 
         @font-face {
             font-family: Whitney;
-            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@master/whitney-500.woff);
+            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@79ec62606664e0bfffa32489c4b9bfb75d4893fe/whitney-500.woff);
             font-weight: 500;
         }
 
         @font-face {
             font-family: Whitney;
-            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@master/whitney-600.woff);
+            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@79ec62606664e0bfffa32489c4b9bfb75d4893fe/whitney-600.woff);
             font-weight: 600;
         }
 
         @font-face {
             font-family: Whitney;
-            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@master/whitney-700.woff);
+            src: url(https://cdn.jsdelivr.net/gh/Tyrrrz/DiscordFonts@79ec62606664e0bfffa32489c4b9bfb75d4893fe/whitney-700.woff);
             font-weight: 700;
         }
 
@@ -82,6 +83,15 @@
             color: rgba(0, 0, 0, 0);
         }
 
+        .spoiler-text--hidden * {
+            color: rgba(0, 0, 0, 0);
+            background-color: transparent;
+        }
+
+        .spoiler-text--hidden img {
+            opacity: 0;
+        }
+
         .quote {
             display: flex;
             margin: 0.05em 0;
@@ -107,23 +117,10 @@
             color: #b9bbbe;
         }
 
-        .pre--multiline.hljs {
-            background-color: #2f3136;
-            color: #b9bbbe;
-        }
-
         .pre--inline {
             padding: 2px;
             border-radius: 3px;
             font-size: 0.85em;
-        }
-
-        .mention {
-            border-radius: 3px;
-            padding: 0 2px;
-            color: #7289da;
-            background-color: rgba(114, 137, 218, .1);
-            font-weight: 500;
         }
 
         .timestamp {
@@ -137,16 +134,6 @@
             height: 1.325em;
             margin: 0 0.06em;
             vertical-align: -0.4em;
-        }
-
-        .emoji--small {
-            width: 1em;
-            height: 1em;
-        }
-
-        .emoji--large {
-            width: 2.8em;
-            height: 2.8em;
         }
 
         .preamble {
@@ -177,10 +164,6 @@
         .preamble__entry {
             font-size: 1.4em;
             color: #ffffff;
-        }
-
-        .preamble__entry--small {
-            font-size: 1em;
         }
 
         .chatlog {
@@ -241,30 +224,6 @@
             text-decoration: none;
         }
 
-        .chatlog__reference-link {
-            cursor: pointer;
-            color: #b5b6b8;
-        }
-
-        .chatlog__reference-link * {
-            display: inline;
-            pointer-events: none;
-        }
-
-        .chatlog__reference-link:hover {
-            color: #ffffff;
-        }
-
-        .chatlog__reference-link:hover *:not(.spoiler-text) {
-            color: #ffffff;
-        }
-
-        .chatlog__reference-edited-timestamp {
-            margin-left: 0.25em;
-            font-size: 0.8em;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
         .chatlog__author-avatar-container {
             grid-column: 1;
             width: 40px;
@@ -311,11 +270,6 @@
             word-wrap: break-word;
         }
 
-        .chatlog__edited-timestamp {
-            margin-left: 0.15em;
-            font-size: 0.8em;
-        }
-
         .chatlog__attachment {
             display: inline-block;
             position: relative;
@@ -325,8 +279,14 @@
         }
 
         .chatlog__attachment--hidden {
+            position: relative;
+            overflow: hidden;
             cursor: pointer;
             box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .chatlog__attachment--hidden > :not(.chatlog__attachment-spoiler-caption) {
+            filter: blur(44px);
         }
 
         .chatlog__attachment--hidden * {
@@ -399,10 +359,6 @@
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-        }
-
-        .chatlog__edited-timestamp {
-            color: rgba(255, 255, 255, 0.5);
         }
 
         .chatlog__embed {
@@ -547,46 +503,6 @@
             font-weight: 500;
         }
 
-        .chatlog__embed-plainimage {
-            vertical-align: top;
-            max-width: 45vw;
-            max-height: 500px;
-            border-radius: 3px;
-        }
-
-        .chatlog__embed-spotify {
-            border: 0;
-        }
-
-        .chatlog__embed-youtube-container {
-            margin-top: 0.6em;
-        }
-
-        .chatlog__embed-youtube {
-            border: 0;
-            border-radius: 3px;
-        }
-
-        .chatlog__reactions {
-            display: flex;
-        }
-
-        .chatlog__reaction {
-            display: flex;
-            align-items: center;
-            margin: 0.35em 0.1em 0.1em 0.1em;
-            padding: 0.2em 0.35em;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
-        }
-
-        .chatlog__reaction-count {
-            min-width: 9px;
-            margin-left: 0.35em;
-            font-size: 0.875em;
-            color: rgba(255, 255, 255, 0.3);
-        }
-
         .chatlog__bot-tag {
             position: relative;
             top: -.1em;
@@ -598,16 +514,6 @@
             color: #ffffff;
             font-size: 0.625em;
             font-weight: 500;
-        }
-
-        .postamble {
-            margin: 1.4em 0.3em 0.6em 0.3em;
-            padding: 1em;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .postamble__entry {
-            color: #ffffff;
         }
 
         .img.emoji {
@@ -800,19 +706,8 @@
     </style>
 
     <!-- Pinned versions with integrity hashes: a changed file on the CDN is refused by the browser -->
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/solarized-dark.min.css"
-        integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"
-        integrity="sha384-4l+9bhb7rakZ18megzl0/DWczL8ojbDl1jIEzBVffeMho9A6xB/lkqt1K0PC8Jin" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@15.1.0/dist/twemoji.min.js"
         integrity="sha384-o28+zJO3/45GHIy+9TFKGaYnbt0KQcFRzyBrb0WSSrz7bPGwGI1d64worBiXPgXw" crossorigin="anonymous"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.pre--multiline').forEach(block => hljs.highlightBlock(block));
-        });
-    </script>
-
 
     <!-- Script to render emojis as Twemojis -->
     <script>

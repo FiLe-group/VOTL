@@ -42,6 +42,17 @@ public class TranscriptTest extends BaseTest {
 	}
 
 	@Test
+	public void testFormatterSpoilers() {
+		assertEquals("a <span class=\"spoiler-text spoiler-text--hidden\">secret</span> b", Formatter.format("a ||secret|| b"));
+		// Multiline and escaped content
+		assertEquals("<span class=\"spoiler-text spoiler-text--hidden\">x<br />&lt;b&gt;</span>", Formatter.format("||x\n<b>||"));
+		// Unclosed spoiler stays as text
+		assertEquals("||open", Formatter.format("||open"));
+
+		assertEquals("reply [spoiler] text ||", Formatter.hideSpoilers("reply ||secret|| text ||"));
+	}
+
+	@Test
 	public void testSanitizer() throws Exception {
 		Document document = loadTemplate();
 		TranscriptSanitizer sanitizer = new TranscriptSanitizer(document);

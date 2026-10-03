@@ -289,6 +289,7 @@ public class DiscordHtmlTranscripts {
                 for (Message.Attachment attach : message.getAttachments()) {
                     Element attachmentsDiv = document.createElement("div");
                     attachmentsDiv.addClass("chatlog__attachment");
+                    if (attach.isSpoiler()) hideSpoiler(document, attachmentsDiv);
 
                     var attachmentType = attach.getFileExtension();
                     if (imageFormats.contains(attachmentType)) {
@@ -469,6 +470,7 @@ public class DiscordHtmlTranscripts {
         for (MessageEmbed.Field field : embed.getFields()) {
             Element embedField = document.createElement("div");
             embedField.addClass("chatlog__embed-field");
+            if (field.isInline()) embedField.addClass("chatlog__embed-field--inline");
 
             // Field name
             Element embedFieldName = document.createElement("div");
@@ -676,9 +678,11 @@ public class DiscordHtmlTranscripts {
         if (!referenceMessage.getContentDisplay().isEmpty()) {
             Element referenceContent = document.createElement("div");
             referenceContent.addClass("chatlog__reference-content");
-            referenceContent.text(referenceMessage.getContentDisplay().length() > 42
-                    ? referenceMessage.getContentDisplay().substring(0, 42) + "..."
-                    : referenceMessage.getContentDisplay());
+            // Preview can't be revealed, so spoilers are replaced before shortening
+            String preview = Formatter.hideSpoilers(referenceMessage.getContentDisplay());
+            referenceContent.text(preview.length() > 42
+                    ? preview.substring(0, 42) + "..."
+                    : preview);
 
             reference.appendChild(referenceContent);
         }
@@ -756,7 +760,7 @@ public class DiscordHtmlTranscripts {
     private static void renderContainer(Document document, Container container, Element parent) {
         Element containerDiv = document.createElement("div");
         containerDiv.addClass("chatlog__component-container");
-        if (container.isSpoiler()) containerDiv.addClass("chatlog__attachment--hidden");
+        if (container.isSpoiler()) hideSpoiler(document, containerDiv);
         Integer accentColor = container.getAccentColorRaw();
         if (accentColor != null) {
             containerDiv.attr("style", "border-left-color: #" + Formatter.toHex(new Color(accentColor)) + ";");
@@ -809,7 +813,7 @@ public class DiscordHtmlTranscripts {
         for (MediaGalleryItem item : mediaGallery.getItems()) {
             Element itemLink = document.createElement("a");
             itemLink.addClass("chatlog__component-media-gallery-item");
-            if (item.isSpoiler()) itemLink.addClass("chatlog__attachment--hidden");
+            if (item.isSpoiler()) hideSpoiler(document, itemLink);
             itemLink.attr("href", item.getUrl());
 
             Element image = document.createElement("img");
@@ -835,7 +839,7 @@ public class DiscordHtmlTranscripts {
     private static void renderFileDisplay(Document document, FileDisplay fileDisplay, Element parent) {
         Element attachmentGeneric = document.createElement("div");
         attachmentGeneric.addClass("chatlog__attachment-generic");
-        if (fileDisplay.isSpoiler()) attachmentGeneric.addClass("chatlog__attachment--hidden");
+        if (fileDisplay.isSpoiler()) hideSpoiler(document, attachmentGeneric);
 
         Element icon = document.createElement("svg");
         icon.addClass("chatlog__attachment-generic-icon");
@@ -869,11 +873,28 @@ public class DiscordHtmlTranscripts {
     private static void renderThumbnail(Document document, Thumbnail thumbnail, Element parent) {
         Element image = document.createElement("img");
         image.addClass("chatlog__component-thumbnail");
-        if (thumbnail.isSpoiler()) image.addClass("chatlog__attachment--hidden");
         image.attr("src", thumbnail.getUrl());
         image.attr("alt", thumbnail.getDescription() == null ? "Thumbnail" : thumbnail.getDescription());
         image.attr("loading", "lazy");
-        parent.appendChild(image);
+        if (thumbnail.isSpoiler()) {
+            // Blur must be clipped by a wrapper, an image can't hold the caption
+            Element wrapper = document.createElement("div");
+            wrapper.appendChild(image);
+            hideSpoiler(document, wrapper);
+            parent.appendChild(wrapper);
+        } else {
+            parent.appendChild(image);
+        }
+    }
+
+    /**
+     * Blurs the element's content behind a "SPOILER" caption, until clicked.
+     */
+    private static void hideSpoiler(Document document, Element element) {
+        element.addClass("chatlog__attachment--hidden");
+        Element caption = document.createElement("span");
+        caption.addClass("chatlog__attachment-spoiler-caption").text("SPOILER");
+        element.appendChild(caption);
     }
 
     private static void renderActionRow(Document document, ActionRow actionRow, Element parent) {

@@ -35,6 +35,7 @@ public class Formatter {
     private static final Pattern MASKED_LINK = Pattern.compile("\\[([^\\[]+)](\\((www|http:|https:)+\\S+\\w\\))"); // Masked links
     private static final Pattern LINK = Pattern.compile("^(?!.*\\[[^]]*]\\([^)]*\\))((www|http:|https:)\\S+\\w)$"); // Link
     private static final Pattern EMOJI = Pattern.compile("&lt;(a?:[a-zA-Z0-9_]+:[0-9]+)&gt;"); // Emoji, matched after escaping
+    private static final Pattern SPOILER = Pattern.compile("\\|\\|(.+?)\\|\\|", Pattern.DOTALL); // Spoiler, can span lines
 
     // Pattern to detect new lines
     private static final Pattern NEW_LINE = Pattern.compile("\\r\\n|\\r|\\n|\\u2028|\\u2029"); // New line (and it's variants)
@@ -64,6 +65,13 @@ public class Formatter {
             }
         }
         return builder.toString();
+    }
+
+    /**
+     * Replaces spoilered parts of plain text, for previews where they can't be revealed.
+     */
+    public static String hideSpoilers(String text) {
+        return SPOILER.matcher(text).replaceAll("[spoiler]");
     }
 
     /**
@@ -167,6 +175,9 @@ public class Formatter {
                         "<img class=\"emoji\" src=\"" + customEmoji.getImageUrl() + "\">");
             }
         }
+
+        newText = SPOILER.matcher(newText)
+            .replaceAll("<span class=\"spoiler-text spoiler-text--hidden\">$1</span>");
 
         matcher = NEW_LINE.matcher(newText);
         while (matcher.find()) {
