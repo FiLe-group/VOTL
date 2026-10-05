@@ -24,7 +24,7 @@ dependencies {
 		exclude module: 'tink'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-	implementation 'ch.qos.logback:logback-classic:1.6.4'			// Logging (required by JDA)
+	implementation 'ch.qos.logback:logback-classic:1.6.5'			// Logging (required by JDA)
 
 	// Tools
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
