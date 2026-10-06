@@ -92,7 +92,7 @@ public class LogsCmd extends SlashCommand {
 				}
 				Icon icon = null;
 				try {
-					icon = Icon.from(URI.create(Links.AVATAR_URL).toURL().openStream(), IconType.PNG);
+					icon = Icon.from(URI.create(Links.AVATAR_URL).toURL().openStream(), IconType.WEBP);
 				} catch (Exception ignored) {}
 				channel.createWebhook(lu.getText(type.getNamePath())).setAvatar(icon).reason("By "+event.getUser().getName()).queue(webhook -> {
 					// Add to DB
