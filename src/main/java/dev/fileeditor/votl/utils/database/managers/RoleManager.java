@@ -10,9 +10,14 @@ import dev.fileeditor.votl.objects.RoleType;
 import dev.fileeditor.votl.utils.CastUtil;
 import dev.fileeditor.votl.utils.database.ConnectionUtil;
 import dev.fileeditor.votl.utils.database.LiteBase;
+import dev.fileeditor.votl.utils.message.MediaLinkUtil;
 import org.jetbrains.annotations.Nullable;
 
 public class RoleManager extends LiteBase {
+	/** Text shown with the role - select option descriptions allow 100, toggle button labels 80. */
+	public static final int DESCRIPTION_TEXT_MAX = 80;
+	/** Whole stored description, the text plus a media link cut out of it. */
+	public static final int DESCRIPTION_MAX = 400;
 	
 	public RoleManager(ConnectionUtil cu) {
 		super(cu, "roles");
@@ -106,6 +111,27 @@ public class RoleManager extends LiteBase {
 		return selectOne("SELECT roleId FROM %s WHERE (roleId=%s)".formatted(table, roleId), "roleId", Long.class) != null;
 	}
 
+	public enum DescriptionError {
+		TOO_LONG, TEXT_TOO_LONG, TEMPORARY_URL
+	}
+
+	/**
+	 * Checks a description before it is stored. A media link in it is cut out of the text shown
+	 * with the role, so only the rest has to fit where that text is shown.
+	 *
+	 * @return what is wrong with it, {@code null} if it can be stored.
+	 */
+	@Nullable
+	public static DescriptionError validateDescription(@Nullable String description) {
+		if (description == null) return null;
+		if (description.length() > DESCRIPTION_MAX) return DescriptionError.TOO_LONG;
+		MediaLinkUtil.MediaSplit split = MediaLinkUtil.splitMediaLink(description);
+		if (split.text().length() > DESCRIPTION_TEXT_MAX) return DescriptionError.TEXT_TOO_LONG;
+		// Attachment links are signed and expire after about a day
+		if (MediaLinkUtil.isDiscordAttachment(split.mediaLink())) return DescriptionError.TEMPORARY_URL;
+		return null;
+	}
+
 	public static class RoleData {
 		private final long roleId;
 		private final RoleType type;
@@ -137,8 +163,21 @@ public class RoleManager extends LiteBase {
 			return row;
 		}
 
+		/** Description as stored, a media link in it included. */
 		public String getDescription(String defaultValue) {
 			return description==null ? defaultValue : description;
+		}
+
+		/** Description to show with the role - without the media link, which is shown in the ticket instead. */
+		public String getDescriptionText(String defaultValue) {
+			if (description == null) return defaultValue;
+			String text = MediaLinkUtil.splitMediaLink(description).text();
+			return text.isEmpty() ? defaultValue : text;
+		}
+
+		@Nullable
+		public String getMediaLink() {
+			return MediaLinkUtil.splitMediaLink(description).mediaLink();
 		}
 
 		public boolean isTimed() {

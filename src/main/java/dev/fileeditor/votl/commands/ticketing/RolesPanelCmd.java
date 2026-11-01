@@ -1,9 +1,5 @@
 package dev.fileeditor.votl.commands.ticketing;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 import dev.fileeditor.votl.base.command.SlashCommand;
 import dev.fileeditor.votl.base.command.SlashCommandEvent;
 import dev.fileeditor.votl.objects.AccessPermission;
@@ -13,7 +9,6 @@ import dev.fileeditor.votl.objects.constants.CmdCategory;
 import dev.fileeditor.votl.objects.constants.Constants;
 import dev.fileeditor.votl.utils.database.managers.RoleManager;
 import dev.fileeditor.votl.utils.message.MessageUtil;
-
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
@@ -31,8 +26,11 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RolesPanelCmd extends SlashCommand {
 	
@@ -81,17 +79,17 @@ public class RolesPanelCmd extends SlashCommand {
 		));
 
 		if (!toggleRoles.isEmpty()) {
-			List<Button> buttons = new ArrayList<>();
+			List<Button> toggleButtons = new ArrayList<>();
 			toggleRoles.forEach(data -> {
-				if (buttons.size() >= 5) return;
+				if (toggleButtons.size() >= 5) return;
 				Role role = guild.getRoleById(data.getIdLong());
 				if (role == null) return;
-				buttons.add(Button.primary("role:toggle:"+role.getId(), MessageUtil.limitString(data.getDescription("-"), 80)));
+				toggleButtons.add(Button.primary("role:toggle:"+role.getId(), MessageUtil.limitString(data.getDescriptionText("-"), 80)));
 			});
-			if (!buttons.isEmpty()) {
+			if (!toggleButtons.isEmpty()) {
 				children.add(Separator.createDivider(Separator.Spacing.SMALL));
 				children.add(TextDisplay.of(lu.getGuildText(event, "bot.ticketing.embeds.role_toggle")));
-				children.add(ActionRow.of(buttons));
+				children.add(ActionRow.of(toggleButtons));
 			}
 		}
 

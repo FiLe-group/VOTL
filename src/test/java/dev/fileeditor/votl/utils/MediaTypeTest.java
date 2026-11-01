@@ -2,6 +2,7 @@ package dev.fileeditor.votl.utils;
 
 import dev.fileeditor.votl.BaseTest;
 import dev.fileeditor.votl.objects.MediaType;
+import dev.fileeditor.votl.utils.database.managers.RoleManager;
 import dev.fileeditor.votl.utils.message.MediaLinkUtil;
 import org.junit.jupiter.api.Test;
 
@@ -105,6 +106,51 @@ public class MediaTypeTest extends BaseTest {
 		assertFalse(MediaLinkUtil.isDiscordAttachment("https://i.imgur.com/attachments/a.png"));
 		assertFalse(MediaLinkUtil.isDiscordAttachment(null));
 		assertFalse(MediaLinkUtil.isDiscordAttachment("not a url"));
+	}
+
+	@Test
+	public void testSplitMediaLink() {
+		var a = MediaLinkUtil.splitMediaLink("Screenshot of your stats https://i.imgur.com/abc.gif");
+		assertEquals("Screenshot of your stats", a.text());
+		assertEquals("https://i.imgur.com/abc.gif", a.mediaLink());
+
+		// Link in the middle, trailing punctuation stays with the text
+		var b = MediaLinkUtil.splitMediaLink("See https://tenor.com/view/how-to-gif-123. Then send proof");
+		assertEquals("See . Then send proof", b.text());
+		assertEquals("https://tenor.com/view/how-to-gif-123", b.mediaLink());
+
+		// Only a link - nothing left to show with the role
+		var c = MediaLinkUtil.splitMediaLink("https://example.com/proof.png?size=large");
+		assertEquals("", c.text());
+		assertEquals("https://example.com/proof.png?size=large", c.mediaLink());
+
+		// Not media, or embed suppressed - stays in the text
+		var d = MediaLinkUtil.splitMediaLink("Read https://example.com/rules first");
+		assertEquals("Read https://example.com/rules first", d.text());
+		assertNull(d.mediaLink());
+		var e = MediaLinkUtil.splitMediaLink("Proof <https://i.imgur.com/abc.png>");
+		assertNull(e.mediaLink());
+
+		var f = MediaLinkUtil.splitMediaLink(null);
+		assertEquals("", f.text());
+		assertNull(f.mediaLink());
+	}
+
+	@Test
+	public void testRoleDescription() {
+		String text80 = "a".repeat(RoleManager.DESCRIPTION_TEXT_MAX);
+		String link = "https://i.imgur.com/" + "b".repeat(200) + ".gif";
+
+		assertNull(RoleManager.validateDescription(null));
+		assertNull(RoleManager.validateDescription(text80));
+		// The link does not count towards the shown text
+		assertNull(RoleManager.validateDescription(text80 + " " + link));
+		assertEquals(RoleManager.DescriptionError.TEXT_TOO_LONG, RoleManager.validateDescription(text80 + "a"));
+		// A link that displays nothing is part of the shown text
+		assertEquals(RoleManager.DescriptionError.TEXT_TOO_LONG, RoleManager.validateDescription("Rules https://example.com/" + "c".repeat(80)));
+		assertEquals(RoleManager.DescriptionError.TOO_LONG, RoleManager.validateDescription(text80 + " " + link + "d".repeat(RoleManager.DESCRIPTION_MAX)));
+		assertEquals(RoleManager.DescriptionError.TEMPORARY_URL,
+			RoleManager.validateDescription("Proof https://cdn.discordapp.com/attachments/1/2/how.gif?ex=abc"));
 	}
 
 }

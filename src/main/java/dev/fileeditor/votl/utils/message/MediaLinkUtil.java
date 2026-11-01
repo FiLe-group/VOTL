@@ -69,6 +69,40 @@ public final class MediaLinkUtil {
 	}
 
 	/**
+	 * Cuts the first link that displays media out of the text.
+	 *
+	 * @param content text that may carry a media link.
+	 * @return the text without that link and the link itself, or the whole text and {@code null}
+	 *         when there is no media link in it.
+	 */
+	@NotNull
+	public static MediaSplit splitMediaLink(@Nullable String content) {
+		if (content == null || content.isBlank()) return new MediaSplit(content == null ? "" : content.strip(), null);
+
+		var matcher = URL_PATTERN.matcher(content);
+		while (matcher.find()) {
+			boolean suppressed = "<".equals(matcher.group(1)) && ">".equals(matcher.group(3));
+			if (suppressed) continue;
+			String url = TRAILING_PUNCTUATION.matcher(matcher.group(2)).replaceAll("");
+			if (detectMediaType(url).isEmpty()) continue;
+
+			// Only the link itself is cut - punctuation trimmed off it stays with the text
+			int urlEnd = matcher.start(2) + url.length();
+			String text = (content.substring(0, matcher.start(2)) + " " + content.substring(urlEnd))
+				.replaceAll("\\s{2,}", " ")
+				.strip();
+			return new MediaSplit(text, url);
+		}
+		return new MediaSplit(content.strip(), null);
+	}
+
+	/**
+	 * @param text      what is left once the media link is cut out.
+	 * @param mediaLink the cut out link, {@code null} if there was none.
+	 */
+	public record MediaSplit(@NotNull String text, @Nullable String mediaLink) {}
+
+	/**
 	 * Resolves what media, if any, Discord will display for a single link.
 	 *
 	 * @param url link without any embed suppressing brackets.

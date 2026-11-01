@@ -35,6 +35,7 @@ import dev.fileeditor.votl.utils.database.managers.RoleManager;
 import dev.fileeditor.votl.utils.database.managers.TicketTagManager.Tag;
 import dev.fileeditor.votl.utils.exception.FormatterException;
 import dev.fileeditor.votl.utils.file.lang.LocaleUtil;
+import dev.fileeditor.votl.utils.message.MediaLinkUtil;
 import dev.fileeditor.votl.utils.message.MessageUtil;
 
 import dev.fileeditor.votl.utils.message.TimeUtil;
@@ -387,7 +388,7 @@ public class InteractionListener extends ListenerAdapter {
 			if (options.size() >= 25) break;
 			Role role = guild.getRoleById(data.getIdLong());
 			if (role == null) continue;
-			options.add(SelectOption.of(role.getName(), role.getId()).withDescription(data.getDescription(null)));
+			options.add(SelectOption.of(role.getName(), role.getId()).withDescription(data.getDescriptionText(null)));
 		}
 		if (options.isEmpty()) return null;
 		StringSelectMenu menu = StringSelectMenu.create("menu:role_row:"+row)
@@ -580,7 +581,14 @@ public class InteractionListener extends ListenerAdapter {
 				bot.getTicketUtil().sendRoleTicketPing(channel, event.getMember().getIdLong(), delayRolePing ? Collections.emptyList() : supportRoleIds);
 				
 				String rolesString = String.join(" ", add.stream().map(Role::getAsMention).collect(Collectors.joining(" ")), (otherRole ? lu.getGuildText(event, "bot.ticketing.embeds.other") : ""));
-				String proofString = add.stream().map(role -> db.roles.getDescription(role.getIdLong())).filter(Objects::nonNull).distinct().collect(Collectors.joining("\n- ", "- ", ""));
+				// A media link in a role's description (e.g. how to gather proof) is shown as media below the ticket instead
+				Map<Role, MediaLinkUtil.MediaSplit> descriptions = new LinkedHashMap<>();
+				add.forEach(role -> {
+					String description = db.roles.getDescription(role.getIdLong());
+					if (description != null) descriptions.put(role, MediaLinkUtil.splitMediaLink(description));
+				});
+				String proofString = descriptions.values().stream().map(MediaLinkUtil.MediaSplit::text).filter(text -> !text.isEmpty()).distinct().collect(Collectors.joining("\n- ", "- ", ""));
+				String mediaString = buildRoleMediaString(descriptions);
 				MessageEmbed embed = new EmbedBuilder().setColor(db.getGuildSettings(guild).getColor())
 					.setDescription(String.format("%s\n> %s\n\n%s, %s\n%s\n\n%s",
 						lu.getGuildText(event, "ticket.role_title"),
@@ -596,7 +604,15 @@ public class InteractionListener extends ListenerAdapter {
 				channel.sendMessageEmbeds(embed)
 					.setAllowedMentions(Collections.emptyList())
 					.setComponents(ActionRow.of(approve, close))
-					.queue(msg -> msg.editMessageComponents(ActionRow.of(approve, close.asEnabled())).queueAfter(10, TimeUnit.SECONDS));
+					.queue(msg -> {
+						msg.editMessageComponents(ActionRow.of(approve, close.asEnabled())).queueAfter(10, TimeUnit.SECONDS);
+						// Sent as plain links, so Discord embeds each of them - images, GIFs and videos alike
+						if (mediaString != null) {
+							channel.sendMessage(mediaString)
+								.setAllowedMentions(Collections.emptyList())
+								.queue();
+						}
+					});
 
 				// Log
 				bot.getGuildLogger().ticket.onCreate(guild, channel, event.getUser());
@@ -607,6 +623,25 @@ public class InteractionListener extends ListenerAdapter {
 				).setComponents().queue();
 			}, failure -> event.getHook().editOriginalEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.cant_create", failure.getMessage())).setComponents().queue()
 		);
+	}
+
+	/**
+	 * One line per requested role that has a media link in its description, each link only once.
+	 *
+	 * @return message content, {@code null} if none of the roles has a media link.
+	 */
+	@Nullable
+	private String buildRoleMediaString(Map<Role, MediaLinkUtil.MediaSplit> descriptions) {
+		StringBuilder builder = new StringBuilder();
+		Set<String> seen = new HashSet<>();
+		for (Map.Entry<Role, MediaLinkUtil.MediaSplit> entry : descriptions.entrySet()) {
+			String link = entry.getValue().mediaLink();
+			if (link == null || !seen.add(link)) continue;
+			String line = "%s: %s\n".formatted(entry.getKey().getAsMention(), link);
+			if (builder.length() + line.length() > Message.MAX_CONTENT_LENGTH) break;
+			builder.append(line);
+		}
+		return builder.isEmpty() ? null : builder.toString().strip();
 	}
 
 	private void buttonRoleTicketApprove(ButtonInteractionEvent event) {

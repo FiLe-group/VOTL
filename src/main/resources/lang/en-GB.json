@@ -2361,6 +2361,8 @@
 			"rolesmanage": {
 				"help": "Manage assignable roles via ticket system",
 				"usage": "rolesmanage",
+				"description_long": "Description is too long.",
+				"description_text_long": "Description text is too long - it is shown in the role select menu. A media link (image/GIF/video) does not count, it is shown in the ticket instead.",
 				"add": {
 					"help": "Add role",
 					"usage": "add <@Role> <type> [description] [row] [timed?]",
@@ -2374,7 +2376,7 @@
 					},
 					"description": {
 						"name": "description",
-						"help": "Enter role description, which will be shown with the role (ignored for Custom type roles)"
+						"help": "Role description shown with the role. A media link in it is shown in the ticket instead"
 					},
 					"row": {
 						"name": "row",

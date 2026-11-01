@@ -20,6 +20,7 @@ import dev.fileeditor.votl.utils.database.managers.RoleManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
@@ -43,6 +44,24 @@ public class RolesManageCmd extends SlashCommand {
 	@Override
 	protected void execute(SlashCommandEvent event) {}
 
+	/**
+	 * Replies with an error when the description can't be stored.
+	 *
+	 * @return {@code true} if the description is invalid and the command has to stop.
+	 */
+	private boolean invalidDescription(SlashCommandEvent event, String description) {
+		RoleManager.DescriptionError error = RoleManager.validateDescription(description);
+		if (error == null) return false;
+		switch (error) {
+			case TOO_LONG -> editError(event, "bot.ticketing.rolesmanage.description_long",
+				"Max length: %d".formatted(RoleManager.DESCRIPTION_MAX));
+			case TEXT_TOO_LONG -> editError(event, "bot.ticketing.rolesmanage.description_text_long",
+				"Max length without media link: %d".formatted(RoleManager.DESCRIPTION_TEXT_MAX));
+			case TEMPORARY_URL -> editError(event, "errors.temporary_url");
+		}
+		return true;
+	}
+
 	private class Add extends SlashCommand {
 		public Add() {
 			this.name = "add";
@@ -56,7 +75,7 @@ public class RolesManageCmd extends SlashCommand {
 						new Choice(lu.getText(RoleType.CUSTOM.getPath()), RoleType.CUSTOM.toString())
 					),
 				new OptionData(OptionType.STRING, "description", lu.getText(path+".description.help"))
-					.setMaxLength(80),
+					.setMaxLength(RoleManager.DESCRIPTION_MAX),
 				new OptionData(OptionType.INTEGER, "row", lu.getText(path+".row.help"))
 					.addChoices(
 						new Choice("1", 1),
@@ -86,6 +105,7 @@ public class RolesManageCmd extends SlashCommand {
 				editError(event, path+".exists");
 				return;
 			}
+			if (invalidDescription(event, event.optString("description"))) return;
 			
 			String type = event.optString("type");
 			assert type != null;
@@ -163,7 +183,7 @@ public class RolesManageCmd extends SlashCommand {
 			this.options = List.of(
 				new OptionData(OptionType.ROLE, "role", lu.getText(path+".role.help"), true),
 				new OptionData(OptionType.STRING, "description", lu.getText(path+".description.help"))
-					.setMaxLength(80),
+					.setMaxLength(RoleManager.DESCRIPTION_MAX),
 				new OptionData(OptionType.INTEGER, "row", lu.getText(path+".row.help"))
 					.addChoices(
 						new Choice("1", 1),
@@ -204,6 +224,7 @@ public class RolesManageCmd extends SlashCommand {
 						description = null;
 					response.append(lu.getGuildText(event, path+".default_description"));
 				} else {
+					if (invalidDescription(event, description)) return;
 					response.append(lu.getGuildText(event, path+".changed_description", description));
 				}
 				try {
@@ -344,16 +365,20 @@ public class RolesManageCmd extends SlashCommand {
 					ignoreExc(() -> bot.getDBUtil().roles.remove(data.getIdLong()));
 					return;
 				}
-				buffer.append(String.format("%s%s `%s` | %s\n",
+				final String mediaLink = data.getMediaLink();
+				final String line = String.format("%s%s `%s` | %s%s\n",
 					data.isTimed() ? "⏲️ " : "",
 					role.getAsMention(),
 					role.getId(),
-					data.getDescription("-")
-				));
-				if (buffer.length() > 900) {
+					data.getDescriptionText("-"),
+					mediaLink == null ? "" : " [🖼️](%s)".formatted(mediaLink)
+				);
+				// A line with a media link can be long - flush first, so a field never grows past its limit
+				if (buffer.length() + line.length() > MessageEmbed.VALUE_MAX_LENGTH) {
 					fields.add(new Field((fields.isEmpty() ? title : ""), buffer.toString(), false));
 					buffer.setLength(0);
 				}
+				buffer.append(line);
 			});
 			if (!buffer.isEmpty()) {
 				fields.add(new Field((fields.isEmpty() ? title : ""), buffer.toString(), false));
