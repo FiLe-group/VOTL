@@ -497,7 +497,9 @@ public class AccessCmd extends SlashCommand {
 				editError(event, "errors.option.role");
 				return;
 			}
-			if (role.isPublicRole() || role.isManaged()) {
+			// Roles from integrations (Twitch, YouTube, etc.) and linked roles are flagged managed too, but only
+			// membership is checked for access, so they can be used
+			if (role.isPublicRole() || (role.isManaged() && !role.getTags().isIntegration() && !role.getTags().isLinkedRole())) {
 				editError(event, "errors.option.role_interact");
 				return;
 			}
