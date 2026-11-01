@@ -458,15 +458,19 @@ public class InteractionListener extends ListenerAdapter {
 							.map(option -> guild.getRoleById(option.getValue()))
 							.filter(Objects::nonNull)
 							.toList();
-						guild.modifyMemberRoles(event.getMember(), null, remove).reason("User request").queue(_ ->
+						guild.modifyMemberRoles(event.getMember(), null, remove).reason("User request").queue(_ -> {
+							String removedRoles = remove.stream().map(Role::getAsMention).collect(Collectors.joining(", "));
+							// The audit listener skips changes made by the bot, so log the self-removal here
+							bot.getGuildLogger().role.onRolesRemoved(guild, event.getUser(), event.getUser(), removedRoles);
 							msg.editMessageEmbeds(bot.getEmbedUtil()
-								.getEmbed()
-								.setDescription(lu.getGuildText(event, "bot.ticketing.listener.remove_done", remove.stream().map(Role::getAsMention).collect(Collectors.joining(", "))))
-								.setColor(Constants.COLOR_SUCCESS)
-								.build()
-							)
-							.setComponents()
-							.queue(),
+									.getEmbed()
+									.setDescription(lu.getGuildText(event, "bot.ticketing.listener.remove_done", removedRoles))
+									.setColor(Constants.COLOR_SUCCESS)
+									.build()
+								)
+								.setComponents()
+								.queue();
+						},
 						failure -> msg.editMessageEmbeds(bot.getEmbedUtil().getError(event, "bot.ticketing.listener.remove_failed", failure.getMessage()))
 							.setComponents()
 							.queue()
