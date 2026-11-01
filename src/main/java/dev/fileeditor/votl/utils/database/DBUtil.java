@@ -229,14 +229,15 @@ public class DBUtil {
 				try {
 					for (List<String> version : loadInstructions(activeVersion)) {
 						for (String sql : version) {
-							log.debug(sql);
+							final var finalString = sql.strip();
+							log.debug(finalString);
 							try {
-								st.execute(sql);
+								st.execute(finalString);
 							} catch (SQLException ex) {
 								// SQLite has no ADD COLUMN IF NOT EXISTS - a column that is already there means this step is done.
 								// Only the failed statement is undone, the transaction goes on.
-								if (!isAddColumn(sql) || ex.getMessage() == null || !ex.getMessage().contains("duplicate column name")) throw ex;
-								log.info("SQLite: Column already exists, skipping: {}", sql.strip());
+								if (!isAddColumn(finalString) || ex.getMessage() == null || !ex.getMessage().contains("duplicate column name")) throw ex;
+								log.info("SQLite: Column already exists, skipping: {}", finalString);
 							}
 						}
 					}
