@@ -16,6 +16,7 @@ import dev.fileeditor.votl.menus.ActiveModlogsMenu;
 import dev.fileeditor.votl.menus.ModlogsMenu;
 import dev.fileeditor.votl.menus.ReportMenu;
 import dev.fileeditor.votl.metrics.Metrics;
+import dev.fileeditor.votl.metrics.MetricsRateLimiter;
 import dev.fileeditor.votl.middleware.MiddlewareHandler;
 import dev.fileeditor.votl.middleware.PermissionsCheck;
 import dev.fileeditor.votl.middleware.ThrottleMiddleware;
@@ -42,6 +43,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.requests.RestConfig;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
@@ -212,6 +214,7 @@ public class App {
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
 			.setEventPool(Executors.newSingleThreadExecutor(new CountingThreadFactory("VOTL", "Events")), true)
+			.setRestConfig(new RestConfig().setRateLimiterFactory(MetricsRateLimiter::new))	// REST metrics
 			.addEventListeners(
 				commandClient, eventWaiter, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,

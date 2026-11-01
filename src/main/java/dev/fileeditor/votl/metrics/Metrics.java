@@ -4,6 +4,9 @@ import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.metrics.core.Counter;
 import dev.fileeditor.votl.metrics.core.Histogram;
 import dev.fileeditor.votl.metrics.timeseries.PingData;
+import dev.fileeditor.votl.metrics.timeseries.RestData;
+import dev.fileeditor.votl.metrics.timeseries.SystemData;
+import dev.fileeditor.votl.metrics.timeseries.UsageData;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
@@ -14,10 +17,17 @@ import java.lang.reflect.Modifier;
 public class Metrics {
 
 	// PING
-
 	public static final int TIMESERIES_INTERVAL = 5; // in Minutes
-
 	public static final PingData pingDataStore = new PingData();
+
+	// CPU and memory
+	public static final SystemData systemData = new SystemData();
+
+	// Discord REST
+	public static final RestData restData = new RestData();
+
+	// Commands and interactions
+	public static final UsageData usageData = new UsageData();
 
 	// GLOBAL
 
@@ -67,6 +77,20 @@ public class Metrics {
 		.help("Total prepared SQLite statements created for the given type")
 		.build();
 
+	// DISCORD REST
+
+	public static final Counter restRequests = Counter.builder()
+		.name("votl_rest_requests")
+		.help("Discord REST requests sent, including retries")
+		.build();
+
+	// Labelled '<METHOD> <route>'
+
+	public static final Counter restRateLimited = Counter.builder()
+		.name("votl_rest_rate_limited_total")
+		.help("Discord REST 429 responses by route, since start")
+		.build();
+
 	// SETUP
 
 	public static final Logger LOG = (Logger) LoggerFactory.getLogger(Metrics.class);
@@ -79,6 +103,7 @@ public class Metrics {
 		}
 
 		Metrics.initializeEventMetrics();
+		GcMonitor.install();
 
 		isSetup = true;
 	}

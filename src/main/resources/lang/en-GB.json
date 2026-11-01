@@ -658,6 +658,19 @@
 					"help": "View ping chart for the last 24 hours",
 					"usage": "ping",
 					"failed": "Failed to generate or upload chart."
+				},
+				"system": {
+					"help": "View CPU and memory usage now and for the last 24 hours",
+					"usage": "system"
+				},
+				"rest": {
+					"help": "View Discord REST requests, rate limits and queue for the last 24 hours",
+					"usage": "rest"
+				},
+				"usages": {
+					"help": "View commands and interactions per 5 minutes for the last 24 hours",
+					"usage": "usages",
+					"failed": "Failed to generate or upload chart."
 				}
 			}
 		},
