@@ -152,7 +152,7 @@ public abstract class Interaction extends Reflectionable {
 	}
 
 	private static final String DEFAULT_GUILD_LIMIT = "throttle:guild,20,15";
-	private static final String DEFAULT_USER_LIMIT = "throttle:user,2,5";
+	private static final String DEFAULT_USER_LIMIT = "throttle:user,4,10";
 
 	protected void registerThrottleMiddleware() {
 		if (!hasMiddleware(ThrottleMiddleware.class)) {
