@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.utils.TimeFormat;
 
 @SuppressWarnings("Duplicates")
 public class RoleCmd extends SlashCommand {
@@ -247,12 +248,12 @@ public class RoleCmd extends SlashCommand {
 					editErrorOther(event, "Amount of members to be processed reached maximum limit of **400**! Manually clear the selected role.");
 					return;
 				}
-				editEmbed(event, builder.appendDescription(lu.getGuildText(event, path+".estimate", maxSize)).build());
+				editEmbed(event, builder.appendDescription(lu.getGuildText(event, path+".estimate", TimeFormat.RELATIVE.after(maxSize*1000L))).build());
 
 				String reason = "by "+event.getMember().getEffectiveName();
-				List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+				List<CompletableFuture<Boolean>> completableFutures = new ArrayList<>();
 				for (Member member : members) {
-					completableFutures.add(guild.removeRoleFromMember(member, role).reason(reason).submit().exceptionally(_ -> null));
+					completableFutures.add(guild.removeRoleFromMember(member, role).reason(reason).submit().thenApply(_ -> true).exceptionally(_ -> false));
 				}
 
 				CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
@@ -260,15 +261,12 @@ public class RoleCmd extends SlashCommand {
 						if (exception != null) {
 							editErrorUnknown(event, exception.getMessage());
 						} else {
-							int removed = 0;
-							for (CompletableFuture<Void> future : completableFutures) {
-								if (!future.isCompletedExceptionally()) removed++;
-							}
+							int removed = (int) completableFutures.stream().filter(CompletableFuture::join).count();
 							// Log
 							bot.getGuildLogger().role.onRoleRemovedAll(guild, event.getUser(), role);
 							// Send reply
 							editEmbed(event, builder.setColor(Constants.COLOR_SUCCESS).setDescription(lu.getGuildText(event, path+".done",
-								role.getName(), Integer.toString(removed), Integer.toString(maxSize))
+								role.getName(), removed, maxSize)
 							).build());
 						}
 					}).thenRun(guild::pruneMemberCache); // Prune member cache

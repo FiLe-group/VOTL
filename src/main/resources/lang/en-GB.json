@@ -2810,7 +2810,7 @@
 						"help": "Select role"
 					},
 					"started": "Role removal in progress... {EMOTE_LOADING}",
-					"estimate": "\n*Estimated time for completion `%d` seconds.*",
+					"estimate": "\n*Estimated completion %s.*",
 					"empty": "No members has this role.",
 					"done": "Removed role `%s` from %d/%d users."
 				},
