@@ -29,7 +29,7 @@ public class UserProfileCmd extends SlashCommand {
 		this.module = CmdModule.LEVELS;
 		this.options = List.of(
 			new OptionData(OptionType.USER, "user", lu.getText(path+".user.help")),
-			new OptionData(OptionType.INTEGER, "id", lu.getText(path+".id.help"))
+			new OptionData(OptionType.INTEGER, "bg", lu.getText(path+".bg.help"))
 				.setRequiredRange(0, 20)
 				.addChoice("Dark", 0)
 				.addChoice("Light", 1)
@@ -50,7 +50,7 @@ public class UserProfileCmd extends SlashCommand {
 			return;
 		}
 
-		int selectedBackgroundId = event.optInteger("id", 0);
+		int selectedBackgroundId = event.optInteger("bg", 0);
 
 		sendBackgroundMessage(event, target, selectedBackgroundId);
 	}

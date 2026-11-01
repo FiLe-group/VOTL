@@ -96,7 +96,7 @@ public class UserBackgroundHandler {
 	}
 
 	private boolean isValidBackgroundImage(String fileName) {
-		return fileName.endsWith(".png") || fileName.endsWith(".jpg");
+		return fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".webp");
 	}
 
 	private List<UserBackground> getIndexFile() throws IOException {

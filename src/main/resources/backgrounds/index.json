@@ -29,7 +29,7 @@
     {
       "id": 2,
       "name": "Mountain Ranges",
-      "image": "mountain-range.jpg",
+      "image": "mountain-range.webp",
       "colors": {
         "background": "#373746",
         "mainText": "#e2e2dcd9",
@@ -39,7 +39,7 @@
     {
       "id": 3,
       "name": "Red gradient",
-      "image": "red.jpg",
+      "image": "red.webp",
       "colors": {
         "background": "#373746",
         "mainText": "#e2e2dcd9",
@@ -52,7 +52,7 @@
     {
       "id": 4,
       "name": "Random gradient",
-      "image": "random-1.jpg",
+      "image": "random-1.webp",
       "colors": {
         "background": "#373746",
         "mainText": "#e2e2dcd9",

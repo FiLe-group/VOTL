@@ -161,15 +161,15 @@ public class UserProfileRender extends Renderer {
 
 		if (background.getBackgroundFile() != null) {
 			BufferedImage source = ImageIO.read(new File(background.getBackgroundPath()));
-			if (source.getWidth() >= MAX_WIDTH && source.getHeight() >= HEIGHT) {
-				// Image is large enough - crop a randomly positioned WIDTHxHEIGHT window out of it instead of scaling
-				int x = RandomUtil.getInteger(source.getWidth() - WIDTH + 1);
-				int y = RandomUtil.getInteger(source.getHeight() - HEIGHT + 1);
-				g.drawImage(source.getSubimage(x, y, WIDTH, HEIGHT), 0, 0, null);
-			} else {
-				// Image is too small to crop from - stretch it to fill the card instead
-				g.drawImage(source.getScaledInstance(WIDTH, HEIGHT, Image.SCALE_SMOOTH), 0, 0, null);
-			}
+			// Scale (keeping proportions) so the image covers the full card, normally to the card height
+			double scale = Math.max((double) MAX_WIDTH / source.getWidth(), (double) HEIGHT / source.getHeight());
+			int scaledWidth = (int) Math.ceil(source.getWidth() * scale);
+			int scaledHeight = (int) Math.ceil(source.getHeight() * scale);
+			Image scaled = scale == 1.0 ? source : source.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+			// Cut a randomly positioned WIDTHxHEIGHT window out of the scaled image
+			int x = RandomUtil.getInteger(scaledWidth - WIDTH + 1);
+			int y = RandomUtil.getInteger(scaledHeight - HEIGHT + 1);
+			g.drawImage(scaled, -x, -y, null);
 		} else {
 			g.setColor(background.getColors().getBackgroundColor());
 			g.fillRect(0, 0, WIDTH, HEIGHT);
@@ -395,7 +395,7 @@ public class UserProfileRender extends Renderer {
 		int y = 340;
 
 		g.setFont(Fonts.Montserrat.medium.deriveFont(Font.PLAIN, 14F));
-		String text = "BETA v3";
+		String text = "BETA v4";
 
 		g.setColor(background.getColors().getShadowColor());
 		g.drawString(text, x+2, y+2);

@@ -3366,13 +3366,13 @@
 		"level": {
 			"profile": {
 				"help": "Get user profile",
-				"usage": "profile [@User] [id]",
+				"usage": "profile [@User] [bg]",
 				"user": {
 					"name": "user",
 					"help": "Target user, by default - you"
 				},
-				"id": {
-					"name": "id",
+				"bg": {
+					"name": "bg",
 					"help": "Background ID"
 				},
 				"failed": "Failed to create background."
