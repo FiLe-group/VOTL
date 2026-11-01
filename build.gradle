@@ -39,8 +39,6 @@ dependencies {
 	implementation 'org.json:json:20260814'							// JsonObject
 	// https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
 	implementation 'com.github.ben-manes.caffeine:caffeine:3.3.1'	// Cache
-	// https://mvnrepository.com/artifact/org.reflections/reflections
-	implementation 'org.reflections:reflections:0.10.2'				// Reflections for auto-load
 	// https://mvnrepository.com/artifact/commons-cli/commons-cli
 	implementation 'commons-cli:commons-cli:1.11.0'					// CLI arguments
 
@@ -83,8 +81,8 @@ tasks.register('resolveDependencies') {
 		// Only the project's own classpaths — plugin-internal configurations
 		// (such as Shadow's R8) resolve from repositories we do not declare.
 		['compileClasspath', 'runtimeClasspath', 'testCompileClasspath', 'testRuntimeClasspath']
-				.collect { configurations.named(it) }
-				.each { it.get().resolve() }
+			.collect { configurations.named(it) }
+			.each { it.get().resolve() }
 	}
 }
 
@@ -114,7 +112,7 @@ tasks.build {
 }
 
 // ShadowJar config
-tasks.shadowJar {
+tasks.named('shadowJar') {
 	finalizedBy(copyJar)
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	mergeServiceFiles() // keeps ImageIO plugin (SPI) registrations
@@ -131,10 +129,10 @@ tasks.shadowJar {
 	exclude('META-INF/DEPENDENCIES')
 
 	manifest.attributes(
-			'Implementation-Title': 'VOTL Bot',
-			'Implementation-Version': getFullVersion(version),
-			'Implementation-Vendor': 'FiLe group',
-			'Main-Class': mainClassName
+		'Implementation-Title': 'VOTL Bot',
+		'Implementation-Version': getFullVersion(version),
+		'Implementation-Vendor': 'FiLe group',
+		'Main-Class': mainClassName
 	)
 }
 

@@ -85,7 +85,9 @@ public class Metrics {
 
 	private static void initializeEventMetrics() {
 		try (ScanResult scanResult = new ClassGraph()
-			.enableAllInfo()
+			.enableClassInfo()
+			.ignoreClassVisibility()
+			.enableClasspath()
 			.acceptPackages("net.dv8tion.jda.api.events")
 			.scan()) {
 			scanResult.getAllClasses().stream()

@@ -3,13 +3,16 @@ package dev.fileeditor.votl.utils;
 import ch.qos.logback.classic.Logger;
 import dev.fileeditor.votl.App;
 import dev.fileeditor.votl.contracts.reflection.Reflectional;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ScanResult;
 import org.jetbrains.annotations.NotNull;
-import org.reflections.Reflections;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class AutoloaderUtil {
@@ -21,7 +24,22 @@ public class AutoloaderUtil {
 	}
 
 	public static void load(@NotNull String path, Consumer<Reflectional> callback, boolean parseAppInstance) {
-		Set<Class<? extends Reflectional>> types = new Reflections(path).getSubTypesOf(Reflectional.class);
+		List<Class<? extends Reflectional>> types = new ArrayList<>();
+		try (ScanResult scanResult = new ClassGraph()
+			.enableClassInfo()
+			.ignoreClassVisibility()
+			.enableClasspath()
+			.acceptPackages(path)
+			.scan()) {
+			for (ClassInfo info : scanResult.getAllClassesImplementing(Reflectional.class)) {
+				try {
+					// ClassGraph does not load classes
+					types.add(Class.forName(info.getName(), false, AutoloaderUtil.class.getClassLoader()).asSubclass(Reflectional.class));
+				} catch (ClassNotFoundException | LinkageError e) {
+					LOG.error("Failed to load class {}", info.getName(), e);
+				}
+			}
+		}
 
 		for (Class<? extends Reflectional> reflectionClass : types) {
 			// Skip inner/nested classes
