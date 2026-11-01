@@ -24,21 +24,21 @@ dependencies {
 		exclude module: 'tink'
 	}
 	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-	implementation 'ch.qos.logback:logback-classic:1.6.5'			// Logging (required by JDA)
+	implementation 'ch.qos.logback:logback-classic:1.6.6'			// Logging (required by JDA)
 
 	// Tools
 	// https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
 	implementation 'com.jayway.jsonpath:json-path:3.0.0'			// json path-er
 	// https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-	implementation 'org.xerial:sqlite-jdbc:3.53.4.0'				// sqlite database
+	implementation 'org.xerial:sqlite-jdbc:3.54.1.0'				// sqlite database
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
 	implementation 'org.jsoup:jsoup:1.23.2'							// HTML tools
 	// https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils
-	implementation 'io.github.java-diff-utils:java-diff-utils:4.17'	// Diff finder
+	implementation 'io.github.java-diff-utils:java-diff-utils:4.18'	// Diff finder
 	// https://mvnrepository.com/artifact/org.json/json
 	implementation 'org.json:json:20260814'							// JsonObject
 	// https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
-	implementation 'com.github.ben-manes.caffeine:caffeine:3.3.0'	// Cache
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.3.1'	// Cache
 	// https://mvnrepository.com/artifact/org.reflections/reflections
 	implementation 'org.reflections:reflections:0.10.2'				// Reflections for auto-load
 	// https://mvnrepository.com/artifact/commons-cli/commons-cli
@@ -46,9 +46,13 @@ dependencies {
 
 	// Metrics
 	// https://mvnrepository.com/artifact/io.github.classgraph/classgraph
-	implementation 'io.github.classgraph:classgraph:4.8.196'        // Class lookup
+	implementation 'io.github.classgraph:classgraph:6.0.1'			// Class lookup
 	// https://mvnrepository.com/artifact/org.jfree/jfreechart
 	implementation 'org.jfree:jfreechart:1.5.6'						// Charts
+
+	// Images
+	// https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-webp
+	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.15.3'	// WebP support for ImageIO (pure Java)
 
 	// Eval
 	// https://mvnrepository.com/artifact/org.apache.groovy/groovy
@@ -79,8 +83,8 @@ tasks.register('resolveDependencies') {
 		// Only the project's own classpaths — plugin-internal configurations
 		// (such as Shadow's R8) resolve from repositories we do not declare.
 		['compileClasspath', 'runtimeClasspath', 'testCompileClasspath', 'testRuntimeClasspath']
-			.collect { configurations.getByName(it) }
-			.each { it.resolve() }
+				.collect { configurations.named(it) }
+				.each { it.get().resolve() }
 	}
 }
 
@@ -91,9 +95,9 @@ tasks.jar {
 
 // ShadowJar + copy to base folder
 tasks.register('copyJar') {
-	def shadow = tasks.shadowJar
+	def shadow = tasks.named('shadowJar')
 	dependsOn(shadow)
-	def outFile = shadow.archiveFile          // captured at config time
+	def outFile = shadow.flatMap { it.archiveFile }          // captured at config time
 	def destName = "VOTL-${version}.jar"
 	doLast {
 		copy {
@@ -113,16 +117,11 @@ tasks.build {
 tasks.shadowJar {
 	finalizedBy(copyJar)
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+	mergeServiceFiles() // keeps ImageIO plugin (SPI) registrations
 
 	archiveBaseName = 'VOTL'
 	archiveVersion = getFullVersion(version)
 	archiveClassifier = ''
-	minimize {
-		exclude(dependency('ch.qos.logback:logback-classic:.*'))
-		exclude(dependency('org.xerial:sqlite-jdbc:.*'))
-		exclude(dependency('com.github.ben-manes.caffeine:caffeine:.*'))
-		exclude(dependency('org.apache.groovy:groovy:.*'))
-	}
 
 	exclude('META-INF/*.SF')
 	exclude('META-INF/*.DSA')
@@ -131,12 +130,12 @@ tasks.shadowJar {
 	exclude('META-INF/NOTICE*')
 	exclude('META-INF/DEPENDENCIES')
 
-	manifest {
-		attributes 'Implementation-Title': 'VOTL Bot',
-				'Implementation-Version': getFullVersion(version),
-				'Implementation-Vendor': 'FiLe group',
-				'Main-Class': mainClassName
-	}
+	manifest.attributes(
+			'Implementation-Title': 'VOTL Bot',
+			'Implementation-Version': getFullVersion(version),
+			'Implementation-Vendor': 'FiLe group',
+			'Main-Class': mainClassName
+	)
 }
 
 tasks.test {

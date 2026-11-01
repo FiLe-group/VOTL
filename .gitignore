@@ -46,3 +46,6 @@ app/.settings/org.eclipse.buildship.core.prefs
 
 # Idea
 .idea
+
+# Other
+docs/
