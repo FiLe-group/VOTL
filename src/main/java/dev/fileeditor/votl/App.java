@@ -3,6 +3,7 @@ package dev.fileeditor.votl;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Set;
+import java.util.concurrent.Executors;
 
 import dev.fileeditor.votl.base.command.CommandClient;
 import dev.fileeditor.votl.base.command.CommandClientBuilder;
@@ -210,6 +211,7 @@ public class App {
 			.enableCache(enabledCacheFlags)
 			.disableCache(disabledCacheFlags)
 			.setBulkDeleteSplittingEnabled(false)
+			.setEventPool(Executors.newSingleThreadExecutor(new CountingThreadFactory("VOTL", "Events")), true)
 			.addEventListeners(
 				commandClient, eventWaiter, interactionListener,
 				guildListener, voiceListener, moderationListener, messageListener,

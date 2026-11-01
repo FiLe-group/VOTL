@@ -209,6 +209,10 @@ public class DBUtil {
 		return result;
 	}
 
+	private static boolean isAddColumn(String sql) {
+		return sql.strip().toUpperCase().matches("^ALTER\\s+TABLE\\s+\\S+\\s+ADD\\s.*");
+	}
+
 	private void updateDB() {
 		// 0 - skip
 		int newVersion = getResourcesDBVersion();
@@ -226,7 +230,14 @@ public class DBUtil {
 					for (List<String> version : loadInstructions(activeVersion)) {
 						for (String sql : version) {
 							log.debug(sql);
-							st.execute(sql);
+							try {
+								st.execute(sql);
+							} catch (SQLException ex) {
+								// SQLite has no ADD COLUMN IF NOT EXISTS - a column that is already there means this step is done.
+								// Only the failed statement is undone, the transaction goes on.
+								if (!isAddColumn(sql) || ex.getMessage() == null || !ex.getMessage().contains("duplicate column name")) throw ex;
+								log.info("SQLite: Column already exists, skipping: {}", sql.strip());
+							}
 						}
 					}
 					conn.commit();

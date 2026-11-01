@@ -59,8 +59,8 @@ public class MessageListener extends ListenerAdapter {
 		if (event.getChannelType().isThread()) {
 			long channelId = event.getChannel().getIdLong();
 			var tickets = bot.getDBUtil().tickets;
-			if (tickets.isRoleTicket(channelId) && !tickets.isRolePinged(channelId) && !tickets.isClosed(channelId)) {
-				Long requesterId = tickets.getUserId(channelId);
+			if (tickets.isOpenChannel(channelId) && tickets.isRoleTicket(channelId)) {
+				Long requesterId = tickets.getPendingRolePing(channelId);
 				if (requesterId != null && requesterId == event.getAuthor().getIdLong()) {
 					List<Long> supportRoleIds = bot.getDBUtil().ticketSettings.getSettings(guildId).getRoleSupportIds();
 					tickets.setRolePinged(channelId);

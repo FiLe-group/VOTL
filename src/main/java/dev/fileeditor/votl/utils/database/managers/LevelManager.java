@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -110,12 +111,15 @@ public class LevelManager extends LiteBase {
 	}
 
 	public void updatePlayer(PlayerObject player, PlayerData playerData) throws SQLException {
+		// globalExp is incremented, so only send what was gained since the last flush
+		final long addedGlobal = playerData.getAddedGlobalExperience();
 		execute("INSERT INTO %s(guildId, userId, textExp, voiceExp, globalExp, lastUpdate) VALUES (%d, %d, %d, %d, %d, %d) ON CONFLICT(guildId, userId) DO UPDATE SET textExp=%4$d, voiceExp=%5$d, globalExp=globalExp+%6$d, lastUpdate=%7$d;"
 			.formatted(
 				TABLE_PLAYERS, player.guildId, player.userId,
-				playerData.getExperience(ExpType.TEXT), playerData.getExperience(ExpType.VOICE), playerData.getAddedGlobalExperience(), playerData.getLastUpdate()
+				playerData.getExperience(ExpType.TEXT), playerData.getExperience(ExpType.VOICE), addedGlobal, playerData.getLastUpdate()
 			)
 		);
+		playerData.flushedGlobalExperience(addedGlobal);
 	}
 
 	public void addVoiceTime(PlayerObject player, long duration) {
@@ -133,7 +137,8 @@ public class LevelManager extends LiteBase {
 
 	public Integer getServerRank(long guildId, long userId, ExpType expType) {
 		String type = expType==ExpType.TEXT?"textExp":"voiceExp";
-		return selectOne("WITH rankedUsers AS (SELECT userId, guildId, %s, DENSE_RANK() OVER (PARTITION BY guildId ORDER BY %<s DESC) AS rank FROM %s) SELECT rank FROM rankedUsers WHERE (guildId=%d AND userId=%d AND %1$s>0)"
+		// Same as DENSE_RANK over the guild, but only counts the higher scores through the (guildId, exp) index
+		return selectOne("SELECT (SELECT COUNT(DISTINCT %1$s) FROM %2$s WHERE (guildId=%3$d AND %1$s>p.%1$s))+1 AS rank FROM %2$s p WHERE (guildId=%3$d AND userId=%4$d AND %1$s>0)"
 			.formatted(type, TABLE_PLAYERS, guildId, userId), "rank", Integer.class);
 	}
 
@@ -248,7 +253,8 @@ public class LevelManager extends LiteBase {
 	public static class PlayerData {
 		private long textExperience = 0;
 		private long voiceExperience = 0;
-		private long addedGlobalExperience = 0;
+		// Gained since the last flush. Added on event threads while the flush job reads it, hence atomic.
+		private final AtomicLong addedGlobalExperience = new AtomicLong();
 		private long lastUpdate = 0;
 
 		PlayerData(Map<String, Object> data) {
@@ -278,7 +284,15 @@ public class LevelManager extends LiteBase {
 		}
 
 		public long getAddedGlobalExperience() {
-			return addedGlobalExperience;
+			return addedGlobalExperience.get();
+		}
+
+		/**
+		 * Marks {@code amount} as written to the DB. Subtracted rather than reset, so experience
+		 * gained while the flush was running is kept for the next one.
+		 */
+		public void flushedGlobalExperience(long amount) {
+			addedGlobalExperience.addAndGet(-amount);
 		}
 
 		public void setExperience(long experience, ExpType expType) {
@@ -294,7 +308,7 @@ public class LevelManager extends LiteBase {
 				case TEXT -> textExperience += amount;
 				case VOICE -> voiceExperience += amount;
 			}
-			this.addedGlobalExperience += amount;
+			this.addedGlobalExperience.addAndGet(amount);
 			this.lastUpdate = Instant.now().toEpochMilli();
 		}
 

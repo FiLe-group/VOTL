@@ -6,6 +6,8 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -25,14 +27,23 @@ public class TicketManager extends LiteBase {
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.expireAfterAccess(1, TimeUnit.HOURS)
 		.build();
-	// Role tickets with reviewers already pinged. Only ever changes from not pinged to pinged.
+	// Role tickets with no reviewer ping pending - already pinged or closed. Both are final, tickets are never reopened.
 	private final Cache<Long, Boolean> pingedCache = Caffeine.newBuilder()
 		.maximumSize(Constants.DEFAULT_CACHE_SIZE)
 		.expireAfterAccess(1, TimeUnit.HOURS)
 		.build();
-	
+
+	// Channels of open tickets. Checked on every message in threads, most of which are not tickets.
+	private final Set<Long> openChannels = ConcurrentHashMap.newKeySet();
+
 	public TicketManager(ConnectionUtil cu) {
 		super(cu, "ticket");
+		openChannels.addAll(select("SELECT channelId FROM %s WHERE (closed=0)".formatted(table), "channelId", Long.class));
+	}
+
+	/** Whether this channel belongs to an open ticket, without a DB query. */
+	public boolean isOpenChannel(long channelId) {
+		return openChannels.contains(channelId);
 	}
 
 	/* tags:
@@ -45,6 +56,7 @@ public class TicketManager extends LiteBase {
 		try {
 			execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, roleIds, replyWait, rolePinged) VALUES (%d, %s, %s, %s, 0, %s, %d, %d)"
 				.formatted(table, ticketId, userId, guildId, channelId, quote(roleIds), replyTime.isPositive() ? Instant.now().plus(replyTime).getEpochSecond() : 0, pinged ? 1 : 0));
+			openChannels.add(channelId);
 		} catch (SQLException ignored) {}
 		tagCache.invalidate(channelId);
 	}
@@ -53,6 +65,7 @@ public class TicketManager extends LiteBase {
 		try {
 			execute("INSERT INTO %s(ticketId, userId, guildId, channelId, tagId, replyWait) VALUES (%d, %s, %s, %s, %d, %d)"
 				.formatted(table, ticketId, userId, guildId, channelId, tagId, replyTime.isPositive() ? Instant.now().plus(replyTime).getEpochSecond() : 0));
+			openChannels.add(channelId);
 		} catch (SQLException ignored) {}
 		tagCache.invalidate(channelId);
 	}
@@ -84,11 +97,13 @@ public class TicketManager extends LiteBase {
 	// set status
 	public void closeTicket(Instant timeClosed, long channelId, String reason) throws SQLException {
 		execute("UPDATE %s SET closed=1, timeClosed=%d, reasonClosed=%s WHERE (channelId=%s)".formatted(table, timeClosed.getEpochSecond(), quote(reason), channelId));
+		openChannels.remove(channelId);
 	}
 
 	public void forceCloseTicket(long channelId) {
 		try {
 			execute("UPDATE %s SET closed=1 WHERE (channelId=%s)".formatted(table, channelId));
+			openChannels.remove(channelId);
 		} catch (SQLException ignored) {}
 	}
 
@@ -145,13 +160,16 @@ public class TicketManager extends LiteBase {
 		return tagId != null && tagId == 0;
 	}
 
-	public boolean isRolePinged(long channelId) {
-		// Only the pinged state is cached, as it is final
-		if (pingedCache.getIfPresent(channelId) != null) return true;
-		Integer data = selectOne("SELECT rolePinged FROM %s WHERE (channelId=%s)".formatted(table, channelId), "rolePinged", Integer.class);
-		boolean pinged = data == null || data == 1;
-		if (pinged) pingedCache.put(channelId, true);
-		return pinged;
+	/**
+	 * Requester of a role ticket whose reviewers are still waiting for the delayed ping, meaning it is
+	 * open and not pinged yet, or {@code null} when no ping is pending. One read per message instead of
+	 * separate rolePinged/closed/userId lookups, and none once the answer is final.
+	 */
+	public @Nullable Long getPendingRolePing(long channelId) {
+		if (pingedCache.getIfPresent(channelId) != null) return null;
+		Long userId = selectOne("SELECT userId FROM %s WHERE (channelId=%s AND rolePinged=0 AND closed=0)".formatted(table, channelId), "userId", Long.class);
+		if (userId == null) pingedCache.put(channelId, true);
+		return userId;
 	}
 
 	public void setRolePinged(long channelId) {
